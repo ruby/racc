@@ -1,3 +1,7 @@
+Thu Nov 14 14:39:53 2002  Minero Aoki  <aamine@loveruby.net>
+
+	* raccs.rb: explicit method call for VCALL.
+
 Wed Oct 16 15:45:11 2002  Minero Aoki  <aamine@loveruby.net>
 
 	* parser.rb: reformat.

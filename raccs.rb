@@ -39,7 +39,7 @@ module Racc
 
 
     def scan
-      ret = do_scan
+      ret = do_scan()
       if @debug then
         $stderr.printf "%7d %-10s %s\n",
                        lineno, ret[0].inspect, ret[1].inspect
