@@ -24,6 +24,7 @@
 #define vFINAL_TOK INT2FIX(FINAL_TOK)
 
 static VALUE RaccBug;
+static VALUE CparseParams;
 
 static ID id_yydebug;
 static ID id_nexttoken;
@@ -83,6 +84,8 @@ static ID id_d_e_pop;
 
 
 struct cparse_params {
+    VALUE vv;
+
     VALUE parser;
     VALUE recv;
     ID    mid;
@@ -127,7 +130,7 @@ struct cparse_params {
 #define REDUCE(v, act) \
     v->ruleno = -act * 3;                            \
     tmp = rb_iterate(catch_iter, v->parser,          \
-                     do_reduce, (VALUE)v);           \
+                     do_reduce, v->vv);              \
     code = FIX2INT(tmp);                             \
     tmp = rb_ivar_get(v->parser, id_errstatus);      \
     v->errstatus = FIX2INT(tmp);                     \
@@ -214,7 +217,7 @@ call_scaniter(data)
 {
     struct cparse_params *v;
 
-    v = (struct cparse_params*)data;
+    Data_Get_Struct(data, struct cparse_params, v);
     rb_funcall(v->recv, v->mid, 0);
 
     return Qnil;
@@ -227,7 +230,7 @@ catch_scaniter(arr, data, self)
     struct cparse_params *v;
     VALUE tok, val;
 
-    v = (struct cparse_params*)data;
+    Data_Get_Struct(data, struct cparse_params, v);
     check_nexttoken_value(arr);
     tok = AREF(arr, 0);
     val = AREF(arr, 1);
@@ -242,8 +245,8 @@ static void
 wrap_yyparse(v)
     struct cparse_params *v;
 {
-    rb_iterate(call_scaniter, (VALUE)v,
-               catch_scaniter, (VALUE)v);
+    rb_iterate(call_scaniter, v->vv,
+               catch_scaniter, v->vv);
 }
 
 static void
@@ -256,6 +259,8 @@ initvars(parser, v, arg, recv, mid)
           ntbas, red_tbl, tok_tbl, shi_n, red_n;
     VALUE debugp;
 
+
+    v->vv = Data_Wrap_Struct(CparseParams, 0, 0, v);
 
     v->parser = parser;
     v->recv = recv;
@@ -344,7 +349,7 @@ check_nexttoken_value(arr)
     }
     if (RARRAY(arr)->len != 2)
         rb_raise(rb_eArgError,
-                 "an array from next_token is not size 2");
+                 "size of array returned from next_token is not 2");
 }
 
 static void
@@ -571,7 +576,7 @@ do_reduce(val, data, self)
     long i, k1, k2;
     VALUE ret;
 
-    v = (struct cparse_params*)data;
+    Data_Get_Struct(data, struct cparse_params, v);
     reduce_len = RARRAY(v->reduce_table)->ptr[v->ruleno];
     reduce_to  = RARRAY(v->reduce_table)->ptr[v->ruleno+1];
     method_id  = RARRAY(v->reduce_table)->ptr[v->ruleno+2];
@@ -665,12 +670,16 @@ doret:
 void
 Init_cparse()
 {
+    VALUE Racc;
     VALUE Parser;
 
     Parser = rb_eval_string("::Racc::Parser");
     rb_define_private_method(Parser, "_racc_do_parse_c", racc_cparse, 2);
     rb_define_private_method(Parser, "_racc_yyparse_c", racc_yyparse, 4);
     rb_define_const(Parser, "Racc_c_parser_version", rb_str_new2(RACC_VERSION));
+
+    Racc = rb_eval_string("::Racc");
+    CparseParams = rb_define_class_under(Racc, "RaccCparseParams", rb_cObject);
 
     RaccBug = rb_eRuntimeError;
 
