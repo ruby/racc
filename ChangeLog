@@ -1,3 +1,13 @@
+Sun Oct 12 23:27:58 2003  Minero Aoki  <aamine@loveruby.net>
+
+	* doc/debug.rd.m: junk char was inserted.
+
+	* doc/index.html.m: en/ja text were mixed.
+
+	* doc/parser.rrd.m: add return values.
+
+	* doc/usage.html.m: fix hyper link.
+
 Sun Oct 12 22:57:28 2003  Minero Aoki  <aamine@loveruby.net>
 
 	* doc.en/changes.html, doc.ja/changes.html -> doc/NEWS.rd.m

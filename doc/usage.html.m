@@ -1,3 +1,4 @@
+j
 <h1>Racc の使い方</h1>
 <p>
 Racc は文法規則から Ruby で書かれたパーサを生成するパーサジェネレータです。
@@ -321,8 +322,8 @@ Racc ではそれを上から順番に header inner footer と呼んでいます。
 の引数など、詳しいことはリファレンスを見てください。
 </p>
 <ul>
-<li><a href="parser.html#do_parse">do_parse</a>
-<li><a href="parser.html#yyparse">yyparse</a>
+<li><a href="parser.html#Racc%3a%3aParser-do_parse">do_parse</a>
+<li><a href="parser.html#Racc%3a%3aParser-yyparse">yyparse</a>
 </ul>
 <p>
 どちらのメソッドにも共通なのはトークンの形式です。必ずトークンシンボル
@@ -342,16 +343,16 @@ Racc ではそれを上から順番に header inner footer と呼んでいます。
 <p>
 Racc には error トークンを使ったエラー回復機能もあります。yacc の
 <code>yyerror()</code> は Racc では
-<a href="parser.html"><code>Parser#on_error</code></a> で、エラーが
-おきたトークンとその値、値スタック、の三つの引数をとります。
-<code>on_error</code> はデフォルトでは例外 <code>ParseError</code> を
-発生するようになっています。
+<a href="parser.html#Racc%3a%3aParser-on_error"><code>Racc::Parser#on_error</code></a>
+で、エラーが起きたトークンとその値、値スタック、の三つの引数をとります。
+<code>on_error</code> のデフォルトの実装は例外
+<code>Racc::ParseError</code> を発生します。
 </p>
 <p>
 ユーザがアクション中でパースエラーを発見した場合は、メソッド
-<code>yyerror</code>を呼べばパーサがエラー回復モードに入ります。ただし
-このときは <code>on_error</code>は呼ばれないので、なにか報告をしたい時
-はユーザが明示的に <code>on_error</code> を呼んだりする必要があります。
+<a href="parser.html#Racc%3a%3aParser-yyerror"><code>yyerror</code></a>
+を呼べばパーサがエラー回復モードに入ります。
+ただしこのとき <code>on_error</code>は呼ばれません。
 </p>
 
 <h3>パーサを生成する</h3>
@@ -412,6 +413,7 @@ Ruby 1.8 以降には標準添付されていますし、
 <a href="http://i.loveruby.net/ja/">筆者のホームページ</a>には
 単体パッケージがあります。
 </p>
+e
 <h1>Usage</h1>
 
 <h2>Generating Parser Using Racc</h2>
@@ -455,8 +457,8 @@ an array 'val', $-1, $-2... is an array '_values'.
 <p>
 Then you must prepare parse entry method. There's two types of
 racc's parse method, 
-<a href="parser.html#do_parse">"do_parse()"</a> and
-<a href="parser.html#yyparse">"yyparse()"</a>.
+<a href="parser.html#Racc%3a%3aParser-do_parse"><code>do_parse</code></a> and
+<a href="parser.html#Racc%3a%3aParser-yyparse"><code>yyparse</code></a>.
 </p>
 <p>
 "do_parse()" is simple. it is yyparse() of yacc, and "next_token()" is
@@ -504,3 +506,4 @@ Only you must do is to distribute your parser file (myparser.rb).
 Note: parser.rb is LGPL, but your parser is not.
 Your own parser is completely yours.
 </p>
+.

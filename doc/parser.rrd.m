@@ -23,7 +23,7 @@ j
 ください。
 .
 
-: do_parse
+: do_parse -> Object
 j
     パースを開始します。
     また、トークンが必要になった時は #next_token を呼び出します。
@@ -48,7 +48,9 @@ e
         end
       --
 
-: next_token [abstract]
+: next_token -> [Symbol, Object]
+    [abstract method]
+
 j
     パーサが次のトークンを読みこむ時に使います。
     [記号, その値] の形式の配列を返してください。
@@ -147,8 +149,9 @@ e
     This method raises ParseError by default.
 
     If this method returns, parsers enter "error recovering mode".
+.
 
-: token_to_str( t )
+: token_to_str( t ) -> String
 j
     Racc トークンの内部表現 (整数)
     を文法ファイル上の記号表現の文字列に変換します。
@@ -177,7 +180,7 @@ e
 
 : yyaccept
 j
-    すぐに値スタックの先頭の値を返して #do_parse, #yyparse を抜けます。
+    すぐに値スタックの先頭の値を返して #do_parse、#yyparse を抜けます。
 e
     Exit parser.
     Return value is Symbol_Value_Stack[0].
