@@ -175,7 +175,8 @@ class Y
     @text, save = [], @text
     scan_action s
     @text = save
-    @text.push "{\n                # action\n            }"
+    #@text.push "{\n                # action\n            }"
+    @text.push "{  }"
   end
 
   def scan_action( s )
