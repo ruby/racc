@@ -1,32 +1,77 @@
-#!/usr/bin/ruby
+#!/usr/bin/env ruby
 #
-# r2yacc  ---  racc to yacc converter
+# r2yacc  --  racc to yacc converter
 #
-#   Copyright (c) 1999-2001 Minero Aoki <aamine@loveruby.net>
+# Copyright (c) 1999-2003 Minero Aoki <aamine@loveruby.net>
 #
-#   This program is feee software.
-#   You can distribute/modify this program under the terms of
-#   the GNU Lesser General Public License version 2 or later.
+# This program is feee software.
+# You can distribute/modify this program under the terms of
+# the GNU Lesser General Public License version 2 or later.
 #
 
 require 'getopts'
 require 'racc/compiler'
 
 
-class R
+RACC2Y_VERSION = '1.1.1'
 
-  Version = '1.1.0'
+def usage( stat = 0 )
+  $stderr.puts 'wrong option' unless stat == 0
+  (stat == 0 ? $stdout : $stderr).print(<<EOS)
+Usage: racc2y [-AHIF] [-o outfile] raccfile
+    -o <file>  output file name  [y.<inputfile>]
+    -A         did not output actions
+    -H         output 'header'
+    -I         output 'inner'
+    -F         output 'footer'
+EOS
+  exit stat
+end
 
+def main
+  getopts('AHIF', 'o:', 'version', 'help', 'copyright') or usage 1
+  if $OPT_version
+    puts "racc2y version #{RACC2Y_VERSION}"
+    exit 0
+  end
+  if $OPT_copyright
+    puts 'Copyright (c) 1999-2003 Minero Aoki'
+    exit 0
+  end
+  usage 0 if $OPT_help
+  usage 1 unless ARGV.size == 1
+
+  fname = ARGV[0]
+  outf = $OPT_o || 'y.' + fname
+  begin
+    str = nil
+    File.open(fname) {|f| str = f.read }
+  rescue Errno::ENOENT
+    $stderr.puts "#{File.basename $0}: no such file: #{fname}"
+    exit 1
+  end
+  conv = Converter.new
+  conv.parse str, fname
+  File.open(outf, 'w') {|f|
+    conv.output(f)
+  }
+end
+
+
+class Converter
 
   def initialize
     @symboltable = Racc::SymbolTable.new(self)
     @ruletable   = Racc::RuleTable.new(self)
     @parser      = Racc::GrammarFileParser.new(self)
+    @result_var = true
   end
 
   attr_reader :ruletable
   attr_reader :symboltable
   attr_reader :parser
+
+  attr_accessor :result_var
 
   def debug()   false end
   def verbose() false end
@@ -34,7 +79,6 @@ class R
   def d_token() false end
   def d_rule()  false end
   def d_state() false end
-
 
   ###
   ### parse
@@ -44,13 +88,11 @@ class R
     @fname = fname
     @parser.parse str
     @ruletable.init
-
-    u = Racc::GrammarFileParser.get_ucode(fname)
-    @header, = u['header']
-    @inner,  = u['inner']
-    @footer, = u['footer']
+    u = Racc::GrammarFileParser.get_usercode(fname)
+    @header, = *u['header']
+    @inner,  = *u['inner']
+    @footer, = *u['footer']
   end
-
 
   ###
   ### output
@@ -62,7 +104,7 @@ class R
     f.print(<<EOS)
 /*
 
-    generated from #{@fname} by racc2y version #{R::Version}
+    generated from #{@fname} by racc2y version #{RACC2Y_VERSION}
 
 */
 
@@ -210,50 +252,4 @@ EOS
 end   # class R
 
 
-def usage( stat = 0 )
-  $stderr.puts 'wrong option' unless stat == 0
-  (stat == 0 ? $stdout : $stderr).print(<<EOS)
-
-racc2y version #{R::Version}
-
-usage:
-
-    racc2y [-AHIF] [-o outfile] raccfile
-
-    -o <file>  output file name  [y.<inputfile>]
-    -A         did not output actions
-    -H         output 'header'
-    -I         output 'inner'
-    -F         output 'footer'
-
-EOS
-  exit stat
-end
-
-getopts('AHIF', 'o:', 'version', 'help', 'copyright') or usage 1
-if $OPT_version
-  puts "racc2y version #{R::Version}"
-  exit 0
-end
-if $OPT_copyright
-  puts "Copyright (c) 2000 Minero Aoki <aamine@loveruby.net>"
-  exit 0
-end
-usage 0 if $OPT_help
-usage 1 unless ARGV.size == 1
-
-
-fname = ARGV[0]
-outf = $OPT_o || 'y.' + fname
-begin
-  str = nil
-  File.open(fname) {|f| str = f.read }
-rescue Errno::ENOENT
-  $stderr.puts "#{File.basename $0}: no such file: #{fname}"
-  exit 1
-end
-r = R.new
-r.parse str, fname
-File.open(outf, 'w') {|f|
-    r.output f
-}
+main

@@ -1,27 +1,71 @@
-#!/usr/bin/ruby
+#!/usr/bin/env ruby
 #
 # y2racc  --  yacc to racc converter
 #
-#   Copyright (c) 1999-2001 Minero Aoki <aamine@loveruby.net>
+# Copyright (c) 1999-2003 Minero Aoki <aamine@loveruby.net>
 #
-#   This program is free software.
-#   You can distribute/modify this program under the terms of
-#   the GNU Lesser General Public Lisence version 2 or later.
+# This program is free software.
+# You can distribute/modify this program under the terms of
+# the GNU Lesser General Public Lisence version 2 or later.
 #
 
 require 'getopts'
 require 'strscan'
-
-
 unless defined? StringScanner_C or $".include?('strscan.so')
   $stderr.puts "#{$0}: fatal: NEVER USE ruby-level strscan with y2racc"
   exit 3
 end
 
-class Y
 
-  Version = '1.1.0'
+Y2RACC_VERSION = '1.1.1'
 
+def usage( stat = 1 )
+  $stderr.puts "#{File.basename $0}: wrong option" unless stat == 0
+  (stat == 0 ? $stdout : $stderr).print(<<EOS)
+Usage: y2racc [-AC] [-c classname] [-o outfile] yaccfile
+    -o <file>    name of output file  [r.<inputfile>]
+    -c <name>    name of parser class [MyParser]
+    -u           output also user code (%%....)
+    -H           cut off header (%{....%})
+    -A           cut off actions
+    -U           cut off user code (%%....) (default)
+EOS
+  exit stat
+end
+
+def main
+  getopts('uAHU', 'c:', 'o:', 'version', 'copyright', 'help') or usage 1
+  $OPT_u = false if $OPT_U
+  if $OPT_version
+    puts "y2racc version #{Y2RACC_VERSION}"
+    exit 0
+  end
+  if $OPT_copyright
+    puts 'Copyright (c) 1999-2003 Minero Aoki'
+    exit 0
+  end
+  usage 0 if $OPT_help
+  usage 1 unless ARGV.size == 1
+
+  cname = $OPT_c || 'MyParser'
+  fname = ARGV[0]
+  outf = $OPT_o || 'r.' + fname
+  conv Converter.new(cname)
+  begin
+    File.open(fname) {|f|
+      conv.parse f, fname
+    }
+  rescue Errno::ENOENT
+    $stderr.puts "no such file: #{fname}"
+    exit 1
+  end
+  File.open(outf, 'w') {|f|
+    conv.output f
+  }
+end
+
+
+class Converter
 
   def initialize( cname )
     @cname = cname
@@ -54,7 +98,7 @@ class Y
     skip_until_percent s
     until s.empty?
       if t = s.scan(/(left|right|nonassoc|token|start)\b/)
-        send 'proc_' + t, get_tokens( s )
+        __send__ 'proc_' + t, get_tokens(s)
 
       elsif s.skip %r<(?:
             type | union | expect | thong | binary |
@@ -90,48 +134,44 @@ class Y
   end
 
   def get_tokens( s )
-    ret = []
+    list = []
     until s.empty?
       s.skip /\s+/
-      next if s.skip COMMENT
-
+      next if s.skip(COMMENT)
       if t = s.scan(/'((?:[^'\\]+|\\.)*)'/)
-        ret.push t
+        list.push t
       elsif t = s.scan(/"((?:[^"\\]+|\\.)*)"/)
-        ret.push t
-      elsif s.skip /\%/
+        list.push t
+      elsif s.skip(/\%/)
         break
       elsif t = s.scan(/\S+/)
-        ret.push t
+        list.push t
       else
         raise 'scan error'
       end
     end
-
-    ret
+    list
   end
 
-  def proc_left( arr )
-    @prectab.push ['left', arr]
+  def proc_left( list )
+    @prectab.push ['left', list]
   end
 
-  def proc_right( arr )
-    @prectab.push ['right', arr]
+  def proc_right( list )
+    @prectab.push ['right', list]
   end
 
-  def proc_nonassoc( arr )
-    @prectab.push ['nonassoc', arr]
+  def proc_nonassoc( list )
+    @prectab.push ['nonassoc', list]
   end
 
-  def proc_token( arr )
-    if /\A\<.*\>\z/ === arr[0]
-      arr.shift
-    end
-    @tokens.concat arr
+  def proc_token( list )
+    list.shift if /\A<(.*)>\z/ === list[0]
+    @tokens.concat list
   end
 
-  def proc_start( arr )
-    @start = arr[0]
+  def proc_start( list )
+    @start = list[0]
   end
 
   ###
@@ -141,27 +181,23 @@ class Y
 
   def procrule( s )
     @text = []
-
     until s.empty?
       if t = s.scan(/[^%'"{\/]+/)
         @text.push t
         break if s.empty?
       end
-
       if s.skip /\{/
         if $OPT_A
           skip_action s
         else
           scan_action s
         end
-      elsif t = s.scan( STRINGq ) then @text.push t
-      elsif t = s.scan( STRINGQ ) then @text.push t
-      elsif t = s.scan( COMMENT ) then @text.push t
-      elsif s.skip /%prec\b/      then @text.push '='
-      elsif s.skip /%%/
-        if $OPT_u
-          @footer = s.rest
-        end
+      elsif t = s.scan(STRINGq) then @text.push t
+      elsif t = s.scan(STRINGQ) then @text.push t
+      elsif t = s.scan(COMMENT) then @text.push t
+      elsif s.skip(/%prec\b/)   then @text.push '='
+      elsif s.skip(/%%/)
+        @footer = s.rest if $OPT_u
         break
       else
         @text.push s.getch
@@ -179,7 +215,6 @@ class Y
 
   def scan_action( s )
     @text.push '{'
-
     nest = 1
     until s.empty?
       if t = s.scan(/[^{'"}\/]+/)
@@ -190,7 +225,6 @@ class Y
         @text.push t
         next
       end
-
       c = s.getch
       @text.push c
       case c
@@ -205,19 +239,17 @@ class Y
         ;
       end
     end
-
     $stderr.puts "warning: unterminated action in #{@fname}"
   end
-
 
   #
   # output
   #
 
   def output( f )
-    f.print <<SRC
+    f.print(<<SRC)
 #
-# converted from "#{@fname}" by y2racc version #{Version}
+# converted from "#{@fname}" by y2racc version #{Y2RACC_VERSION}
 #
 
 class #{@cname}
@@ -269,55 +301,4 @@ SRC
 end
 
 
-def usage( stat = 1 )
-  $stderr.puts "#{File.basename $0}: wrong option" unless stat == 0
-  (stat == 0 ? $stdout : $stderr).print(<<EOS)
-
-y2racc version #{Y::Version}
-
-usage:
-
-    y2racc [-AC] [-c classname] [-o outfile] yaccfile
-
-    -o <file>    name of output file  [r.<inputfile>]
-    -c <name>    name of parser class [MyParser]
-    -u           output also user code (%%....)
-    -H           cut off header (%{....%})
-    -A           cut off actions
-    -U           cut off user code (%%....) (default)
-
-EOS
-  exit stat
-end
-
-
-getopts('uAHU', 'c:', 'o:', 'version', 'copyright', 'help') or usage 1
-$OPT_u = false if $OPT_U
-if $OPT_version then
-  puts "y2racc version #{Y::Version}"
-  exit 0
-end
-if $OPT_copyright then
-  puts 'Copyright (c) 2000 Minero Aoki <aamine@loveruby.net>'
-  exit 0
-end
-usage 0 if $OPT_help
-usage 1 unless ARGV.size == 1
-
-
-cname = $OPT_c || 'MyParser'
-fname = ARGV[0]
-outf = $OPT_o || 'r.' + fname
-
-y = Y.new(cname)
-begin
-  File.open(fname) {|f|
-      y.parse f, fname
-  }
-rescue Errno::ENOENT
-  $stderr.puts "no such file: #{fname}"
-  exit 1
-end
-File.open(outf, 'w') {|f|
-    y.output f
-}
+main
