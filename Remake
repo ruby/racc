@@ -9,7 +9,7 @@ require 'amstd/bug'
 
 environ( 'rubyprog/racc' ) {
 
-  $version   = '1.3.9'
+  $version   = '1.3.10'
 
   $type      = 'ruby'
   $package   = 'racc'
