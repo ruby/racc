@@ -8,7 +8,7 @@ mount 'strscan'
 
 environ( 'rubyprog/racc' ) {
 
-  $version   = '1.4.1'
+  $version   = '1.4.2'
 
   $packaging = %w( single multi )
   $type      = 'ruby'
@@ -104,7 +104,10 @@ Racc (Ruby yACC) is a LALR(1) parser generator for Ruby.
   def set_files_etc( dest )
     cp $bootsrc,               isdir(dest, 'src')
     cp Dir.glob('sample/*.y'), isdir(dest, 'sample')
-    cp indir('misc', $misc),   isdir(dest, 'misc')
+    mkdir dest + '/misc'
+    $misc.each do |n|
+      cp 'misc/' + n, dest + '/misc'
+    end
   end
 
   def pack
