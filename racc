@@ -598,9 +598,9 @@ def report_useless( racc, opt )
 
   if nt > 0 or rl > 0 then
     $stderr.printf "%s%s%s\n",
-                   nt > 0                 ? "#{nt} useless nonterminal" : '',
+                   nt > 0                 ? "#{nt} useless nonterminals" : '',
                    ((nt > 0) && (rl > 0)) ? ' and '                     : '',
-                   rl > 0                 ? "#{rl} useless rule"        : ''
+                   rl > 0                 ? "#{rl} useless rules"        : ''
   end
 
   if racc.ruletable.start.useless? then
