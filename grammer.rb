@@ -9,7 +9,6 @@
 #
 
 require 'racc/iset'
-require 'amstd/must'
 
 
 module Racc

@@ -13,8 +13,6 @@ require 'racc/grammer'
 require 'racc/state'
 require 'racc/output'
 
-require 'amstd/must'
-
 
 unless [].respond_to? 'collect!' then
   class Array
