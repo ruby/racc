@@ -205,8 +205,7 @@ end
 ##### compile ----------------------------------------------
 
 def set_flags1( racc, opt )
-  racc.make_profile = opt['-P']
-  racc.verbose      = opt['--output-status']
+  racc.verbose = opt['--output-status']
 
   if opt['-D'] and /p/ === opt['-D'] then
     racc.d_parse = true

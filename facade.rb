@@ -31,7 +31,6 @@ module Racc
     attr :formatter
 
     attr_accessor :debug_parser
-    attr_accessor :make_profile
     attr_accessor :convert_line
     attr_accessor :omit_action
     attr_accessor :result_var
@@ -51,7 +50,6 @@ module Racc
     def initialize
       @debug_parser = false
       @verbose      = false
-      @make_profile = false
       @convert_line = true
       @omit_action  = true
       @result_var   = true

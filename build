@@ -37,8 +37,6 @@ class Compiler
 
   def filename() '(build)' end
 
-  def verbose()      false end
-  def make_profile() false end
   def debug_parser() @dflag end
   def convert_line() true end
   def omit_action()  true end
