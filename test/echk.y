@@ -23,7 +23,7 @@ rule
          | exp '/' exp { result /= val[2] }
          | '(' { $emb = true } exp ')'
              {
-               raise 'must not heppen' unless $emb
+               raise 'must not happen' unless $emb
                result = val[2]
              }
          | '-' NUMBER  { result = -val[1] }

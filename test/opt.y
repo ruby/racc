@@ -25,7 +25,7 @@ rule
          | exp '/' exp { chk(val[0] / val[2]) }
          | '(' { $emb = true } exp ')'
              {
-	       raise 'must not happen' unless $emb
+               raise 'must not happen' unless $emb
                val[2]
              }
          | '-' NUMBER  { -val[1] }

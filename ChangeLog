@@ -1,3 +1,11 @@
+Mon Feb 16 16:14:16 2004  Minero Aoki  <aamine@loveruby.net>
+
+	* test/echk.y: fix typo.
+
+	* test/ichk.y: does not use amstd.
+
+	* test/opt.y: untabify.
+
 Mon Feb 16 16:10:46 2004  Minero Aoki  <aamine@loveruby.net>
 
 	* lib/racc/boot: update coding style.
