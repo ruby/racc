@@ -65,7 +65,7 @@ environ( 'racc' ) do
 
 
   def build
-    upd a(g :src), 2, (g :version)
+    upver a(g :src)
     chdir( g :dir ) do
       command './build &> er'
     end
@@ -73,7 +73,7 @@ environ( 'racc' ) do
 
 
   def update
-    upver a(g(:bin), g(:mainrb), g(:src)), (g :version)
+    upver a(g(:bin), g(:mainrb), g(:src))
     (e :raccrt).update
   end
 
@@ -100,8 +100,6 @@ environ( 'racc' ) do
 
   environ( 'raccrt' ) do
 
-    set :version, (e :racc).g(:version)
-
     set :dir, (e :racc).g(:dir)
 
     set :type,     'ruby'
@@ -115,7 +113,7 @@ environ( 'racc' ) do
 
 
     def update
-      upver a(g :rb), g(:version)
+      upver a(g :rb), (e :racc).g(:version)
       (e :cparse).update
     end
 
