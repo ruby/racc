@@ -9,12 +9,13 @@
     the GNU Lesser General Public Lisence version 2 or later.
 
     $Id$
+
 */
 
 #include <stdio.h>
 #include "ruby.h"
 
-#define RACC_VERSION "1.3.12"
+#define RACC_VERSION "1.4.0"
 
 #define DFLT_TOK -1
 #define ERR_TOK   1
@@ -715,6 +716,7 @@ Init_cparse()
     rb_define_private_method(Parser, "_racc_do_parse_c", racc_cparse, 2);
     rb_define_private_method(Parser, "_racc_yyparse_c", racc_yyparse, 4);
     rb_define_const(Parser, "Racc_c_parser_version", rb_str_new2(RACC_VERSION));
+    rb_define_const(Parser, "Racc_c_parser_id", rb_str_new2("$Id$"));
 
     CparseParams = rb_define_class_under(Racc, "CparseParams", rb_cObject);
 

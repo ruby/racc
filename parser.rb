@@ -4,14 +4,13 @@
 #   Copyright (c) 1999-2001 Minero Aoki <aamine@loveruby.net>
 #
 #   This program is free software.
-#   You can distribute/modify this program under the terms of
-#   the GNU Lesser General Public License version 2 or later.
+#   You can distribute/modify this program under the same terms of ruby.
 #
 #   As a special exception, when this code is copied by Racc
 #   into a Racc output file, you may use that output file
 #   without restriction.
 #
-# $Id$
+#   $Id$
 #
 
 module Racc
@@ -35,7 +34,7 @@ module Racc
 
     begin
       if defined? Racc_Debug_Ruby_Parser then
-        raise LoadError, 'debug ruby routine'
+        raise LoadError, 'debugging ruby version runtime routine'
       end
       require 'racc/cparse'
       unless new.respond_to? :_racc_do_parse_c, true then
@@ -43,13 +42,17 @@ module Racc
       end
       Racc_Main_Parsing_Routine = :_racc_do_parse_c
       Racc_YY_Parse_Method      = :_racc_yyparse_c
+      Racc_c_parser_revision    = Racc_c_parser_id.split(/\s+/)[2]
     rescue LoadError
       Racc_Main_Parsing_Routine = :_racc_do_parse_rb
       Racc_YY_Parse_Method      = :_racc_yyparse_rb
     end
 
-    Racc_ruby_parser_version = '1.3.12'
+    Racc_ruby_parser_version = '1.4.0'
+    Racc_ruby_parser_revision = '$Id$'.split(/\s+/)[2]
+
     Racc_parser_version = Racc_ruby_parser_version
+    Racc_parser_revision = Racc_ruby_parser_revision
 
     def self.racc_runtime_type
       if Racc_Main_Parsing_Routine == :_racc_do_parse_c then
