@@ -1,5 +1,4 @@
-* ensure 'error' token handling.
-* rewrite generator core in C.
+* check 'error' token handling.
 * interactive transition table monitor.
 * support backtracking.
 * output Ruby extention library?
