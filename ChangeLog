@@ -1,3 +1,9 @@
+Sun Oct 12 18:46:21 2003  Minero Aoki  <aamine@loveruby.net>
+
+	* web/racc.ja.html: update descriptions.
+
+	* web/racc.en.html: ditto.
+
 Sun Oct 12 18:43:45 2003  Minero Aoki  <aamine@loveruby.net>
 
 	* misc/dist.sh: remove web/ directory before distribute.
