@@ -15,7 +15,7 @@ environ( 'rubyprog/racc' ) {
   $instpath  = 'racc'
   $topfile   =  nil
 
-  $extern_libs = %w( raccrt strscan amstd )
+  $extern_libs = %w( raccrt strscan amstd )   # strscan is optional
 
   $view_name = 'Racc'
   $category  = 'parser generator'
