@@ -1,6 +1,6 @@
 /* vi:set sw=4:
 
-    cparse.c  (racc version 1.3.2)
+    cparse.c  (racc version 1.3.3)
   
     Copyright (c) 1999,2000 Minero Aoki <aamine@dp.u-netsurf.ne.jp>
   
