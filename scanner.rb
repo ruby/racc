@@ -1,12 +1,10 @@
 #
 # scanner.rb
 #
-#     Copyright(c) 1999 Minero Aoki
-#     aamine@dp.u-netsurf.ne.jp
+#   Copyright (c) 1999 Minero Aoki <aamine@dp.u-netsurf.ne.jp>
 #
 
 require 'amstd/bug'
-require 'amstd/must'
 require 'racc/strscan'
 
 
@@ -35,7 +33,6 @@ class Scanner
 
 
   def reset( str )
-    str.must String
     @preserve = str
     @scan.reset( str, false )
     @lineno = 1

@@ -32,8 +32,14 @@
     end
 
     def on_error( tok, val, _values )
+      case val
+      when Fixnum then v = val.id2name
+      when String then v = val
+      else
+        v = val.inspect
+      end
       raise ParseError, <<MES
-  parse error:#{@filename}:#{@scanner.lineno}: unexpected token '#{val}'
+  parse error:#{@filename}:#{@scanner.lineno}: unexpected token '#{v}'
 MES
     end
 

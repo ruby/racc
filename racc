@@ -5,11 +5,6 @@
 #     Copyright (c) 1999 Minero Aoki <aamine@dp.u-netsurf.ne.jp>
 #
 
-$stdout.sync = true
-
-
-GC.disable
-
 
 ##### parse arg ------------------------------------------------
 
@@ -23,19 +18,19 @@ usage: racc.rb [ options ] <source file>
   options
 
     -g   output source for (user) debugging
-    -v   verbose mode --- make r.output file
+    -v   make <filename>.output file
     -P   report simple profile
 
     -o<outfile>   designate output file name.
                     default '<basename>.tab.rb'
     -e<ruby-path> output executable ruby source file
     -n<classname> use <classname> for name of parser class
+    -h<header>    use <header> file for 'header' code
     -i<inner>     use <inner> file for 'inner' code
-    -p<prepare>   use <prepare> file for 'prepare' code
-    -d<driver>    use <driver> file for 'driver' code
+    -f<footer>    use <footer> file for 'footer' code
 
     --version     print version and quit
-    --help(-h)    print this message and quit
+    --help        print this message and quit
 
 MESSAGE
 
@@ -43,8 +38,9 @@ end
 $USAGE = 'usage'
 
 
-parseArgs( 1, nil, "vhPgG",
-  'o:', 'n:', 'i:', 'p:', 'd:', 'e:', 'R:', 'D:', 'X:', 'S:',
+parseArgs( 1, nil, "vgPG",
+  'o:', 'n:', 'h:', 'i:', 'f:', 'e:/usr/local/bin/ruby',
+	'R:', 'D:', 'X:', 'S:',
   'version', 'help' )
 
 
@@ -59,7 +55,7 @@ if $OPT_version then
   exit 0
 end
 
-if $OPT_help or $OPT_h then
+if $OPT_help then
   usage
   exit 0
 end
@@ -136,13 +132,15 @@ def connect_part_raccfile( srcfn, outf, name )
   end
 end
 
-def connect_part( srcfn, f, opt, part_name )
+def connect_part( srcfn, f, opt, *part_name )
   if opt then
     opt.split(':').each do |fn|
       connect fchk(fn), f
     end
   else
-    connect_part_raccfile srcfn, f, part_name
+		part_name.each do |part|
+			connect_part_raccfile srcfn, f, part
+		end
   end
 end
 
@@ -202,11 +200,15 @@ end
 
 ##### main -------------------------------------------------
 
+GC.disable   # :-)
 
 racc = Racc.new
 
-racc.dsrc = true if $OPT_g
+if $OPT_g then
+	racc.dsrc = true
+end
 if $OPT_D then
+	$stdout.sync = true
   racc.debug    = true
   racc.d_prec   = true if /p/io === $OPT_D
   racc.d_rule   = true if /r/io === $OPT_D
@@ -216,8 +218,6 @@ if $OPT_D then
   racc.d_shift  = true if /h/io === $OPT_D
 end
 
-
-$stdout.sync = true if $DEBUG
 
 srcfn = ARGV[0]
 srcstr = nil
@@ -239,12 +239,12 @@ File.open( tabfn, 'w' ) do |f|
     f.puts
   end
   f.puts  "require '#{$OPT_X || 'racc/parser'}'"
-  connect_part srcfn, f, $OPT_p, 'prepare'
+  connect_part srcfn, f, $OPT_h, 'header', 'prepare'
   f.puts  "class #{class_name} < #{$OPT_S || 'Parser'}\n"
   connect_part srcfn, f, $OPT_i, 'inner'
   racc.source f
   f.puts  "end"
-  connect_part srcfn, f, $OPT_d, 'driver'
+  connect_part srcfn, f, $OPT_f, 'footer', 'driver'
 end
 
 if $OPT_e then

@@ -19,9 +19,9 @@ class Parser
 
   begin
     require 'racc/cparse'   # def _c_parse
-    $Racc_Main_Parsing_Routine = :c
+    Racc_Main_Parsing_Routine = :c
   rescue LoadError
-    $Racc_Main_Parsing_Routine = :rb
+    Racc_Main_Parsing_Routine = :rb
   end
 
 
@@ -34,7 +34,7 @@ class Parser
     end
     @yydebug = @yydebug ? true : false
 
-    case $Racc_Main_Parsing_Routine
+    case Racc_Main_Parsing_Routine
     when :c  then _c_parse false
     when :rb then _rb_parse
     else
