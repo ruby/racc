@@ -17,7 +17,7 @@
 #define ERR_TOK   1
 #define FINAL_TOK 0
 
-static VALUE FindBug;
+static VALUE RaccBug;
 
 static ID id_yydebug;
 static ID id_nexttoken;
@@ -66,17 +66,17 @@ if (1) {                    \
 #define GET_POINTER(pointer, table, state, retvar) \
 if (1) {                                                              \
     if (state < 0 || state >= RARRAY(pointer)->len)                   \
-      rb_raise(FindBug, "[Racc Bug] illegal state: %ld", state);      \
+      rb_raise(RaccBug, "[Racc Bug] illegal state: %ld", state);      \
     tmp = RARRAY(pointer)->ptr[state];                                \
     retvar = FIX2LONG(tmp);                                           \
     if (retvar < 0 || retvar > RARRAY(table)->len - 2)                \
-      rb_raise(FindBug, "[Racc Bug] illegal table ptr: %ld", retvar); \
+      rb_raise(RaccBug, "[Racc Bug] illegal table ptr: %ld", retvar); \
 }
 
 #define SEARCH(table, i, t, retvar) \
 if (1) {                                                         \
     if (i < 0 || i > RARRAY(table)->len - 2)                     \
-      rb_raise(FindBug, "[Racc Bug] illegal table ptr: %ld", i); \
+      rb_raise(RaccBug, "[Racc Bug] illegal table ptr: %ld", i); \
     while (1) {                                                  \
         long lt;                                                 \
         tmp = RARRAY(table)->ptr[i];                             \
@@ -162,14 +162,14 @@ do_reduce(v, ruleno, debug)
     }
 
     if (RARRAY(v->state)->len == 0) {
-        rb_raise(FindBug, "state stack unexpected empty");
+        rb_raise(RaccBug, "state stack unexpected empty");
     }
     tmp = LAST_I(v->state);
     ltmp = FIX2LONG(tmp);
     GET_POINTER(v->goto_ptr, v->goto_table, ltmp, i);
     SEARCH(v->goto_table, i, re, ltmp);
     if (ltmp < 0) {
-        rb_raise(FindBug,
+        rb_raise(RaccBug,
           "[Racc Bug] state=%d, goto < 0", v->curstate);
     }
     v->curstate = ltmp;
@@ -374,7 +374,7 @@ raccparse(parser,
                 ACCEPT(v);
             }
             else {
-                rb_raise(FindBug, "[Racc Bug] unknown act value %ld", act);
+                rb_raise(RaccBug, "[Racc Bug] unknown act value %ld", act);
             }
         }
         else if (act == shift_n) {
@@ -382,7 +382,7 @@ raccparse(parser,
             ACCEPT(v);
         }
         else {
-            rb_raise(FindBug, "[Racc Bug] unknown act value %ld", act);
+            rb_raise(RaccBug, "[Racc Bug] unknown act value %ld", act);
         }
     }
 }
@@ -396,7 +396,7 @@ Init_cparse()
     parser = rb_eval_string("::Racc::Parser");
     rb_define_private_method(parser, "_c_parse", raccparse, 9);
 
-    FindBug = rb_eval_string("FindBug");
+    RaccBug = rb_eRuntimeError;
 
     id_yydebug      = rb_intern("@yydebug");
     id_nexttoken    = rb_intern("next_token");
