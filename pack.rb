@@ -12,17 +12,28 @@ environ( 'racc' ) do
 
   set :dir, expand('~/r/racc')
 
+  set :type,      'ruby'
+  set :package,   'racc'
+  set :instpath,  'racc'
+  set :topfile,    nil
+  set :raw,        true
+
+  set :extern_libs, %w( raccrt strscan amstd )
+
   set :view_name, 'Racc'
   set :category,  'parser generator'
   set :format,    'ruby script, ruby extention'
   set :require,   'ruby(>=1.4), C compiler'
   set :license,   'LGPL'
-  set :type,      'ruby'
-  set :package,   'racc'
-  set :instpath,  'racc'
-  set :topfile,    nil
+  set :manual,     true
 
-  set :raw, true
+  set :description_ja, <<'----'
+not avairable.
+----
+  set :description_en, <<'----'
+Racc (Ruby yACC) is a LALR(1) Parser Generator for Ruby.
+This tool is written in Ruby and outputs Ruby scripts.
+----
 
 
   set :bin, %w( racc )
@@ -61,8 +72,6 @@ environ( 'racc' ) do
     BUGS.en
   )
 
-  set :extern_libs, %w( raccrt strscan amstd )
-
 
   def build
     upver a(g :src)
@@ -70,7 +79,6 @@ environ( 'racc' ) do
       command './build &> er'
     end
   end
-
 
   def update
     upver a(g(:bin), g(:mainrb), g(:src))
@@ -97,31 +105,30 @@ environ( 'racc' ) do
     (e :raccrt).site
   end
 
-
-  environ( 'raccrt' ) do
-
-    set :version, (e :racc).g(:version)
-    set :dir, (e :racc).g(:dir)
-
-    set :type,     'ruby'
-    set :package,  'raccrt'
-    set :instpath, 'racc'
-    set :topfile,   nil
-
-    set :rb, %w( parser.rb )
-
-    set :intern_libs, %w( cparse )
+end
 
 
-    def update
-      upver a(g :rb), (e :racc).g(:version)
-      (e :cparse).update
-    end
+environ( 'raccrt' ) do
 
-    def site
-      cp_archive_site
-    end
+  set :version, (e :racc).g(:version)
+  set :dir, (e :racc).g(:dir)
 
+  set :type,     'ruby'
+  set :package,  'raccrt'
+  set :instpath, 'racc'
+  set :topfile,   nil
+
+  set :intern_libs, %w( cparse )
+
+  set :rb, %w( parser.rb )
+
+  def update
+    upver a(g :rb), (e :racc).g(:version)
+    (e :cparse).update
+  end
+
+  def site
+    cp_archive_site
   end
 
 
@@ -135,10 +142,8 @@ environ( 'racc' ) do
     set :instpath, 'racc'
     set :topfile,   nil
 
-
     set :c, %w( cparse.c )
     set :etool, %w( MANIFEST extconf.rb )
-
 
     def update
       upver a(g :c), (e :racc).g(:version)
