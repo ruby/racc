@@ -1,0 +1,7 @@
+#
+# raccp.rb
+#
+#    Copyright (c) 1999 Minero Aoki <aamine@dp.u-netsurf.ne.jp>
+#
+
+require 'racc/parser'

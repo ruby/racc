@@ -7,7 +7,7 @@
 
 require 'amstd/bug'
 require 'amstd/must'
-require 'strscan'
+require 'racc/strscan'
 
 
 

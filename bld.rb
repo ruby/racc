@@ -1,13 +1,21 @@
 #!/usr/local/bin/ruby
 
-require 'amstd/my'
 require 'amstd/must'
 
 require 'racc/parser'
 
-require './d.rule'
-require './d.state'
-require './d.format'
+require './rule'
+require './state'
+require './format'
+
+
+def openread( fn )
+  fn = File.expand_path( fn )
+  f = File.open( fn )
+  ret = f.read
+  f.close
+  ret
+end
 
 class Racc
 
@@ -181,8 +189,8 @@ class Racc
     @statetable.do_initialize
     @statetable.resolve
 
-    File.open( 'libracc.rb', 'w' ) do |f|
-      f.write openread( 'd.head.rb' )
+    File.open( 'raccp.rb', 'w' ) do |f|
+      f.write openread( 'p.prepare' )
       f.puts
       f.write <<SRC
 $RACCPARSER_DEBUG = #{ @dflag ? 'true' : 'false' }
@@ -190,16 +198,11 @@ $RACCPARSER_DEBUG = #{ @dflag ? 'true' : 'false' }
 class Racc
 
 SRC
-      f.write openread( 'd.facade.rb' )
-      f.write openread( 'd.scan.rb' )
-      f.write openread( 'd.parse.rb' )
+      f.write openread( 'p.inner' )
       @formatter.source( f )
-      f.puts  '  end'
+      f.puts '  end'
       f.puts
-      f.write openread( 'd.rule.rb' )
-      f.write openread( 'd.state.rb' )
-      f.write openread( 'd.format.rb' )
-      f.write 'end'
+      f.puts 'end'
     end
 
     File.open( 'b.output', 'w' ) do |f|

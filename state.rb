@@ -1,3 +1,11 @@
+#
+# state.rb
+#
+#   Copyright (c) 1999 Minero Aoki <aamine@dp.u-netsurf.ne.jp>
+#
+
+
+class Racc
 
   class LALRstateTable
 
@@ -671,3 +679,5 @@
     end
 
   end
+
+end

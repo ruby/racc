@@ -1,3 +1,11 @@
+#
+# facade.rb
+#
+#   Copyright (c) 1999 Minero Aoki <aamine@dp.u-netsurf.ne.jp>
+#
+
+class Racc
+
   Version = '0.10.0'
 
   attr :class_name
@@ -79,3 +87,4 @@
     @srconf = []
   end
 
+end

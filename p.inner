@@ -23,11 +23,15 @@
       do_parse
     end
 
+
+    private
+
+
     def next_token
       @scanner.scan
     end
 
-    def on_error( tok, val, state, sstack, vstack )
+    def on_error( tok, val, _values )
       raise ParseError, <<MES
   parse error:#{@filename}:#{@scanner.lineno}: unexpected token '#{val}'
 MES

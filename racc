@@ -2,8 +2,7 @@
 #
 # racc version 0.10.0
 #
-#     Copyright (c) 1999 Minero Aoki
-#     <aamine@dp.u-netsurf.ne.jp>
+#     Copyright (c) 1999 Minero Aoki <aamine@dp.u-netsurf.ne.jp>
 #
 
 $stdout.sync = true

@@ -1,3 +1,11 @@
+#
+# format.rb
+#
+#   Copyright (c) 1999 Minero Aoki <aamine@dp.u-netsurf.ne.jp>
+#
+
+
+class Racc
 
   class RaccFormatter
 
@@ -169,8 +177,7 @@
         rl.action.sub! /\s+\z/o, ''
         out << sprintf( <<SOURCE, rl.ruleid, rl.action )
 
-def _reduce_%d( tok, val, _tokens, _values, _states )
- result = val[0]
+def _reduce_%d( val, _values, result )
 %s
  result
 end
@@ -315,3 +322,4 @@ SRC
 
   end   # class RaccFormatter
 
+end

@@ -1,3 +1,10 @@
+#
+# rule.rb
+#
+#   Copyright (c) 1999 Minero Aoki <aamine@dp.u-netsurf.ne.jp>
+#
+
+class Racc
 
   class BuildInterface
 
@@ -81,7 +88,8 @@
       @end_conv = true
     end
 
-  end
+  end   # BuildInterface
+
     
 
   class RuleTable
@@ -197,7 +205,7 @@
       return ret
     end
 
-  end   # class RuleTable
+  end   # RuleTable
 
 
 
@@ -286,7 +294,7 @@
       end
     end
 
-  end   # class Rule
+  end   # Rule
 
 
 
@@ -396,7 +404,7 @@ attr :tokens
     attr :anchor
     attr :default
 
-  end
+  end   # TokenTable
 
 
   class Token
@@ -531,3 +539,4 @@ end
 
   end   # Token
 
+end

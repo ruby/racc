@@ -124,14 +124,14 @@ class Parser
         reduce_to = reduce_table[i+1]
         method_id = reduce_table[i+2]
 
-        tmp_t = tstack[ -len, len ]
+        tmp_t = tstack[ -len, len ] if @yydebug
         tmp_v = vstack[ -len, len ]
-        tstack[ -len, len ] = void_array
+        tstack[ -len, len ] = void_array if @yydebug
         vstack[ -len, len ] = void_array
         state[ -len, len ]  = void_array
 
         # tstack must be renewed AFTER method calling
-        vstack.push send( method_id, tmp_t, tmp_v, tstack, vstack, state )
+        vstack.push send( method_id, tmp_v, vstack, tmp_v[0] )
         tstack.push reduce_to
 
         _reduce( tmp_t, reduce_to, tstack ) if @yydebug
@@ -161,7 +161,7 @@ class Parser
         #
 
         begin
-          on_error( tok, val, tstack, vstack, state )
+          on_error( val, vstack )
         rescue ParseError
           raise
         rescue
@@ -180,7 +180,7 @@ class Parser
   end
 
 
-  def on_error( tok, val, tstack, vstack, state )
+  def on_error( val, vstack )
     raise ParseError,
       "\nIn state #{state[-1]}, got unexpected token '#{val.inspect}'"
   end

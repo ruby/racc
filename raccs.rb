@@ -1,3 +1,13 @@
+#
+# raccs.rb
+#
+#   Copyright (c) 1999 Minero Aoki <aamine@dp.u-netsurf.ne.jp>
+#
+
+require 'racc/scanner'
+
+
+class Racc
 
   class RaccScanner < Scanner
 
@@ -157,5 +167,6 @@
       return ret
     end
 
-  end   # RaccScanner
+  end
 
+end
