@@ -101,7 +101,7 @@ _"  rubyconst   : XSYMBOL                                                ",
                    %{
                         result = result.id2name
                     }
-_"              | rubyconst ':' ':' XSYMBOL                              ",
+_"              | rubyconst ':'':' XSYMBOL                               ",
                    %{
                         result << '::' << val[3].id2name
                     }
@@ -164,7 +164,7 @@ _"              | XRIGHT symbol_list                                     ",
                     }
 _"              | XNONASSOC symbol_list                                  ",
                    %{
-                        @symboltable.register_prec( :Nonassoc, val[1] )
+                        @symboltable.register_prec :Nonassoc, val[1]
                     }
 
 _"  symbol_list : symbol                                                 ",
