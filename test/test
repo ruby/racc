@@ -1,0 +1,78 @@
+#!/usr/local/bin/ruby
+
+require 'amstd/futils'
+require 'amstd/must'
+require 'amstd/bug'
+
+if ARGV[0] == '--1.4' then
+  $ruby = 'ruby-1.4'
+else
+  $ruby = 'ruby'
+end
+
+File.truncate 'er', 0
+
+def dotest( code )
+  File.open('er', 'a') {|f| f.puts $ruby+' '+code }
+  unless system "#{$ruby} #{code} 1>log 2>> er" then
+    puts "test '#{code}' failed"
+    exit 1
+  end
+  puts "ok: #{code}"
+end
+
+def comptest( arg, chk = nil )
+  fname = arg.shift
+  opt = if arg.empty? then nil else arg.join(' ') end
+  n = fname.sub(/\.y\z/, '')
+  a = [ opt, '-Oout/' + n, '-otab/' + n ].compact
+  File.truncate 'log', 0
+  dotest "../racc -Dapo #{a.join ' '} #{fname}"
+  if chk then
+    File.foreach( 'log' ) do |line|
+      line.strip!
+      case line
+      when /sr/ then line.must_be "sr#{chk[0]}"
+      when /rr/ then line.must_be "rr#{chk[1]}"
+      when /un/ then line.must_be "un#{chk[2]}"
+      when /ur/ then line.must_be "ur#{chk[3]}"
+      else
+        bug!
+      end
+    end
+  end
+end
+
+
+remove = false
+ARGV.each do |opt|
+  case opt
+  when /--remove/ then remove = true
+  when /--remain/ then remove = false
+  end
+end
+
+comptest %w( syntax.y -v               ), []
+comptest %w( newsyn.y                  ), []
+comptest %w( normal.y                  ), []
+comptest %w( normal.y -vg              )
+comptest %w( chk.y    -vg              ), []; dotest 'tab/chk'
+comptest %w( chk.y    -c               ), []; dotest 'tab/chk'
+comptest %w( err.y                     ), []; dotest 'tab/err'
+comptest %w( mailp.y                   ), []
+comptest %w( conf.y   -v               ), [4,1,1,2]
+comptest %w( opt.y                     ), []; dotest 'tab/opt'
+comptest %w( yyerr.y                   ), []; dotest 'tab/yyerr'
+comptest %w( recv.y                    ), [5,10,1,4]
+comptest %w( ichk.y                    ), []; dotest 'tab/ichk'
+
+if remove then
+  Dir.glob( '*.tab.rb' ) do |fn|
+    FileUtils.rm_f fn
+  end
+  Dir.glob( '*.output' ) do |fn|
+    FileUtils.rm_f fn
+  end
+end
+
+print "\n\n        ok\n\n\n"
