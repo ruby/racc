@@ -1,6 +1,6 @@
 /* vi:set sw=4:
 
-    cparse.c  (racc version 1.3.3)
+    cparse.c
   
     Copyright (c) 1999,2000 Minero Aoki <aamine@dp.u-netsurf.ne.jp>
   
@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include "ruby.h"
 
+#define RACC_VERSION "1.3.3"
 
 #define DFLT_TOK -1
 #define ERR_TOK   1
@@ -664,11 +665,12 @@ doret:
 void
 Init_cparse()
 {
-    VALUE parser;
+    VALUE Parser;
 
-    parser = rb_eval_string("::Racc::Parser");
-    rb_define_private_method(parser, "_racc_do_parse_c", racc_cparse, 2);
-    rb_define_private_method(parser, "_racc_yyparse_c", racc_yyparse, 4);
+    Parser = rb_eval_string("::Racc::Parser");
+    rb_define_private_method(Parser, "_racc_do_parse_c", racc_cparse, 2);
+    rb_define_private_method(Parser, "_racc_yyparse_c", racc_yyparse, 4);
+    rb_define_const(Parser, "Racc_c_parser_version", rb_str_new2(RACC_VERSION));
 
     RaccBug = rb_eRuntimeError;
 
