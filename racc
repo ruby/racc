@@ -95,6 +95,7 @@ o -C --check-only       - syntax check only
 o -S --output-status    - output status time to time
 o -h --help             - print this message and quit
 o -  --version          - print version and quit
+o -  --runtime-version  - print runtime version and quit
 o -  --copyright        - print copyright and quit
 
 x -P -                  - report profile
@@ -137,6 +138,19 @@ def get_options
 
   if opt['--version'] then
     puts "racc version #{Racc::Version}"
+    exit 0
+  end
+
+  if opt['--runtime-version'] then
+    require 'racc/parser'
+    printf "racc runtime in Ruby:%s, in C:%s; %s version is running\n",
+           Racc::Parser::Racc_ruby_parser_version,
+           if defined? Racc::Parser::Racc_c_parser_version then
+             Racc::Parser::Racc_c_parser_version
+           else
+             '(not exist)'
+           end,
+           Racc::Parser.racc_runtime_type.capitalize
     exit 0
   end
 

@@ -28,7 +28,7 @@ module Racc
 
 
     begin
-      if defined? Racc_Debug_Ruby_Level_Parser then
+      if defined? Racc_Debug_Ruby_Parser then
         raise LoadError, 'debug ruby routine'
       end
       require 'racc/cparse'
