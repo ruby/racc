@@ -1,55 +1,51 @@
 #
-# rubyloader.rb
+# $amstdId: rubyloader.rb,v 1.6 2004/02/12 14:53:48 aamine Exp $
 #
-# Copyright (c) 1999-2003 Minero Aoki <aamine@loveruby.net>
+# Copyright (c) 1999-2004 Minero Aoki
 #
 # This program is free software.
 # You can distribute/modify this program under the terms of
-# the GNU LGPL, Lesser General Public License version 2.
+# the GNU LGPL, Lesser General Public License version 2.1.
 # For details of the GNU LGPL, see the file "COPYING".
-#
-# $ amstd Id: rubyloader.rb,v 1.5 2003/05/26 14:14:57 aamine Exp $
 #
 
 require 'rbconfig'
 
-
 module RubyLoader
-
-  module_function
-
-  def find_feature( feature )
-    with_ext(feature) do |fname|
-      $LOAD_PATH.each do |dir|
-        path = dir + '/' + fname
-        return path if File.file? path
-      end
-    end
-
-    nil
+  def find_feature(feature)
+    candidacy_pathes(feature).find {|path| File.file?(path) }
   end
+  module_function :find_feature
 
-  def provided?( feature )
-    with_ext(feature) do |filename|
-      return true if $".index(filename)
-    end
-    false
+  def provided?(feature)
+    $".any? {|loaded|
+      canonicalize_feature(feature).any? {|feat| feat == loaded }
+    }
   end
+  module_function :provided?
 
   alias required? provided?
+  module_function :required?
 
-  def provide( feature )
+  def provide(feature)
     $".push feature
   end
+  module_function :provide
 
-  def with_ext( feature )
+  def candidacy_pathes(feature)
+    canonicalize_feature(feature).map {|ent|
+      $LOAD_PATH.map {|dir| "#{dir}/#{ent}" }
+    }.flatten
+  end
+  module_function :candidacy_pathes
+
+  def canonicalize_feature(feature)
     if /\.(?:rb|#{Config::CONFIG['DLEXT']})\z/o === feature
-      yield feature
+      [feature]
     else
-      [ 'rb', Config::CONFIG['DLEXT'] ].each do |ext|
-        yield feature + '.' + ext
-      end
+      ["#{feature}.rb",
+       "#{feature}.#{Config::CONFIG['DLEXT']}"]
     end
   end
-
+  module_function :canonicalize_feature
 end

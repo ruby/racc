@@ -1,3 +1,7 @@
+Mon Feb 16 16:01:34 2004  Minero Aoki  <aamine@loveruby.net>
+
+	* lib/racc/rubyloader.rb: imported rev1.6.
+
 Fri Dec 12 01:57:47 2003  Minero Aoki  <aamine@loveruby.net>
 
 	* sample/hash.y: use no_result_var option.
