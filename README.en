@@ -7,9 +7,9 @@ Racc README
 [Requirement]
 
   *  ruby version 1.4.x or later. Latest 1.6 is best.
- (*) C compiler
+ (*) make, C compiler
 
-  C compiler is optional.
+  make / C compiler is optional.
 
 [Installation]
 
@@ -57,4 +57,6 @@ Racc README
   debug output genereted by "racc -g", are helpful.
 
 
-Minero Aoki <aamine@dp.u-netsurf.ne.jp>
+                                                      Minero Aoki
+                                              aamine@loveruby.net
+                                          http://www.loveruby.net
