@@ -105,15 +105,9 @@ def report
 end
 
 
-$ruby = 'ruby'
-if ENV['RUBY'] then
-  $ruby = ENV['RUBY']
-end
-
+$ruby = ENV['RUBY'] || 'ruby'
 $racc = 'racc'
-if ENV['NORUBYEXT'] then
-  $racc += ' --no-extentions'
-end
+$racc += ' --no-extentions' if ENV['NORUBYEXT']
 
 clean 'err'
 
