@@ -2,7 +2,7 @@
 
     cparse.c
   
-    Copyright (c) 1999-2001 Minero Aoki <aamine@loveruby.net>
+    Copyright (c) 1999-2002 Minero Aoki <aamine@loveruby.net>
   
     This library is free software.
     You can distribute/modify this program under the same terms of ruby.
@@ -14,7 +14,7 @@
 #include <stdio.h>
 #include "ruby.h"
 
-#define RACC_VERSION "1.4.0"
+#define RACC_VERSION "1.4.1"
 
 #define DFLT_TOK -1
 #define ERR_TOK   1
@@ -46,7 +46,7 @@ static ID id_d_e_pop;
 #ifdef ID2SYM
 # define id_to_value(i) ID2SYM(i)
 #else
-# define id_to_value(i) INT2FIX(i)
+# define id_to_value(i) ULONG2NUM(i)
 #endif
 
 static ID
@@ -62,10 +62,30 @@ value_to_id(v)
 #ifdef SYM2ID
     return SYM2ID(v);
 #else
-    return (ID)FIX2LONG(v);
+    return (ID)NUM2ULONG(v);
 #endif
 }
 
+static VALUE
+slice_tail(stack, len)
+    VALUE stack;
+    long len;
+{
+    if (len < 0) return Qnil;  /* system error */
+    if (len > RARRAY(stack)->len) len = RARRAY(stack)->len;
+    return rb_ary_new4(len, RARRAY(stack)->ptr + RARRAY(stack)->len - len);
+}
+
+static void
+cut_off_tail(stack, len)
+    VALUE stack;
+    long len;
+{
+    while (len > 0) {
+        rb_ary_pop(stack);
+        len--;
+    }
+}
 
 #ifdef DEBUG
 # define D(code) if (v->in_debug) code
@@ -73,28 +93,27 @@ value_to_id(v)
 # define D(code)
 #endif
 
-
 #define STACK_INIT_LEN 64
 #define INIT_STACK(s) \
     s = rb_ary_new2(STACK_INIT_LEN)
 
 #define AREF(s, idx) \
-    ((idx >= RARRAY(s)->len) ? Qnil : RARRAY(s)->ptr[idx])
+    ((0 <= idx && idx < RARRAY(s)->len) ? RARRAY(s)->ptr[idx] : Qnil)
 
 #define PUSH(s, i) \
     rb_ary_store(s, RARRAY(s)->len, i)
 
 #define POP(s) \
-    RARRAY(s)->len--
+    rb_ary_pop(s)
 
 #define LAST_I(s) \
-    RARRAY(s)->ptr[RARRAY(s)->len - 1]
+    ((RARRAY(s)->len > 0) ? RARRAY(s)->ptr[RARRAY(s)->len - 1] : Qnil)
 
-#define GET_TAIL(s, leng) \
-    rb_ary_new4(leng, RARRAY(s)->ptr + RARRAY(s)->len - leng)
+#define GET_TAIL(s, len) \
+    slice_tail(s, len)
 
-#define CUT_TAIL(s, leng) \
-   RARRAY(s)->len -= leng
+#define CUT_TAIL(s, len) \
+    cut_off_tail(s, len)
 
 
 struct cparse_params {
@@ -128,17 +147,17 @@ struct cparse_params {
     long errstatus;
     long nerr;
 
-    int use_result_var;
-    int iterator_p;
+    VALUE use_result_var;
+    VALUE iterator_p;
 
     VALUE retval;
-    int fin;
+    long fin;
 #define CP_FIN_ACCEPT  1
 #define CP_FIN_EOT     2
 #define CP_FIN_CANTPOP 3
 
-    int debug;
-    int in_debug;
+    VALUE debug;
+    VALUE in_debug;
 
     long i;
 };
@@ -148,9 +167,9 @@ struct cparse_params {
     v->ruleno = -act * 3;                            \
     tmp = rb_iterate(catch_iter, v->parser,          \
                      do_reduce, v->vv);              \
-    code = FIX2INT(tmp);                             \
+    code = NUM2LONG(tmp);                            \
     tmp = rb_ivar_get(v->parser, id_errstatus);      \
-    v->errstatus = FIX2INT(tmp);                     \
+    v->errstatus = NUM2LONG(tmp);                    \
     switch (code) {                                  \
     case 0: /* normal */                             \
         break;                                       \
@@ -170,7 +189,7 @@ struct cparse_params {
                    3, tok, v->tstack, v->vstack);    \
     }                                                \
     v->curstate = act;                               \
-    PUSH(v->state, INT2FIX(v->curstate));
+    PUSH(v->state, LONG2NUM(v->curstate));
 
 #define ACCEPT(v) \
     if (v->debug) rb_funcall(v->parser, id_d_accept, 0); \
@@ -197,8 +216,8 @@ racc_cparse(parser, arg, indebug)
     v = &vv;
     v->in_debug = RTEST(indebug);
     D(puts("start C doparse"));
-    initvars(parser, v, arg, Qnil, 0);
-    v->iterator_p = 0;
+    initvars(parser, v, arg, Qnil, Qnil);
+    v->iterator_p = Qfalse;
     D(puts("params initialized"));
     parser_core(v, Qnil, Qnil, 0);
 
@@ -216,7 +235,7 @@ racc_yyparse(parser, recv, mid, arg, indebug)
     v->in_debug = RTEST(indebug);
     D(puts("start C yyparse"));
     initvars(parser, v, arg, recv, mid);
-    v->iterator_p = 1;
+    v->iterator_p = Qtrue;
     D(puts("params initialized"));
     parser_core(v, Qnil, Qnil, 0);
     wrap_yyparse(v);
@@ -281,7 +300,7 @@ initvars(parser, v, arg, recv, mid)
 
     v->parser = parser;
     v->recv = recv;
-    if (mid)
+    if (! NIL_P(mid))
         v->mid = value_to_id(mid);
 
     debugp = rb_ivar_get(parser, id_yydebug);
@@ -310,7 +329,7 @@ initvars(parser, v, arg, recv, mid)
         v->use_result_var = RTEST(useres);
     }
     else {
-        v->use_result_var = 1;
+        v->use_result_var = Qtrue;
     }
     Check_Type(act_tbl,  T_ARRAY);
     Check_Type(act_chk,  T_ARRAY);
@@ -333,26 +352,26 @@ initvars(parser, v, arg, recv, mid)
     v->goto_check     = goto_chk;
     v->goto_default   = goto_def;
     v->goto_pointer   = goto_ptr;
-    v->nt_base        = FIX2LONG(ntbas);
+    v->nt_base        = NUM2LONG(ntbas);
     v->reduce_table   = red_tbl;
     v->token_table    = tok_tbl;
-    v->shift_n        = FIX2LONG(shi_n);
-    v->reduce_n       = FIX2LONG(red_n);
+    v->shift_n        = NUM2LONG(shi_n);
+    v->reduce_n       = NUM2LONG(red_n);
 
     if (v->debug) INIT_STACK(v->tstack);
     INIT_STACK(v->vstack);
     INIT_STACK(v->state);
     v->curstate = 0;
     PUSH(v->state, INT2FIX(0));
-    v->t = INT2FIX(FINAL_TOK + 1); /* must not init to FINAL_TOK */
+    v->t = LONG2NUM(FINAL_TOK + 1); /* must not init to FINAL_TOK */
     v->nerr = 0;
     v->errstatus = 0;
-    rb_ivar_set(parser, id_errstatus, INT2FIX(v->errstatus));
+    rb_ivar_set(parser, id_errstatus, LONG2NUM(v->errstatus));
 
     v->retval = Qnil;
     v->fin = 0;
 
-    v->iterator_p = 0;
+    v->iterator_p = Qfalse;
 }
 
 static void
@@ -408,7 +427,7 @@ parser_core(v, tok, val, resume)
         D(printf("(act) k1=%ld\n", v->curstate));
         tmp = AREF(v->action_pointer, v->curstate);
         if (! NIL_P(tmp)) {
-            i = FIX2LONG(tmp);
+            i = NUM2LONG(tmp);
 
             D(puts("(act) pointer[k1] true"));
             D(printf("read_next=%d\n", read_next));
@@ -433,7 +452,7 @@ parser_core(v, tok, val, resume)
     }
                     tmp = rb_hash_aref(v->token_table, tok);
                     v->t = NIL_P(tmp) ? vERR_TOK : tmp;
-                    D(printf("(act) t(k2)=%ld\n", FIX2LONG(v->t)));
+                    D(printf("(act) t(k2)=%ld\n", NUM2LONG(v->t)));
                     if (v->debug) {
                         rb_funcall(v->parser, id_d_read_token,
                                    3, v->t, tok, val);
@@ -442,15 +461,15 @@ parser_core(v, tok, val, resume)
                 read_next = 0;
             }
 
-            i += FIX2LONG(v->t);
+            i += NUM2LONG(v->t);
             D(printf("(act) i=%ld\n", i));
             if (i >= 0) {
                 vact = AREF(v->action_table, i);
-                D(printf("(act) table[i]=%ld\n", FIX2LONG(vact)));
+                D(printf("(act) table[i]=%ld\n", NUM2LONG(vact)));
                 if (! NIL_P(vact)) {
                     tmp = AREF(v->action_check, i);
-                    D(printf("(act) check[i]=%ld\n", FIX2LONG(tmp)));
-                    if (! NIL_P(tmp) && FIX2LONG(tmp) == v->curstate) {
+                    D(printf("(act) check[i]=%ld\n", NUM2LONG(tmp)));
+                    if (! NIL_P(tmp) && NUM2LONG(tmp) == v->curstate) {
                         D(puts("(act) found"));
                         goto act_found;
                     }
@@ -461,7 +480,7 @@ parser_core(v, tok, val, resume)
         vact = AREF(v->action_default, v->curstate);
 
     act_found:
-        act = FIX2LONG(vact);
+        act = NUM2LONG(vact);
         D(printf("act=%ld\n", act));
 
 
@@ -470,7 +489,7 @@ parser_core(v, tok, val, resume)
 
             if (v->errstatus > 0) {
                 v->errstatus--;
-                rb_ivar_set(v->parser, id_errstatus, INT2FIX(v->errstatus));
+                rb_ivar_set(v->parser, id_errstatus, LONG2NUM(v->errstatus));
             }
             SHIFT(v, act, v->t, val);
             read_next = 1;
@@ -501,7 +520,7 @@ parser_core(v, tok, val, resume)
                 read_next = 1;
             }
             v->errstatus = 3;
-            rb_ivar_set(v->parser, id_errstatus, INT2FIX(v->errstatus));
+            rb_ivar_set(v->parser, id_errstatus, LONG2NUM(v->errstatus));
 
             /* check if We can shift/reduce error token */
             D(printf("(err) k1=%ld\n", v->curstate));
@@ -510,14 +529,14 @@ parser_core(v, tok, val, resume)
                 tmp = AREF(v->action_pointer, v->curstate);
                 if (! NIL_P(tmp)) {
                     D(puts("(err) pointer[k1] true"));
-                    i = FIX2LONG(tmp) + ERR_TOK;
+                    i = NUM2LONG(tmp) + ERR_TOK;
                     D(printf("(err) i=%ld\n", i));
                     if (i >= 0) {
                         vact = AREF(v->action_table, i);
                         if (! NIL_P(vact)) {
-                            D(printf("(err) table[i]=%ld\n", FIX2LONG(vact)));
+                            D(printf("(err) table[i]=%ld\n", NUM2LONG(vact)));
                             tmp = AREF(v->action_check, i);
-                            if (! NIL_P(tmp) && FIX2LONG(tmp) == v->curstate) {
+                            if (! NIL_P(tmp) && NUM2LONG(tmp) == v->curstate) {
                                 D(puts("(err) found: can handle error tok"));
                                 break;
                             }
@@ -540,14 +559,14 @@ parser_core(v, tok, val, resume)
                 POP(v->state);
                 POP(v->vstack);
                 tmp = LAST_I(v->state);
-                v->curstate = FIX2LONG(tmp);
+                v->curstate = NUM2LONG(tmp);
                 if (v->debug) {
                     POP(v->tstack);
                     rb_funcall(v->parser, id_d_e_pop,
                                3, v->state, v->tstack, v->vstack);
                 }
             }
-            act = FIX2LONG(vact);
+            act = NUM2LONG(vact);
 
             /* shift|reduce error token */
 
@@ -580,7 +599,7 @@ parser_core(v, tok, val, resume)
 
         if (v->debug) {
             rb_funcall(v->parser, id_d_next_state,
-                       2, INT2FIX(v->curstate), v->state);
+                       2, LONG2NUM(v->curstate), v->state);
         }
     }
 }
@@ -610,7 +629,7 @@ do_reduce(val, data, self)
     reduce_len = RARRAY(v->reduce_table)->ptr[v->ruleno];
     reduce_to  = RARRAY(v->reduce_table)->ptr[v->ruleno+1];
     method_id  = RARRAY(v->reduce_table)->ptr[v->ruleno+2];
-    len = FIX2LONG(reduce_len);
+    len = NUM2LONG(reduce_len);
     mid = value_to_id(method_id);
 
     if (len == 0) {
@@ -658,22 +677,22 @@ do_reduce(val, data, self)
         rb_raise(RaccBug, "state stack unexpected empty");
     }
     tmp = LAST_I(v->state);
-    k2 = FIX2LONG(tmp);
-    k1 = FIX2LONG(reduce_to) - v->nt_base;
+    k2 = NUM2LONG(tmp);
+    k1 = NUM2LONG(reduce_to) - v->nt_base;
     D(printf("(goto) k1=%ld\n", k1));
     D(printf("(goto) k2=%ld\n", k2));
 
     tmp = AREF(v->goto_pointer, k1);
     if (! NIL_P(tmp)) {
-        i = FIX2LONG(tmp) + k2;
+        i = NUM2LONG(tmp) + k2;
         D(printf("(goto) i=%ld\n", i));
         if (i >= 0) {
             ret = AREF(v->goto_table, i);
             if (! NIL_P(ret)) {
-                D(printf("(goto) table[i]=%ld (ret)\n", FIX2LONG(ret)));
+                D(printf("(goto) table[i]=%ld (ret)\n", NUM2LONG(ret)));
                 tmp = AREF(v->goto_check, i);
-                if (!NIL_P(tmp) && tmp == INT2FIX(k1)) {
-                    D(printf("(goto) check[i]=%ld\n", FIX2LONG(tmp)));
+                if (!NIL_P(tmp) && tmp == LONG2NUM(k1)) {
+                    D(printf("(goto) check[i]=%ld\n", NUM2LONG(tmp)));
                     D(puts("(goto) found"));
                     goto doret;
                 }
@@ -691,7 +710,7 @@ do_reduce(val, data, self)
 
 doret:
     PUSH(v->state, ret);
-    v->curstate = FIX2LONG(ret);
+    v->curstate = NUM2LONG(ret);
 
     return INT2FIX(0);
 }
