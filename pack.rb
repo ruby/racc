@@ -28,7 +28,8 @@ environ( 'racc' ) do
   set :manual,     true
 
   set :description_ja, <<'----'
-not avairable.
+Ruby 用のパーザジェネレータ (yacc みたいなの) です。
+Ruby スクリプトでは最速のパーザを生成します。
 ----
   set :description_en, <<'----'
 Racc (Ruby yACC) is a LALR(1) Parser Generator for Ruby.

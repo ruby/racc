@@ -30,7 +30,7 @@ Racc README
 
 [Testing Racc]
 
-  Racc comes with simple calcurator. To compile this, on shell:
+  Racc comes with simple calculator. To compile this, on shell:
 
       $ racc -e ruby -o calc calc.y
 
