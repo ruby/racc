@@ -49,12 +49,12 @@ end
     assert_equal 'some ', @pre_match
     assert_equal 'regexp', @matched
     assert_equal ' matches to this string', @post_match
-    assert_equal MatchData, @m.type
+    assert_equal MatchingData, @m.type
   end
 
   def assert_equal( ok, data )
     unless ok == data then
-      raise 'assert fail'
+      raise "expected <#{ok.inspect}> but is <#{data.inspect}>"
     end
   end
 
