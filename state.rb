@@ -1,7 +1,11 @@
 #
 # state.rb
 #
-#   Copyright (c) 1999 Minero Aoki <aamine@dp.u-netsurf.ne.jp>
+#   Copyright (c) 1999,2000 Minero Aoki <aamine@dp.u-netsurf.ne.jp>
+#
+#   This program is free software.
+#   You can distribute/modify this program under the terms of
+#   the GNU Lesser General Public License version 2 or later.
 #
 
 require 'amstd/must'
@@ -12,12 +16,773 @@ module Racc
   class RaccError < StandardError; end
 
 
+  class ISet
+
+    def initialize( a = [] )
+      @set = a
+    end
+
+    attr :set
+
+    def add( i )
+      @set[ i.ident ] = i
+    end
+
+    def []( key )
+      @set[ key.ident ]
+    end
+
+    def []=( key, val )
+      @set[ key.ident ] = val
+    end
+
+    alias include? []
+    alias key? []
+
+    def update( other )
+      s = @set; o = other.set
+      i = t = nil
+      o.each_index {|i| if t = o[i] then s[i] = t end }
+    end
+
+    def update_a( a )
+      s = @set
+      i = nil
+      a.each {|i| s[ i.ident ] = i }
+    end
+
+    def delete( key )
+      i = @set[ key.ident ]
+      @set[ key.ident ] = nil
+      i
+    end
+
+    def each( &block )
+      @set.compact.each( &block )
+    end
+
+    def to_a
+      @set.compact
+    end
+
+    def to_s
+      "[#{@set.compact.join(' ')}]"
+    end
+    alias inspect to_s
+
+    def size
+      @set.nitems
+    end
+
+    def empty?
+      @set.nitems == 0
+    end
+
+    def clear
+      @set.clear
+    end
+
+    def dup
+      ISet.new @set.dup
+    end
+  
+  end
+
+
+  #######################################################################
+  ###########################            ################################
+  ###########################    rule    ################################
+  ###########################            ################################
+  #######################################################################
+
+
+  class RuleTable
+
+    def initialize( racc )
+      @racc = racc
+      @tokentable = racc.tokentable
+
+      @d_token = racc.d_token
+      @d_rule  = racc.d_rule
+      @d_state = racc.d_state
+      @verbose = racc.d_verbose
+
+      @rules    = []
+      @finished = false
+      @hashval  = 4
+      @start    = nil
+    end
+
+
+    def []( x )
+      @rules[x]
+    end
+
+    def each_rule( &block )
+      @rules.each( &block )
+    end
+    alias each each_rule
+
+    def each_index( &block )
+      @rules.each_index( &block )
+    end
+
+    def each_with_index( &block )
+      @rules.each_with_index( &block )
+    end
+
+    def size
+      @rules.size
+    end
+
+    def to_s
+      "<Racc::RuleTable>"
+    end
+
+
+    def register( sym, rulearr, tempprec, act )
+      rule = Rule.new(
+        sym, rulearr, act,
+        @rules.size + 1,         # ID
+        @hashval,                # hash value
+        tempprec                 # prec
+      )
+      @rules.push rule
+
+      @hashval += rulearr.size + 2
+    end
+
+    def start=( sim )
+      unless @start then
+        @start = sim
+        true
+      else
+        false
+      end
+    end
+    
+    attr :start
+
+
+    def init
+      $stderr.puts 'initializing values' if @verbose
+
+      #
+      # add dummy rule
+      #
+      tmp = Rule.new(
+          @tokentable.dummy,
+          [ @start, @tokentable.anchor, @tokentable.anchor ],
+          Action.new( '', 0 ),
+          0, 0, nil )
+        # id hash prec
+      @rules.unshift tmp
+      @rules.freeze
+
+      ###
+      ### cache
+      ###
+
+      rule = ptr = orig = tmp = tok = t = s = nil
+
+      #
+      # t.heads
+      #
+      @rules.each do |rule|
+        rule.symbol.heads.push rule.ptrs[0]
+      end
+
+      #
+      # t.terminal?, self_null?
+      #
+      @tokentable.each do |t|
+        t.term = (t.heads.size == 0)
+        tmp = false
+        t.heads.each do |ptr|
+          if ptr.reduce? then
+            tmp = true
+            break
+          end
+        end
+        t.snull = tmp
+      end
+
+      @tokentable.fix
+
+      #
+      # t.nt_heads, locate, rule.prec
+      #
+      @rules.each do |rule|
+        ptr = rule.ptrs[0]
+        t = ptr.unref
+        if t then
+          if t.nonterminal? then
+            rule.symbol.nt_heads.push ptr
+          end
+        else
+          rule.symbol.void_heads.push ptr
+        end
+
+        tmp = nil
+        rule.ptrs.each do |ptr|
+          unless ptr.reduce? then
+            tok = ptr.unref
+            tok.locate.push ptr
+            tmp = tok if tok.term
+          end
+        end
+        rule.prec ||= tmp
+      end
+
+      #
+      # t.expand
+      #
+      @tokentable.each_nonterm {|t| compute_expand t }
+
+      #
+      # t.nullable?
+      #
+      @tokentable.each_nonterm do |t|
+        tmp = false
+        t.expand.each do |ptr|
+          if tmp = ptr.reduce? then
+            break
+          end
+          if tmp = ptr.unref.self_null? then
+            break
+          end
+        end
+        t.null = tmp
+      end
+
+      #
+      # nt.first_terms
+      #
+      s = nil
+      @tokentable.each_nonterm do |tok|
+        s = ISet.new
+        tok.expand.each do |ptr|
+          t = ptr.unref
+          if t and t.terminal? then
+            s.add ptr
+          end
+        end
+        tok.first_terms = s.to_a
+      end
+
+      @tokentable.each_nonterm {|t| compute_first t }
+      @tokentable.each_nonterm {|t| compute_void_reduce t }
+
+      #
+      # pointer.null?
+      #
+      @rules.each do |rule|
+        rule.ptrs.each do |ptr|
+          s = ptr.first
+          orig = ptr
+          until ptr.reduce? do
+            t = ptr.unref
+            if t.terminal? then
+              s.add t
+              orig.null = false
+              break
+            else
+              s.update t.first
+              unless t.nullable? then
+                orig.null = false
+                break
+              end
+            end
+            ptr = ptr.increment
+          end
+        end
+      end
+
+    end
+
+
+    def compute_expand( t )
+      puts "expand> #{t.to_s}" if @d_token
+      t.expand = coex( t, ISet.new, [] )
+      puts "expand< #{t.to_s}: #{t.expand.to_s}" if @d_token
+    end
+
+    def coex( t, ret, lock )
+      if tmp = t.expand then
+        ret.update tmp
+        return ret
+      end
+
+      tok = h = nil
+
+      ret.update_a t.heads
+      t.nt_heads.each do |ptr|
+        tok = ptr.unref
+        unless lock[ tok.ident ] then
+          lock[ tok.ident ] = true
+          coex( tok, ret, lock )
+        end
+      end
+
+      ret
+    end
+
+
+    def compute_void_reduce( t )
+      if t.nullable? then
+        a = [ t, @tokentable.uniq_token ]
+        all = []
+        cvor( a, all, [] )
+        all.collect! do |a|
+          ptr = a.pop
+          LALRitem.new( ptr, first(a) )
+        end
+        t.void_reduce = all
+      end
+    end
+
+    def cvor( a, all, lock )
+      ptr = lo = nil
+
+      t = a.shift
+      t.nt_heads.each do |ptr|
+        if ptr.unref.nullable? then
+          next if lock[ ptr.ident ]
+
+          a = a.dup; a[0,0] = ptr.follow_tokens
+          lo = lock.dup; lo[ ptr.ident ] = ptr
+          cvor( a, all, lo )
+        end
+      end
+      t.void_heads.each do |ptr|
+        a = a.dup
+        a.push ptr
+        all.push a
+      end
+    end
+
+    def first( arr )
+      s = ISet.new
+      t = nil
+      arr.each do |t|
+        if t.terminal? then
+          s.add t
+          break
+        else
+          s.update t.first
+          break unless t.nullable?
+        end
+      end
+
+      s
+    end
+
+
+    def compute_first( t )
+      puts "first> #{to_s}" if @d_token
+      t.first = cfir( t, ISet.new, [] )
+      puts "first< #{to_s}: #{t.first.to_s}" if @d_token
+    end
+
+    def cfir( t, ret, lock )
+      if tmp = t.first then
+        ret.update tmp
+        return ret
+      end
+      lock[t.ident] = t
+
+      ptr = tok = nil
+
+      if t.terminal? then
+        bug! '"first" called for terminal'
+      else
+        t.heads.each do |ptr|
+          until ptr.reduce? do
+            tok = ptr.unref
+            if tok.terminal? then
+              ret.add tok
+              break
+            else
+              cfir( tok, ret, lock ) unless lock[tok.ident]
+              break unless tok.nullable?
+            end
+
+            ptr = ptr.increment
+          end
+        end
+      end
+
+      ret
+    end
+
+  end   # RuleTable
+
+
+  #######################################################################
+  #######################################################################
+
+
+  class Rule
+
+    def initialize( tok, rlarr, act, rid, hval, tprec )
+      @symbol  = tok
+      @rulearr = rlarr
+      @action  = act.val
+      @lineno  = act.lineno
+      @ident   = rid
+      @hash    = hval
+      @prec    = tprec
+      @useless = false
+
+      @ptrs = a = []
+      rlarr.each_with_index do |t,i|
+        a.push LocationPointer.new( self, i, t )
+      end
+      a.push LocationPointer.new( self, rlarr.size, nil )
+    end
+
+
+    attr :symbol; alias simbol symbol
+    attr :action
+    attr :lineno
+    attr :ident;  alias ruleid ident
+    attr :hash
+    attr :prec, true
+    attr :ptrs
+
+    def ==( other )
+      Rule === other and @ident == other.ident
+    end
+
+    def accept?()
+      if tok = @rulearr[-1] then
+        tok.anchor?
+      else
+        false
+      end
+    end
+
+    def []( idx )
+      @rulearr[idx]
+    end
+
+    def size
+      @rulearr.size
+    end
+
+    def to_s
+      '#<rule#{@ident}>'
+    end
+
+    def toks
+      @rulearr
+    end
+
+    def tokens
+      @rulearr.dup
+    end
+
+    def useless=( f )
+      if @useless then
+        bug! 'rule.useless was set twice'
+      end
+      @useless = f
+    end
+
+    def useless?
+      @useless
+    end
+
+    def each_token( &block )
+      @rulearr.each( &block )
+    end
+    alias each each_token
+
+    def each_with_index( &block )
+      @rulearr.each_with_index( &block )
+    end
+
+  end   # Rule
+
+
+  #######################################################################
+  #######################################################################
+
+
+  class LocationPointer
+
+    def initialize( rl, idx, tok )
+      @rule   = rl
+      @index  = idx
+      @unref  = tok
+
+      @ident  = @rule.hash + @index
+      @reduce = tok.nil?
+      @null   = true
+      @first  = ISet.new
+    end
+
+
+    attr :rule
+    attr :index
+    attr :unref
+
+    attr :ident;      alias hash      ident
+    attr :reduce;     alias reduce?   reduce
+    attr :null, true; alias nullable? null
+    attr :first
+
+
+    def to_s
+      sprintf( '(%d,%d %s)',
+               @rule.ident, @index, reduce? ? '#' : unref.to_s )
+    end
+    alias inspect to_s
+
+    def eql?( ot )
+      @hash == ot.hash
+    end
+    alias == eql?
+
+    def follow_tokens
+      a = @rule.toks
+      a[ @index, a.size - @index ]
+    end
+
+    def head?
+      @index == 0
+    end
+
+    def increment
+      @rule.ptrs[ @index + 1 ] or ptr_bug!
+    end
+
+    def decrement
+      @rule.ptrs[ @index - 1 ] or ptr_bug!
+    end
+
+    def before( len )
+      @rule.ptrs[ @index - len ] or ptr_bug!
+    end
+
+    private
+    
+    def ptr_bug!
+      bug! "pointer not exist: self: #{to_s}"
+    end
+
+  end   # class LocationPointer
+
+
+  ########################################################################
+  ###########################             ################################
+  ###########################    token    ################################
+  ###########################             ################################
+  ########################################################################
+
+
+  class TokenTable
+
+    include Enumerable
+
+    def initialize( racc )
+      @racc = racc
+
+      @chk = {}
+      @tokens = []
+      
+      @dummy   = get( :$start )
+      @anchor  = get( :$end )
+      @error   = get( :error )   # error token is ID 1
+
+      @anchor.conv = 'false'
+      @error.conv = 'Object.new'
+    end
+
+    attr :dummy
+    attr :anchor
+    attr :uniq_token
+
+    def get( val )
+      unless ret = @chk[ val ] then
+        @chk[ val ] = ret = Token.new( val, @racc )
+        @tokens.push ret
+      end
+
+      ret
+    end
+
+    def fix
+      term = []
+      nt = []
+      t = i = nil
+      @tokens.each do |t|
+        (t.terminal? ? term : nt).push t
+      end
+      @tokens = term
+      @nt_base = term.size
+      term.concat nt
+
+      @tokens.each_with_index do |t, i|
+        t.ident = i
+      end
+
+      @uniq_token = Token.new( :$uniq, @racc )
+      @uniq_token.ident = @tokens.size
+      @uniq_token.term = true
+    end
+
+    def []( id )
+      @tokens[id]
+    end
+
+    attr :nt_base
+
+    def nt_max
+      @tokens.size
+    end
+
+    def each( &block )
+      @tokens.each &block
+    end
+
+    def each_terminal( &block )
+      @tokens[ 0, @nt_base ].each( &block )
+    end
+
+    def each_nonterm( &block )
+      @tokens[ @nt_base, @tokens.size - @nt_base ].each( &block )
+    end
+
+  end   # TokenTable
+
+
+  class Token
+
+    Default_token_id = -1
+    Anchor_token_id  = 0
+    Error_token_id   = 1
+
+    def initialize( tok, racc )
+      @ident   = nil
+      @value   = tok
+
+      @term   = nil
+      @nterm  = nil
+      @conv   = nil
+
+      @heads       = []
+      @nt_heads    = []
+      @void_heads  = []
+      @locate      = []
+      @snull       = nil
+      @null        = nil
+      @expand      = nil
+      @void_reduce = nil
+      @first_terms = nil
+      @first       = nil
+
+      @useless     = nil
+
+      # for human
+      @to_s =
+        if @value.respond_to? 'id2name' then @value.id2name
+                                        else @value.to_s.inspect
+        end
+      # for ruby source
+      @uneval =
+        if @value.respond_to? 'id2name' then ':' + @value.id2name
+                                        else @value.to_s.inspect
+        end
+    end
+
+
+    class << self
+      def once_writer( nm )
+        nm = nm.id2name
+        module_eval %-
+          def #{nm}=( v )
+            bug! unless @#{nm}.nil?
+            @#{nm} = v
+          end
+        -
+      end
+    end
+
+    attr :ident; once_writer :ident
+    alias tokenid ident
+    alias hash ident
+
+    attr :value
+
+    attr :term
+    attr :nterm
+    attr :conv # true
+    attr :prec,  true
+    attr :assoc, true
+
+    alias terminal? term
+    alias nonterminal? nterm
+
+    def term=( t )
+      bug! unless @term.nil?
+      @term = t
+      @nterm = !t
+    end
+
+    def conv=( str )
+      @conv = @uneval = str
+    end
+
+    attr :heads
+    attr :nt_heads
+    attr :void_heads
+    attr :locate
+    attr :snull; once_writer :snull
+    attr :null;  once_writer :null
+
+    alias self_null? snull
+    alias nullable? null
+
+    attr :expand;      once_writer :expand
+    attr :void_reduce; once_writer :void_reduce
+    attr :first_terms; once_writer :first_terms
+    attr :first;       once_writer :first
+
+    def to_s
+      @to_s.dup
+    end
+    alias inspect to_s
+
+    def uneval
+      @uneval.dup
+    end
+
+
+    once_writer :useless
+
+    def useless?
+      @useless
+    end
+
+  end   # class Token
+
+
+
+  ########################################################################
+  ###########################             ################################
+  ###########################    state    ################################
+  ###########################             ################################
+  ########################################################################
+
+
   class LALRstateTable
 
     def initialize( racc )
       @racc = racc
       @ruletable  = racc.ruletable
       @tokentable = racc.tokentable
+      @anchor_t   = racc.tokentable.anchor
 
       @d_state  = racc.d_state
       @d_reduce = racc.d_reduce
@@ -30,14 +795,12 @@ module Racc
 
       @actions = LALRactionTable.new( @ruletable, self )
     end
-    
 
     attr :actions
 
     def size
       @states.size
     end
-
 
     def inspect
       '#<state table>'
@@ -58,158 +821,167 @@ module Racc
     end
 
 
+    ###
+    ### nfa
+    ###
+
     def init
+      $stderr.puts 'generating states' if @verbose
 
       # add state 0
-      seed_to_state( [ @ruletable[0].ptrs(0) ] )
+      core_to_state( [ @ruletable[0].ptrs[0] ] )
 
       cur = 0
       while cur < @states.size do
         develop_state @states[cur]   # state is added here
         cur += 1
       end
+
+      @actions.init
     end
 
-
-    def resolve
-      $stderr.puts "resolving #{@states.size} states" if @verbose
-
-      @states.each do |state|
-        state.compute_first_term
-      end
-
-      b = Time.times.utime
-      slr = 0
-      lalr = 0
-      @states.each do |state|
-        if @verbose and state.stateid % 40 == 39 then
-          $stderr.puts "end #{state.stateid + 1} states"
-        end
-
-        if state.conflicting? then
-          ret = state.resolve
-          if ret == :slr then slr += 1 else lalr += 1 end
-        end
-      end
-
-      if @verbose then
-        e = Time.times.utime
-        $stderr.puts "all resolved in #{e - b} sec: slr #{slr}, lalr #{lalr}"
-      end
-
-      # set accept
-
-      anch = @tokentable.anchor
-      init_state = @states[0].nonterm_table[ @ruletable.start ]
-      targ_state = init_state.action[ anch ].goto_state
-      acc_state  = targ_state.action[ anch ].goto_state
-
-      acc_state.action.clear
-      acc_state.nonterm_table.clear
-      acc_state.defact = @actions.accept
-
-      simplify   #not_simplify
-    end
-
-
-    private
-
-    
     def develop_state( state )
-      puts "develop_state: #{state}" if @d_state
+      puts "dstate: #{state}" if @d_state
 
-      devseed = {}
-      rp = state.reduce_ptrs
-      tt = state.term_table
-      nt = state.nonterm_table
+      table = {}
+      s = ptr = pt = nil
 
-      state.closure.each do |ptr|
-        if ptr.reduce? then
-          rp.push ptr
-        else
-          tok = ptr.unref
-          if tok.terminal? then tt[ tok ] = true
-                           else nt[ tok ] = true
-          end
-
-          if arr = devseed[ tok ] then
-            arr.push ptr.increment
-          else
-            devseed[ tok ] = [ ptr.increment ]
+      state.core.each do |ptr|
+        if tok = ptr.unref then
+          add_tok_ptr table, tok, ptr.increment
+          if tok.nonterminal? then
+            tok.expand.each do |pt|
+              add_tok_ptr table, pt.unref, pt.increment unless pt.reduce?
+            end
           end
         end
       end
 
-      devseed.each do |tok, seed|
-        # all 'seed's must be rule table order (upper to lower)
-        seed.sort!{|a, b| a.hash <=> b.hash }
+      table.each do |tok,core|
+        puts "dstate: tok=#{tok} ncore=#{core}" if @d_state
 
-        puts "devlop_state: tok=#{tok} nseed=#{seed.join(' ')}" if @d_state
+        dest = core_to_state( core.to_a )
+        state.goto_table[ tok ] = dest
+        puts "dstate: #{state.ident} --(#{tok})-> #{dest.ident}" if @d_state
 
-        dest = seed_to_state( seed )
-        connect( state, tok, dest )
+        # check infinite recursion
+        if state.ident == dest.ident and state.core.size == 1 and
+           state.items[0].ptr.unref.expand.size == 1 then
+          raise RaccError,
+            sprintf( "Infinite recursion: state %d, with rule %d",
+                     state.ident, state.ptrs[0].rule.ident )
+        end
       end
     end
 
+    def add_tok_ptr( table, tok, ptr )
+      unless s = table[tok] then
+        table[tok] = s = ISet.new
+      end
+      s.add ptr
+    end
 
-    def seed_to_state( seed )
-      k = sdigest( seed )
+    def core_to_state( core )
+      k = fingerprint( core )
       unless dest = @statecache[k] then
         # not registered yet
-        dest = LALRstate.new( @states.size, seed, @racc )
+        dest = LALRstate.new( @states.size, core, @racc )
         @states.push dest
 
         @statecache[k] = dest
         
-        puts "seed_to_state: create state   ID #{dest.stateid}" if @d_state
+        puts "core_to_state: create state   ID #{dest.ident}" if @d_state
       else
         if @d_state then
-          puts "seed_to_state: dest is cached ID #{dest.stateid}"
-          puts "seed_to_state: dest seed #{dest.seed.join(' ')}"
+          puts "core_to_state: dest is cached ID #{dest.ident}"
+          puts "core_to_state: dest core #{dest.core.join(' ')}"
         end
       end
 
       dest
     end
 
-    def sdigest( arr )
-      arr.collect {|i| i.hash }.pack( 'L*' )
+    def fingerprint( arr )
+      arr.collect {|i| i.ident }.pack( 'L*' )
     end
 
 
-    def connect( from, tok, dest )
-      puts "connect: #{from.stateid} --(#{tok})-> #{dest.stateid}" if @d_state
+    ###
+    ### dfa
+    ###
 
-      # check infinite recursion
-      if from.stateid == dest.stateid and from.closure.size < 2 then
-        raise RaccError, sprintf( "Infinite recursion: state %d, with rule %d",
-          from.stateid, from.ptrs[0].ruleid )
+    def resolve
+      $stderr.puts "resolving #{@states.size} states" if @verbose
+
+      state = item = nil
+      b = Time.times.utime
+      i = 0
+
+      # step 2
+      $stderr.print 'generating internal      ' if @verbose
+      @states.each do |state|
+        if @verbose then
+          $stderr.printf "\b\b\b\b\b%-5d", state.ident
+          $stderr.flush
+        end
+        state.generate_intern
+      end
+      $stderr.puts "\ninit trans" if @verbose
+      @states.each do |state|
+        state.items.each do |item|
+          unless item.trans_items.empty? then
+            item.init
+          end
+        end
       end
 
-      # goto
-      if tok.terminal? then
-        from.term_table[ tok ] = dest
-      else
-        from.nonterm_table[ tok ] = dest
+      # step 3
+      $stderr.puts "updating new la-tokens" if @verbose
+      added = true
+      while added do
+        i += 1
+        $stderr.puts "loop \##{i}" if @verbose
+
+        added = false
+        @states.each do |state|
+          state.items.each {|item| item.trans }
+        end
+        @states.each do |state|
+          state.items.each do |item|
+            f = item.next_turn
+            added ||= f
+          end
+        end
       end
 
-      # come from
-      if tmp = dest.from_table[ tok ] then
-        tmp[ from ] = true
-      else
-        dest.from_table[ tok ] = { from => true }
+      # step 4
+      @states.each do |state|
+        state.determine
       end
+
+      if @verbose then
+        e = Time.times.utime
+        $stderr.puts "all resolved in #{e - b} sec, #{i} times loop"
+      end
+
+      set_accept
+      pack_states
+      check_useless
+    end
+
+    def set_accept
+      anch = @anchor_t
+      init_state = @states[0].goto_table[ @ruletable.start ]
+      targ_state = init_state.action[ anch ].goto_state
+      acc_state  = targ_state.action[ anch ].goto_state
+
+      acc_state.action.clear
+      acc_state.goto_table.clear
+      acc_state.defact = @actions.accept
     end
 
 
-    def not_simplify
-      err = @actions.error
-      @states.each do |st|
-        st.defact ||= err
-      end
-    end
-
-    def simplify
+    def pack_states
       st = arr = act = nil
       i = n = s = r = nil
 
@@ -240,23 +1012,113 @@ module Racc
       end
     end
 
+
+    def check_useless
+      act = nil
+      used = []
+      @actions.each_reduce do |act|
+        if not act or act.refn == 0 then
+          act.rule.useless = true
+        else
+          t = act.rule.symbol
+          used[ t.ident ] = t
+        end
+      end
+      @tokentable.nt_base.upto( @tokentable.nt_max - 1 ) do |n|
+        unless used[n] then
+          @tokentable[n].useless = true
+        end
+      end
+    end
+
   end   # LALRstateTable
 
 
-  class SLRerror < StandardError; end
+  ########################################################################
+  ########################################################################
+
+
+  class LALRitem
+  
+    def initialize( ptr, la = ISet.new )
+      @ptr = ptr
+      @ident = ptr.ident
+      @trans_items = nil
+      @la     = la
+      @newla  = []
+      @curr_t = []
+    end
+
+    attr :ptr
+    attr :ident
+    attr :trans_items, true
+    attr :la
+    # attr :curr_t
+    # attr :newla
+
+    def to_s
+      "#<LALRitem #{@ptr}>"
+    end
+    alias inspect to_s
+
+    def dup
+      LALRitem.new( @ptr, @la.dup )
+    end
+
+
+    def init
+      curr = @curr_t
+      i = nil
+      @la.set.each do |i|
+        curr[ i.ident ] = i if i
+      end
+      curr.compact!
+    end
+
+    def trans
+      unless (curr = @curr_t).empty? then
+        @trans_items.each do |ti|
+          ti.add_new_la curr
+        end
+      end
+    end
+
+    def add_new_la( arr )
+      la = @la.set
+      nl = @newla
+      t = ti = nil
+      arr.each do |t|
+        unless la[ ti = t.ident ] then
+          la[ti] = nl[ti] = t
+        end
+      end
+    end
+    protected :add_new_la
+
+    def next_turn
+      (new = @curr_t).clear
+      (cur = @newla).compact!
+      @curr_t = cur
+      @newla  = new
+
+      not cur.empty?
+    end
+
+  end
+
+
+  ########################################################################
+  ########################################################################
 
 
   class LALRstate
 
-    def initialize( sid, seed, racc )
-      @stateid = sid
-      @seed = seed
-
-      @closure = nil
-      @closure_hash = nil
+    def initialize( ident, core, racc )
+      @ident = ident
+      @core = core
 
       @racc       = racc
-      @tokentable = racc.tokentable
+      @uniq_t     = racc.tokentable.uniq_token
       @actions    = racc.statetable.actions
       @d_state    = racc.d_state
       @d_reduce   = racc.d_reduce
@@ -264,16 +1126,7 @@ module Racc
       @verbose    = racc.d_verbose
       @prof       = racc.d_profile
 
-      @from_table    = {}
-      @term_table    = {}
-      @nonterm_table = {}
-
-      @first_term = {}
-      @nullable = []
-
-      @shift_toks  = []
-      @reduce_ptrs = []
-      @reduce_seed = []
+      @goto_table = {}
 
       @action = {}
       @defact = nil
@@ -283,60 +1136,24 @@ module Racc
       @rrconf = nil
       @srconf = nil
 
-      init_values
-    end
+      #---
 
-    def init_values
-      @reduce_seed = seed.find_all {|ptr| ptr.reduce? }
-
-      @seed.each do |ptr|
-        t = ptr.unref
-        if t and t.nullable? then
-          @nullable.push t
-        end
-      end
-
-      @closure = compute_closure( @seed )
-    end
-
-    def compute_closure( ptrs )
-      puts "closure: ptrs=#{ptrs.join(' ')}" if @d_state
-
-      @closure_hash = tmp = {}
-      tok = a = b = nil
-
-      ptrs.each do |ptr|
-        tmp[ ptr ] = true
-
-        tok = ptr.unref
-        if tok and not tok.terminal? then
-          tmp.update tok.expand
-        end
-      end
-
-      ret = tmp.keys
-      ret.sort!{|a,b| a.hash <=> b.hash }
-
-      puts "closure: ret #{ret.join(' ')}" if @d_state
-      ret
+      ptr = nil
+      @ptr_to_item = s = ISet.new
+      @core.each {|ptr| s[ ptr ] = LALRitem.new( ptr ) }
+      @items = s.to_a
     end
 
 
-    attr :stateid
-    attr :closure
-    attr :closure_hash
+    attr :ident
+    alias stateid ident
+    alias hash ident
 
-    attr :seed
+    attr :core
+    attr :items
+    attr :ptr_to_item
 
-    attr :from_table
-    attr :term_table
-    attr :nonterm_table
-
-    attr :nullable
-    attr :first_term
-
-    attr :reduce_ptrs
-    attr :reduce_seed
+    attr :goto_table
 
     attr :action
     attr :defact, true   # default action
@@ -347,282 +1164,213 @@ module Racc
     attr :srconf
 
     def inspect
-      "#<LALRstate #{@stateid}>"
+      "#<LALRstate #{@ident}>"
     end
     alias to_s inspect
 
-
     def ==( oth )
-      @stateid == oth.stateid
+      @ident == oth.ident
     end
 
-    def eql?( oth )
-      @seed == oth.seed
+    alias eql? ==
+
+
+    def generate_intern
+      i = item = transi = nil
+      uniq = @uniq_t
+      tran = []
+
+      @items.each do |item|
+        closure( item.ptr ).each do |i|
+          unless i.ptr.reduce? then
+            transi = @goto_table[i.ptr.unref].ptr_to_item[i.ptr.increment]
+            if i.la.delete uniq then
+              tran[ transi.ptr.ident ] = transi
+            end
+            transi.la.update(i.la) unless i.la.empty?
+          end
+        end
+
+        item.trans_items = tran.compact
+        tran.clear
+      end
     end
 
-    def hash
-      @stateid
+    def closure( ip )
+      #
+      # init
+      #
+      clo = ISet.new
+      clo[ ip ] = i = LALRitem.new( ip )
+      i.la.add @uniq_t
+      t = ip.unref
+      if t and t.nonterminal? then
+        t.expand.each do |ptr|
+          clo[ ptr ] = LALRitem.new( ptr )
+        end
+      end
+
+      clo_a = clo.to_a
+
+      return clo if ip.reduce?
+
+      i = tmp = np = nil
+
+      #
+      # generate intern
+      #
+      tran = []
+      clo_a.each do |i|
+        t = i.ptr.unref
+        if t and t.nonterminal? then
+          np = i.ptr.increment
+          t.heads.each do |ptr|
+            clo[ptr].la.update np.first
+            if np.nullable? then
+              tran[ptr.ident] = clo[ptr]
+            end
+          end
+        end
+        i.trans_items = tran.compact
+        tran.clear
+      end
+      clo_a.each do |i|
+        i.init unless i.trans_items.empty?
+      end
+
+      #
+      # trans
+      #
+# stt = Time.times.utime
+# puts clo_a.size
+      continu = true
+# idx = 0
+      while continu do
+# idx += 1
+        continu = false
+        clo_a.each {|i| i.trans }
+        clo_a.each do |i|
+          f = i.next_turn
+          continu ||= f
+        end
+      end
+# puts "#{idx} times loop, #{Time.times.utime - stt} sec"
+
+      clo
     end
 
-    def each_ptr( &block )
-      @closure.each( &block )
-    end
 
+    def determine
+      r = reduce_items
+      s = shift_toks
+      tok = nil
 
-    def conflicting?
-      if @reduce_ptrs.size > 0 then
-        if @closure.size == 1 then
-          #
-          # reduce
-          #
-          @defact = @actions.reduce( @reduce_ptrs[0].rule )
-        else
-          #
-          # conflict
-          #
-          return true
+      if r.empty? then
+        # shift
+        s.each do |tok|
+          @action[ tok ] = @actions.shift( @goto_table[tok] )
         end
       else
-        #
-        # shift
-        #
-        @term_table.each do |tok, goto|
-          @action[ tok ] = @actions.shift( goto )
+        if r.size == 1 and s.empty? then
+          # reduce
+          @defact = @actions.reduce( r.to_a[0].ptr.rule )
+        else
+          # conflict
+          resolve_rr r
+          resolve_sr s
+        end
+      end
+    end
+
+    def reduce_items
+      r = ISet.new
+      uniq = @uniq_t
+      ptr = item = i = a = nil
+
+      @items.each do |item|
+        ptr = item.ptr
+        if ptr.reduce? then
+          r.add item
+        else
+          if a = ptr.unref.void_reduce then   # nonterminal
+            a.each do |i|
+              i = i.dup
+              if i.la.delete uniq then
+                i.la.update ptr.increment.first
+                if ptr.increment.nullable? then
+                  i.la.update item.la
+                end
+              end
+#puts "state #{@ident}, void_reduce ptr=#{i.ptr}"
+#puts "LA=#{i.la}"
+              r.add i
+            end
+          end
         end
       end
 
-      false
+      r.to_a
+    end
+
+    def shift_toks
+      s = ISet.new
+      @goto_table.each_key do |t|
+        s.add t if t.terminal?
+      end
+      s.to_a
     end
 
 
-    def resolve
-      if @d_reduce or @d_shift then
-        puts "resolving state #{@stateid} -------------"
-      end
+    def resolve_rr( r )
+      pt = tok = act = item = nil
 
-      @method = :slr
-      begin
-        resolve_rr
-        resolve_sr
-      rescue SLRerror
-        if @d_reduce or @d_shift then
-          puts "state #{@stateid}, slr fail -------------"
-        end
-        @action.clear
-        @method = :lalr
-        retry
-      end
-
-      @method
-    end
-
-
-    #
-    #  Reduce/Reduce Conflict resolver
-    #
-
-#trap( 'INT' ) do
-#puts "resolving #{$resolving_state.stateid}"; $stdout.flush
-#raise Exception, "stopped by SIGINT"
-#end
-
-    def resolve_rr
-#$resolving_state = self
-      puts "resolve_rr: state #{@stateid}, #{method.id2name}" if @d_reduce
-
-      la = act = curptr = tok = nil
-
-      @reduce_ptrs.each do |curptr|
-        puts "resolve_rr: resolving #{curptr}" if @d_reduce
-
-        la = send( @method, curptr )
-        la.each_key do |tok|
+      r.each do |item|
+        item.la.each do |tok|
           act = @action[ tok ]
           if act then
-            unless ReduceAction === act then
-              bug! "no reduce action #{act.type} in action table"
-            end
+            bug! "#{act.type} in action table" unless ReduceAction === act
             #
             # can't resolve R/R conflict (on tok).
             #   reduce with upper rule as default
             #
-
-            rr_conflict act.rule, curptr.rule, tok
+            rr_conflict act.rule, item.ptr.rule, tok
           else
             # not conflict
-            @action[ tok ] = @actions.reduce( curptr.rule )
+            @action[ tok ] = @actions.reduce( item.ptr.rule )
           end
         end
       end
     end
 
+    def resolve_sr( s )
+      stok = rtok = goto = act = nil
 
-    def slr( ptr )
-      ptr.rule.simbol.follow
-    end
+      s.each do |stok|
+        goto = @goto_table[stok]
+        act = @action[stok]
 
-
-    def lalr( ptr )
-      ret = lookahead( ptr, [] )
-      puts "LA: state #{@stateid}: #{ret.keys.join(' ')}" if @d_reduce
-      ret
-    end
-
-    def compute_first_term
-      h = @first_term
-
-      h.update @term_table
-      @nonterm_table.each_key do |tok|
-        h.update tok.first
-      end
-    end
-
-    def lookahead( ptr, lock )
-      puts "la> state #{@stateid},#{ptr}" if @d_reduce
-      st_beg = Time.times.utime
-
-      sim = ptr.rule.simbol
-      ret = {}
-      gotos = {}
-      new = {}
-      goto = pt = ff = len = f = a = tmp = nt = h = nil
-      d_reduce = @d_reduce
-
-      head_state( ptr ).each_key do |f|
-        tmp = f.nonterm_table[ sim ]
-        if a = gotos[tmp]; a[f]=1 else gotos[tmp] = {f,1} end
-      end
-
-      i = 0
-      until gotos.empty? do
-        i += 1
-
-        gotos.each do |goto, froms|
-          next if lock[goto.stateid]
-          lock[goto.stateid] = true
-          puts "la: goto #{goto.stateid}" if d_reduce
-          ret.update goto.first_term
-
-  goto.reduce_seed.each do |pt|
-    sim = pt.rule.simbol
-    froms.each do |f,len|
-      if pt.index == len then
-                  tmp = f.nonterm_table[ sim ]
-                  #unless tmp then p goto.stateid; p f.stateid; p pt; bug! end
-                  if h = new[tmp]; h[f]=1 else new[tmp] = {f,1} end
-      else
-        ff = f
-        #begin
-        ff.head_state( pt.before(len) ).each_key do |f|
-                  tmp = f.nonterm_table[ sim ]
-                  #unless tmp then p goto.stateid; p f.stateid; p pt; bug! end
-                  if h = new[tmp]; h[f]=1 else new[tmp] = {f,1} end
-        end
-        #rescue FindBug
-        #p f; p len; p pt; raise
-        #end
-      end
-    end
-  end
-  goto.nullable.each do |nt|
-                  tmp = goto.nonterm_table[ nt ]
-                  #unless tmp then p goto.stateid; p nt; bug! end
-                  if h = new[tmp] then
-                    froms.each {|f,len| bug! if h[f]; h[f] = len + 1 }
-                  else
-                    h = {}; froms.each {|f,len| h[f] = len + 1 }
-                    new[tmp] = h
-                  end
-  end
-        end          # gotos.each
-
-        tmp = gotos
-        gotos = new
-        new = tmp
-        new.clear
-      end            # until
-
-      st_end = Time.times.utime
-      if @prof then
-        printf "%-4d %4d %4d %f\n",
-            @stateid, lock.compact.size, i, st_end - st_beg
-      end
-
-      puts "la< state #{@stateid}" if @d_reduce
-      ret
-    end
-
-    def head_state( ptr )
-      puts "hs> ptr #{ptr}" if @d_reduce
-
-      cur = { self => true }
-      new = {}
-      backed = st = nil
-
-      until ptr.head? do
-        ptr = ptr.decrement
-        tok = ptr.unref
-
-        cur.each_key do |st|
-          unless backed = st.from_table[ tok ] then
-#p st.from_table
-#p tok
-#puts "from table void: state #{st.stateid} key '#{tok}'"
-#$stdout.flush
-            bug! "from table void: state #{st.stateid} key #{tok}"
-          end
-          new.update backed
-        end
-
-        tmp = cur
-        cur = new
-        new = tmp
-        new.clear
-      end
-
-      puts "hs< backed [#{sh2s cur}]" if @d_reduce
-      cur
-    end
-
-    def sh2s( sh )
-      sh.collect{|s,v| s.stateid }.join(',')
-    end
-
-
-    #
-    # Shift/Reduce Conflict resolver
-    #
-
-    def resolve_sr
-
-      @term_table.each do |stok, goto|
-
-        unless act = @action[ stok ] then
+        unless act then
           # no conflict
           @action[ stok ] = @actions.shift( goto )
         else
-          unless ReduceAction === act then
-            bug! "wrong act in action table: #{act}(#{act.type})"
-          end
+          bug! "#{act.type} in action table" unless ReduceAction === act
 
           # conflict on stok
 
           rtok = act.rule.prec
-          ret  = do_resolve_sr( stok, rtok )
-
-          case ret
+          case do_resolve_sr( stok, rtok )
           when :Reduce        # action is already set
 
           when :Shift         # overwrite
-            act.discard
+            act.decref
             @action[ stok ] = @actions.shift( goto )
 
           when :Remove        # remove
-            act.discard
+            act.decref
             @action.delete stok
 
           when :CantResolve   # shift as default
-            act.discard
+            act.decref
             @action[ stok ] = @actions.shift( goto )
             sr_conflict stok, act.rule
           end
@@ -666,13 +1414,8 @@ module Racc
     private :do_resolve_sr
 
 
-
     def rr_conflict( high, low, ctok )
-      if @method == :slr then
-        raise SLRerror, "SLR r/r conflict in state #{@stateid}"
-      end
-        
-      c = RRconflict.new( @stateid, high, low, ctok )
+      c = RRconflict.new( @ident, high, low, ctok )
 
       unless @rrconf then
         @rrconf = {}
@@ -685,11 +1428,7 @@ module Racc
     end
 
     def sr_conflict( shift, reduce )
-      if @method == :slr then
-        raise SLRerror, "SLR s/r conflict in state #{@stateid}"
-      end
-
-      c = SRconflict.new( @stateid, shift, reduce )
+      c = SRconflict.new( @ident, shift, reduce )
 
       unless @srconf then
         @srconf = {}
@@ -707,14 +1446,25 @@ module Racc
 
   class LALRactionTable
 
-    def initialize( rl, st )
-      @ruletable = rl
+    def initialize( rt, st )
+      @ruletable = rt
       @statetable = st
 
       @reduce = []
       @shift = []
       @accept = nil
       @error = nil
+    end
+
+    def init
+      @ruletable.each do |rl|
+        @reduce.push ReduceAction.new( rl )
+      end
+      @statetable.each do |st|
+        @shift.push ShiftAction.new( st )
+      end
+      @accept = AcceptAction.new
+      @error = ErrorAction.new
     end
 
 
@@ -724,17 +1474,15 @@ module Racc
 
     def reduce( i )
       if Rule === i then
-        i = i.ruleid
+        i = i.ident
       else
         i.must Integer
       end
 
-      if ret = @reduce[i] then
-        ret.used
-      else
-        @reduce[i] = ret = ReduceAction.new( @ruletable[i] )
+      unless ret = @reduce[i] then
+        bug! "reduce action #{i} not exist"
       end
-
+      ret.incref
       ret
     end
 
@@ -749,16 +1497,12 @@ module Racc
 
     def shift( i )
       if LALRstate === i then
-        i = i.stateid
+        i = i.ident
       else
         i.must Integer
       end
 
-      unless ret = @shift[i] then
-        @shift[i] = ret = ShiftAction.new( @statetable[i] )
-      end
-
-      ret
+      @shift[i] or bug! "shift action #{i} not exist"
     end
 
     def each_shift( &block )
@@ -766,21 +1510,8 @@ module Racc
     end
 
 
-    def accept
-      unless @accept then
-        @accept = AcceptAction.new
-      end
-
-      @accept
-    end
-
-    def error
-      unless @error then
-        @error = ErrorAction.new
-      end
-
-      @error
-    end
+    attr :accept
+    attr :error
 
   end
 
@@ -792,18 +1523,17 @@ module Racc
   class ShiftAction < LALRaction
 
     def initialize( goto )
-      goto.must LALRstate
       @goto_state = goto
     end
 
     attr :goto_state
 
     def goto_id
-      @goto_state.stateid
+      @goto_state.ident
     end
 
     def inspect
-      "<shift #{@goto_state.stateid}>"
+      "<shift #{@goto_state.ident}>"
     end
 
   end
@@ -812,27 +1542,26 @@ module Racc
   class ReduceAction < LALRaction
 
     def initialize( rule )
-      rule.must Rule
       @rule = rule
-      @refn = 1
+      @refn = 0
     end
 
     attr :rule
     attr :refn
 
     def ruleid
-      @rule.ruleid
+      @rule.ident
     end
 
     def inspect
-      "<reduce #{@rule.ruleid}>"
+      "<reduce #{@rule.ident}>"
     end
 
-    def used
+    def incref
       @refn += 1
     end
 
-    def discard
+    def decref
       @refn -= 1
       if @refn < 0 then
         bug! 'act.refn < 0'
@@ -897,7 +1626,7 @@ module Racc
   
     def to_s
       sprintf( 'state %d: R/R conflict with rule %d and %d on %s',
-               @stateid, @high_prec.ruleid, @low_prec.ruleid, @token.to_s )
+               @stateid, @high_prec.ident, @low_prec.ident, @token.to_s )
     end
 
   end

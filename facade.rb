@@ -1,10 +1,21 @@
 #
 # facade.rb
 #
-#   Copyright (c) 1999 Minero Aoki <aamine@dp.u-netsurf.ne.jp>
+#   Copyright (c) 1999,2000 Minero Aoki <aamine@dp.u-netsurf.ne.jp>
+#
+#   This program is free software.
+#   You can distribute/modify this program under the terms of
+#   the GNU Lesser General Public License version 2 or later.
 #
 
 require 'amstd/must'
+
+
+unless [].respond_to? 'collect!' then
+  class Array
+    alias collect! filter
+  end
+end
 
 
 module Racc
@@ -69,19 +80,12 @@ class Compiler
   end
 
   def nfa
-    GC.disable
     @ruletable.init
-    @tokentable.init
     @statetable.init
-    GC.enable
-    GC.start
   end
 
   def dfa
-    GC.disable
     @statetable.resolve
-    GC.enable
-    GC.start
   end
 
   def alist_table( f = '' )

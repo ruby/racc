@@ -1,7 +1,11 @@
 #
 # format.rb
 #
-#   Copyright (c) 1999 Minero Aoki <aamine@dp.u-netsurf.ne.jp>
+#   Copyright (c) 1999,2000 Minero Aoki <aamine@dp.u-netsurf.ne.jp>
+#
+#   This program is free software.
+#   You can distribute/modify this program under the terms of
+#   the GNU Lesser General Public License version 2 or later.
 #
 
 require 'amstd/bug'
@@ -98,7 +102,7 @@ module Racc
         out << sep; sep = sep_rest
         out << sprintf( ' %d, %d, :_reduce_%s',
                         rl.size,
-                        rl.simbol.tokenid,
+                        rl.symbol.tokenid,
                         rl.action ? i.to_s : 'none' )
       end
       out << " ]\n\n"
@@ -120,6 +124,8 @@ module Racc
     end
 
     def output_actions( out )
+      line = @line
+
       @ruletable.each_rule do |rl|
         if str = rl.action then
           i = rl.lineno
@@ -128,8 +134,8 @@ module Racc
             i += 1
           end
           str.sub! /\s+\z/o, ''
-          if @line then
-            out << sprintf( <<SOURCE, @parser.filename, i - 1, rl.ruleid, str )
+          if line then
+            out << sprintf( <<SOURCE, @parser.filename, i - 1, rl.ident, str )
 
  module_eval( <<'.,.,', '%s', %d )
   def _reduce_%d( val, _values, result )
@@ -139,7 +145,7 @@ module Racc
 .,.,
 SOURCE
           else
-            out << sprintf( <<SOURCE, rl.ruleid, str )
+            out << sprintf( <<SOURCE, rl.ident, str )
 
   def _reduce_%d( val, _values, result )
 %s
@@ -149,7 +155,7 @@ SOURCE
           end
         else
           out << sprintf( "\n # reduce %d omitted\n",
-                          rl.ruleid )
+                          rl.ident )
         end
       end
     end
@@ -192,7 +198,7 @@ SOURCE
       tbl = []
       @statetable.each_state do |state|
         if state.nonterm_table.size == 0 then
-          disc.push -1
+          disc.push( -1 )
         else
           disc.push tbl.size
           state.nonterm_table.each do |tok, dest|
@@ -201,7 +207,7 @@ SOURCE
           end
         end
       end
-      tbl.push -1; tbl.push -1   # detect bug
+      tbl.push( -1 ); tbl.push( -1 )   # detect bug
 
       out << "racc_goto_table = [\n"
       output_table( out, tbl )
@@ -294,7 +300,7 @@ S
         #
         freq = Array.new( @statetable.size, 0 )
         @statetable.each_state do |state|
-          st = state.nonterm_table[ tok ]
+          st = state.goto_table[ tok ]
           if st then
             st = st.stateid
             freq[ st ] += 1
@@ -304,7 +310,7 @@ S
         max = freq.max
         if max > 1 then
           dflt = freq.index( max )
-          tmp.filter {|i| dflt == i ? nil : i }
+          tmp.collect! {|i| dflt == i ? nil : i }
         else
           dflt = nil
         end
@@ -348,7 +354,7 @@ S
           min ||= idx
         end
       end
-      ptr.push -7777    # mark
+      ptr.push( -7777 )    # mark
 
       arr = arr[ min, max - min ]
       ent = [ arr, chkval, mkmapexp(arr), min, ptr.size - 1 ]
@@ -439,29 +445,10 @@ S
 
     def output( out )
       output_conflict out; out << "\n"
+      output_useless  out; out << "\n"
       output_rule     out; out << "\n"
       output_token    out; out << "\n"
       output_state    out
-    end
-
-
-    def output_useless( out )
-      act = nil
-      used = []
-      @statetable.actions.each_reduce do |act|
-        if not act or act.refn == 0 then
-          out << sprintf( "rule %d (%s) never reduced\n",
-                          act.rule.ruleid, act.rule.simbol.to_s )
-        else
-          used[ act.rule.symbol.tokenid ] = true
-        end
-      end
-      @tokentable.nt_base.upto( @tokentable.nt_max ) do |n|
-        unless used[n] then
-          out << sprintf( "useless nonterminal %s",
-                          @tokentable[n].to_s )
-        end
-      end
     end
 
 
@@ -479,6 +466,24 @@ S
     end
 
 
+    def output_useless( out )
+      rl = t = nil
+      used = []
+      @ruletable.each do |rl|
+        if rl.useless? then
+          out << sprintf( "rule %d (%s) never reduced\n",
+                          rl.ident, rl.symbol.to_s )
+        end
+      end
+      @tokentable.each_nonterm do |t|
+        if t.useless? then
+          out << sprintf( "useless nonterminal %s\n",
+                          t.to_s )
+        end
+      end
+    end
+
+
     def output_state( out )
       ptr = nil
       out << "--------- State ---------\n"
@@ -486,8 +491,8 @@ S
       @statetable.each_state do |state|
         out << "\nstate #{state.stateid}\n\n"
 
-        (@debug ? state.closure : state.seed).each do |ptr|
-          pointer_out( out, ptr ) if ptr.rule.ruleid != 0 or @debug
+        state.core.each do |ptr|
+          pointer_out( out, ptr ) if ptr.rule.ident != 0 or @debug
         end
         out << "\n"
 
@@ -499,7 +504,7 @@ S
 
     def pointer_out( out, ptr )
       tmp = sprintf( "%4d) %s :",
-                     ptr.rule.ruleid, ptr.rule.simbol.to_s )
+                     ptr.rule.ident, ptr.rule.symbol.to_s )
       ptr.rule.each_with_index do |tok, idx|
         tmp << ' _' if idx == ptr.index
         tmp << ' ' << tok.to_s
@@ -512,15 +517,25 @@ S
     def action_out( out, state )
       reduce_str = ''
 
-      srconf = state.srconf
-      rrconf = state.rrconf
+      srconf = state.srconf and state.srconf.dup
+      rrconf = state.rrconf and state.rrconf.dup
 
       state.action.each do |tok, act|
         outact out, reduce_str, tok, act
-        if srconf and c = srconf[tok] then
+        if srconf and c = srconf.delete(tok) then
           outsrconf reduce_str, c
         end
-        if rrconf and c = rrconf[tok] then
+        if rrconf and c = rrconf.delete(tok) then
+          outrrconf reduce_str, c
+        end
+      end
+      if srconf and not srconf.empty? then
+        srconf.each do |tok, c|
+          outsrconf reduce_str, c
+        end
+      end
+      if rrconf and not rrconf.empty? then
+        rrconf.each do |tok, c|
           outrrconf reduce_str, c
         end
       end
@@ -529,9 +544,9 @@ S
       out << reduce_str
       out << "\n"
 
-      state.nonterm_table.each do |tok, dest|
+      state.goto_table.each do |tok, dest|
         out << sprintf( "  %-12s  go to state %d\n", 
-                        tok.to_s, dest.stateid )
+                        tok.to_s, dest.stateid ) unless tok.terminal?
       end
     end
 
@@ -542,7 +557,7 @@ S
                         tok.to_s, act.goto_id )
       when ReduceAction
         r << sprintf( "  %-12s  reduce using rule %d (%s)\n",
-                      tok.to_s, act.ruleid, act.rule.simbol.to_s )
+                      tok.to_s, act.ruleid, act.rule.symbol.to_s )
       when AcceptAction
         out << sprintf( "  %-12s  accept\n", tok.to_s )
       when ErrorAction
@@ -556,7 +571,7 @@ S
       confs.each do |c|
         r = c.reduce
         out << sprintf( "  %-12s  [reduce using rule %d (%s)]\n",
-                        c.shift.to_s, r.ruleid, r.simbol.to_s )
+                        c.shift.to_s, r.ruleid, r.symbol.to_s )
       end
     end
 
@@ -564,7 +579,7 @@ S
       confs.each do |c|
         r = c.low_prec
         out << sprintf( "  %-12s  [reduce using rule %d (%s)]\n",
-                        c.token.to_s, r.ruleid, r.simbol.to_s )
+                        c.token.to_s, r.ruleid, r.symbol.to_s )
       end
     end
 
@@ -575,9 +590,9 @@ S
     def output_rule( out )
       out << "-------- Grammar --------\n\n"
       @ruletable.each_rule do |rl|
-        if @debug or rl.ruleid != 0 then
+        if @debug or rl.ident != 0 then
           out << sprintf( "rule %d %s: %s\n\n",
-            rl.ruleid, rl.simbol.to_s, rl.tokens.join(' ') )
+            rl.ident, rl.symbol.to_s, rl.tokens.join(' ') )
         end
       end
 
@@ -612,7 +627,7 @@ S
   %s (%d) %s
 
 SRC
-      out << sprintf( tmp, tok.to_s, tok.tokenid, tokens2s( tok.locate ) )
+      out << sprintf( tmp, tok.to_s, tok.tokenid, locatestr( tok.locate ) )
     end
 
     def nonterminal_out( out, tok )
@@ -622,15 +637,13 @@ SRC
     on left : %s
 SRC
       out << sprintf( tmp, tok.to_s, tok.tokenid,
-                      tokens2s( tok.locate ), tokens2s( tok.rules ) )
+                      locatestr( tok.locate ), locatestr( tok.heads ) )
     end
     
-    def tokens2s( arr )
-      tbl = {}
-      arr.each do |ptr|
-        tbl[ ptr.ruleid ] = true if ptr.ruleid != 0
-      end
-      tbl.keys.join(' ')
+    def locatestr( ptrs )
+      arr = ptrs.collect {|ptr| i = ptr.rule.ident; i == 0 ? nil : i }
+      arr.compact!
+      arr.join(' ')
     end
 
   end

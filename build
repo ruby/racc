@@ -3,7 +3,6 @@
 require 'amstd/must'
 
 require 'racc/register'
-require 'racc/rule'
 require 'racc/state'
 require 'racc/format'
 
@@ -207,7 +206,6 @@ class Compiler
 ############
 
     @ruletable.init
-    @tokentable.init
     @statetable.init
     @statetable.resolve
 
@@ -216,15 +214,14 @@ class Compiler
 #
 # raccp.rb
 #
-#   Copyright (c) 1999 Minero Aoki <aamine@dp.u-netsurf.ne.jp>
+#   Copyright (c) 1999,2000 Minero Aoki <aamine@dp.u-netsurf.ne.jp>
 #
 #   This program is free software.
 #   You can distribute/modify this program under the terms of
-#   the GNU Library General Public License.
+#   the GNU Lesser General Public License version 2.
 #
 
 require 'racc/parser'
-require 'amstd/symbol'
 
 
 module Racc
@@ -261,9 +258,10 @@ module Racc
     end
 
     def on_error( tok, val, _values )
-      case val
-      when Symbol then v = val.id2name
-      when String then v = val
+      if val.respond_to? :id2name then
+        v = val.id2name
+      elsif String === val then
+        v = val
       else
         v = val.inspect
       end

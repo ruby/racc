@@ -1,8 +1,8 @@
 /* vi:set ts=4 sw=4:
 
-  cparse.c version 0.4.2 - 2
+  cparse.c
   
-    Copyright (c) 1999 Minero Aoki <aamine@dp.u-netsurf.ne.jp>
+    Copyright (c) 1999,2000 Minero Aoki <aamine@dp.u-netsurf.ne.jp>
   
     This library is free software.
     You can distribute/modify this program under the terms of

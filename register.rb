@@ -1,8 +1,13 @@
 #
 # register.rb
 #
-#   Copyright (c) 1999 Minero Aoki <aamine@dp.u-netsurf.ne.jp>
+#   Copyright (c) 1999,2000 Minero Aoki <aamine@dp.u-netsurf.ne.jp>
 #
+#   This program is free software.
+#   You can distribute/modify this program under the terms of
+#   the GNU Lesser General Public License version 2 or later.
+#
+
 
 module Racc
 
@@ -101,7 +106,7 @@ module Racc
     end
     
 
-    def embed_simbol( act )
+    def embed_symbol( act )
       sim = get_token( "@#{@emb}".intern )
       @emb += 1
       @ruletable.register sim, [], nil, act
@@ -109,11 +114,11 @@ module Racc
       sim
     end
 
-    def register_rule( simbol, list )
-      if simbol then
-        @pre = simbol
+    def register_rule( symbol, list )
+      if symbol then
+        @pre = symbol
       else
-        simbol = @pre
+        symbol = @pre
       end
 
       if Action === list[-1] then
@@ -121,12 +126,12 @@ module Racc
       else
         act = Action.new( '', 0 )
       end
-      list.filter do |t|
-        Action === t ? embed_simbol( t ) : t
+      list.collect! do |t|
+        Action === t ? embed_symbol( t ) : t
       end
 
-      @ruletable.register simbol, list, @tmpprec, act
-      @ruletable.start = simbol
+      @ruletable.register symbol, list, @tmpprec, act
+      @ruletable.start = symbol
       @tmpprec = nil
     end
 
