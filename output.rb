@@ -256,7 +256,7 @@ module Racc
       when Accept then @actions.shift_n
       when Error  then @actions.reduce_n * -1
       else
-        bug! "wrong act type #{act.type} in state #{state.ident}"
+        bug! "wrong act type #{act.type} included in action table"
       end
     end
 
@@ -536,8 +536,8 @@ module_eval <<'.,.,', '%s', %d
       e = ''
       sr = state.srconf && state.srconf.dup
       rr = state.rrconf && state.rrconf.dup
-      acts = state.action.dup
-      keys = state.action.keys
+      acts = state.action
+      keys = acts.keys
       keys.sort! {|a,b| a.ident <=> b.ident }
 
       [ Shift, Reduce, Error, Accept ].each do |type|
@@ -558,6 +558,8 @@ module_eval <<'.,.,', '%s', %d
           end
         end
       end
+      sr.each {|tok, c| outsrconf f, c } if sr
+      rr.each {|tok, c| outrrconf f, c } if rr
 
       act = state.defact
       if not Error === act or @debug then

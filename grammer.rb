@@ -273,6 +273,11 @@ module Racc
       #
       @symboltable.each do |t|
         t.term = t.heads.empty?
+        if t.terminal? then
+          t.snull = false
+          next
+        end
+
         tmp = false
         t.heads.each do |ptr|
           if ptr.reduce? then
@@ -306,20 +311,9 @@ module Racc
       @symboltable.each_nonterm {|t| compute_expand t }
 
       #
-      # t.nullable?
+      # t.nullable?, rule.nullable?
       #
-      @symboltable.each_nonterm do |t|
-        tmp = false
-        t.expand.each do |ptr|
-          if tmp = ptr.reduce? then
-            break
-          end
-          if tmp = ptr.deref.self_null? then
-            break
-          end
-        end
-        t.null = tmp
-      end
+      compute_nullable
 
       #
       # t.useless?, rule.useless?
@@ -358,35 +352,77 @@ module Racc
     end
 
 
-    def compute_useless
-      del = save = nil
-
-      @symboltable.each_terminal do |t|
-        t.useless = false
-      end
+    def compute_nullable
+      @rules.each       {|r| r.null = false }
+      @symboltable.each {|t| t.null = false }
 
       r = @rules.dup
       s = @symboltable.nonterminals
-      check_r_useless r
-      check_s_useless s
 
       begin
-        save = r.size
+        rs = r.size
+        ss = s.size
+        check_r_nullable r
+        check_s_nullable s
+      end until rs == r.size and ss == s.size
+    end
+
+    def check_r_nullable( r )
+      r.delete_if do |rl|
+        rl.null = true
+        rl.symbols.each do |t|
+          unless t.nullable? then
+            rl.null = false
+            break
+          end
+        end
+
+        rl.nullable?
+      end
+    end
+
+    def check_s_nullable( s )
+      s.delete_if do |t|
+        t.heads.each do |ptr|
+          if ptr.rule.nullable? then
+            t.null = true
+            break
+          end
+        end
+
+        t.nullable?
+      end
+    end
+
+
+    ###
+    ### WHAT IS "USELESS"?
+    ###
+    def compute_useless
+      t = del = save = nil
+
+      @symboltable.each_terminal {|t| t.useless = false }
+      @symboltable.each_nonterm  {|t| t.useless = true }
+      @rules.each {|r| r.useless = true }
+
+      r = @rules.dup
+      s = @symboltable.nonterminals
+      begin
+        rs = r.size
+        ss = s.size
         check_r_useless r
         check_s_useless s
-      end until r.size == save
+      end until r.size == rs and s.size == ss
     end
     
     def check_r_useless( r )
       t = rule = nil
       r.delete_if do |rule|
         rule.useless = false
-        unless rule.symbols.empty? then
-          rule.symbols.each do |t|
-            if t.useless? then
-              rule.useless = true
-              break
-            end
+        rule.symbols.each do |t|
+          if t.useless? then
+            rule.useless = true
+            break
           end
         end
         not rule.useless?
@@ -394,7 +430,7 @@ module Racc
     end
 
     def check_s_useless( s )
-      t = rule = nil
+      t = ptr = nil
       s.delete_if do |t|
         t.heads.each do |ptr|
           unless ptr.rule.useless? then
@@ -424,8 +460,10 @@ module Racc
       @lineno  = act.lineno
       @ident   = rid
       @hash    = hval
-      @useless = true
       @prec = @specified_prec = prec
+
+      @null    = nil
+      @useless = nil
 
       @ptrs = tmp = []
       syms.each_with_index do |t,i|
@@ -451,8 +489,11 @@ module Racc
       @prec ||= t
     end
 
+    def nullable?() @null end
+    def null=(n)    @null = n end
+
     def useless?()  @useless end
-    def useless=(f) @useless = f end
+    def useless=(u) @useless = u end
 
     def inspect
       "#<rule #{@ident} (#{@target})>"
@@ -468,6 +509,10 @@ module Racc
 
     def size
       @symbols.size
+    end
+
+    def empty?
+      @symbols.empty?
     end
 
     def to_s
@@ -532,13 +577,11 @@ module Racc
       @index == 0
     end
 
-    def increment
+    def next
       @rule.ptrs[ @index + 1 ] or ptr_bug!
     end
 
-    def decrement
-      @rule.ptrs[ @index - 1 ] or ptr_bug!
-    end
+    alias increment next
 
     def before( len )
       @rule.ptrs[ @index - len ] or ptr_bug!
@@ -744,7 +787,7 @@ module Racc
       @null     = nil
       @expand   = nil
 
-      @useless  = true
+      @useless  = nil
 
       # for human
       @to_s =
@@ -812,8 +855,8 @@ module Racc
     once_writer :snull
     def self_null?() @snull end
 
-    once_writer :null
     def nullable?() @null end
+    def null=(n)    @null = n end
 
     once_writer :expand
     attr :expand

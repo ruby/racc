@@ -96,11 +96,11 @@ module Racc
     def dfa
       if @verbose then
         $stderr.puts "resolving #{@statetable.size} states..."
-        b = Time.times.utime
+        b = Process.times.utime
       end
       @statetable.determine
       if @verbose then
-        e = Time.times.utime
+        e = Process.times.utime
         $stderr.puts "all resolved in #{e - b} sec"
       end
     end

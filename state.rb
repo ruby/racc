@@ -92,7 +92,7 @@ module Racc
 
       state.closure.each do |ptr|
         if sym = ptr.deref then
-          addsym table, sym, ptr.increment
+          addsym table, sym, ptr.next
         end
       end
 
@@ -107,7 +107,7 @@ module Racc
           @gotos.push g
         end
         state.gotos[sym] = g
-        puts "dstate: #{state.ident} --#{sym}-> #{dest.ident}" if @d_state
+        puts "dstate: #{state.ident} --#{sym}--> #{dest.ident}" if @d_state
 
         # check infinite recursion
         if state.ident == dest.ident and state.closure.size == 1 then
@@ -370,6 +370,12 @@ module Racc
         puts
       end
     end
+def print_tab_i( idx, rel, tab, i )
+  bin = tab[i]
+  print i, ' ', idx[i].inspect, ' << '; p rel[i]
+  print '  '
+  each_t( @symboltable, bin ) {|t| print ' ', t }
+end
 
     def printb( i )
       each_t( @symboltable, i ) do |t|
@@ -444,11 +450,12 @@ module Racc
           state.action[ stok ] = @actions.shift( goto )
         else
           unless Reduce === act then
-p stok
-p act
-state.action.each do |k,v|
-  print k.inspect, ' ', v.inspect, "\n"
-end
+            puts 'DEBUG -------------------------------'
+            p stok
+            p act
+            state.action.each do |k,v|
+              print k.inspect, ' ', v.inspect, "\n"
+            end
             bug! "#{act.type} in action table"
           end
 
@@ -711,9 +718,7 @@ end
     def rr_conflict( high, low, ctok )
       c = RRconflict.new( @ident, high, low, ctok )
 
-      unless @rrconf then
-        @rrconf = {}
-      end
+      @rrconf ||= {}
       if a = @rrconf[ctok] then
         a.push c
       else
@@ -724,9 +729,7 @@ end
     def sr_conflict( shift, reduce )
       c = SRconflict.new( @ident, shift, reduce )
 
-      unless @srconf then
-        @srconf = {}
-      end
+      @srconf ||= {}
       if a = @srconf[shift] then
         a.push c
       else
