@@ -8,8 +8,6 @@
 #   the GNU Lesser General Public License version 2 or later.
 #
 
-require 'amstd/bug'
-
 
 module Racc
 
@@ -259,7 +257,7 @@ module Racc
       when Accept then @actions.shift_n
       when Error  then @actions.reduce_n * -1
       else
-        bug! "wrong act type #{act.type} included in action table"
+        raise "Racc FATAL: wrong act type #{act.type} in action table"
       end
     end
 
@@ -589,7 +587,7 @@ module_eval <<'.,.,', '%s', %d
       when Error
         f.printf "  %-12s  error\n", t.to_s
       else
-        bug! "wrong act for outact: act=#{act}(#{act.type})"
+        raise "Racc FATAL: wrong act for outact: act=#{act}(#{act.type})"
       end
     end
 

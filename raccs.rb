@@ -8,8 +8,6 @@
 #   the GNU Lesser General Public License version 2 or later.
 #
 
-require 'amstd/bug'
-
 
 module Racc
 
@@ -37,7 +35,7 @@ module Racc
       @lineno + 1
     end
 
-    attr :debug, true
+    attr_accessor :debug
 
 
     def scan
@@ -238,14 +236,14 @@ module Racc
             ret << ch << (pre = read(1))
 
           else
-            bug!
+            raise 'Racc FATAL: did not match'
           end
         end
 
         ret << "\n"
       end while next_line
 
-      bug!
+      raise 'Racc FATAL: scan finished before parse finished'
     end
 
     def literal_head?( pre, post )

@@ -301,8 +301,7 @@ end
 
 ##### output -----------------------------------------------
 
-require 'amstd/rubyemu'
-require 'amstd/rbparams'
+require 'amstd/rubyloader'
 
 
 def write_table_file( racc, srcfn, opt )
@@ -361,8 +360,11 @@ class RaccTableFile
   end
 
 
+  RUBY_PATH = ::Config::CONFIG['bindir'] + '/' +
+              ::Config::CONFIG['ruby_install_name']
+
   def executable( path )
-    @f.print "#!#{path == 'ruby' ? RubyParams::RUBY_PATH : path}\n\n"
+    @f.print "#!#{path == 'ruby' ? RUBY_PATH : path}\n\n"
   end
 
 
@@ -393,7 +395,7 @@ S
       @f.puts  "#{'  ' * i}module #{m}"
       @f.puts
     end
-    @f.puts  "#{'  ' * mods.size}class #{real} < #{superclass}"
+    @f.puts "#{'  ' * mods.size}class #{real} < #{superclass}"
 
     yield
 
@@ -459,7 +461,7 @@ S
 unless $".index '#{rbfile}' then
 $".push '#{rbfile}'
 S
-    add_file RubyEmulator.find_feature rbfile
+    add_file RubyLoader.find_feature rbfile
     @f.puts "end   # end of #{rbfile}"
   end
 

@@ -9,7 +9,6 @@
 #
 
 require 'racc/iset'
-require 'amstd/must'
 
 
 module Racc
@@ -424,7 +423,7 @@ end
         item.each_la( @symboltable ) do |t|
           act = state.action[t]
           if act then
-            Reduce === act or bug! "#{act.type} in action table"
+            Reduce === act or raise "Racc FATAL: #{act.type} in action table"
             #
             # can't resolve R/R conflict (on t).
             #   reduce with upper rule as default
@@ -456,7 +455,7 @@ end
             state.action.each do |k,v|
               print k.inspect, ' ', v.inspect, "\n"
             end
-            bug! "#{act.type} in action table"
+            raise "Racc FATAL: #{act.type} in action table"
           end
 
           # conflict on stok
@@ -508,7 +507,7 @@ end
 
       ret = if rprec == sprec then
               ASSOC[ rtok.assoc ] or
-                  bug! "#{rtok}.assoc is not Left/Right/Nonassoc"
+                  raise "Racc FATAL: #{rtok}.assoc is not Left/Right/Nonassoc"
             else
               if rprec > sprec then :Reduce else :Shift end
             end
@@ -700,7 +699,7 @@ end
         p rule
         p @rrules
         p @la_rules_i
-        bug! 'rruleid'
+        raise 'Racc FATAL: cannot get reduce rule id'
       end
     end
 
@@ -837,17 +836,15 @@ end
     end
 
     def reduce( i )
-      if Rule === i then
-        i = i.ident
-      else
-        i.must Integer
+      case i
+      when Rule    then i = i.ident
+      when Integer then ;
+      else              raise "Racc FATAL: wrong type #{i.type} for reduce"
       end
 
-      unless ret = @reduce[i] then
-        bug! "reduce action #{i} not exist"
-      end
-      ret.incref
-      ret
+      r = @reduce[i] or raise "Racc FATAL: reduce action #{i.inspect} not exist"
+      r.incref
+      r
     end
 
     def each_reduce( &block )
@@ -860,13 +857,13 @@ end
     end
 
     def shift( i )
-      if State === i then
-        i = i.ident
-      else
-        i.must Integer
+      case i
+      when State   then i = i.ident
+      when Integer then ;
+      else              raise "Racc FATAL: wrong type #{i.type} for shift"
       end
 
-      @shift[i] or bug! "shift action #{i} not exist"
+      @shift[i] or raise "Racc FATAL: shift action #{i} not exist"
     end
 
     def each_shift( &block )
@@ -875,7 +872,6 @@ end
 
 
     attr :accept
-
     attr :error
 
   end
