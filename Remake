@@ -1,0 +1,135 @@
+#
+# racc/Remake
+#
+
+mount 'amstd'
+mount 'strscan'
+
+
+environ( 'rubyprog/racc' ) {
+
+  $version   = '1.3.9'
+
+  $type      = 'ruby'
+  $package   = 'racc'
+  $instpath  = 'racc'
+  $topfile   =  nil
+  $raw       =  true
+
+  $extern_libs = %w( raccrt strscan amstd )
+
+  $view_name = 'Racc'
+  $category  = 'parser generator'
+  $format    = 'ruby script, ruby extention'
+  $require   = 'ruby(>=1.4), C compiler'
+  $license   = 'LGPL'
+  $manual    =  true
+
+  $description_ja = <<'----'
+Ruby 用のパーザジェネレータ (yacc みたいなの) です。
+Ruby スクリプトでは最速のパーザを生成します。
+----
+  $description_en = <<'----'
+Racc (Ruby yACC) is a LALR(1) Parser Generator for Ruby.
+This tool is written in Ruby and outputs Ruby scripts.
+----
+
+
+  $bin = %w( racc )
+
+  $mainrb = %w(
+    compiler.rb
+    grammer.rb
+    info.rb
+    iset.rb
+    output.rb
+    parser.rb
+    raccs.rb
+    state.rb
+    ucodep.rb
+  )
+
+  $src = %w(
+    build
+  )
+  $genrb = %w( raccp.rb )
+
+  $rb = $mainrb + $genrb
+
+  $tool = %w(
+    pack.rb
+  )
+
+  $misc = %w(
+    y2racc
+    racc2y
+  )
+
+  $text = %w(
+    FILES
+    BUGS.ja
+    BUGS.en
+  )
+
+
+  deftask :build do
+    upver $src
+    command './build &> er'
+  end
+
+  deftask :update do
+    upver $bin, $mainrb, $src
+    <raccrt>.update
+  end
+
+  def set_files_etc( packdir )
+    cp $src,                   isdir(packdir, 'src')
+    cp Dir.glob('sample/*.y'), isdir(packdir, 'sample')
+    cp indir('misc', $misc),   isdir(packdir, 'misc')
+  end
+
+  deftask :pack do
+    super
+    <raccrt>.raw
+  end
+
+}
+
+
+environ( 'raccrt' ) {
+
+  $type        = 'ruby'
+  $package     = 'raccrt'
+  $instpath    = 'racc'
+  $topfile     =  nil
+
+  $rb = %w( parser.rb )
+
+  deftask :update do
+    upver $rb, $version
+    <cparse>.update
+  end
+
+
+  environ( 'cparse' ) {
+
+    $dir      = $dir + '/cp'
+
+    $type     = 'ext'
+    $package  = 'raccrt'
+    $instpath = 'racc'
+    $topfile  =  nil
+
+    $c        = %w( cparse.c )
+    $etool    = %w( MANIFEST extconf.rb )
+
+    deftask :update do
+      upver $c, $version
+    end
+
+    def set_files( packdir )
+      bug!
+    end
+
+  }
+}
