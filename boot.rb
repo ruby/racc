@@ -82,7 +82,7 @@ module Racc
       @statetable  = StateTable.new( self )
 
 
-_"  xclass      : XCLASS class params XRULE rules XEND                   ",
+_"  xclass      : XCLASS class params XRULE rules opt_end                ",
                    %{
                         @ruletable.end_register_rule
                     }
@@ -240,6 +240,9 @@ _"              | bare_symlist XSYMBOL                                   ",
                    %{
                         result.push val[1].id2name
                     }
+
+_"  opt_end     : XEND                                                   ", ''
+_"              |                                                        ", ''
 
 
       @ruletable.init

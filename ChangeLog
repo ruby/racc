@@ -1,3 +1,7 @@
+Tue Jun  4 00:15:28 2002  Minero Aoki  <aamine@loveruby.net>
+
+	* boot.rb: allow to omit last 'end'.
+
 Mon Jun  3 23:29:45 2002  Minero Aoki  <aamine@loveruby.net>
 
 	* racc (write_table_file): shebang must placed on first line.
