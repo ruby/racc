@@ -1,5 +1,5 @@
 #
-# LALR grammer example
+# LALR grammer (not LL/SLR)
 #
 
 class A

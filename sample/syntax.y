@@ -1,5 +1,5 @@
 #
-# racc syntax checker
+# racc syntax checker (does not work. use for check only)
 #
 
 class P
