@@ -297,7 +297,6 @@ def write_table_file( racc, srcfn, opt )
   RaccTableFile.new( tabfn, srcfn, opt['--line-convert'] ) do |f|
     f.executable opt['--executable'] if opt['--executable']
     f.require opt['--embedded'], opt['--runtime'] || 'racc/parser'
-p opt['--line-convert-all']
     f.header opt['--line-convert-all']
     f.parser_class( racc.parser.class_name,
                     opt['--super'] || racc.parser.super_class ) {
