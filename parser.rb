@@ -8,10 +8,6 @@
 #   the GNU Lesser General Public License version 2 or later.
 #
 
-require 'amstd/bug'
-
-###
-
 unless defined?(::ParseError) then
   class ParseError < StandardError ; end
 end
@@ -219,11 +215,11 @@ class Parser
           break
 
         else
-          bug!
+          raise RuntimeError, "[Racc Bug] wrong act value #{act.inspect}"
         end
 
       else
-        bug! "unknown action #{act}"
+        raise RuntimeError, "[Racc Bug] unknown action #{act.inspect}"
       end
 
       _print_state( curstate, state ) if @yydebug
@@ -316,7 +312,7 @@ class Parser
 
   def _token2str( tok )
     unless ret = self.type::TOKEN_TO_S_TABLE[tok] then
-      bug! "can't convert token #{tok} to string"
+      raise RuntimeError, "[Racc Bug] can't convert token #{tok} to string"
     end
     ret
   end

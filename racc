@@ -275,7 +275,7 @@ File.open( tabfn, 'w' ) do |f|
 #
 
 S
-    embed 'amstd/bug',   f ; f.puts
+    # embed 'amstd/bug',   f ; f.puts
     embed 'racc/parser', f ; f.puts
   else
     f.puts

@@ -36,9 +36,6 @@ end
 chdir( 'racc' ) do
   cp RACCRT, isdir( $target + '/racc' )
 
-  chdir( 'strscan' ) do
-    cp allfiles, isdir( $target + '/strscan' )
-  end
   chdir( 'cparse' ) do
     cp allfiles, isdir( $target + '/racc/cparse' )
   end
