@@ -18,7 +18,7 @@ rule
      | exp '-' exp { result -= val[2] ; "string test" }
      | exp '*' exp { result *= val[2] }
      | exp '/' exp { result /= val[2] }
-     | '(' exp ')' { result = val[1]  }
+     | '(' { puts 'emb' } exp ')' { result = val[2]  }
      | '-' NUMBER  { result = -val[1] }
      | NUMBER
      ;

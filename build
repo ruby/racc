@@ -19,6 +19,8 @@ end
 
 class Racc
 
+  Version = '0.10.2'
+
   attr :ruletable
   attr :tokentable
   attr :statetable
@@ -47,8 +49,9 @@ class Racc
       bug! 'nil in rulearr' unless i
       @interf.get_token( i )
     end
+    rarr.push act
 
-    @interf.register_rule( simbol, rarr, nil, act )
+    @interf.register_rule( simbol, rarr )
   end
 
 
@@ -75,7 +78,7 @@ class Racc
     r nil, [ :params, :param_seg ], ''
 ############
     # 4
-    r :param_seg, [ :XTOKEN, :tokdefs, :XEND ], %{
+    r :param_seg, [ :XTOKEN, :convdefs, :XEND ], %{
       @interf.end_register_conv
     }
     # 5
@@ -89,11 +92,11 @@ class Racc
     }
 ############
     # 7
-    r :tokdefs, [ :toksim, :STRING ], %{
+    r :convdefs, [ :terminal, :STRING ], %{
       @interf.register_conv( val[0], val[1] )
     }
     # 8
-    r nil, [ :tokdefs, :toksim, :STRING ], %{
+    r nil, [ :convdefs, :terminal, :STRING ], %{
       @interf.register_conv( val[1], val[2] )
     }
 ############
@@ -112,57 +115,29 @@ class Racc
     r nil, [ :preclines, :precline ], ''
 ############
     # 13
-    r :precline, [ :LEFT, :tokens_1 ], %{
+    r :precline, [ :LEFT, :term_list ], %{
       @interf.register_prec( :Left, val[1] )
     }
     # 14
-    r nil, [ :RIGHT, :tokens_1 ], %{
+    r nil, [ :RIGHT, :term_list ], %{
       @interf.register_prec( :Right, val[1] )
     }
     # 15
-    r nil, [ :NONASSOC, :tokens_1 ], %{
+    r nil, [ :NONASSOC, :term_list ], %{
       @interf.register_prec( :Nonassoc, val[1] )
     }
 ############
     # 16
-    r :tokens_1, [ :toksim ], %{
+    r :term_list, [ :terminal ], %{
       result = val
     }
     # 17
-    r nil, [ :tokens_1, :toksim ], %{
-      result.push val[1]
-    }
-############
-    # 18
-    r :rules, [ :ruleseg, :rulesegterm ], ''
-    # 19
-    r nil, [ :rules, :ruleseg, :rulesegterm ], ''
-############
-    # 20
-    r :ruleseg, [ :TOKEN, ':', :tokens, :tempprec, :action ], %{
-      @interf.register_rule @interf.get_token(val[0]), val[2], val[3], val[4]
-    }
-    # 21
-    r nil, [ :ruleseg, '|', :tokens, :tempprec, :action ], %{
-      @interf.register_rule( nil, val[2], val[3], val[4] )
-    }
-############
-    # 22
-    r :rulesegterm, [ :EOL ], ''
-    # 23
-    r nil, [ ';' ], ''
-############
-    # 24
-    r :tokens, [], %{
-      result = []
-    }
-    # 25
-    r nil, [ :tokens, :toksim ], %{
+    r nil, [ :term_list, :terminal ], %{
       result.push val[1]
     }
 ############
     # 26
-    r :toksim, [ :TOKEN ], %{
+    r :terminal, [ :TOKEN ], %{
       result = @interf.get_token( val[0] )
     }
     # 27
@@ -170,19 +145,43 @@ class Racc
       result = @interf.get_token( eval '"' + val[0] + '"' )
     }
 ############
-    # 28
-    r :tempprec, [], ''
-    # 29
-    r nil, ['=', :toksim], %{
-      result = val[1]
+    # 18
+    r :rules, [ :ruleseg, ';' ], ''
+    # 19
+    r nil, [ :rules, :ruleseg, ';' ], ''
+############
+    # 20
+    r :ruleseg, [ :TOKEN, ':', :simbol_list ], %{
+      @interf.register_rule @interf.get_token(val[0]), val[2]
+    }
+    # 21
+    r nil, [ :ruleseg, '|', :simbol_list ], %{
+      @interf.register_rule nil, val[2]
     }
 ############
-    # 30
-    r :action, [], %{
-      result = ''
+    # 22
+    r :simbol_list, [], %{
+      result = []
     }
-    # 31
-    r nil, [ :ACTION ], ''
+    # 23
+    r nil, [ :simbol_list, :simbol ], %{
+      result.push val[1]
+    }
+############
+    # 24
+    r :simbol, [ :TOKEN ], %{
+      result = @interf.get_token( val[0] )
+    }
+    # 25
+    r nil,     [ :STRING ], %{
+      result = @interf.get_token( eval '"' + val[0] + '"' )
+    }
+    # 26
+    r nil,     [ :ACTION ], ''
+    # 27
+    r nil,     [ '=', :terminal ], %{
+      @interf.register_tmpprec val[1]
+    }
 ############
 
     @ruletable.do_initialize

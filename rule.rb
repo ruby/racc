@@ -13,6 +13,8 @@ class Racc
       @tokentable = racc.tokentable
 
       @precs = []
+      @emb = 1
+      @tmpprec = nil
 
       @end_rule = false
       @end_conv = false
@@ -24,25 +26,44 @@ class Racc
       @tokentable.get( val )
     end
     
-    def register_rule( simbol, rulearr, tempprec, actstr )
-      puts "register: add: #{simbol} -> #{rulearr.join(' ')}" if @d_rule
 
-      if @end_rule then
-        raise ParseError, "'rule' block is defined twice"
-      end
+    def embed_simbol( actstr )
+      sim = get_token( "@#{@emb}".intern )
+      @emb += 1
+      @ruletable.register sim, [], nil, actstr
 
+      sim
+    end
+
+    def register_rule( simbol, list )
       if simbol then
         @pre = simbol
       else
         simbol = @pre
       end
-      unless actstr then actstr = '' end
 
-      @ruletable.register( simbol, rulearr, tempprec, actstr )
+      if String === list[-1] then
+        act = list.pop
+      else
+        act = ''
+      end
+      list.filter do |t|
+        String === t ? embed_simbol( t ) : t
+      end
+
+      @ruletable.register simbol, list, @tmpprec, act
+      @tmpprec = nil
     end
 
     def end_register_rule
       @end_rule = true
+    end
+
+    def register_tmpprec( prec )
+      if @tmpprec then
+        raise ParseError, "'=<prec>' used twice in one rule"
+      end
+      @tmpprec = prec
     end
 
 

@@ -27,7 +27,7 @@ class Racc
 
 
     def source( out = '' )
-      out << "##### racc generated code begin ###\n\n"
+      out << "##### racc version #{Version} generates ###\n\n"
 
       action_table_tab( out )
       out << "\n"
@@ -44,9 +44,10 @@ class Racc
       else
         out << "\nDEBUG_PARSER = false\n"
       end
-      reduce_methods_tab( out )
+      out << "\n##### racc system variables end #####\n"
 
-      out << "##### racc generated code end #####\n"
+      reduce_methods_tab( out )
+      out << "\n"
     end
 
 
@@ -122,6 +123,8 @@ class Racc
           end
         end
       end
+      tbl.push -1; tbl.push -1   # detect bug
+
       out << "LR_goto_table = [\n"
       table_tab( out, tbl )
 
@@ -171,10 +174,10 @@ class Racc
         rl.action.sub! /\s+\z/o, ''
         out << sprintf( <<SOURCE, rl.ruleid, rl.action )
 
-def _reduce_%d( val, _values, result )
+ def _reduce_%d( val, _values, result )
 %s
- result
-end
+  result
+ end
 SOURCE
       end
     end
@@ -250,7 +253,7 @@ SOURCE
 
       state.nonterm_table.each do |tok, dest|
         out << sprintf( "  %-12s  go to state %d\n", 
-                        tok.to_s, state.stateid )
+                        tok.to_s, dest.stateid )
       end
     end
 

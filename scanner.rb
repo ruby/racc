@@ -88,10 +88,10 @@ class Scanner
 
 
   def debug_report( arr )
-    puts "rest=#{@scan.size}"
+    puts "rest=#{@scan.restsize}"
     sret = arr[0]
     vret = arr[1]
-    if Integer === sret then
+    if Fixnum === sret then
       puts "sret #{sret.id2name}"
     else
       puts "sret #{sret.inspect}"

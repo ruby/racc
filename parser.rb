@@ -17,12 +17,12 @@ class Parser
   private
 
 
-  begin
-    require 'racc/cparse'   # def _c_parse
-    Racc_Main_Parsing_Routine = :c
-  rescue LoadError
+#  begin
+#    require 'racc/cparse'   # def _c_parse
+#    Racc_Main_Parsing_Routine = :c
+#  rescue LoadError
     Racc_Main_Parsing_Routine = :rb
-  end
+#  end
 
 
   abstract :next_token

@@ -1,6 +1,6 @@
 #!/usr/local/bin/ruby
 #
-# racc version 0.10.1
+# racc version 0.10.2
 #
 #     Copyright (c) 1999 Minero Aoki <aamine@dp.u-netsurf.ne.jp>
 #
@@ -39,8 +39,8 @@ $USAGE = 'usage'
 
 
 parseArgs( 1, nil, "vgPG",
-  'o:', 'n:', 'h:', 'i:', 'f:', 'e:/usr/local/bin/ruby',
-	'R:', 'D:', 'X:', 'S:',
+  'o:', 'n:', 'h:', 'i:', 'f:', 'e:',
+  'R:', 'D:', 'X:', 'S:',
   'version', 'help' )
 
 
@@ -138,9 +138,9 @@ def connect_part( srcfn, f, opt, *part_name )
       connect fchk(fn), f
     end
   else
-		part_name.each do |part|
-			connect_part_raccfile srcfn, f, part
-		end
+    part_name.each do |part|
+      connect_part_raccfile srcfn, f, part
+    end
   end
 end
 
@@ -205,10 +205,10 @@ GC.disable   # :-)
 racc = Racc.new
 
 if $OPT_g then
-	racc.dsrc = true
+  racc.dsrc = true
 end
 if $OPT_D then
-	$stdout.sync = true
+  $stdout.sync = true
   racc.debug    = true
   racc.d_prec   = true if /p/io === $OPT_D
   racc.d_rule   = true if /r/io === $OPT_D
