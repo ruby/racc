@@ -1,0 +1,32 @@
+in PACKAGE-TOP/
+
+	FILES             this file
+  README.en         README in English
+	README.ja         README in Japanese
+	doc.en/*          racc user manual (HTML)
+	doc.ja/*          racc user manual (HTML, in Japanese)
+	calc.y            simple example
+	calc2-ja.y        simple example (in Japanese)
+	compile.rb        ruby script to compile calc.y
+	amstd/*.rb        amstd library. Install into "RUBYLIB/amstd".
+	src/*             sources of racc
+
+in PACKAGE-TOP/bin/
+
+	racc              executable 'racc' command
+
+in PACKAGE-TOP/racc/
+
+	libracc.rb        entry point of library
+	facade.rb         racc facade
+	raccp.rb          parser of racc rule file
+	raccs.rb          scanner of racc rule file
+	rule.rb           LALR rule class
+	state.rb          LALR state class
+	format.rb         source code formatter
+
+	cparse/*
+	parser.rb         racc parser runtime library
+
+	strscan/*
+	scanner.rb        scanning library
