@@ -285,19 +285,19 @@ module Racc
       ncom = ','
       co   = com
 
-      out.print 'tmpa = ['
+      out.print 'clist = ['
       tab.each do |i|
         buf << co << i.to_s; co = ncom
         if buf.size > 66 then
           out.print sep; sep = nsep
-          out.print "'<,", buf, ",>'"
+          out.print "'", buf, "'"
           buf = ''
           co = com
         end
       end
       unless buf.empty? then
         out.print sep
-        out.print "'<,", buf, ",>'"
+        out.print "'", buf, "'"
       end
       out.puts ' ]'
 
@@ -305,9 +305,8 @@ module Racc
 #{label} = arr = Array.new( #{tab.size}, nil )
 str = a = i = nil
 idx = 0
-tmpa.each do |str|
-  a = str.split(','); a.shift; a.pop
-  a.each do |i|
+clist.each do |str|
+  str.split(',', -1).each do |i|
     arr[idx] = i.to_i unless i.empty?
     idx += 1
   end
