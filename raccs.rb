@@ -225,7 +225,7 @@ module Racc
             end
 
           when '/'
-            if literal_head? pre then
+            if literal_head? pre, @line then
               # regexp
               ret << (pre = scan_quoted(ch, 'regexp'))
             else
