@@ -1,21 +1,19 @@
 <h1>racc command reference</h1>
 
-<hr>
-
-<p align=justify>
-  racc.rb [-vgE] [--version] [--help] [-o<var>outfile</var>] [-e<var>path</var>]
-    [-n<var>classname</var>] [-h<var>header</var>] [-i<var>inner</var>]
-    [-f<var>footer</var>] <var>filename</var>
+<p>
+racc [-vgE] [--version] [--help] [-o<var>outfile</var>] [-e<var>path</var>]
+     [-n<var>classname</var>] [-h<var>header</var>] [-i<var>inner</var>]
+     [-f<var>footer</var>] <var>filename</var>
 </p>
 
 <dl>
 <dt><var>filename</var>
 <dd>
-racc file. Any extention is permitted.
+Racc grammar file. Any extention is permitted.
 
 <dt>-o<var>outfile</var>
 <dd>
-A filename for output. default is <filename>.tab.rb
+A filename for output. default is &lt;filename&gt;.tab.rb
 
 <dt>-e<var>path</var>
 <dd>
@@ -23,7 +21,7 @@ output executable file(mode 755). <var>path</var> is a path of ruby interpreter.
 
 <dt>-v
 <dd>
-verbose mode. create "filename".output file, like y.output file.
+verbose mode. create &lt;filename&gt;.output file, like yacc's y.output file.
 
 <dt>-g
 <dd>

@@ -1,3 +1,35 @@
+Sun Oct 12 17:18:47 2003  Minero Aoki  <aamine@loveruby.net>
+
+	* README.en: update documents.
+
+	* README.ja: ditto.
+
+	* doc.en/changes.html: ditto.
+
+	* doc.en/command.html: ditto.
+
+	* doc.en/debug.html: ditto.
+
+	* doc.en/grammar.html: ditto.
+
+	* doc.en/index.html: ditto.
+
+	* doc.en/parser.html: ditto.
+
+	* doc.en/usage.html: ditto.
+
+	* doc.ja/changes.html: ditto.
+
+	* doc.ja/command.html: ditto.
+
+	* doc.ja/debug.html: ditto.
+
+	* doc.ja/index.html: ditto.
+
+	* doc.ja/parser.html: ditto.
+
+	* doc.ja/usage.html: ditto.
+
 Sun Oct 12 16:24:46 2003  Minero Aoki  <aamine@loveruby.net>
 
 	* sameple/calc-ja.y: simplify.

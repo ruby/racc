@@ -1,10 +1,4 @@
-<h1>Racc grammar reference</h1>
-
-<hr>
-
-<p>
-This is temporary specification.
-
+<h1>Racc Grammar File Reference</h1>
 
 <h2><a name="whole">global structure</a></h2>
 
@@ -13,83 +7,80 @@ This is temporary specification.
 There's two block on toplevel.
 one is 'class' block, another is 'user code' block. 'user code' block MUST
 places after 'class' block.
-
-
+</p>
 <h3><a name="comment">comment</a></h3>
-
 <p>
 You can insert comment about all places. Two style comment can be used,
 Ruby style (#.....) and C style (/*......*/) .
-
+</p>
 
 <h2><a name="class">class block</a></h2>
-
 <p>
 class block is like this:
+</p>
 <pre>
-
-    class <var>class_name</var>
-      [<var>precedance table</var>]
-      [<var>token declearations</var>]
-      [<var>expected number of S/R conflict</var>]
-      [<var>options</var>]
-      [<var>semantic value convertion</var>]
-      [<var>start rule</var>]
-    rule
-      <var>RULES</var>
-    end
-
+class <var>class_name</var>
+  [<var>precedance table</var>]
+  [<var>token declearations</var>]
+  [<var>expected number of S/R conflict</var>]
+  [<var>options</var>]
+  [<var>semantic value convertion</var>]
+  [<var>start rule</var>]
+rule
+  <var>RULES</var>
+end
 </pre>
+<p>
 <var>class_name</var> is a name of parser class.
 This is the name of generating parser class.
-
+</p>
 <p>
 If <var>class_name</var> includes '::', Racc outputs module clause.
 For example, "class M::C" causes creating the code bellow:
+</p>
 <pre>
-
 module M
   class C
     :
   end
 end
-
 </pre>
 
-
 <h3><a name="grammar">rule block</a></h3>
-
 <p>
 'rule block' discripts grammar which is able to be understood by parser.
 For example:
+</p>
 <pre>
+(token): (token) (token) (token).... (action) ;
 
-   (token): (token) (token) (token).... (action) ;
-
-   (token): (token) (token) (token).... (action)
-          | (token) (token) (token).... (action)
-          | (token) (token) (token).... (action)
-
+(token): (token) (token) (token).... (action)
+       | (token) (token) (token).... (action)
+       | (token) (token) (token).... (action)
 </pre>
+<p>
 (action) is an action which is executed when its (token)s are found.
-(action) is like this:
+(action) is Ruby code block, which is surrounded by braces:
+</p>
 <pre>
-
-        { print val[0]
-          puts val[1] }
-
+{ print val[0]
+  puts val[1] }
 </pre>
-In (action), you cannot use '%' string, here document, '%r' regexp.
-Actions can be omitted. When it is omitted, ''(empty string) is used.
-
+<p>
+Note that you cannot use '%' string, here document, '%r' regexp in action.
+</p>
+<p>
+Actions can be omitted.
+When it is omitted, '' (empty string) is used.
+</p>
 <p>
 A return value of action is a value of left side value ($$).
 It is value of result, or returned value by "return" statement.
-
+</p>
 <p>
 Then, here's a sample of whole 'rule block'.
+</p>
 <pre>
-
 rule
   goal: definition ruls source { result = val }
 
@@ -104,9 +95,10 @@ rule
   startdesig: START TOKEN
 
 end
-
 </pre>
+<p>
 You can use these special local variables in action.
+</p>
 <dl>
 <dt>result ($$)
 <dd>
@@ -123,48 +115,44 @@ DO NOT CHANGE this stack unless you know what you are doing.
 
 </dl>
 
-
-
 <h3><a name="prec">Operator precedance</a></h3>
-
 <p>
 This function is equal to '%prec' in yacc.
 To designate this block:
+</p>
 <pre>
-
-    prechigh
-      nonassoc '++'
-      left     '*' '/'
-      left     '+' '-'
-      right    '='
-    preclow
-
+prechigh
+  nonassoc '++'
+  left     '*' '/'
+  left     '+' '-'
+  right    '='
+preclow
 </pre>
-'right' is '%right', 'left' is '%left'. While this example is written
-'prechigh' upper and 'preclow' lower, another format 'preclow...prechigh'
-is also OK.
-
 <p>
-'%prec' can be used. format is like this:
+`right' is yacc's %right, `left' is yacc's %left.
+</p>
+<p>
+`=' + (symbol) means yacc's %prec:
+</p>
 <pre>
+prechigh
+  nonassoc UMINUS
+  left '*' '/'
+  left '+' '-'
+preclow
 
-  prechigh
-    nonassoc UMINUS
-    left '*' '/'
-    left '+' '-'
-  preclow
-
-  rule
-    exp: exp '*' exp
-       | exp '-' exp
-       | '-' exp       = UMINUS   # this!!!
-           :
-
+rule
+  exp: exp '*' exp
+     | exp '-' exp
+     | '-' exp       =UMINUS   # equals to "%prec UMINUS"
+         :
+         :
 </pre>
 
 <h3><a name="expect">expect</a></h3>
 <p>
 Racc has bison's "expect" directive.
+</p>
 <pre>
 # Example
 
@@ -173,9 +161,11 @@ rule
   expect 3
     :
 </pre>
+<p>
 This directive declears "expected" number of shift/reduce conflict.
-If "expected" number is equal to real number, racc does not print
-confliction warning message. Mainly for release-version parser.
+If "expected" number is equal to real number of conflicts,
+racc does not print confliction warning message.
+</p>
 
 <h3><a name="token">Token Declearation</a></h3>
 <p>
@@ -183,92 +173,92 @@ By declearing tokens that IT IS TOKEN, you can avoid many meanless bugs.
 If decleared token does not exist/existing token does not decleared,
 Racc output warnings.<br>
 Declearation syntax is:
+</p>
 <pre>
-
-  token TOKEN_NAME AND_IS_THIS
-        ALSO_THIS_IS AGAIN_AND_AGAIN THIS_IS_LAST
-
+token TOKEN_NAME AND_IS_THIS
+      ALSO_THIS_IS AGAIN_AND_AGAIN THIS_IS_LAST
 </pre>
-
 
 <h3><a name="options">Options</a></h3>
 <p>
 You can write options for racc command in your racc file.
+</p>
 <pre>
-
-  options OPTION OPTION ...
-
+options OPTION OPTION ...
 </pre>
-Now options are:
+<p>
+Options are:
+</p>
 <dl>
 <dt>omit_action_call <dd>if omit empty action call
 <dt>result_var       <dd>if use variable "result"
 </dl>
-These flags also can be given with 'no_' prefix.
-
+<p>
+You can use 'no_' prefix to invert its meanings.
+</p>
 
 <h3><a name="convert">Convert Token Symbol</a></h3>
 <p>
 Token symbols are, as default,
+</p>
 <dl>
 <dt>naked token string in racc file (TOK, XFILE, this_is_token, ...)
 <dd>symbol of it (:TOK, :XFILE, :this_is_token, ...)
 <dt>quoted string (':', '.', '(', ...)
 <dd>same string (':', '.', '(', ...)
 </dl>
+<p>
 You can change this by "convert" block. This is example:
+</p>
 <pre>
-
-    convert
-      PLUS 'PlusClass'      # not use :PLUS but PlusClass
-      MIN  'MinusClass'     # not use :MIN but MinusClass
-    end
-
+convert
+  PLUS 'PlusClass'      # not use :PLUS but PlusClass
+  MIN  'MinusClass'     # not use :MIN but MinusClass
+end
 </pre>
-
+<p>
 Almost all ruby value can be used by token symbol,
 but 'false' and 'nil' are NOT. These are causes unexpected parse error.
-
+</p>
 <p>
 If you want to use String as token symbol, special care is required.
 For example:
+</p>
 <pre>
-
-    convert
-      class '"cls"'            # in code, "cls"
-      PLUS '"plus\n"'          # in code, "plus\n"
-      MIN  "\"minus#{val}\""   # in code, \"minus#{val}\"
-    end
-
+convert
+  class '"cls"'            # in code, "cls"
+  PLUS '"plus\n"'          # in code, "plus\n"
+  MIN  "\"minus#{val}\""   # in code, \"minus#{val}\"
+end
 </pre>
+<p>
 This is <em>not BUG, but FEATURE</em>.
-
+</p>
 
 <h3><a name="start">Start Rule</a></h3>
 <p>
 '%start' in yacc. This changes start rule.
+</p>
 <pre>
-
-      start real_target
-
+start real_target
 </pre>
 <p>
-this statement won't be used forever, I think.
+This statement will not be used forever, I think.
+</p>
 
 
 <h2><a name="usercode">User Code</a></h2>
-
 <p>
 'user block' is Ruby source code which is copied to output.
 In <a href="command.html">racc command</a>, Three spetial user code
 'header' 'inner' 'footer' are used.<br>
 Until version 0.10.2, they are called prepare/inner/driver.
 It is also OK, but they will be eliminated in future.
-
+</p>
 <p>
-format of user code is like this:
+Format of user code is like this:
+</p>
 <pre>
-
 ---- header
   ruby statement
   ruby statement
@@ -277,18 +267,19 @@ format of user code is like this:
 ---- inner
   ruby statement
      :
-
 </pre>
+<p>
 If 4 '-' exist on line head, racc treat it as beginning of user code.
 A name of user code must be one word.
-
+</p>
 <p>
 You can include other file as user code like this:
+</p>
 <pre>
-
 ---- footer = init.rb run.rb
 
 print 'this code is executed too.'
-
 </pre>
+<p>
 This statement makes racc to use "init.rb" "run.rb" as 'footer' user code.
+</p>

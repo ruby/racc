@@ -6,13 +6,13 @@
 <li>Isn't there too many "end" ? grammar of racc file is changed in v0.10.
 </ul>
 
-<h2>Parse Error outputed by Generated Parser</h2>
+<h2>Parse Error on Generating Parser</h2>
 
 <ul>
 <li>Does your parser have method "next_token" ?
-<li>"next_token" returns Array of symbol and its value.
+<li>"next_token" must return [symbol, its value].
 <li>When there is no token, "next_token" must returns [false, (ANY)].
 <li>now "next_value" "peep_token" is not used.
-<li>Were all terminal tokens listed corectry in ".output" file ?
+<li>Were all terminal tokens listed corectry in ".output" file?
     (and also nonterminal?)
 </ul>
