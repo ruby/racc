@@ -8,7 +8,7 @@ require 'amstd/pack'
 
 environ( 'racc' ) do
 
-  set :version, '1.3.3'
+  set :version, '1.3.4'
 
   set :dir, expand('~/r/racc')
 
@@ -133,7 +133,7 @@ environ( 'racc' ) do
 
 
     set :c, %w( cparse.c )
-    set :etool, %w( MANIFEST depend extconf.rb )
+    set :etool, %w( MANIFEST extconf.rb )
 
 
     def update

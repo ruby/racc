@@ -1,7 +1,7 @@
 #
 # info.rb
 #
-#   Copyright (c) 2000 Minero Aoki <aamine@dp.u-netsurf.ne.jp>
+#   Copyright (c) 1999-2001 Minero Aoki <aamine@dp.u-netsurf.ne.jp>
 #
 #   This program is free software.
 #   You can distribute/modify this program under the terms of
@@ -11,7 +11,7 @@
 
 module Racc
 
-  Version   = '1.3.3'
+  Version   = '1.3.4'
   Copyright = 'Copyright (c) 1999,2000 Minero Aoki'
 
 end
