@@ -169,7 +169,7 @@ module Racc
       end
       ptr.push( -7777 )    # mark
 
-      arr = arr[ min, max - min ]
+      arr = arr[ min ... max ]
       ent = [ arr, chkval, mkmapexp(arr), min, ptr.size - 1 ]
       all.push ent
     end
@@ -358,7 +358,7 @@ S
 
     def output_other( out )
       out << "racc_use_result_var = #{@result}\n\n"
-      out << <<S
+      out.write <<"---"
 racc_nt_base = #{@symboltable.nt_base}
 
 Racc_arg = [
@@ -377,15 +377,11 @@ Racc_arg = [
  racc_reduce_n,
  racc_use_result_var ]
 
-S
-      if @dsrc then
-        out << "Racc_debug_parser = true\n\n"
-        out << "Racc_token_to_s_table = [\n"
-        out << @symboltable.collect{|tok| "'" + tok.to_s + "'" }.join(",\n")
-        out << "]\n\n"
-      else
-        out << "Racc_debug_parser = false\n\n"
-      end
+---
+      out << "Racc_token_to_s_table = [\n"
+      out << @symboltable.collect{|tok| "'" + tok.to_s + "'" }.join(",\n")
+      out << "]\n\n"
+      out << "Racc_debug_parser = #{@dsrc}\n\n"
     end
 
 

@@ -368,7 +368,9 @@ nerr = 0   # tmp
     end
 
     def on_error( t, val, vstack )
-      raise ParseError, "\nparse error on value #{val.inspect}"
+      raise ParseError, sprintf("\nparse error on value %s (%s)",
+                                val.inspect,
+                                type::Racc_token_to_s_table[t] || '?')
     end
 
     def yyerror
@@ -388,7 +390,7 @@ nerr = 0   # tmp
 
     def racc_read_token( t, tok, val )
       @racc_debug_out.print 'read    '
-      @racc_debug_out.print tok.inspect, '(internaly ', racc_token2str(t), ') '
+      @racc_debug_out.print tok.inspect, '(', racc_token2str(t), ') '
       @racc_debug_out.puts val.inspect
       @racc_debug_out.puts
     end

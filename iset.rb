@@ -70,6 +70,7 @@ module Racc
     def to_s
       "[#{@set.compact.join(' ')}]"
     end
+
     alias inspect to_s
 
     def size

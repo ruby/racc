@@ -1,12 +1,12 @@
 Racc README
 
-  Racc is LALR(1) parser generator.
+  Racc is a LALR(1) parser generator.
   It is written in Ruby and outputs Ruby script.
 
 
 [Requirement]
 
-  *  ruby version 1.4.x or later. 1.6 is better
+  *  ruby version 1.4.x or later. Latest 1.6 is best.
  (*) C compiler
 
   C compiler is optional.
