@@ -17,6 +17,8 @@ class M1::M2::ParserClass < S1::S2::SuperClass
 
   start target
 
+  expect 0
+
 rule
 
   target: A B C
