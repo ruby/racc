@@ -559,15 +559,18 @@ def report_conflict( racc, opt )
   end
 
   if opt['-D'] and /o/ === opt['-D'] then
-    print "sr#{sr}\n" if sr > 0
-    print "rr#{rr}\n" if rr > 0
+    debugout {|f|
+      f.print "ex#{racc.ruletable.expect}\n"
+      f.print "sr#{sr}\n" if sr > 0
+      f.print "rr#{rr}\n" if rr > 0
+    }
     return
   end
       
   if lo > 0 then
     $stderr.puts "#{lo} logic error found"
   end
-  if sr > 0 then
+  if sr > 0 and not racc.ruletable.expect == sr then
     $stderr.puts "#{sr} shift/reduce conflicts"
   end
   if rr > 0 then
@@ -591,8 +594,10 @@ def report_useless( racc, opt )
   end
 
   if opt['-D'] and /o/ === opt['-D'] then
-    print "un#{nt}\n" if nt > 0
-    print "ur#{rl}\n" if rl > 0
+    debugout('a') {|f|
+      f.print "un#{nt}\n" if nt > 0
+      f.print "ur#{rl}\n" if rl > 0
+    }
     return
   end
 
@@ -608,6 +613,9 @@ def report_useless( racc, opt )
   end
 end
 
+def debugout( flag = 'w', &block )
+  File.open( "log/#{File.basename(ARGV[0])}", flag, &block )
+end
 
 
 ##### entry point ------------------------------------------

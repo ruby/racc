@@ -122,6 +122,9 @@ class Compiler
         @ruletable.register_option s.to_s
       end
     }
+    r nil, [ :XEXPECT, :DIGIT ], %{
+      @ruletable.expect val[1]
+    }
 ############
     # 7
     r :convdefs, [ :symbol, :STRING ], %{

@@ -64,6 +64,10 @@ module Racc
             @line = m.post_match
             return check_atom( m[0] )
 
+          elsif m = /\A\d+/.match( @line ) then
+            @line = m.post_match
+            return [:DIGIT, m[0].to_i]
+
           elsif m = /\A./.match( @line ) then
             ch = m[0]
             @line = m.post_match
@@ -122,6 +126,7 @@ module Racc
       'convert'  => :XCONV,
       'options'  => :XOPTION,
       'start'    => :XSTART,
+      'expect'   => :XEXPECT,
       'class'    => :XCLASS,
       'rule'     => :XRULE,
       'end'      => :XEND

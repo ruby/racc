@@ -91,6 +91,7 @@ module Racc
       @start   = nil
       @sprec   = nil
       @emb     = 1
+      @expect  = nil
 
       @end_rule = false
     end
@@ -196,6 +197,15 @@ module Racc
     
     def inv( i, f )
       if i then !f else f end
+    end
+
+    def expect( n = nil )
+      return @expect unless n
+
+      if @expect then
+        raise ParseError, "'expect' exist twice"
+      end
+      @expect = n
     end
 
 
