@@ -36,17 +36,18 @@ def racc_main0( racc, srcfn, opt )
   srcstr = nil
   File.open( srcfn, 'r' ) {|f| srcstr = f.read }
 
-  set_flags1 racc, opt
+  set_flags__before_parse racc, opt
   if opt['-P'] then
     prof = pcompile( racc, srcstr, srcfn ) {
-            set_flags2 racc, opt }
+               set_flags__after_parse racc, opt
+           }
   else
     racc.parse( srcstr, srcfn )
     if opt['--check-only'] then
       $stderr.puts 'syntax ok'
       exit 0
     end
-    set_flags2 racc, opt
+    set_flags__after_parse racc, opt
     racc.compile
   end
 
@@ -93,6 +94,7 @@ o -O --log-file <fname>   file name of verbose output [<fname>.output]
 
 o -C --check-only       - syntax check only
 o -S --output-status    - output status time to time
+o -  --no-extentions    - run without any ruby extentions
 o -h --help             - print this message and quit
 o -  --version          - print version and quit
 o -  --runtime-version  - print runtime version and quit
@@ -103,27 +105,28 @@ x -R - <req>              require <req> instead of 'racc/libracc'
 x -D - <flags>            set (racc's) debug flags
 S
 
+module Racc
+end
+
 def get_options
   tmp = Racc_Options.collect {|line|
-    next if /\A\s*\z/ === line
-    disp, sopt, lopt, takearg, doc = line.strip.split(/\s+/, 5)
-    a = []
-    a.push lopt unless lopt == '-'
-    a.push sopt unless sopt == '-'
-    a.push takearg == '-' ?
-           GetoptLong::NO_ARGUMENT : GetoptLong::REQUIRED_ARGUMENT
-    a
+      next if /\A\s*\z/ === line
+      disp, sopt, lopt, takearg, doc = line.strip.split(/\s+/, 5)
+      a = []
+      a.push lopt unless lopt == '-'
+      a.push sopt unless sopt == '-'
+      a.push takearg == '-' ?
+             GetoptLong::NO_ARGUMENT : GetoptLong::REQUIRED_ARGUMENT
+      a
   }
-  par = GetoptLong.new( *tmp.compact )
-  par.quiet = true
+  getopt = GetoptLong.new( *tmp.compact )
+  getopt.quiet = true
 
   opt = {}
   begin
-    par.each do |name, arg|
-      if opt[name] then
-        raise GetoptLong::InvalidOption,
-              "#{File.basename $0}: option #{name} was given twice"
-      end
+    getopt.each do |name, arg|
+      raise GetoptLong::InvalidOption,
+              "#{File.basename $0}: #{name} given twice" if opt.key? name
       opt[name] = arg.empty? ? true : arg
     end
   rescue GetoptLong::AmbigousOption, GetoptLong::InvalidOption,
@@ -141,16 +144,21 @@ def get_options
     exit 0
   end
 
+  Racc.const_set :Racc_No_Extentions, opt['--no-extentions']
   if opt['--runtime-version'] then
     require 'racc/parser'
-    printf "racc runtime in Ruby:%s, in C:%s; %s version is running\n",
-           Racc::Parser::Racc_ruby_parser_version,
-           if defined? Racc::Parser::Racc_c_parser_version then
-             Racc::Parser::Racc_c_parser_version
+    printf "racc runtime version %s (rev. %s); %s\n",
+           Racc::Parser::Racc_Runtime_Version,
+           Racc::Parser::Racc_Runtime_Revision,
+           if Racc::Parser.racc_runtime_type == 'ruby' then
+             sprintf('ruby core version %s (rev. %s)',
+                     Racc::Parser::Racc_Runtime_Core_Version_R,
+                     Racc::Parser::Racc_Runtime_Core_Revision_R)
            else
-             '(not exist)'
-           end,
-           Racc::Parser.racc_runtime_type.capitalize
+             sprintf('c core version %s (rev. %s)',
+                     Racc::Parser::Racc_Runtime_Core_Version_C,
+                     Racc::Parser::Racc_Runtime_Core_Revision_C)
+           end
     exit 0
   end
 
@@ -218,7 +226,7 @@ end
 
 ##### compile ----------------------------------------------
 
-def set_flags1( racc, opt )
+def set_flags__before_parse( racc, opt )
   racc.verbose = opt['--output-status']
 
   if opt['-D'] and /p/ === opt['-D'] then
@@ -226,7 +234,7 @@ def set_flags1( racc, opt )
   end
 end
 
-def set_flags2( racc, opt )
+def set_flags__after_parse( racc, opt )
   # overwrite source's
   racc.debug_parser = opt['--debug']
   racc.convert_line = opt['--line-convert']

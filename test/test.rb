@@ -34,10 +34,9 @@ def compile_test( args, chk )
   args.push '-Oout/' + n
   args.push '-otab/' + n
   args.unshift '-Dapo'
-  args.unshift '../racc'
   args.push fname
 
-  ruby args.join(' ')
+  racc args.join(' ')
   File.foreach( "log/#{fname}" ) do |line|
     line.strip!
     case line
@@ -59,7 +58,7 @@ end
 def must_fail( file )
   testing( file.split('.')[0] ) {
     begin
-      ruby '../racc ' + file
+      racc file
     rescue TestError
     else
       raise TestError, 'error not raised'
@@ -111,11 +110,22 @@ if ENV['RUBY'] then
   $ruby = ENV['RUBY']
 end
 
+$racc = 'racc'
+if ENV['NORUBYEXT'] then
+  $racc += ' --no-extentions'
+end
+
 clean 'err'
 
 def ruby( arg )
   cmd = "#{$ruby} #{arg}"
-  system "#{cmd} 2>> err/#@target" or raise TestError, "'#{cmd}' failed"
+  str = "#{cmd} 2>> err/#{@target}"
+  # $stderr.puts str
+  system str or raise TestError, "'#{cmd}' failed"
+end
+
+def racc( arg )
+  ruby "-S #{$racc} #{arg}"
 end
 
 
