@@ -61,7 +61,6 @@ This tool is written in Ruby and outputs Ruby scripts.
     info.rb
     iset.rb
     output.rb
-    parser.rb
     raccs.rb
     state.rb
     ucodep.rb
