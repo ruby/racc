@@ -1,5 +1,7 @@
+#
+# racc/pack
+#
 
-require 'pack/my'
 require 'strscan/pack'
 require 'amstd/pack'
 

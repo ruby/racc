@@ -194,21 +194,21 @@ module Racc
       map = ''
       maxdup = RE_DUP_MAX
       curr = nil
-      ex = '-'
-      ne = '.'
 
       while i < as do
         ii = i + 1
         if arr[i] then
           ii += 1 while ii < as and arr[ii]
-          map << (curr = ex)
+          curr = '-'
         else
           ii += 1 while ii < as and not arr[ii]
-          map << (curr = ne)
+          curr = '.'
         end
 
         offset = ii - i
-        if offset > 1 then
+        if offset == 1 then
+          map << curr
+        else
           while offset > maxdup do
             map << "#{curr}{#{maxdup}}"
             offset -= maxdup

@@ -31,11 +31,14 @@ module Racc
       if defined? Racc_Debug_Ruby_Level_Parser then
         raise LoadError, 'debug ruby routine'
       end
-      require 'racc/cparse'   # def _c_parse
-      Racc_Main_Parsing_Routine = :_c_parse
+      require 'racc/cparse'
+      unless new.respond_to? :_racc_do_parse_c, true then
+        raise LoadError, 'old cparse.so'
+      end
+      Racc_Main_Parsing_Routine = :_racc_do_parse_c
       Racc_YY_Parse_Method      = :_racc_yyparse_c
     rescue LoadError
-      Racc_Main_Parsing_Routine = :_rb_parse
+      Racc_Main_Parsing_Routine = :_racc_do_parse_rb
       Racc_YY_Parse_Method      = :_racc_yyparse_rb
     end
 
@@ -87,7 +90,7 @@ module Racc
       raise NotImplementError, "#{self.type}\#next_token must be defined"
     end
 
-    def _rb_parse( arg, in_debug )
+    def _racc_do_parse_rb( arg, in_debug )
       action_table, action_check, action_default, action_pointer,
       goto_table,   goto_check,   goto_default,   goto_pointer,
       nt_base,      reduce_table, token_table,    shift_n,
@@ -123,8 +126,6 @@ module Racc
         end
 
         while act = _racc_evalact( act, arg ) do end
-
-        racc_next_state( @racc_state[-1], @racc_state ) if @yydebug
 
       end
       }
@@ -207,7 +208,7 @@ module Racc
       goto_table,   goto_check,   goto_default,   goto_pointer,
       nt_base,      reduce_table, token_table,    shift_n,
       reduce_n,     use_result,   = arg
-nerr = 0
+nerr = 0   # tmp
 
       if act > 0 and act < shift_n then
         #
