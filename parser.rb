@@ -75,13 +75,13 @@ class Parser
     atmp = tok = val = t = nil
     read_next = true
 
-    act = nil
-    i = ii  = nil
+    act = i = ii = nil
 
     errstatus = 0
     nerr = 0
 
     t_def = -1   # default token
+    t_end = 0    # $end
     t_err = 1    # error token
 
     #
@@ -91,11 +91,11 @@ class Parser
     while true do
 
       if read_next then
-        if tok != false then
+        if t != t_end then
           atmp = next_token
           tok = atmp[0]
           val = atmp[1]
-          t = token_table[tok]
+          t = (token_table[tok] or t_err)
 
           read_next = false
         end
@@ -159,7 +159,7 @@ class Parser
           nerr += 1
           on_error t, val, vstack
         when 3
-          if tok == false then
+          if t == t_end then
             return nil
           end
           read_next = true

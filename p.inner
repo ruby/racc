@@ -36,8 +36,7 @@
       else
         v = val.inspect
       end
-      raise ParseError, <<MES
-  parse error:#{@filename}:#{@scanner.lineno}: unexpected token '#{v}'
-MES
+      raise ParseError,
+%=parse error:#{@filename}:#{@scanner.lineno}: unexpected token '#{v}'=
     end
 
