@@ -17,12 +17,12 @@ class Parser
   private
 
 
-#  begin
-#    require 'racc/cparse'   # def _c_parse
-#    Racc_Main_Parsing_Routine = :c
-#  rescue LoadError
+  begin
+    require 'racc/cparse'   # def _c_parse
+    Racc_Main_Parsing_Routine = :c
+  rescue LoadError
     Racc_Main_Parsing_Routine = :rb
-#  end
+  end
 
 
   abstract :next_token
@@ -35,7 +35,7 @@ class Parser
     @yydebug = @yydebug ? true : false
 
     case Racc_Main_Parsing_Routine
-    when :c  then _c_parse false
+    when :c  then _c_parse true
     when :rb then _rb_parse
     else
       bug!
@@ -45,7 +45,7 @@ class Parser
 
   def _rb_parse
     #
-    # local parameters
+    # local variables
     #
 
     action_table = self.type::LR_action_table
@@ -69,14 +69,11 @@ class Parser
     act = nil
     i = ii  = nil
 
-    len       = nil
-    reduce_to = nil
-    method_id = nil
+    errstatus = 0
+    nerr = 0
 
-    tmp_t = nil
-    tmp_v = nil
-
-    void_array = []
+    t_def = -1   # default token
+    t_err = 1    # error token
 
     #
     # LR parsing algorithm main loop
@@ -98,7 +95,7 @@ class Parser
       i = action_ptr[curstate]
       while true do
         ii = action_table[i]
-        if ii == t or ii == -1 then
+        if ii == t or ii == t_def then
           act = action_table[i+1]
           break
         end
@@ -110,7 +107,11 @@ class Parser
         # shift
         #
 
-        tstack.push t
+        if errstatus > 0 then
+          errstatus -= 1
+        end
+
+        tstack.push t if @yydebug
         vstack.push val
 
         _shift( t, tstack ) if @yydebug
@@ -125,32 +126,10 @@ class Parser
         # reduce
         #
 
-        i = act * -3
-        len       = reduce_table[i]
-        reduce_to = reduce_table[i+1]
-        method_id = reduce_table[i+2]
-
-        tmp_t = tstack[ -len, len ] if @yydebug
-        tmp_v = vstack[ -len, len ]
-        tstack[ -len, len ] = void_array if @yydebug
-        vstack[ -len, len ] = void_array
-        state[ -len, len ]  = void_array
-
-        # tstack must be renewed AFTER method calling
-        vstack.push send( method_id, tmp_v, vstack, tmp_v[0] )
-        tstack.push reduce_to
-
-        _reduce( tmp_t, reduce_to, tstack ) if @yydebug
-
-        i = goto_ptr[state[-1]]
-        while true do
-          ii = goto_table[i]
-          if ii == reduce_to or ii == 0 then
-            curstate = goto_table[i+1]
-            break
-          end
-          i += 2
-        end
+        curstate = _do_reduce( action_table, action_ptr,
+                               goto_table, goto_ptr, reduce_table,
+                               state, curstate, vstack, tstack,
+                               act )
         state.push curstate
 
       elsif act == shift_n then
@@ -166,7 +145,74 @@ class Parser
         # error
         #
 
-        on_error( t, val, vstack )
+        case errstatus
+        when 0
+          nerr += 1
+          on_error t, val, vstack
+        when 3
+          if tok == false then
+            return nil
+          end
+          read_next = true
+        end
+        errstatus = 3
+
+        while true do
+p state
+          i = action_ptr[curstate]
+          while true do
+            ii = action_table[i]
+            if ii == t_def then
+              break
+            end
+            if ii == t_err then
+              act = action_table[i+1]
+              break
+            end
+            i += 2
+          end
+
+          break if act != -reduce_n
+
+          return nil if state.size < 2
+          state.pop
+          vstack.pop
+          tstack.pop if @yydebug
+          curstate = state[-1]
+        end
+
+        if act > 0 and act < shift_n then
+          #
+          # err-shift
+          #
+          tstack.push t_err if @yydebug
+          vstack.push nil
+
+          _shift( t_err, tstack ) if @yydebug
+
+          curstate = act
+          state.push curstate
+          
+        elsif act < 0 and act > -reduce_n then
+          #
+          # err-reduce
+          #
+          curstate = _do_reduce( action_table, action_ptr,
+                                 goto_table, goto_ptr, reduce_table,
+                                 state, curstate, vstack, tstack,
+                                 act )
+          state.push curstate
+
+        elsif act == shift_n then
+          #
+          # err-accept
+          #
+          _accept if @yydebug
+          break
+
+        else
+          bug!
+        end
 
       else
         bug! "unknown action #{act}"
@@ -181,6 +227,43 @@ class Parser
 
   def on_error( t, val, vstack )
     raise ParseError, "unexpected token '#{val.inspect}'"
+  end
+
+
+  def _do_reduce( action_table, action_ptr,
+                  goto_table, goto_ptr, reduce_table,
+                  state, curstate, vstack, tstack,
+                  act )
+    i = act * -3
+    ii = nil
+    len       = reduce_table[i]
+    reduce_to = reduce_table[i+1]
+    method_id = reduce_table[i+2]
+    void_array = []
+
+    tmp_t = tstack[ -len, len ] if @yydebug
+    tmp_v = vstack[ -len, len ]
+    tstack[ -len, len ] = void_array if @yydebug
+    vstack[ -len, len ] = void_array
+    state[ -len, len ]  = void_array
+
+    # tstack must be renewed AFTER method calling
+    vstack.push send( method_id, tmp_v, vstack, tmp_v[0] )
+    tstack.push reduce_to
+
+    _reduce( tmp_t, reduce_to, tstack ) if @yydebug
+
+    i = goto_ptr[state[-1]]
+    while true do
+      ii = goto_table[i]
+      if ii == reduce_to or ii == 0 then
+        curstate = goto_table[i+1]
+        break
+      end
+      i += 2
+    end
+
+    curstate
   end
 
 

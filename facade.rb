@@ -6,7 +6,7 @@
 
 class Racc
 
-  Version = '0.10.2'
+  Version = '0.10.3'
 
   attr :class_name
 

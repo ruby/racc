@@ -399,7 +399,7 @@ class Racc
       
       @dummy   = get( :$start )
       @anchor  = get( :$end )
-      @error   = get( :$error )   # error token is ID 1
+      @error   = get( :error )   # error token is ID 1
 
       @anchor.conv = 'false'
       @error.conv = 'Object.new'
