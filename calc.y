@@ -9,22 +9,22 @@ class Calcp
     left '+' '-'
   preclow
 
-  rule
-    target: exp
-          | /* none */ { result = 0 }
-          ;
+rule
 
-    exp: exp '+' exp { result += val[2] }
-       | exp '-' exp { result -= val[2] }
-       | exp '*' exp { result *= val[2] }
-       | exp '/' exp { result /= val[2] }
-       | '(' exp ')' { result = val[1] }
-       | '-' NUMBER  = UMINUS { result = -val[1] }
-       | NUMBER
-       ;
-  end
+	target: exp
+				| /* none */ { result = 0 }
+				;
 
-end # class
+	exp: exp '+' exp { result += val[2] }
+		 | exp '-' exp { result -= val[2] }
+		 | exp '*' exp { result *= val[2] }
+		 | exp '/' exp { result /= val[2] }
+		 | '(' exp ')' { result = val[1] }
+		 | '-' NUMBER  = UMINUS { result = -val[1] }
+		 | NUMBER
+		 ;
+
+end
 
 
 ---- prepare ----
@@ -75,62 +75,28 @@ require 'must'
 
 ---- driver ----
 
-class Nemui < Exception ; end
-
 parser = Calcp.new
 count = 0
 scnt  = 0
 
-print "\n***********************"
-print "\n超豪華お役だち電卓2号機"
-print "\n***********************\n\n"
-print "帰りたくなったらQをタイプしてね\n"
+puts
+puts 'type "Q" to quit.'
+puts
 
 while true do
   print "\n"
-  print 'ikutu? > '
+  print '? '
   str = gets.chop!
   if /q/io === str then break end
 
   begin
     val = parser.parse( str )
-    print 'kotae! = ', val, "\n"
-    scnt += 1
-    
-    case scnt
-    when 5
-      print "\n働きものでしょっ 5回も計算しちゃった！\n\n"
-    when 10
-      print "\nいっぱい計算するんだね…\n\n"
-    when 15
-      print "\nねえーっ もうつかれたー！ もう休もうよー\n\n"
-    when 20
-      print "\nもうねるのっ！！\n\n"
-      raise Nemui, "もうだめ。"
-    end
-
+    print '= ', val, "\n"
   rescue ParseError
-    case count
-    when 0
-      print "\n  いじわるっ！\n"
-    when 1
-      print "\n  もうっ、おこっちゃうよ！！\n"
-    when 2
-      print "\n  もう許してあげないんだからっ！！！\n\n\n"
-      sleep(0.5)
-      print "           えいっ☆\n\n"
-      sleep(1)
-      raise
-    end
-    count += 1
-
+    puts $!
   rescue
-    print "\n  さよなら…\n"
+    puts 'unexpected error?!'
     raise
-
   end
 
 end
-
-print "\nじゃあ、またねっ\n\n"
-sleep(0.5)
