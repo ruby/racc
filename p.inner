@@ -7,15 +7,14 @@
       racc.must Racc::Compiler
       @racc   = racc
       @interf = racc.interf
-
-      @scanner = RaccScanner.new
-      @scanner.debug = @yydebug = $RACCPARSER_DEBUG
     end
 
 
     def parse( str, fname )
       fname.must String
-      @scanner.reset( str )
+
+      @scanner = RaccScanner.new( str )
+      @scanner.debug    = @yydebug  = $RACCPARSER_DEBUG
       @scanner.filename = @filename = fname
 
       do_parse

@@ -4,6 +4,8 @@
 #   Copyright (c) 1999 Minero Aoki <aamine@dp.u-netsurf.ne.jp>
 #
 
+require 'amstd/must'
+
 
 module Racc
 

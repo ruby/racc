@@ -1,10 +1,11 @@
 #!/usr/local/bin/ruby
 
-require 'racc/parser'
+require 'amstd/must'
 
-require './rule'
-require './state'
-require './format'
+require 'amstd/must'
+require 'racc/rule'
+require 'racc/state'
+require 'racc/format'
 
 
 def openread( fn )

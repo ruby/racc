@@ -163,7 +163,7 @@ module Racc
           @lineno += 1
 
         else
-          bug! 'must not huppen'
+          bug!
         end
       end
 

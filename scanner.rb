@@ -11,6 +11,8 @@
 require 'amstd/bug'
 require 'racc/strscan'
 
+StrScanner = StringScanner
+
 
 module Racc
 
@@ -33,20 +35,15 @@ class Scanner
   CHAR  = /\A./o
 
 
-  def initialize
-    @scan = StrScanner.new( '' )
+  def initialize( str )
+    @avoid_gc = str   # no need but
+    @scan     = StringScanner.new( str, false )
+    @lineno   = 1
+    @debug    = false
   end
 
-
-  def reset( str )
-    @preserve = str
-    @scan.reset( str, false )
-    @lineno = 1
-    @debug = false
-  end
 
   attr :debug, true
-
 
   def scan
   end
