@@ -84,7 +84,6 @@ This tool is written in Ruby and outputs Ruby scripts.
   )
 
   $text = %w(
-    FILES
     BUGS.ja
     BUGS.en
   )
@@ -111,7 +110,7 @@ This tool is written in Ruby and outputs Ruby scripts.
 
   def pack
     super
-    $<raccrt>.raw
+    $<raccrt>.pack_single
   end
 
 }
