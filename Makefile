@@ -4,8 +4,8 @@
 
 version  = 1.4.4
 wcdir    = $(HOME)/c
+tmpldir  = $(HOME)/share/template
 siteroot = $(HOME)/var/i.loveruby.net/tree
-destdir  = $(siteroot)/ja/prog
 
 default: all
 
@@ -26,3 +26,5 @@ import:
 	remove-cvsid amstd $(wcdir)/amstd/rubyloader.rb > lib/racc/rubyloader.rb
 
 site:
+	install-html --template=$(tmpldir)/basic.tmpl.ja web/racc.ja.html $(siteroot)/ja/prog
+	install-html --template=$(tmpldir)/basic.tmpl.en web/racc.en.html $(siteroot)/en

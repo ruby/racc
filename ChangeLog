@@ -1,3 +1,11 @@
+Sun Oct 12 18:37:29 2003  Minero Aoki  <aamine@loveruby.net>
+
+	* Makefile: new target `site'.
+
+	* web/racc.ja.html: new file.
+
+	* web/racc.en.html: new file.
+
 Sun Oct 12 18:31:07 2003  Minero Aoki  <aamine@loveruby.net>
 
 	* version 1.4.4.
