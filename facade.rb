@@ -9,7 +9,7 @@ require 'amstd/must'
 
 module Racc
 
-  Version = '0.14.4'
+  Version = '1.0.0'
 
 class Compiler
 
@@ -33,6 +33,7 @@ class Compiler
   attr :d_shift
   attr :d_verbose
   attr :d_profile
+  attr :d_line
 
 
   def initialize( debugopt )
@@ -47,6 +48,7 @@ class Compiler
     @d_shift   = debugopt[ 'shift' ]
     @d_verbose = debugopt[ 'verbose' ]
     @d_profile = debugopt[ 'profile' ]
+    @d_line    = debugopt[ 'line' ]
 
     @tokentable = TokenTable.new( self )
     @ruletable  = RuleTable.new( self )

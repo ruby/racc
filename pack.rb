@@ -8,7 +8,7 @@ environ( 'racc' ) do
 
   set :dir, expand('~/r/racc')
 
-  set :version, '0.14.4'
+  set :version, '1.0.0'
 
   set :bin, %w( racc )
 
@@ -140,7 +140,7 @@ environ( 'racc' ) do
 
   environ( 'cparse' ) do
 
-    set :version, '0.4.1'
+    set :version, '0.4.2'
 
     set :dir, expand('~/r/racc/cp')
 
@@ -150,7 +150,7 @@ environ( 'racc' ) do
 
 
     def update
-      upd a(g :c), 4, (g :version)
+      upd a(g :c), 4, (e :version)
     end
 
     def set_files( packdir )

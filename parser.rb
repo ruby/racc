@@ -7,6 +7,10 @@
 #   You can distribute/modify this program under the terms of
 #   the GNU Lesser General Public License version 2 or later.
 #
+#   As a special exception, when this code is copied by Racc
+#   into a Racc output file, you may use that output file
+#   without restriction.
+#
 
 unless defined? ParseError then
   class ParseError < StandardError; end
@@ -40,6 +44,9 @@ class Parser
       @yydebug = false
     end
     @yydebug = @yydebug ? true : false
+    if @yydebug then
+      @racc_debug_out ||= $stderr
+    end
 
     send Racc_Main_Parsing_Routine, t::Racc_arg, false
   end
@@ -86,6 +93,7 @@ class Parser
             tok = atmp[0]
             val = atmp[1]
             t = (token_table[tok] or t_err)
+            racc_read_token( t, tok, val ) if yydebug
 
             read_next = false
           end
@@ -100,7 +108,7 @@ class Parser
         act = action_default[ curstate ]
       end
 
-  while true do
+  begin
       if act > 0 and act < shift_n then
         #
         # shift
@@ -110,10 +118,11 @@ class Parser
           @racc_error_status -= 1
         end
 
-        tstack.push t if yydebug
         vstack.push val
-
-        _shift( t, tstack ) if yydebug
+        if yydebug then
+          tstack.push t
+          racc_shift( t, tstack, vstack )
+        end
 
         curstate = act
         state.push curstate
@@ -126,18 +135,18 @@ class Parser
         #
 
         code = catch( :racc_jump ) {
-          curstate = _do_reduce( arg, state, vstack, tstack, act )
-          state.push curstate; 0
+          curstate = racc_do_reduce( arg, state, vstack, tstack, act )
+          state.push curstate; false
         }
-        unless code == 0 then
+        if code then
           case code
           when 1 # yyerror
             act = -reduce_n
             user_yyerror = true
-            next
+            redo
           when 2 # yyaccept
             act = shift_n
-            next
+            redo
           else
             raise RuntimeError, '[Racc Bug] unknown jump code'
           end
@@ -148,7 +157,7 @@ class Parser
         # accept
         #
 
-        _accept if yydebug
+        racc_accept if yydebug
         return vstack[0]
 
       elsif act == -reduce_n then
@@ -184,28 +193,32 @@ class Parser
           return nil if state.size < 2
           state.pop
           vstack.pop
-          tstack.pop if yydebug
+          if yydebug then
+            tstack.pop
+            racc_e_pop( state, tstack, vstack )
+          end
           curstate = state[-1]
         end
 
         if act > 0 and act < shift_n then
           #
-          # err-shift
+          # error-shift
           #
-          tstack.push t_err if yydebug
           vstack.push val
-
-          _shift( t_err, tstack ) if yydebug
+          if yydebug then
+            tstack.push t_err
+            racc_shift( t_err, tstack, vstack )
+          end
 
           curstate = act
           state.push curstate
           
         elsif act < 0 and act > -reduce_n then
           #
-          # err-reduce
+          # error-reduce
           #
           code = catch( :racc_jump ) {
-            curstate = _do_reduce( arg, state, vstack, tstack, act )
+            curstate = racc_do_reduce( arg, state, vstack, tstack, act )
             state.push curstate; 0
           }
           unless code == 0 then
@@ -213,10 +226,10 @@ class Parser
             when 1 # yyerror
               act = -reduce_n
               user_yyerror = true
-              next
+              redo
             when 2 # yyaccept
               act = shift_n
-              next
+              redo
             else
               raise RuntimeError, '[Racc Bug] unknown jump code'
             end
@@ -224,9 +237,9 @@ class Parser
 
         elsif act == shift_n then
           #
-          # err-accept
+          # error-accept
           #
-          _accept if yydebug
+          racc_accept if yydebug
           return vstack[0]
 
         else
@@ -236,9 +249,9 @@ class Parser
       else
         raise RuntimeError, "[Racc Bug] unknown action #{act.inspect}"
       end
-  break; end
+  end while false
 
-      _print_state( curstate, state ) if yydebug
+      racc_next_state( curstate, state ) if yydebug
     end
 
     raise RuntimeError, '[Racc Bug] must not reach here'
@@ -250,7 +263,7 @@ class Parser
   end
 
 
-  def _do_reduce( arg, state, vstack, tstack, act )
+  def racc_do_reduce( arg, state, vstack, tstack, act )
     action_table, action_check, action_default, action_pointer,
     goto_table, goto_check, goto_default, goto_pointer,
     nt_base, reduce_table, token_table, shift_n, reduce_n = *arg
@@ -272,7 +285,7 @@ class Parser
                      tmp_v[0] : send(method_id, tmp_v, vstack, tmp_v[0]) )
     tstack.push reduce_to
 
-    _reduce( tmp_t, reduce_to, tstack ) if @yydebug
+    racc_reduce( tmp_t, reduce_to, tstack, vstack ) if @yydebug
 
     k1 = reduce_to - nt_base
     if i = goto_pointer[ k1 ] then
@@ -299,43 +312,68 @@ class Parser
 
   # for debugging output
 
-  def _shift( tok, tstack )
-    print 'shift   ', _token2str(tok), "\n"
-    _print_tokens( tstack, true )
-    print "\n\n"
+  def racc_read_token( t, tok, val )
+    @racc_debug_out.print 'read    '
+    @racc_debug_out.print tok.inspect, '(internaly ', racc_token2str(t), ') '
+    @racc_debug_out.puts val.inspect
+    @racc_debug_out.puts
   end
 
-  def _accept
-    print "accept\n\n"
+  def racc_shift( tok, tstack, vstack )
+    @racc_debug_out.puts "shift   #{racc_token2str tok}"
+    racc_print_stacks tstack, vstack
+    @racc_debug_out.puts
   end
 
-  def _reduce( toks, sim, tstack )
-    print 'reduce '
-    if toks.size == 0 then
-      print ' <none>'
+  def racc_reduce( toks, sim, tstack, vstack )
+    out = @racc_debug_out
+    out.print 'reduce '
+    if toks.empty? then
+      out.print ' <none>'
     else
-      _print_tokens( toks, false )
+      toks.each {|t| out.print ' ', racc_token2str(t) }
     end
-    print ' --> '; puts _token2str(sim)
+    out.puts " --> #{racc_token2str(sim)}"
         
-    _print_tokens( tstack, true )
-    print "\n\n"
+    racc_print_stacks tstack, vstack
+    @racc_debug_out.puts
   end
 
-  def _print_tokens( toks, bla )
-    print '        [' if bla
-    toks.each {|t| print ' ', _token2str(t) }
-    print ' ]' if bla
+  def racc_accept
+    @racc_debug_out.puts 'accept'
+    @racc_debug_out.puts
   end
 
-  def _print_state( curstate, state )
-    puts  "goto    #{curstate}"
-    print '        ['
-    state.each {|st| print ' ', st }
-    print " ]\n\n"
+  def racc_e_pop( state, tstack, vstack )
+    @racc_debug_out.puts 'error recovering mode: pop token'
+    racc_print_states state
+    racc_print_stacks tstack, vstack
+    @racc_debug_out.puts
   end
 
-  def _token2str( tok )
+  def racc_next_state( curstate, state )
+    @racc_debug_out.puts  "goto    #{curstate}"
+    racc_print_states state
+    @racc_debug_out.puts
+  end
+
+  def racc_print_stacks( t, v )
+    out = @racc_debug_out
+    out.print '        ['
+    t.each_index do |i|
+      out.print ' (', racc_token2str(t[i]), ' ', v[i].inspect, ')'
+    end
+    out.puts ' ]'
+  end
+
+  def racc_print_states( s )
+    out = @racc_debug_out
+    out.print '        ['
+    s.each {|st| out.print ' ', st }
+    out.puts ' ]'
+  end
+
+  def racc_token2str( tok )
     type::Racc_token_to_s_table[tok] or
       raise RuntimeError, "[Racc Bug] can't convert token #{tok} to string"
   end

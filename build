@@ -18,7 +18,7 @@ end
 
 module Racc
 
-  Version = '0.14.4'
+  Version = '1.0.0'
 
 class LALRstate
   def sr_conflict( *args )
@@ -50,7 +50,9 @@ class Compiler
   def d_state() false end
   def d_shift() false end
   def d_reduce() false end
-  def d_prof() false end
+  def d_verbose() false end
+  def d_profile() false end
+  def d_line() true end
 
 
   def r( simbol, rarr, act )

@@ -1,6 +1,6 @@
 /* vi:set ts=4 sw=4:
 
-  cparse.c version 0.4.1
+  cparse.c version 0.4.2 - 2
   
     Copyright (c) 1999 Minero Aoki <aamine@dp.u-netsurf.ne.jp>
   
@@ -34,6 +34,9 @@ static ID id_errstatus;
 static ID id__shift;
 static ID id__reduce;
 static ID id__accept;
+static ID id__read_token;
+static ID id__next_state;
+static ID id__e_pop;
 
 #ifdef ID2SYM
 # define id_to_value(i) ID2SYM(i)
@@ -161,7 +164,7 @@ do_reduce(val, data, self)
     if (debug) {
         PUSH(v->tstack, reduce_to);
         rb_funcall(v->parser, id__reduce,
-                   3, tmp_t, reduce_to, v->tstack);
+                   4, tmp_t, reduce_to, v->tstack, v->vstack);
     }
 
     if (RARRAY(v->state)->len == 0) {
@@ -238,7 +241,7 @@ catch_iter(parser)
     if (debug) {                                     \
         PUSH(v.tstack, tok);                         \
         rb_funcall(v.parser, id__shift,              \
-                   2, tok, v.tstack);                \
+                   3, tok, v.tstack, v.vstack);      \
     }                                                \
     v.curstate = act;                                \
     PUSH(v.state, INT2FIX(v.curstate));
@@ -370,6 +373,10 @@ raccparse(parser, arg, indebug)
                     tmp = rb_hash_aref(v.token_table, tok);
                     in_tok = NIL_P(tmp) ? vERR_TOK : tmp;
                     D(printf("(act) t(k2)=%ld\n", FIX2LONG(in_tok)));
+                    if (debug) {
+                        rb_funcall(v.parser, id__read_token,
+                                   3, in_tok, tok, val);
+                    }
                 }
                 read_next = 0;
             }
@@ -466,7 +473,11 @@ raccparse(parser, arg, indebug)
                 POP(v.vstack);
                 tmp = LAST_I(v.state);
                 v.curstate = FIX2LONG(tmp);
-                if (debug) POP(v.tstack);
+                if (debug) {
+                    POP(v.tstack);
+                    rb_funcall(v.parser, id__e_pop,
+                               3, v.state, v.tstack, v.vstack);
+                }
             }
             act = FIX2LONG(vact);
 
@@ -496,6 +507,11 @@ raccparse(parser, arg, indebug)
         else {
             rb_raise(RaccBug, "[Racc Bug] unknown act value %ld", act);
         }
+
+        if (debug) {
+            rb_funcall(v.parser, id__next_state,
+                       2, INT2FIX(v.curstate), v.state);
+        }
     }
 }
 
@@ -518,7 +534,10 @@ Init_cparse()
     id_errstatus    = rb_intern("@racc_error_status");
     sym_raccjump    = id_to_value(rb_intern("racc_jump"));
 
-    id__shift       = rb_intern("_shift");
-    id__reduce      = rb_intern("_reduce");
-    id__accept      = rb_intern("_accept");
+    id__shift       = rb_intern("racc_shift");
+    id__reduce      = rb_intern("racc_reduce");
+    id__accept      = rb_intern("racc_accept");
+    id__read_token  = rb_intern("racc_read_token");
+    id__next_state  = rb_intern("racc_next_state");
+    id__e_pop       = rb_intern("racc_e_pop");
 }

@@ -20,6 +20,7 @@ module Racc
       @dsrc       = racc.dsrc
       @debug      = racc.debug
       @verbose    = racc.d_verbose
+      @line       = racc.d_line
     end
 
     # abstract output( outf )
@@ -127,8 +128,8 @@ module Racc
             i += 1
           end
           str.sub! /\s+\z/o, ''
-=begin
-          src = <<SOURCE
+          if @line then
+            out << sprintf( <<SOURCE, @parser.filename, i - 1, rl.ruleid, str )
 
  module_eval( <<'.,.,', '%s', %d )
   def _reduce_%d( val, _values, result )
@@ -137,17 +138,15 @@ module Racc
   end
 .,.,
 SOURCE
-=end
-          src = <<SOURCE
+          else
+            out << sprintf( <<SOURCE, rl.ruleid, str )
 
   def _reduce_%d( val, _values, result )
 %s
    result
   end
 SOURCE
-          out << sprintf( src,
-                          # @parser.filename, i - 1,
-                          rl.ruleid, str )
+          end
         else
           out << sprintf( "\n # reduce %d omitted\n",
                           rl.ruleid )

@@ -1,6 +1,6 @@
 #!/usr/local/bin/ruby
 #
-# racc version 0.14.4
+# racc version 1.0.0
 #
 #   Copyright (c) 1999,2000 Minero Aoki <aamine@dp.u-netsurf.ne.jp>
 #
@@ -24,6 +24,7 @@ usage: racc.rb [ options ] <source file>
     -v   make <filename>.output file
     -E   output file which don't need runtime
     -V   report status time to time
+    -l   do not change line of output (for ruby < 1.4.4)
 
     -o<outfile>   file name of output [<fname>.tab.rb]
     -e<ruby-path> make output file executable ('ruby' to default)
@@ -54,7 +55,7 @@ MESSAGE
 end
 $USAGE = 'usage'
 
-getopts( "cvgPEV",
+getopts( "cvgPEVl",
   'o:', 'n:', 'h:', 'i:', 'f:', 'e:', 'O:',
   'R:', 'D:', 'X:', 'S:', 'T:',
   'help', 'version', 'copyright' ) or usage 1
@@ -244,8 +245,9 @@ def racc_main
 
 dopt = {}
 dopt[ 'debug-src' ] = $OPT_g ? true : false
-dopt[ 'verbose' ] = $OPT_V ? true : false
-dopt[ 'profile' ] = $OPT_P ? true : false
+dopt[ 'verbose' ]   = $OPT_V ? true : false
+dopt[ 'profile' ]   = $OPT_P ? true : false
+dopt[ 'line' ]      = $OPT_l ? false : true
 
 if $OPT_D then
   $stdout.sync = true

@@ -97,7 +97,7 @@ class Scanner
     s = arr[0]
     printf "%7d %-10s %s\n",
       @scan.restsize,
-      Symbol === s ? s.id2name : s.inspect,
+      s.respond_to?(:id2name) ? s.id2name : s.inspect,
       arr[1].inspect
   end
 
