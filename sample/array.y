@@ -44,7 +44,7 @@ end
         str = str[1..-1]
       end
     end
-    @q.push [false, '$']
+    @q.push [false, '$']   # optional from 1.3.7
 
     do_parse
   end
