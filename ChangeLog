@@ -1,3 +1,13 @@
+Sun Oct 12 23:29:11 2003  Minero Aoki  <aamine@loveruby.net>
+
+	* Makefile: new target `doc'.
+
+	* Makefile: new target `clean'.
+
+	* lib/racc/Makefile: new target `clean'.
+
+	* misc/dist.sh: create documents before pack.
+
 Sun Oct 12 23:27:58 2003  Minero Aoki  <aamine@loveruby.net>
 
 	* doc/debug.rd.m: junk char was inserted.

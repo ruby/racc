@@ -4,8 +4,11 @@
 
 version  = 1.4.4
 wcdir    = $(HOME)/c
+datadir  = $(HOME)/share
 tmpldir  = $(HOME)/share/template
 siteroot = $(HOME)/var/i.loveruby.net/tree
+
+.PHONY: default all test doc update import site dist
 
 default: all
 
@@ -15,8 +18,21 @@ all: update
 update:
 	update-version --version=$(version) lib/racc/info.rb
 
+doc:
+	mldoc-split --lang=ja doc/NEWS.rd.m > NEWS.ja
+	mldoc-split --lang=en doc/NEWS.rd.m > NEWS.en
+	rm -rf doc.ja; mkdir doc.ja
+	rm -rf doc.en; mkdir doc.en
+	compile-documents --ja --template=$(tmpldir)/manual.tmpl.ja --nocode=$(datadir)/NOCODE --refrdrc=$(datadir)/refrdrc.ja doc doc.ja
+	compile-documents --en --template=$(tmpldir)/manual.tmpl.en --nocode=$(datadir)/NOCODE doc doc.en
+
 dist:
 	version=$(version) sh misc/dist.sh
+
+clean:
+	rm -rf doc.*
+	rm -f NEWS.*
+	cd lib/racc; $(MAKE) clean
 
 test:
 	cd test; ruby test.rb
