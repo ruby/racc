@@ -63,10 +63,8 @@ class Parser
     tstack = []
     vstack = []
 
-    atmp = next_token
-    tok = atmp[0]
-    val = atmp[1]
-    t = token_table[tok]
+    atmp = tok = val = t = nil
+    read_next = true
 
     act = nil
     i = ii  = nil
@@ -86,17 +84,28 @@ class Parser
 
     while true do
 
+      if read_next then
+        if tok != false then
+          atmp = next_token
+          tok = atmp[0]
+          val = atmp[1]
+          t = token_table[tok]
+
+          read_next = false
+        end
+      end
+
       i = action_ptr[curstate]
       while true do
         ii = action_table[i]
-        if ii == t or ii == 0 then
+        if ii == t or ii == -1 then
           act = action_table[i+1]
           break
         end
         i += 2
       end
 
-      if act >= 0 and act <= shift_n then
+      if act > 0 and act < shift_n then
         #
         # shift
         #
@@ -109,12 +118,9 @@ class Parser
         curstate = act
         state.push curstate
 
-        atmp = next_token
-        tok = atmp[0]
-        val = atmp[1]
-        t = token_table[tok]
+        read_next = true
 
-      elsif act < 0 and act >= -reduce_n then
+      elsif act < 0 and act > -reduce_n then
         #
         # reduce
         #
@@ -147,7 +153,7 @@ class Parser
         end
         state.push curstate
 
-      elsif act == -1 - reduce_n then
+      elsif act == shift_n then
         #
         # accept
         #
@@ -155,19 +161,12 @@ class Parser
         _accept if @yydebug
         break
 
-      elsif act == shift_n + 1 then
+      elsif act == -reduce_n then
         #
         # error
         #
 
-        begin
-          on_error( val, vstack )
-        rescue ParseError
-          raise
-        rescue
-          raise ParseError,
-            "raised in user define 'on_error', message:\n#{$!}"
-        end
+        on_error( t, val, vstack )
 
       else
         bug! "unknown action #{act}"
@@ -180,9 +179,8 @@ class Parser
   end
 
 
-  def on_error( val, vstack )
-    raise ParseError,
-      "\nIn state #{state[-1]}, got unexpected token '#{val.inspect}'"
+  def on_error( t, val, vstack )
+    raise ParseError, "unexpected token '#{val.inspect}'"
   end
 
 

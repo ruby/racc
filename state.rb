@@ -20,8 +20,16 @@ class Racc
 
       @states = []
       @statecache = {}
+
+      @actions = LALRactionTable.new( @ruletable, self )
     end
     
+
+    attr :actions
+
+    def []( i )
+      @states[i]
+    end
 
     def each_state( &block )
       @states.each( &block )
@@ -64,14 +72,13 @@ class Racc
       # set accept
 
       anch = @tokentable.anchor
-      s = @states[0].nonterm_table[ @ruletable.start ]
-      s = s.action[ anch ].goto_state
-      s = @states[s]
-      s = s.action[ anch ].goto_state
-      s = @states[s]
-      s.action.clear
-      s.nonterm_table.clear
-      s.action[ @tokentable.default ] = AcceptAction.new
+      init_state = @states[0].nonterm_table[ @ruletable.start ]
+      targ_state = init_state.action[ anch ].goto_state
+      acc_state  = targ_state.action[ anch ].goto_state
+
+      acc_state.action.clear
+      acc_state.nonterm_table.clear
+      acc_state.defact = @actions.accept
 
       enshort   #not_enshort
     end
@@ -184,28 +191,26 @@ class Racc
 
 
     def not_enshort
-      deft = @tokentable.default
+      err = @actions.error
       @states.each do |st|
-        st.action[deft] ||= ErrorAction.new
+        st.defact ||= err
       end
     end
 
     def enshort
-      arr = []
+      arr = nil
       act = nil
       i = nil
-      deft = @tokentable.default
-      dflt = nil
 
       @states.each do |st|
         #
-        # find most used reduction
+        # find most used reduce rule
         #
         act = st.action
-        (@ruletable.size - 1).downto(0){|i| arr[i] = 0 }
+        arr = Array.new( @ruletable.size - 1, 0 )
         act.each do |t,a|
           if ReduceAction === a then
-            arr[a.rule.ruleid] += 1
+            arr[ a.ruleid ] += 1
           end
         end
         i = 1
@@ -217,15 +222,14 @@ class Racc
           end
         end
 
-        dflt = act[deft]
         if s then
-          r = ReduceAction::Instance[s]
-          if not dflt or dflt == r then
+          r = @actions.reduce(s)
+          if not st.defact or st.defact == r then
             act.delete_if {|t,a| a == r }
-            act[deft] = r
+            st.defact = r
           end
         else
-          act[deft] = ErrorAction.new unless dflt
+          st.defact ||= @actions.error
         end
       end
     end
@@ -248,6 +252,7 @@ class Racc
     attr :reduce_ptrs
 
     attr :action
+    attr :defact, true   # default action
 
 
     def initialize( state_id, lr_closure, seed, racc )
@@ -257,10 +262,11 @@ class Racc
 
       @seed = seed
 
-      @racc      = racc
+      @racc       = racc
       @tokentable = racc.tokentable
-      @d_reduce  = racc.d_reduce
-      @d_shift   = racc.d_shift
+      @actions    = racc.statetable.actions
+      @d_reduce   = racc.d_reduce
+      @d_shift    = racc.d_shift
 
       @from_table    = {}
       @term_table    = {}
@@ -270,6 +276,7 @@ class Racc
       @shift_toks  = []
 
       @action = {}
+      @defact = nil
 
       @first_terms = nil
 
@@ -303,13 +310,13 @@ class Racc
     def conflicting?
       if @reduce_ptrs.size > 0 then
         if @closure.size == 1 then
-          @action[ @tokentable.default ] = ReduceAction.new( @closure[0].rule )
+          @defact = @actions.reduce( @closure[0].rule )
         else
           return true
         end
       else
         @term_table.each do |tok, goto|
-          @action[ tok ] = ShiftAction.new( goto.stateid )
+          @action[ tok ] = @actions.shift( goto )
         end
       end
 
@@ -333,13 +340,13 @@ class Racc
           act = @action[ tok ]
           if ReduceAction === act then
             #
-            # can't resolve R/R conflict (on tok),
+            # can't resolve R/R conflict (on tok).
             #   reduce with upper rule as default
             #
             rrconf act.rule, curptr.rule, tok
           else
             # resolved
-            @action[ tok ] = ReduceAction.new( curptr.rule )
+            @action[ tok ] = @actions.reduce( curptr.rule )
           end
         end
       end
@@ -409,7 +416,7 @@ class Racc
       tmp = {}   # backtrack-ed states
 
       @term_table.each do |tok, goto|
-        ret[ tok ]  = true
+        ret[ tok ] = true
       end
       @nonterm_table.each do |tok, goto|
         ret.update tok.first
@@ -444,7 +451,7 @@ class Racc
 
         unless act = @action[ stok ] then
           # no conflict
-          @action[ stok ] = ShiftAction.new( goto.stateid )
+          @action[ stok ] = @actions.shift( goto )
         else
           case act
           when ShiftAction
@@ -460,13 +467,13 @@ class Racc
             when :Reduce        # action is already set
 
             when :Shift         # overwrite
-              @action[ stok ] = ShiftAction.new( goto.stateid )
+              @action[ stok ] = @actions.shift( goto )
 
             when :Remove        # remove
               @action.delete stok
 
             when :CantResolve   # shift as default
-              @action[ stok ] = ShiftAction.new( goto.stateid )
+              @action[ stok ] = @actions.shift( goto )
               srconf stok, act.rule
             end
           else
@@ -528,40 +535,103 @@ class Racc
 
 
 
+  class LALRactionTable
+
+    def initialize( rl, st )
+      @ruletable = rl
+      @statetable = st
+
+      @reduce = []
+      @shift = []
+      @accept = nil
+      @error = nil
+    end
+
+
+    def reduce_n
+      @reduce.size
+    end
+
+    def reduce( i )
+      if Rule === i then
+        i = i.ruleid
+      else
+        i.must Integer
+      end
+
+      unless ret = @reduce[i] then
+        @reduce[i] = ret = ReduceAction.new( @ruletable[i] )
+      end
+
+      ret
+    end
+
+    def each_reduce( &block )
+      @reduce.each &block
+    end
+
+
+    def shift_n
+      @shift.size
+    end
+
+    def shift( i )
+      if LALRstate === i then
+        i = i.stateid
+      else
+        i.must Integer
+      end
+
+      unless ret = @shift[i] then
+        @shift[i] = ret = ShiftAction.new( @statetable[i] )
+      end
+
+      ret
+    end
+
+    def each_shift( &block )
+      @shift.each &block
+    end
+
+
+    def accept
+      unless @accept then
+        @accept = AcceptAction.new
+      end
+
+      @accept
+    end
+
+    def error
+      unless @error then
+        @error = ErrorAction.new
+      end
+
+      @error
+    end
+
+  end
+
+
   class LALRaction
   end
 
 
   class ShiftAction < LALRaction
 
-    Instance = []
-    
-    class << self
-
-      alias orig_new new
-
-      def new( goto )
-        unless ret = self::Instance[ goto ] then
-          self::Instance[ goto ] = ret = orig_new( goto )
-        end
-
-        ret
-      end
-
-      def each_instance
-        Instance.each{|obj| yield obj if obj }
-      end
-
-    end
-
     def initialize( goto )
+      goto.must LALRstate
       @goto_state = goto
     end
 
     attr :goto_state
 
+    def goto_id
+      @goto_state.stateid
+    end
+
     def inspect
-      "<shift #{@goto_state}>"
+      "<shift #{@goto_state.stateid}>"
     end
 
   end
@@ -569,31 +639,16 @@ class Racc
 
   class ReduceAction < LALRaction
 
-    Instance = []
-
-    class << self
-
-      alias orig_new new
-
-      def new( rule )
-        unless ret = self::Instance[ rule.ruleid ] then
-          self::Instance[ rule.ruleid ] = ret = orig_new( rule )
-        end
-
-        ret
-      end
-
-      def each_instance
-        Instance.each{|obj| yield obj if obj }
-      end
-
-    end
-
     def initialize( rule )
+      rule.must Rule
       @rule = rule
     end
 
     attr :rule
+
+    def ruleid
+      @rule.ruleid
+    end
 
     def inspect
       "<reduce #{@rule.ruleid}>"
@@ -604,15 +659,6 @@ class Racc
 
   class AcceptAction < LALRaction
 
-    Instance = []
-
-    class << self
-      alias orig_new new
-      def new
-        Instance[0] || orig_new
-      end
-    end
-
     def inspect
       "<accept>"
     end
@@ -621,15 +667,6 @@ class Racc
 
 
   class ErrorAction < LALRaction
-
-    Instance = []
-
-    class << self
-      alias orig_new new
-      def new
-        Instance[0] || orig_new
-      end
-    end
 
     def inspect
       "<error>"

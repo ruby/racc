@@ -13,6 +13,7 @@ class Racc
       @ruletable  = racc.ruletable
       @tokentable = racc.tokentable
       @statetable = racc.statetable
+      @actions    = racc.statetable.actions
       @dsrc       = racc.dsrc
       @debug      = racc.debug
 
@@ -38,6 +39,8 @@ class Racc
         out << "\nTOKEN_TO_S_TABLE = [\n"
         out << @tokentable.collect{|tok| "'" + tok.to_s + "'" }.join(",\n")
         out << "]\n"
+
+        # reduce_tos_table_tab( out )
       else
         out << "\nDEBUG_PARSER = false\n"
       end
@@ -55,9 +58,6 @@ class Racc
       # actions
       #
 
-      shift_n = ShiftAction::Instance.size
-      out << "\nLR_shift_n = #{shift_n}\n\n"
-
       sep = "\n"
       sep_rest = ",\n"
       out << "LR_reduce_table = [\n"
@@ -68,42 +68,25 @@ class Racc
         out << sprintf( "%d, %d, :_reduce_%d",
                         rl.size, rl.simbol.tokenid, i )
       end
-      out << " ]\n\n"
-      reduce_n = @ruletable.size
-      out << "LR_reduce_n = #{reduce_n}\n\n"
-
-      acc = -1 - reduce_n
-      err = shift_n + 1
+      out << " ]\n"
+      out << "\nLR_reduce_n = #{@actions.reduce_n}\n"
+      out << "\nLR_shift_n = #{@actions.shift_n}\n\n"
 
       #
       # tables
       #
 
-      deft = @tokentable.default
-      defact = nil
       disc = []
       tbl = []
 
       @statetable.each_state do |state|
         disc.push tbl.size
         state.action.each do |tok, act|
-          n = case act
-              when ShiftAction  then act.goto_state
-              when ReduceAction then -act.rule.ruleid
-              when AcceptAction then acc
-              when ErrorAction  then err
-              else
-                bug! "wrong act type #{act.type} in state #{state.stateid}"
-              end
-          if tok == deft then
-            defact = n
-          else
-            tbl.push tok.tokenid
-            tbl.push n
-          end
+          tbl.push tok.tokenid
+          tbl.push act2actid( act )
         end
-        tbl.push Token::Default
-        tbl.push defact
+        tbl.push Token::Default_token_id
+        tbl.push act2actid( state.defact )
       end
 
       out << "LR_action_table = [\n"
@@ -112,7 +95,18 @@ class Racc
       out << "LR_action_table_ptr = [\n"
       table_tab( out, disc )
     end
-      
+
+    def act2actid( act )
+      case act
+      when ShiftAction  then act.goto_id
+      when ReduceAction then -act.ruleid
+      when AcceptAction then @actions.shift_n
+      when ErrorAction  then @actions.reduce_n * -1
+      else
+        bug! "wrong act type #{act.type} in state #{state.stateid}"
+      end
+    end
+
 
     def goto_table_tab( out )
       disc = []
@@ -186,6 +180,27 @@ SOURCE
     end
 
 
+    def reduce_tos_table_tab( out )
+      out << "\nREDUCE_TO_S_TABLE = [\nnil"
+
+      @ruletable.each do |rl|
+        next if rl.ruleid == 0
+
+        buf = ",\n'"
+        if rl.size == 0 then
+          buf << "<none>'"
+        else
+          rl.each_token {|tok| buf << ' ' << tok.to_s }
+          buf << ' -> ' << rl.simbol.to_s << '"'
+        end
+
+        out << buf
+      end
+
+      out << " ]\n"
+    end
+
+
     #########
     #########  .output
     #########
@@ -226,27 +241,33 @@ SOURCE
       reduce_str = ''
 
       state.action.each do |tok, act|
-        case act
-        when ShiftAction
-          out << sprintf( "  %-12s  shift, and go to state %d\n", 
-                          tok.to_s, act.goto_state )
-        when ReduceAction
-          reduce_str << sprintf( "  %-12s  reduce using rule %d\n",
-                                 tok.to_s, act.rule.ruleid )
-        when AcceptAction
-          out << sprintf( "  %-12s  accept\n", tok.to_s )
-        when ErrorAction
-          # out << sprintf( "  %-12s  error\n", tok.to_s )
-        else
-          bug! "act is not shift/reduce/accept: act=#{act}(#{act.type})"
-        end
+        outact out, reduce_str, tok, act
       end
+      outact out, reduce_str, '$default', state.defact
+
       out << reduce_str
       out << "\n"
 
       state.nonterm_table.each do |tok, dest|
         out << sprintf( "  %-12s  go to state %d\n", 
                         tok.to_s, state.stateid )
+      end
+    end
+
+    def outact( out, r, tok, act )
+      case act
+      when ShiftAction
+        out << sprintf( "  %-12s  shift, and go to state %d\n", 
+                        tok.to_s, act.goto_id )
+      when ReduceAction
+        r << sprintf( "  %-12s  reduce using rule %d\n",
+                      tok.to_s, act.ruleid )
+      when AcceptAction
+        out << sprintf( "  %-12s  accept\n", tok.to_s )
+      when ErrorAction
+        # out << sprintf( "  %-12s  error\n", tok.to_s )
+      else
+        bug! "act is not shift/reduce/accept: act=#{act}(#{act.type})"
       end
     end
 
@@ -278,9 +299,9 @@ SOURCE
 
       @tokentable.each do |tok|
         if tok.terminal? then
-          terminal_out( tmp, tok ) # unless tok.anchor?
+          terminal_out( tmp, tok )
         else
-          nonterminal_out( out, tok ) # unless tok.dummy?
+          nonterminal_out( out, tok )
         end
       end
 

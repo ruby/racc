@@ -143,9 +143,10 @@ class Racc
         rule.simbol.rules.push rule.ptrs(0)
       end
 
-      @tokentable.each do |tok|
+      @tokentable.each_token do |tok|
         tok.term = (tok.rules.size == 0)
       end
+      @tokentable.fix
 
       @rules.each do |rule|
         temp = nil
@@ -375,54 +376,64 @@ class Racc
       @chk = {}
       @tokens = []
       
-      @default = get( :$default, Token::Default )
-      @dummy   = get( :$start,   Token::Dummy )
-      @anchor  = get( :$end,     Token::Anchor )
+      @dummy   = get( :$start )
+      @anchor  = get( :$end )
+      @error   = get( :$error )   # error token is ID 1
+
+      @anchor.conv = 'false'
+      @error.conv = 'Object.new'
     end
 
-attr :tokens
-    def get( val, tid = nil )
+    attr :dummy
+    attr :anchor
+
+    def get( val )
       unless ret = @chk[ val ] then
-        unless tid then
-          tid = @tokens.size
-          tid = 2 if tid < 2
-        end
-        ret = Token.new( val, tid )
-        @chk[ val ] = ret
-        @tokens[tid] = ret if tid >= 0
+        @chk[ val ] = ret = Token.new( val )
+        @tokens.push ret
       end
 
       ret
     end
 
-    def each( &block )
-      @tokens.each &block
-      block.call @anchor
+    def fix
+      nt = []
+      @tokens.delete_if do |i|
+        if i.terminal? then
+          false
+        else
+          nt.push i
+          true
+        end
+      end
+      @tokens.concat nt
+      @tokens.each_with_index do |t, i|
+        t.tokenid = i
+      end
     end
 
-    attr :dummy
-    attr :anchor
-    attr :default
+    def each_token( &block )
+      @chk.each_value &block
+    end
+
+    def each( &block )
+      @tokens.each &block
+    end
 
   end   # TokenTable
 
 
   class Token
 
-    Anchor  = -1
-    Default = 0
-    Dummy   = 1
+    Default_token_id = -1
+    Anchor_token_id  = 0
+    Error_token_id   = 1
 
-    def initialize( tok, tid )
-if Token === tok then
-  bug! 'Token for Token.new'
-end
+    def initialize( tok )
+      @tokenid = nil
       @value = tok
-      @tokenid = tid
+      @tokenid = nil
 
-      @dummy   = (tid == Dummy)
-      @anchor  = (tid == Anchor)
-      @defualt = (tid == Default)
       @hash    = @value.hash
 
       @rules  = []
@@ -434,8 +445,16 @@ end
       @bfrom  = nil
     end
 
-    attr     :value
+    def tokenid=( tid )
+      if @tid then
+        raise ArgumentError, "token id initialized twice"
+      end
+      @tokenid = tid
+    end
+
     attr     :tokenid
+
+    attr     :value
     attr     :rules
     attr     :locate
     attr     :term,                true
@@ -447,12 +466,7 @@ end
     alias terminal? term
     alias null?     nullp
 
-    attr :dummy
-    attr :anchor
     attr :hash
-
-    alias dummy?  dummy
-    alias anchor? anchor
 
 
     def to_s   # for system internal
@@ -467,7 +481,6 @@ end
 
     def uneval   # for output
       if    @conv              then @conv
-      elsif anchor?            then 'false'
       elsif Integer === @value then ':' + @value.id2name
       elsif String === @value  then @value.inspect
       else

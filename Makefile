@@ -5,29 +5,21 @@ RUBYPATH = /usr/local/bin/ruby
 
 TMP  = -v#P
 
-SRC  = d.head.rb   \
-       d.facade.rb \
-       d.scan.rb   \
-       d.parse.rb  \
-       d.rule.rb   \
-       d.state.rb  \
-       d.format.rb \
-       parser.rb
-
+SRC  = p.inner p.prepare
 TOOL = Makefile bld.rb
 
 CALCFLAGS = -ocalc.rb -e${RUBYPATH} -v
 
 #-------------------------------------------------------------
 
-all: libracc.rb
+all: raccp.rb
 
-libracc.rb: ${SRC} ${TOOL}
+raccp.rb: ${SRC} ${TOOL}
 	./bld.rb &> er || cat er
 
 
 test: debug
-	racc -g -e/usr/local/bin/ruby -ochk.rb chk.y &> er
+	racc -g -e${RUBYPATH} -ochk.rb chk.y &> er
 	./chk.rb
 
 debug: ${SRC} ${TOOL}

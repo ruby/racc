@@ -12,16 +12,16 @@ class Calcp
 
 rule
 
-	target: exp | /* none */ { result = 0 } ;
+  target: exp | /* none */ { result = 0 } ;
 
-	exp: exp '+' exp { result += val[2] ; a = 'plus' }
-		 | exp '-' exp { result -= val[2] ; "string test" }
-		 | exp '*' exp { result *= val[2] }
-		 | exp '/' exp { result /= val[2] }
-		 | '(' exp ')' { result = val[1]  }
-		 | '-' NUMBER  { result = -val[1] }
-		 | NUMBER
-		 ;
+  exp: exp '+' exp { result += val[2] ; a = 'plus' }
+     | exp '-' exp { result -= val[2] ; "string test" }
+     | exp '*' exp { result *= val[2] }
+     | exp '/' exp { result /= val[2] }
+     | '(' exp ')' { result = val[1]  }
+     | '-' NUMBER  { result = -val[1] }
+     | NUMBER
+     ;
 
 end
 
@@ -35,7 +35,7 @@ class Number ; end
 ------ inner -------------------------------
 
   def parse( src )
-	  @src = src
+    @src = src
     do_parse
   end
 
@@ -43,9 +43,9 @@ class Number ; end
     @src.shift
   end
 
-	def initialize
-	  #@yydebug = true
-	end
+  def initialize
+    @yydebug = true
+  end
 
 
 
@@ -64,55 +64,55 @@ end
 
 chk(
   [ [Number, 9],
-	  [false, false],
+    [false, false],
     [false, false] ], 9
 )
 
 chk(
   [ [Number, 5],
-	  ['*', nil],
-		[Number, 1],
-		['-', nil],
-		[Number, 1],
-		['*', nil],
-		[Number, 8],
-		[false, false],
-		[false, false] ], -3
+    ['*', nil],
+    [Number, 1],
+    ['-', nil],
+    [Number, 1],
+    ['*', nil],
+    [Number, 8],
+    [false, false],
+    [false, false] ], -3
 )
 
 chk(
   [ [Number, 5],
-	  ['+', nil],
-		[Number, 2],
-		['-', nil],
-		[Number, 5],
-		['+', nil],
-		[Number, 2],
-		['-', nil],
-		[Number, 5],
-	  [false, false],
-		[false, false] ], -1
+    ['+', nil],
+    [Number, 2],
+    ['-', nil],
+    [Number, 5],
+    ['+', nil],
+    [Number, 2],
+    ['-', nil],
+    [Number, 5],
+    [false, false],
+    [false, false] ], -1
 )
 
 chk(
   [ ['-', nil],
-	  [Number, 4],
-		[false, false],
-		[false, false] ], -4
+    [Number, 4],
+    [false, false],
+    [false, false] ], -4
 )
 
 chk(
   [ [Number, 7],
-	  ['*', nil],
-		['(', nil],
-		[Number, 4],
-		['+', nil],
-		[Number, 3],
-		[')', nil],
-		['-', nil],
-		[Number, 9],
-		[false, false],
-		[false, false] ], 40
+    ['*', nil],
+    ['(', nil],
+    [Number, 4],
+    ['+', nil],
+    [Number, 3],
+    [')', nil],
+    ['-', nil],
+    [Number, 9],
+    [false, false],
+    [false, false] ], 40
 )
 
 print "\n\ntest ok\n\n"
