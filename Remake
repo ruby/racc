@@ -51,9 +51,11 @@ Racc (Ruby yACC) is a LALR(1) parser generator for Ruby.
 ----
 
 
-  $bin = %w( racc )
+  $bin = %w(
+    racc
+  )
 
-  $mainrb = %w(
+  $rubysrc = %w(
     compiler.rb
     grammar.rb
     info.rb
@@ -63,17 +65,8 @@ Racc (Ruby yACC) is a LALR(1) parser generator for Ruby.
     state.rb
     ucodep.rb
   )
-
-  $src = %w(
-    build
-  )
-  $genrb = %w( raccp.rb )
-
-  $rb = $mainrb + $genrb
-
-  $tool = %w(
-    pack.rb
-  )
+  $bootsrc = 'build'
+  $rb = $rubysrc + %w( raccp.rb rubyloader.rb )
 
   $misc = %w(
     y2racc
@@ -86,15 +79,20 @@ Racc (Ruby yACC) is a LALR(1) parser generator for Ruby.
     DEPENDS
   )
 
+  def links
+    ln_sf '/home/aamine/r/amstd/rubyloader.rb', '.'
+    ln_sf '/home/aamine/r/racc/rubycvs/lib/racc/parser.rb', '.'
+    ln_sf '/home/aamine/r/racc/rubycvs/ext/racc/cparse/cparse.so', '.'
+  end
 
   def build
-    update_src $src
-    command 'ruby build'
+    update_src $bootsrc
+    command "ruby #{$bootsrc}"
   end
 
   def update
     build
-    update_src $bin, $mainrb
+    update_src $bin, $rubysrc
     upemail Dir.glob('README.*')
     $misc.each do |n|
       upemail 'misc/' + n
@@ -102,15 +100,10 @@ Racc (Ruby yACC) is a LALR(1) parser generator for Ruby.
     $<raccrt>.update
   end
 
-  def set_files_main( packdir )
-    super
-    cp '/home/aamine/r/amstd/rubyloader.rb', isdir(packdir, 'lib', $instpath)
-  end
-
-  def set_files_etc( packdir )
-    cp $src,                   isdir(packdir, 'src')
-    cp Dir.glob('sample/*.y'), isdir(packdir, 'sample')
-    cp indir('misc', $misc),   isdir(packdir, 'misc')
+  def set_files_etc( dest )
+    cp $bootsrc,               isdir(dest, 'src')
+    cp Dir.glob('sample/*.y'), isdir(dest, 'sample')
+    cp indir('misc', $misc),   isdir(dest, 'misc')
   end
 
   def pack
@@ -164,7 +157,7 @@ environ( 'rubyprog/raccrt' ) {
       update_src $c
     end
 
-    def set_files( packdir )
+    def set_files( dest )
       raise 'cparse.set_files called???'
     end
 
