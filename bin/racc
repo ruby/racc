@@ -2,21 +2,25 @@
 #
 # racc
 #
-#   Copyright (c) 1999-2002 Minero Aoki <aamine@loveruby.net>
+# Copyright (c) 1999-2003 Minero Aoki <aamine@loveruby.net>
 #
-#   This program is free software.
-#   You can distribute/modify this program under the terms of
-#   the GNU Lesser General Public License version 2 or later.
+# This program is free software.
+# You can distribute/modify this program under the terms of
+# the GNU Lesser General Public License version 2 or later.
 #
 
+require 'getoptlong'
+require 'racc/compiler'
+require 'racc/parser'
+require 'racc/rubyloader'
+require 'racc/info'
+require 'racc/compat'
 
 ##### main -----------------------------------------------------
 
 def racc_main
   opt = get_options()
-  require opt['-R'] || 'racc/compiler'
   srcfn = ARGV[0]
-
   racc = Racc::Compiler.new
   begin
     racc_main0 racc, srcfn, opt
@@ -31,11 +35,8 @@ def racc_main
   end
 end
 
-
 def racc_main0( racc, srcfn, opt )
-  srcstr = nil
-  File.open(srcfn, 'r') {|f| srcstr = f.read }
-
+  srcstr = File.read(srcfn)
   set_flags__before_parse racc, opt
   if opt['-P']
     prof = pcompile(racc, srcstr, srcfn) {
@@ -50,13 +51,8 @@ def racc_main0( racc, srcfn, opt )
     set_flags__after_parse racc, opt
     racc.compile
   end
-
   write_table_file racc, srcfn, opt
-
-  if prof
-    report_profile prof
-  end
-
+  report_profile prof if prof
   if opt['--verbose']
     output_fn = opt['--log-file'] ||
                 make_filename(opt['--output'] || srcfn, '.output')
@@ -64,70 +60,59 @@ def racc_main0( racc, srcfn, opt )
         racc.output f
     }
   end
-
   report_conflict racc, opt
   report_useless racc, opt
 end
 
-
-
 ##### parse arg ------------------------------------------------
 
-require 'getoptlong'
-require 'racc/info'
+Racc_Options = <<EOS
+  o -g --debug            - output parser for user level debugging
+  o -o --output-file <outfile>  file name of output [<fname>.tab.rb]
+  o -e --executable <rubypath>  insert #! line in output ('ruby' to default)
+  o -E --embedded         - output file which don't need runtime
+  o -l --no-line-convert  - never convert line numbers (for ruby<=1.4.3)
+  o -c --line-convert-all - convert line numbers also header and footer
+  x -s --super <super>      use <super> instead of Racc::Parser
+  x -r --runtime <file>     use <file> instead of 'racc/parser'
+  o -a --no-omit-actions  - never omit actions
 
+  o -v --verbose          - create <filename>.output file
+  o -O --log-file <fname>   file name of verbose output [<fname>.output]
 
-Racc_Options = <<S
-
-o -g --debug            - output parser for user level debugging
-o -o --output-file <outfile>  file name of output [<fname>.tab.rb]
-o -e --executable <rubypath>  insert #! line in output ('ruby' to default)
-o -E --embedded         - output file which don't need runtime
-o -l --no-line-convert  - never convert line numbers (for ruby<=1.4.3)
-o -c --line-convert-all - convert line numbers also header and footer
-x -s --super <super>      use <super> instead of Racc::Parser
-x -r --runtime <file>     use <file> instead of 'racc/parser'
-o -a --no-omit-actions  - never omit actions
-
-o -v --verbose          - create <filename>.output file
-o -O --log-file <fname>   file name of verbose output [<fname>.output]
-
-o -C --check-only       - syntax check only
-o -S --output-status    - output status time to time
-o -  --no-extentions    - run without any ruby extentions
-o -h --help             - print this message and quit
-o -  --version          - print version and quit
-o -  --runtime-version  - print runtime version and quit
-o -  --copyright        - print copyright and quit
-
-x -P -                  - report profile
-x -R - <req>              require <req> instead of 'racc/libracc'             
-x -D - <flags>            set (racc's) debug flags
-S
+  o -C --check-only       - syntax check only
+  o -S --output-status    - output status time to time
+  o -  --no-extentions    - run without any ruby extentions
+  o -  --version          - print version and quit
+  o -  --runtime-version  - print runtime version and quit
+  o -  --copyright        - print copyright and quit
+  x -h --help             - print this message and quit
+  x -P -                  - report profile
+  x -D - <flags>            set (racc's) debug flags
+EOS
 
 module Racc
 end
 
 def get_options
-  tmp = Racc_Options.collect {|line|
-      next if /\A\s*\z/ === line
-      disp, sopt, lopt, takearg, doc = line.strip.split(/\s+/, 5)
-      a = []
-      a.push lopt unless lopt == '-'
-      a.push sopt unless sopt == '-'
-      a.push takearg == '-' ?
-             GetoptLong::NO_ARGUMENT : GetoptLong::REQUIRED_ARGUMENT
-      a
-  }
-  getopt = GetoptLong.new(*tmp.compact)
+  gl_args = Racc_Options.map {|line|
+              next if line.strip.empty?
+              disp, sopt, lopt, takearg, doc = line.strip.split(/\s+/, 5)
+              a = []
+              a.push lopt unless lopt == '-'
+              a.push sopt unless sopt == '-'
+              a.push takearg == '-' ?
+                     GetoptLong::NO_ARGUMENT : GetoptLong::REQUIRED_ARGUMENT
+              a
+            }.compact
+  getopt = GetoptLong.new(*gl_args)
   getopt.quiet = true
 
   opt = {}
   begin
     getopt.each do |name, arg|
-      raise GetoptLong::InvalidOption,
-              "#{File.basename $0}: #{name} given twice" if opt.key? name
-      opt[name] = arg.empty? ? true : arg
+      raise GetoptLong::InvalidOption, "#{name} given twice" if opt.key?(name)
+      opt[name] = arg.empty?() ? true : arg
     end
   rescue GetoptLong::AmbigousOption, GetoptLong::InvalidOption,
          GetoptLong::MissingArgument, GetoptLong::NeedlessArgument
@@ -142,7 +127,6 @@ def get_options
   end
   Racc.const_set :Racc_No_Extentions, opt['--no-extentions']
   if opt['--runtime-version']
-    require 'racc/parser'
     printf "racc runtime version %s (rev. %s); %s\n",
            Racc::Parser::Racc_Runtime_Version,
            Racc::Parser::Racc_Runtime_Revision,
@@ -168,60 +152,40 @@ def get_options
 
   opt['--line-convert'] = true
   if opt['--no-line-convert']
-    opt['--line-convert'] = opt['--line-convert-all'] = false
+    opt['--line-convert'] = false
+    opt['--line-convert-all'] = false
   end
 
   opt['--omit-action'] = true
-  if opt['--no-omit-action']
-    opt['--omit-action'] = false
-  end
+  opt['--omit-action'] = false if opt['--no-omit-action']
 
   opt
 end
 
-
 def usage( status, msg = nil )
   f = (status == 0 ? $stdout : $stderr)
   f.puts "#{File.basename $0}: #{msg}" if msg
-  f.print(<<EOS)
-
-Usage: racc [options] <grammar file>
-
-Options:
-EOS
-
+  f.puts 'Usage: racc [options] <grammar file>'
+  f.puts 'Options:'
   Racc_Options.each do |line|
-    if /\A\s*\z/ === line
-      f.puts
-      next
-    end
-
-    disp, sopt, lopt, takearg, doc = line.strip.split(/\s+/, 5)
-    if disp == 'o'
-      sopt = nil if sopt == '-'
-      lopt = nil if lopt == '-'
-      opt = [sopt, lopt].compact.join(',')
-
-      takearg = nil if takearg == '-'
-      opt = [opt, takearg].compact.join(' ')
-
-      f.printf "%-27s %s\n", opt, doc
-    end
+    next if line.strip.empty?
+    show_p, sopt, lopt, takearg, description = line.strip.split(/\s+/, 5)
+    next if show_p == 'x'
+    optdesc = [
+      [ (sopt == '-') ? nil : sopt,
+        (lopt == '-') ? nil : lopt ].compact.join(','),
+      (takearg == '-') ? nil : takearg
+    ].compact.join(' ')
+    f.printf "  %-27s %s\n", optdesc, description
   end
-
   exit status
 end
-
-
 
 ##### compile ----------------------------------------------
 
 def set_flags__before_parse( racc, opt )
   racc.verbose = opt['--output-status']
-
-  if opt['-D'] and /p/ === opt['-D']
-    racc.d_parse = true
-  end
+  racc.d_parse = true if opt['-D'] and /p/ === opt['-D']
 end
 
 def set_flags__after_parse( racc, opt )
@@ -229,9 +193,8 @@ def set_flags__after_parse( racc, opt )
   racc.debug_parser = opt['--debug']
   racc.convert_line = opt['--line-convert']
   racc.omit_action  = opt['--omit-action']
-
   if opt['-D'] or $DEBUG
-    optd = opt['-D'] || ''
+    optd = (opt['-D'] || '')
     $stdout.sync = true
     racc.debug   = true
     racc.d_rule  = true if /r/ === optd
@@ -241,7 +204,6 @@ def set_flags__after_parse( racc, opt )
     racc.d_prec  = true if /c/ === optd
   end
 end
-
 
 ##### profile
 
@@ -261,72 +223,58 @@ def get_lap
   endt - begt
 end
 
-def report_profile( prof )
-  out = $stderr
+def current_utime
+  if RUBY_VERSION >= '1.7.0'
+  then Process.times.utime
+  else Time.times.utime
+  end
+end
 
+def report_profile( prof )
+  f = $stderr
   whole = 0
   prof.each do |arr|
     whole += arr[1]
   end
   whole = 0.01 if whole == 0
-
-  out.puts '--task-----------+--sec------+---%-'
-
+  f.puts '--task-----------+--sec------+---%-'
   prof.each do |arr|
     name, time = arr
-    out.printf("%-19s %s %3d%%\n",
-               name, pjust(time,4,4), (time/whole * 100).to_i)
+    f.printf "%-19s %s %3d%%\n", name, pjust(time,4,4), (time/whole * 100).to_i
   end
-
-  out.puts '-----------------+-----------+-----'
-  out.printf("%-20s%s\n",
-             'total', pjust(whole,4,4))
+  f.puts '-----------------+-----------+-----'
+  f.printf "%-20s%s\n", 'total', pjust(whole,4,4)
 end
 
 def pjust( num, i, j )
   m = /(\d+)(\.\d+)?/.match(num.to_s)
   str = m[1].rjust(i)
-  if m[2]
-    str << m[2].ljust(j+1)[0,j+1]
-  end
-
+  str.concat m[2].ljust(j+1)[0,j+1] if m[2]
   str
 end
 
-
-
 ##### output -----------------------------------------------
-
-require 'racc/rubyloader'
-
 
 def write_table_file( racc, srcfn, opt )
   tabfn = opt['--output-file'] || make_filename(srcfn, '.tab.rb')
-
   RaccTableFile.new(tabfn, srcfn, opt['--line-convert']) {|f|
-      f.shebang opt['--executable'] if opt['--executable']
-      f.notice
-      f.require opt['--embedded'], opt['--runtime'] || 'racc/parser'
-      f.header opt['--line-convert-all']
-      f.parser_class(racc.parser.class_name,
-                     opt['--super'] || racc.parser.super_class || 'Racc::Parser') {
-          f.inner
-          racc.source f.file
-      }
-      f.footer opt['--line-convert-all']
+    f.shebang opt['--executable'] if opt['--executable']
+    f.notice
+    f.require opt['--embedded'], opt['--runtime'] || 'racc/parser'
+    f.header opt['--line-convert-all']
+    f.parser_class(racc.parser.class_name,
+                   opt['--super'] || racc.parser.super_class || 'Racc::Parser') {
+      f.inner
+      racc.source f.file
+    }
+    f.footer opt['--line-convert-all']
   }
-
-  if opt['--executable']
-    File.chmod 0755, tabfn
-  else
-    File.chmod 0644, tabfn
-  end
+  File.chmod 0755, tabfn if opt['--executable']
 end
 
 def make_filename( fname, suffix )
   fname.sub(/(?:\..*?)?\z/, suffix)
 end
-
 
 class RaccTableFile
 
@@ -345,15 +293,14 @@ class RaccTableFile
     init_user_code
 
     File.open(tabfn, 'w') {|f|
-        @f = f
-        yield self
+      @f = f
+      yield self
     }
   end
 
   def file
     @f
   end
-
 
   RUBY_PATH = ::Config::CONFIG['bindir'] + '/' +
               ::Config::CONFIG['ruby_install_name']
@@ -362,28 +309,21 @@ class RaccTableFile
     @f.print "#!#{path == 'ruby' ? RUBY_PATH : path}\n"
   end
 
-
   def notice
-    @f.print <<EOS
-#
-# DO NOT MODIFY!!!!
-# This file is automatically generated by racc #{Racc::Version}
-# from racc grammer file "#{@srcfn}".
-#
-EOS
+    @f.puts %q[#]
+    @f.puts %q[# DO NOT MODIFY!!!!]
+    @f.puts %Q[# This file is automatically generated by racc #{Racc::Version}]
+    @f.puts %Q[# from racc grammer file "#{@srcfn}".]
+    @f.puts %q[#]
   end
-
 
   def require( embed_p, parser_rb )
     if embed_p
-      @f.print <<EOS
-#
-# #{@tabfn}: generated by racc (runtime embedded)
-#
-
-EOS
+      @f.puts '#'
+      @f.puts "# #{@tabfn}: generated by racc (runtime embedded)"
+      @f.puts '#'
       is_top {
-          embed 'racc/parser.rb'
+        embed 'racc/parser.rb'
       }
       @f.puts
     else
@@ -393,10 +333,8 @@ EOS
     end
   end
 
-
   def parser_class( classname, superclass )
     @f.puts
-
     mods = classname.split('::')
     real = mods.pop
     mods.each_with_index do |m,i|
@@ -414,10 +352,9 @@ EOS
     end
   end
 
-
   def header( conv )
     is_top {
-        add_part conv, @header_labels
+      add_part conv, @header_labels
     }
   end
 
@@ -427,13 +364,11 @@ EOS
 
   def footer( conv )
     is_top {
-        add_part conv, @footer_labels
+      add_part conv, @footer_labels
     }
   end
 
-
   private
-
 
   ###
   ### init
@@ -446,30 +381,24 @@ EOS
 
   def check_dup_ucode
     [ @header_labels, @inner_labels, @footer_labels ].each do |names|
-      a = names.select {|n| @usercode[n] }
-      if a.size > 1
-        raise Racc::RaccError,
-                "'#{a.join %<' and '>}' used at same time; must be only one"
-      end
+      codes = names.select {|n| @usercode[n] }
+      raise Racc::RaccError,
+            "'#{codes.join %<' and '>}' used at same time; must be only one"\
+          if codes.length > 1
     end
   end
-
 
   ###
   ### embed
   ###
 
   def embed( rbfile )
-    @f.print <<EOS
-###### #{rbfile}
-
-unless $".index '#{rbfile}'
-$".push '#{rbfile}'
-EOS
+    @f.puts %Q[###### #{rbfile}]
+    @f.puts %Q[unless $".index '#{rbfile}']
+    @f.puts %Q[$".push '#{rbfile}']
     add_file RubyLoader.find_feature(rbfile)
-    @f.puts "end   # end of #{rbfile}"
+    @f.puts %Q[end   # end of #{rbfile}]
   end
-
 
   ###
   ### part
@@ -478,16 +407,15 @@ EOS
   def add_part( convp, names )
     str, lineno, fnames = getent(names)
     convert_line(convp) {
-        add str, @srcfn, lineno if str and not str.strip.empty?
+      add str, @srcfn, lineno if str and not str.strip.empty?
     }
-    fnames.each {|n| add_file n } if fnames
+    fnames.each do |n|
+      add_file n
+    end if fnames
   end
 
   def getent( names )
-    names.each do |n|
-      return @usercode[n] if @usercode[n]
-    end
-    nil
+    names.map {|n| @usercode[n] }.compact[0]
   end
 
   def convert_line( b )
@@ -496,14 +424,13 @@ EOS
     @convline = save
   end
 
-
   ###
   ### low level code
   ###
 
   def add_file( fname )
     File.open(fname) {|f|
-        add f.read, fname, 1
+      add f.read, fname, 1
     }
   end
 
@@ -511,13 +438,12 @@ EOS
     @f.puts
     if @convline
       surrounding_by_eval(fn, str, lineno) {
-          @f.puts str
+        @f.puts str
       }
     else
       @f.puts str
     end
   end
-
 
   def surrounding_by_eval( nm, str, lineno )
     sep = makesep(nm, str)
@@ -556,8 +482,6 @@ EOS
 
 end   # class RaccTableFile
 
-
-
 ##### report -----------------------------------------------
 
 def report_conflict( racc, opt )
@@ -567,7 +491,6 @@ def report_conflict( racc, opt )
     sr += st.srconf.size if st.srconf
     rr += st.rrconf.size if st.rrconf
   end
-
   if opt['-D'] and /o/ === opt['-D']
     debugout {|f|
       f.print "ex#{racc.ruletable.expect}\n"
@@ -576,31 +499,20 @@ def report_conflict( racc, opt )
     }
     return
   end
-      
   ex = racc.ruletable.expect
-  if (sr > 0 or ex) and sr != ex
-    $stderr.puts "#{sr} shift/reduce conflicts"
-  end
-  if rr > 0
-    $stderr.puts "#{rr} reduce/reduce conflicts"
-  end
+  $stderr.puts "#{sr} shift/reduce conflicts" if (sr > 0 or ex) and sr != ex
+  $stderr.puts "#{rr} reduce/reduce conflicts" if rr > 0
 end
-
 
 def report_useless( racc, opt )
   nt = 0
   rl = 0
   racc.symboltable.each_nonterm do |t|
-    if t.useless?
-      nt += 1
-    end
+    nt += 1 if t.useless?
   end
   racc.ruletable.each do |r|
-    if r.useless?
-      rl += 1
-    end
+    rl += 1 if r.useless?
   end
-
   if opt['-D'] and /o/ === opt['-D']
     debugout('a') {|f|
       f.print "un#{nt}\n" if nt > 0
@@ -608,14 +520,12 @@ def report_useless( racc, opt )
     }
     return
   end
-
   if nt > 0 or rl > 0
     $stderr.printf "%s%s%s\n",
                    nt > 0                 ? "#{nt} useless nonterminals" : '',
                    ((nt > 0) && (rl > 0)) ? ' and '                     : '',
                    rl > 0                 ? "#{rl} useless rules"        : ''
   end
-
   if racc.ruletable.start.useless?
     $stderr.puts 'fatal: start symbol does not derive any sentence'
   end
@@ -624,7 +534,6 @@ end
 def debugout( flag = 'w', &block )
   File.open("log/#{File.basename(ARGV[0])}", flag, &block)
 end
-
 
 ##### entry point ------------------------------------------
 

@@ -25,6 +25,12 @@ unless [].respond_to?(:map)
   end
 end
 
+unless File.respond_to?(:read)
+  def File.read( filename )
+    File.open(filename) {|f| return f.read }
+  end
+end
+
 def bug!( msg )
   raise '[Racc BUG] ' + msg
 end
