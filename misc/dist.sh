@@ -13,7 +13,7 @@ cvs -Q export -r`echo V$version | tr . -` -d racc-$version racc
 mkdir -p raccrt-$version/lib/racc
 (cd racc-$version; rm -rf bits fastcache web Bison-Parser)
 (cd racc-$version/lib/racc; make)
-make doc
+(cd racc-$version; make doc)
 mv racc-$version/lib/racc/parser.rb  raccrt-$version/lib/racc
 mv racc-$version/ext                 raccrt-$version
 cp racc-$version/README.*            raccrt-$version
