@@ -65,7 +65,7 @@ Racc (Ruby yACC) is a LALR(1) parser generator for Ruby.
     state.rb
     ucodep.rb
   )
-  $bootsrc = 'build'
+  $bootsrc = %w( boot.rb in.raccp.rb )
   $rb = $rubysrc + %w( raccp.rb rubyloader.rb )
 
   $misc = %w(
@@ -85,16 +85,16 @@ Racc (Ruby yACC) is a LALR(1) parser generator for Ruby.
     ln_sf '../amstd/rubyloader.rb', '.'
     ln_sf 'rubycvs/lib/racc/parser.rb', '.'
     ln_sf 'rubycvs/ext/racc/cparse/cparse.so', '.'
-    build
+    boot
   end
 
-  def build
+  def boot
     update_src $bootsrc
-    ruby $bootsrc
+    ruby 'boot.rb'
   end
 
   def do_update
-    build
+    boot
     $misc.each do |n|
       update_text 'misc/' + n
     end
