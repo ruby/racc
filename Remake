@@ -126,12 +126,18 @@ environ( 'rubyprog/raccrt' ) {
   $topfile     =  nil
   $license     = 'LGPL'
 
+  $view_name = 'Racc Runtime'
+
   $rb = %w( parser.rb )
 
   def update
     upver $rb
     upemail $rb
     $<cparse>.update
+  end
+
+  def set_files_doc( dest )
+    set_files_text dest
   end
 
 
