@@ -113,6 +113,7 @@ environ( 'racc' ) do
 
 
     def update
+      upver a(g :rb), g(:version)
       (e :cparse).update
     end
 

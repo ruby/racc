@@ -550,7 +550,6 @@ end   # class RaccTableFile
 ##### report -----------------------------------------------
 
 def report_conflict( racc, opt )
-  lo = 0
   sr = 0
   rr = 0
   racc.statetable.each do |st|
@@ -567,10 +566,8 @@ def report_conflict( racc, opt )
     return
   end
       
-  if lo > 0 then
-    $stderr.puts "#{lo} logic error found"
-  end
-  if sr > 0 and not racc.ruletable.expect == sr then
+  ex = racc.ruletable.expect
+  if (sr > 0 or ex) and sr != ex then
     $stderr.puts "#{sr} shift/reduce conflicts"
   end
   if rr > 0 then

@@ -3,7 +3,7 @@
 
 <h1>Racc user manual</h1>
 
-updated for version 1.3.4
+updated for version 1.3.5
 
 <p>
 Racc は文法規則から Ruby で書かれたパーサを生成するパーサジェネレータです。
@@ -333,6 +333,7 @@ Cの /*......*/ スタイルを使うことができます。
       [演算子順位]
       [トークン宣言]
       [オプション]
+      [expect]
       [トークンシンボル値おきかえ]
       [スタート規則]
     rule
@@ -492,38 +493,33 @@ nonterm : /* 空の規則 */ { result = 1 };
 「Shift/Reduce conflict」を報告します。
 
 <p>
-演算子優先順位は、つぎのように書きます。<br>
-prechigh に近いほうが、順位の「高い」トークンです。上下をまるごとさかさまにして、
-preclow...prechigh の順番に書くこともできます。
+演算子優先順位は、つぎのように書きます。
 <pre>
-
-    prechigh
-      nonassoc PLUSPLUS
-      left     MULTI DEVIDE
-      left     PLUS MINUS
-      right    '='
-    preclow
-
+prechigh
+  nonassoc PLUSPLUS
+  left     MULTI DEVIDE
+  left     PLUS MINUS
+  right    '='
+preclow
 </pre>
-left などは必ず行の最初の単語でなければいけません。<br>
-left right nonassoc はそれぞれ「右結合」「左結合」「結合しない」をあらわします。
-
+prechigh に近いほうが優先順位の高いトークンです。上下をまるごとさかさまにして
+preclow...prechigh の順番に書くこともできます。left などは必ず行の最初に
+なければいけません。left right nonassoc はそれぞれ「右結合」「左結合」
+「結合しない」をあらわします。
 <p>
-通常は、還元する規則の最後のトークンが順位を決めますが、
-ある規則に限って順位をあげたいときがあります。yacc で言えば %prec です。
-たとえば、符号反転のマイナスは引き算のマイナスより順位を高くしないといけません。
+通常は還元する規則の最後のトークンが順位を決めますが、ある規則に限って
+順位をあげたいときもあります。yacc で言えば %prec です。例えば符号反転の
+マイナスは引き算のマイナスより順位を高くしないといけません。
 <pre>
-
-    prechigh
-      nonassoc UMINUS
-      left '*' '/'
-      left '+' '-'
-    preclow
+prechigh
+  nonassoc UMINUS
+  left '*' '/'
+  left '+' '-'
+preclow
 (略)
-    exp: exp '*' exp
-       | exp '-' exp
-       | '-' exp     = UMINUS    # 順位を上げる
-
+exp: exp '*' exp
+   | exp '-' exp
+   | '-' exp     = UMINUS    # ここだけ順位を上げる
 </pre>
 このように記述すると、'-' exp の規則の順位が UMINUS の順位になります。
 こうすることで符号反転の '-' は '*' よりも順位が高くなるので、
@@ -564,6 +560,20 @@ racc のデフォルトのコマンドラインオプションをファイル中に
 <dt>result_var       <dd>変数 result を使うか
 </dl>
 です。それぞれ no_ を頭につけることで意味を反転できます。
+
+
+<h4><a name="expect">expect</a></h4>
+<p>
+実用になるパーサはたいてい shift/reduce conflict を含みます。
+しかし文法ファイルを書いた本人はそれを知っているからいいですが、
+ユーザが文法ファイルを処理した時に "conflict" と表示されたら
+不安に思うでしょう。そのような場合、以下のように書いておくと
+shift/reduce conflict のメッセージを抑制できます。
+<pre>
+expect 3
+</pre>
+この場合 shift/reduce conflict はぴったり三つでなければいけません。
+三つでない場合はやはり表示が出ます (ゼロでも出ます)。
 
 
 <h4><a name="convert">トークンシンボル値の変更</a></h4>
@@ -923,6 +933,12 @@ yacc ではユーザーコードを分類する必要はありませんが、racc ではパーサがクラスなの
 <h1>変更履歴</h1>
 
 <hr>
+<h2>1.3.5 (2001--)</h2>
+<p>
+<ul>
+<li>新しい命令 expect
+</ul>
+
 <h2>1.3.4 (2001-01-11)</h2>
 <p>
 <ul>
