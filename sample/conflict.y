@@ -1,16 +1,16 @@
 #
-# 1 s/r conflict and 1 r/r conflict
+# This grammer contains 1 s/r conflict and 1 r/r conflict
 #
 
 class A
 rule
 
-target : a
+target : outer
 
-a      :
-       | a list
+outer  :
+       | outer inner
 
-list   :
-       | list ITEM
+inner  :
+       | inner ITEM
 
 end

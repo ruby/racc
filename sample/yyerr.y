@@ -1,4 +1,6 @@
 #
+# yyerr.y
+#
 # error/yyerror/yyerrok/yyaccept test
 #
 
@@ -7,23 +9,23 @@ rule
 
 target: a b c
 
-a:
-    {
-      yyerror
-      raise ArgumentError, "yyerror failed"
-    }
- | error
+a :
+      {
+        yyerror
+        raise ArgumentError, "yyerror failed"
+      }
+  | error
 
-b:
-    {
-      yyerrok
-    }
+b :
+      {
+        yyerrok
+      }
 
-c:
-    {
-      yyaccept
-      raise ArgumentError, "yyaccept failed"
-    }
+c :
+      {
+        yyaccept
+        raise "yyaccept failed"
+      }
 
 end
 
