@@ -147,8 +147,6 @@ environ( 'rubyprog/raccrt' ) {
     $dir      = $dir + '/cp'
 
     $type     = 'ext'
-    $package  = 'raccrt'
-    $instpath = 'racc'
     $topfile  =  nil
 
     $c        = %w( cparse.c )
