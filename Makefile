@@ -1,35 +1,14 @@
 
-target: calc
 RUBYPATH = /usr/local/bin/ruby
-
-
-TMP  = -v#P
-
-SRC  = p.inner p.prepare
-TOOL = Makefile bld.rb
-
-CALCFLAGS = -ocalc.rb -e${RUBYPATH} -v
+RACC = ruby racc #./racc/racc
+.SUFFIXES:
 
 #-------------------------------------------------------------
 
-all: raccp.rb
-
-raccp.rb: ${SRC} ${TOOL}
-	./bld.rb &> er || cat er
-
-
-test: debug
-	racc -g -e${RUBYPATH} -ochk.rb chk.y &> er
-	./chk.rb
-
-debug: ${SRC} ${TOOL}
-	./bld.rb -g &> er || cat er
-
-
 calc: calc.rb
 
-calc.rb: libracc.rb racc calc.y
-	ruby ./racc ${CALCFALGS} calc.y
+calc.rb: calc.y
+	$(RACC) -o$@ -e$(RUBYPATH) -v calc.y
 	@ echo ""
 	@ echo "-------------------------------------"
 	@ echo "    calc.rb successfully created."
@@ -37,5 +16,5 @@ calc.rb: libracc.rb racc calc.y
 	@ echo "-------------------------------------"
 	@ echo ""
 
-rmcalc:
+clean:
 	rm -f calc.rb calc.output

@@ -51,7 +51,7 @@ class Core
       bug! 'nil in rulearr' unless i
       @interf.get_token( i )
     end
-    rarr.push act
+    rarr.push Action.new( act )
 
     @interf.register_rule( simbol, rarr )
   end
@@ -167,7 +167,7 @@ class Core
     }
     # 23
     r nil, [ :simbol_list, :simbol ], %{
-      result.push val[1]
+      result.push val[1] if val[1]
     }
 ############
     # 24
@@ -175,14 +175,17 @@ class Core
       result = @interf.get_token( val[0] )
     }
     # 25
-    r nil,     [ :STRING ], %{
-      result = @interf.get_token( eval '"' + val[0] + '"' )
-    }
+    r nil,     [ :STRING ], %^
+      result = @interf.get_token( eval %<"\#{result}"> )
+    ^
     # 26
-    r nil,     [ :ACTION ], ''
+    r nil,     [ :ACTION ], %{
+		  result = Action.new( result )
+		}
     # 27
     r nil,     [ '=', :terminal ], %{
       @interf.register_tmpprec val[1]
+			result = nil
     }
 ############
 

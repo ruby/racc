@@ -6,6 +6,17 @@
 
 module Racc
 
+	class Action
+	
+	  def initialize( str )
+		  @val = str
+		end
+
+		attr :val
+	
+	end
+
+
   class BuildInterface
 
     def initialize( racc )
@@ -27,10 +38,10 @@ module Racc
     end
     
 
-    def embed_simbol( actstr )
+    def embed_simbol( act )
       sim = get_token( "@#{@emb}".intern )
       @emb += 1
-      @ruletable.register sim, [], nil, actstr
+      @ruletable.register sim, [], nil, act
 
       sim
     end
@@ -42,13 +53,13 @@ module Racc
         simbol = @pre
       end
 
-      if String === list[-1] then
+      if Action === list[-1] then
         act = list.pop
       else
-        act = ''
+        act = Action.new( '' )
       end
       list.filter do |t|
-        String === t ? embed_simbol( t ) : t
+        Action === t ? embed_simbol( t ) : t
       end
 
       @ruletable.register simbol, list, @tmpprec, act
@@ -129,9 +140,9 @@ module Racc
     end
 
 
-    def register( simbol, rulearr, tempprec, actstr )
+    def register( simbol, rulearr, tempprec, act )
       rule = Rule.new(
-        simbol, rulearr, actstr,
+        simbol, rulearr, act,
         @rules.size + 1,         # ID
         @hashval,                # hash value
         tempprec                 # prec
@@ -150,10 +161,12 @@ module Racc
 
       @start = start || @rules[0].simbol
 
-      temp = Rule.new( @tokentable.dummy,
-             [ @start, @tokentable.anchor, @tokentable.anchor ], '',
-             0, 0, nil )
-           # id hash prec
+      temp = Rule.new(
+			    @tokentable.dummy,
+          [ @start, @tokentable.anchor, @tokentable.anchor ],
+				  Action.new(''),
+          0, 0, nil )
+        # id hash prec
       @rules.unshift temp
       @rules.freeze
 
@@ -233,10 +246,10 @@ module Racc
 
   class Rule
 
-    def initialize( tok, rlarr, actstr, rid, hval, tprec )
+    def initialize( tok, rlarr, act, rid, hval, tprec )
       @simbol  = tok
       @rulearr = rlarr
-      @action  = actstr
+      @action  = act.val
       @ruleid  = rid
       @hash    = hval
       @prec    = tprec
