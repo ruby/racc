@@ -65,6 +65,7 @@ comptest %w( recv.y                    ), [5,10,1,4]
 comptest %w( ichk.y                    ), []; dotest 'tab/ichk'
 comptest %w( intp.y                    ), []; dotest 'tab/intp'
 comptest %w( expect.y                  ), [1,0,0,0,1]; dotest 'tab/intp'
-comptest %w( nullbug.y                 ), [0,0,0,0]
+comptest %w( nullbug1.y                ), [0,0,0,0]
+comptest %w( nullbug2.y                ), [0,0,0,0]
 
 print "\n\n        ok\n\n\n"
