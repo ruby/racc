@@ -23,7 +23,7 @@ rule
          | exp '/' exp { result /= val[2] }
          | '(' { $emb = true } exp ')'
              {
-               bug! unless $emb
+               raise 'must not happen' unless $emb
                result = val[2]
              }
          | '-' NUMBER  { result = -val[1] }
@@ -32,28 +32,25 @@ rule
 
 end
 
------- prepare -----------------------------
+----header
 
-require 'amstd/bug'
+class Number; end
 
-class Number ; end
-
------- inner -------------------------------
+----inner
 
   def parse( src )
     $emb = false
-    @plus = @str = nil
-
+    @plus = nil
+    @str = nil
     @src = src
-    ret = do_parse
-    if @plus then
-      @plus == 'plus' or bug! 'string parse failed'
+    result = do_parse
+    if @plus
+      raise 'string parse failed' unless @plus == 'plus'
     end
-    if @str then
-      @str == 'string test' or bug! 'string parse failed'
+    if @str
+      raise 'string parse failed' unless @str == 'string test'
     end
-
-    ret
+    result
   end
 
   def next_token
@@ -64,17 +61,15 @@ class Number ; end
     @yydebug = true
   end
 
------- driver -------------------------------
+----footer
 
 $parser = Calcp.new
-$tidx = 1
+$test_number = 1
 
 def chk( src, ans )
-  ret = $parser.parse( src )
-  unless ret == ans then
-    bug! "test #{$tidx} fail"
-  end
-  $tidx += 1
+  result = $parser.parse(src)
+  raise "test #{$test_number} fail" unless result == ans
+  $test_number += 1
 end
 
 chk(

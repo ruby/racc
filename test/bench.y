@@ -1,5 +1,4 @@
-
-class Bench
+class BenchmarkParser
 
 rule
 
@@ -30,9 +29,8 @@ end
 
 ---- footer
 
-require 'amstd/bench'
+require 'benchmark'
 
-p = Bench.new
-benchmark( 'do', 1 ) {
-  p.parse
-}
+Benchmark.bm do |x|
+  x.report { BenchmarkParser.new.parse }
+end

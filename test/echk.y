@@ -23,7 +23,7 @@ rule
          | exp '/' exp { result /= val[2] }
          | '(' { $emb = true } exp ')'
              {
-               bug! unless $emb
+               raise 'must not heppen' unless $emb
                result = val[2]
              }
          | '-' NUMBER  { result = -val[1] }
@@ -32,14 +32,11 @@ rule
 
 end
 
------- prepare -----------------------------
-
-require 'amstd/bug'
-
+----header
 
 class Number ; end
 
------- inner -------------------------------
+----inner
 
   def parse( src )
     @src = src
@@ -54,7 +51,7 @@ class Number ; end
     @yydebug = true
   end
 
------- driver -------------------------------
+----footer
 
 $parser = Calcp.new
 $tidx = 1

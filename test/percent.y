@@ -1,17 +1,17 @@
-class P
+class ScannerChecker
 rule
   target: A
       {
         i = 7
         i %= 4
-        i.must_be 3
-        tmp = %-percent string-
-        tmp.must_be 'percent string'
+	raise 'assert failed' unless i == 3
+        tmp = %-This is percent string.-
+	raise 'assert failed' unless tmp == 'This is percent string.'
         a = 5; b = 3
-        (a%b).must_be 2    #A
-      # (a %b).must_be 2    is % string
-        (a% b).must_be 2   #B
-        (a % b).must_be 2  #C
+        assert_equal(2,(a%b))    #A
+      # assert_equal(2,(a %b))   # is %-string
+        assert_equal(2,(a% b))   #B
+        assert_equal(2,(a % b))  #C
       }
 end
 
@@ -26,7 +26,10 @@ end
     @q.shift
   end
 
+  def assert_equal( expect, real )
+    raise "expect #{expect.inspect} but #{real.inspect}" unless expect == real
+  end
+
 ---- footer ----
 
-require 'amstd/must'
-parser = P.new.parse
+parser = ScannerChecker.new.parse

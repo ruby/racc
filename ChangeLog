@@ -1,3 +1,19 @@
+Wed Nov  5 19:50:35 2003  Minero Aoki  <aamine@loveruby.net>
+
+	* test/bench.y: remove dependency on amstd.
+
+	* test/chk.y: ditto.
+
+	* test/echk.y: ditto.
+
+	* test/ichk.y: ditto.
+
+	* test/intp.y: ditto.
+
+	* test/opt.y: ditto.
+
+	* test/percent.y: ditto.
+
 Wed Nov  5 19:11:15 2003  Minero Aoki  <aamine@loveruby.net>
 
 	* bin/racc (get_options): remove --no-extensions option;

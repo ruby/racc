@@ -185,9 +185,6 @@ end
 #
 # intp/parser.rb
 #
-                     ####
-require 'amstd/bug'  ####
-                     ####
 
 ---- inner
 
@@ -248,10 +245,6 @@ require 'amstd/bug'  ####
       lineno += 1
     end
     @q.push [ false, '$' ]
-if $DEBUG then                 #####
-# $stderr.puts @q.inspect        #####
-@yydebug = true                #####
-end                            #####
 
     do_parse
   end

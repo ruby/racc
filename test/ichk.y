@@ -32,14 +32,11 @@ rule
 
 end
 
------- prepare -----------------------------
+----header
 
-require 'amstd/bug'
+class Number; end
 
-
-class Number ; end
-
------- inner -------------------------------
+----inner
 
   def parse( src )
     @src = src
@@ -55,17 +52,15 @@ class Number ; end
     @yydebug = true
   end
 
------- driver -------------------------------
+----footer
 
 $parser = Calcp.new
-$tidx = 1
+$test_number = 1
 
 def chk( src, ans )
-  ret = $parser.parse( src )
-  unless ret == ans then
-    bug! "test #{$tidx} fail"
-  end
-  $tidx += 1
+  result = $parser.parse( src )
+  raise "test #{$test_number} fail" unless result == ans
+  $test_number += 1
 end
 
 chk(

@@ -25,7 +25,7 @@ rule
          | exp '/' exp { chk(val[0] / val[2]) }
          | '(' { $emb = true } exp ')'
              {
-               bug! unless $emb
+	       raise 'must not happen' unless $emb
                val[2]
              }
          | '-' NUMBER  { -val[1] }
@@ -34,13 +34,11 @@ rule
 
 end
 
------- prepare -----------------------------
+----header
 
-require 'amstd/bug'
+class Number; end
 
-class Number ; end
-
------- inner -------------------------------
+----inner
 
   def parse( src )
     @src = src
@@ -60,17 +58,15 @@ class Number ; end
     i
   end
 
------- driver -------------------------------
+----footer
 
 $parser = Calcp.new
-$tidx = 1
+$test_number = 1
 
 def chk( src, ans )
-  ret = $parser.parse( src )
-  unless ret == ans then
-    bug! "test #{$tidx} fail"
-  end
-  $tidx += 1
+  result = $parser.parse(src)
+  raise "test #{$test_number} failed" unless result == ans
+  $test_number += 1
 end
 
 chk(
