@@ -8,7 +8,7 @@ require 'amstd/pack'
 
 environ( 'racc' ) do
 
-  set :version, '1.3.8'
+  set :version, '1.3.9'
 
   set :dir, expand('~/r/racc')
 
