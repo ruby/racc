@@ -47,6 +47,7 @@ end
 
 
 comptest %w( syntax.y -v               ), [0,0,0,0,0]
+comptest %w( percent.y                 ), []; dotest 'tab/percent'
 comptest %w( newsyn.y                  ), []
 comptest %w( normal.y                  ), []
 comptest %w( normal.y -vg              ), []
