@@ -1,3 +1,19 @@
+Sun Oct 12 22:57:28 2003  Minero Aoki  <aamine@loveruby.net>
+
+	* doc.en/changes.html, doc.ja/changes.html -> doc/NEWS.rd.m
+
+	* doc.en/command.html, doc.ja/command.html -> doc/command.html.m
+
+	* doc.en/debug.html,   doc.ja/debug.html   -> doc/debug.rd.m
+
+	* doc.en/grammar.html, doc.ja/grammar.html -> doc/grammar.rd.m
+
+	* doc.en/index.html,   doc.ja/index.html   -> doc/index.html.m
+
+	* doc.en/parser.html,  doc.ja/parser.html  -> doc/parser.rrd.m
+
+	* doc.en/usage.html,   doc.ja/usage.html   -> doc/usage.html.m
+
 Sun Oct 12 18:46:21 2003  Minero Aoki  <aamine@loveruby.net>
 
 	* web/racc.ja.html: update descriptions.
@@ -15,10 +31,6 @@ Sun Oct 12 18:37:29 2003  Minero Aoki  <aamine@loveruby.net>
 	* web/racc.ja.html: new file.
 
 	* web/racc.en.html: new file.
-
-Sun Oct 12 18:31:07 2003  Minero Aoki  <aamine@loveruby.net>
-
-	* version 1.4.4.
 
 Sun Oct 12 18:30:55 2003  Minero Aoki  <aamine@loveruby.net>
 
