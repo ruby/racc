@@ -1,11 +1,11 @@
 #
 # compiler.rb
 #
-# Copyright (c) 1999-2003 Minero Aoki <aamine@loveruby.net>
+# Copyright (c) 1999-2004 Minero Aoki
 #
 # This program is free software.
 # You can distribute/modify this program under the terms of
-# the GNU LGPL, Lesser General Public License version 2.
+# the GNU LGPL, Lesser General Public License version 2.1.
 # For details of the GNU LGPL, see the file "COPYING".
 #
 
@@ -15,37 +15,19 @@ require 'racc/grammar'
 require 'racc/state'
 require 'racc/output'
 
-
 module Racc
 
   class Compiler
 
-    attr_reader :filename
-
-    attr_reader :parser
-    attr_reader :ruletable
-    attr_reader :symboltable
-    attr_reader :statetable
-    attr_reader :formatter
-
-    attr_accessor :debug_parser
-    attr_accessor :convert_line
-    attr_accessor :omit_action
-    attr_accessor :result_var
-
-    def verbose=( f )
-      @verbose = f
-    end
-    
-    attr_accessor :debug
-    attr_accessor :d_parse
-    attr_accessor :d_rule
-    attr_accessor :d_token
-    attr_accessor :d_state
-    attr_accessor :d_la
-    attr_accessor :d_prec
-
     def initialize
+      @filename = nil
+
+      @parser = nil
+      @ruletable = nil
+      @symboltable = nil
+      @statetable = nil
+      @formatter = nil
+
       @debug_parser = false
       @verbose      = false
       @convert_line = true
@@ -61,7 +43,29 @@ module Racc
       @d_prec  = false
     end
 
-    def parse( str, fname = '-' )
+    attr_reader :filename
+
+    attr_reader :parser
+    attr_reader :ruletable
+    attr_reader :symboltable
+    attr_reader :statetable
+    attr_reader :formatter
+
+    attr_accessor :debug_parser
+    attr_accessor :verbose
+    attr_accessor :convert_line
+    attr_accessor :omit_action
+    attr_accessor :result_var
+    
+    attr_accessor :debug
+    attr_accessor :d_parse
+    attr_accessor :d_rule
+    attr_accessor :d_token
+    attr_accessor :d_state
+    attr_accessor :d_la
+    attr_accessor :d_prec
+
+    def parse(str, fname = '-')
       $stderr.puts 'parsing grammar file...' if @verbose
 
       # must be this order
@@ -97,12 +101,12 @@ module Racc
       end
     end
 
-    def source( f )
+    def source(f)
       $stderr.puts 'creating table file...' if @verbose
       CodeGenerator.new(self).output f
     end
 
-    def output( f )
+    def output(f)
       $stderr.puts 'creating .output file...' if @verbose
       VerboseOutputter.new(self).output f
     end

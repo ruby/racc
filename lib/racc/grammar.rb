@@ -1,23 +1,21 @@
 #
 # grammar.rb
 #
-# Copyright (c) 1999-2003 Minero Aoki <aamine@loveruby.net>
+# Copyright (c) 1999-2004 Minero Aoki
 #
 # This program is free software.
 # You can distribute/modify this program under the terms of
-# the GNU LGPL, Lesser General Public License version 2.
+# the GNU LGPL, Lesser General Public License version 2.1.
 # For details of the GNU LGPL, see the file "COPYING".
 #
 
 require 'racc/compat'
 require 'racc/iset'
 
-
 module Racc
 
   class UserAction
-  
-    def initialize( str, lineno )
+    def initialize(str, lineno)
       @val = (str.strip.empty? ? nil : str)
       @lineno = lineno
     end
@@ -30,13 +28,10 @@ module Racc
     end
 
     alias inspect name
-  
   end
 
-
   class OrMark
-
-    def initialize( lineno )
+    def initialize(lineno)
       @lineno = lineno
     end
 
@@ -47,13 +42,10 @@ module Racc
     alias inspect name
 
     attr_reader :lineno
-
   end
 
-
   class Prec
-  
-    def initialize( tok, lineno )
+    def initialize(tok, lineno)
       @val = tok
       @lineno = lineno
     end
@@ -66,26 +58,12 @@ module Racc
 
     attr_reader :val
     attr_reader :lineno
-  
   end
 
 
-  #########################################################################
-  ###########################              ################################
-  ###########################     rule     ################################
-  ###########################              ################################
-  #########################################################################
-
-
-  #
-  # RuleTable
-  #
-  # stands grammar. Each items of @rules are Rule object.
-  #
-
   class RuleTable
 
-    def initialize( racc )
+    def initialize(racc)
       @racc        = racc
       @symboltable = racc.symboltable
 
@@ -93,7 +71,7 @@ module Racc
       @d_rule  = racc.d_rule
       @d_state = racc.d_state
 
-      @rules   = []
+      @rules   = []  # [Rule]
       @hashval = 4   # size of dummy rule
       @start   = nil
       @sprec   = nil
@@ -103,11 +81,11 @@ module Racc
       @end_rule = false
     end
 
-    ###
-    ### register
-    ###
+    #
+    # register
+    #
 
-    def register_rule_from_array( arr )
+    def register_rule_from_array(arr)
       sym = arr.shift
       case sym
       when OrMark, UserAction, Prec
@@ -129,7 +107,7 @@ module Racc
       register_rule sym, new
     end
     
-    def register_rule( targ, list )
+    def register_rule(targ, list)
       if targ
         @prev_target = targ
       else
@@ -148,12 +126,12 @@ module Racc
       @sprec = nil
     end
 
-    def reg_rule( targ, list, act )
+    def reg_rule(targ, list, act)
       @rules.push Rule.new(targ, list, act, @rules.size + 1, @hashval, @sprec)
       @hashval += (list.size + 1)
     end
 
-    def embed_symbol( act )
+    def embed_symbol(act)
       sym = @symboltable.get("@#{@emb}".intern, true)
       @emb += 1
       reg_rule sym, [], act
@@ -165,12 +143,12 @@ module Racc
       raise RaccError, 'no rule in input' if @rules.empty?
     end
 
-    def register_start( tok )
+    def register_start(tok)
       raise ParseError, "'start' defined twice'" if @start
       @start = tok
     end
 
-    def register_option( option )
+    def register_option(option)
       case option.sub(/\Ano_/, '')
       when 'omit_action_call'
         @racc.omit_action = ((/\Ano_/ === option) ? false : true)
@@ -181,33 +159,29 @@ module Racc
       end
     end
 
-    def expect( n = nil )
+    def expect(n = nil)
       return @expect unless n
       raise ParseError, "'expect' exist twice" if @expect
       @expect = n
     end
 
-    ###
-    ### accessor
-    ###
-
     attr_reader :start
 
-    def []( x )
+    def [](x)
       @rules[x]
     end
 
-    def each_rule( &block )
+    def each_rule(&block)
       @rules.each(&block)
     end
 
     alias each each_rule
 
-    def each_index( &block )
+    def each_index(&block)
       @rules.each_index(&block)
     end
 
-    def each_with_index( &block )
+    def each_with_index(&block)
       @rules.each_with_index(&block)
     end
 
@@ -219,12 +193,7 @@ module Racc
       "<Racc::RuleTable>"
     end
 
-    ###
-    ### process
-    ###
-
     def init
-      #
       # add dummy rule
       #
       tmp = Rule.new(@symboltable.dummy,
@@ -237,14 +206,12 @@ module Racc
 
       rule = ptr = tmp = tok = t = nil
 
-      #
       # t.heads
       #
       @rules.each do |rule|
         rule.target.heads.push rule.ptrs[0]
       end
 
-      #
       # t.terminal?, self_null?
       #
       @symboltable.each do |t|
@@ -266,7 +233,6 @@ module Racc
 
       @symboltable.fix
 
-      #
       # t.locate
       #
       @rules.each do |rule|
@@ -281,29 +247,26 @@ module Racc
         rule.set_prec tmp
       end
 
-      #
       # t.expand
       #
       @symboltable.each_nonterm {|t| compute_expand t }
 
-      #
       # t.nullable?, rule.nullable?
       #
       compute_nullable
 
-      #
       # t.useless?, rule.useless?
       #
       compute_useless
     end
 
-    def compute_expand( t )
+    def compute_expand(t)
       puts "expand> #{t.to_s}" if @d_token
       t.expand = _compute_expand(t, ISet.new, [])
       puts "expand< #{t.to_s}: #{t.expand.to_s}" if @d_token
     end
 
-    def _compute_expand( t, ret, lock )
+    def _compute_expand(t, ret, lock)
       if tmp = t.expand
         ret.update tmp
         return ret
@@ -340,7 +303,7 @@ module Racc
       end until rs == r.size and ss == s.size
     end
 
-    def check_r_nullable( r )
+    def check_r_nullable(r)
       r.delete_if do |rl|
         rl.null = true
         rl.symbols.each do |t|
@@ -354,7 +317,7 @@ module Racc
       end
     end
 
-    def check_s_nullable( s )
+    def check_s_nullable(s)
       s.delete_if do |t|
         t.heads.each do |ptr|
           if ptr.rule.nullable?
@@ -366,9 +329,7 @@ module Racc
       end
     end
 
-    ###
-    ### WHAT IS "USELESS"?
-    ###
+    # FIXME: what means "useless"?
     def compute_useless
       t = del = save = nil
 
@@ -386,7 +347,7 @@ module Racc
       end until r.size == rs and s.size == ss
     end
     
-    def check_r_useless( r )
+    def check_r_useless(r)
       t = rule = nil
       r.delete_if do |rule|
         rule.useless = false
@@ -400,7 +361,7 @@ module Racc
       end
     end
 
-    def check_s_useless( s )
+    def check_s_useless(s)
       t = ptr = nil
       s.delete_if do |t|
         t.heads.each do |ptr|
@@ -416,15 +377,9 @@ module Racc
   end   # class RuleTable
 
 
-  #
-  # Rule
-  #
-  # stands one rule of grammar.
-  #
-
   class Rule
 
-    def initialize( targ, syms, act, rid, hval, prec )
+    def initialize(targ, syms, act, rid, hval, prec)
       @target  = targ
       @symbols = syms
       @action  = act.val
@@ -456,7 +411,7 @@ module Racc
     attr_reader :prec
     attr_reader :specified_prec
 
-    def set_prec( t )
+    def set_prec(t)
       @prec ||= t
     end
 
@@ -470,11 +425,11 @@ module Racc
       "#<rule #{@ident} (#{@target})>"
     end
 
-    def ==( other )
+    def ==(other)
       Rule === other and @ident == other.ident
     end
 
-    def []( idx )
+    def [](idx)
       @symbols[idx]
     end
 
@@ -498,24 +453,20 @@ module Racc
       end
     end
 
-    def each( &block )
+    def each(&block)
       @symbols.each(&block)
     end
 
   end   # class Rule
 
-
   #
-  # LocationPointer
+  # A set of rule and position in it's rhs.
+  # Note that the number of pointers is more than rule's rhs array,
+  # because pointer points right edge of the final symbol when reducing.
   #
-  # set of rule and position in it's rhs.
-  # note that number of pointer is more than rule's rhs array,
-  # because pointer points right of last symbol when reducing.
-  #
-
   class LocationPointer
 
-    def initialize( rule, i, sym )
+    def initialize(rule, i, sym)
       @rule   = rule
       @index  = i
       @symbol = sym
@@ -541,7 +492,7 @@ module Racc
 
     alias inspect to_s
 
-    def eql?( ot )
+    def eql?(ot)
       @hash == ot.hash
     end
 
@@ -557,7 +508,7 @@ module Racc
 
     alias increment next
 
-    def before( len )
+    def before(len)
       @rule.ptrs[@index - len] or ptr_bug!
     end
 
@@ -570,26 +521,13 @@ module Racc
   end   # class LocationPointer
 
 
-  #########################################################################
-  ###########################              ################################
-  ###########################    symbol    ################################
-  ###########################              ################################
-  #########################################################################
-
-  #
-  # SymbolTable
-  #
-  # the table of symbols.
-  # each items of @symbols are Sym
-  #
-
   class SymbolTable
 
     include Enumerable
 
-    def initialize( racc )
+    def initialize(racc)
       @chk        = {}
-      @symbols    = []
+      @symbols    = []    # [Sym]
       @token_list = nil
       @prec_table = []
 
@@ -608,7 +546,7 @@ module Racc
     attr_reader :anchor
     attr_reader :error
 
-    def get( val, dummy = false )
+    def get(val, dummy = false)
       unless ret = @chk[val]
         @chk[val] = ret = Sym.new(val, dummy)
         @symbols.push ret
@@ -616,14 +554,12 @@ module Racc
       ret
     end
 
-
-    def register_token( toks )
+    def register_token(toks)
       @token_list ||= []
       @token_list.concat toks
     end
 
-
-    def register_prec( assoc, toks )
+    def register_prec(assoc, toks)
       if @end_prec
         raise ParseError, "'prec' block is defined twice"
       end
@@ -631,7 +567,7 @@ module Racc
       @prec_table.push toks
     end
 
-    def end_register_prec( rev )
+    def end_register_prec(rev)
       @end_prec = true
 
       return if @prec_table.empty?
@@ -650,8 +586,7 @@ module Racc
       end
     end
 
-
-    def register_conv( tok, str )
+    def register_conv(tok, str)
       if @end_conv
         raise ParseError, "'convert' block is defined twice"
       end
@@ -661,7 +596,6 @@ module Racc
     def end_register_conv
       @end_conv = true
     end
-
 
     def fix
       #
@@ -701,8 +635,7 @@ module Racc
       end
     end
 
-
-    def []( id )
+    def [](id)
       @symbols[id]
     end
 
@@ -712,15 +645,15 @@ module Racc
       @symbols.size
     end
 
-    def each( &block )
+    def each(&block)
       @symbols.each(&block)
     end
 
-    def terminals( &block )
+    def terminals(&block)
       @symbols[0, @nt_base]
     end
 
-    def each_terminal( &block )
+    def each_terminal(&block)
       @terms.each(&block)
     end
 
@@ -728,24 +661,17 @@ module Racc
       @symbols[@nt_base, @symbols.size - @nt_base]
     end
 
-    def each_nonterm( &block )
+    def each_nonterm(&block)
       @nterms.each(&block)
     end
 
-  end
+  end   # class SymbolTable
 
 
-  #
-  # Sym
-  #
-  # stands symbol (terminal and nonterminal).
-  # This class is not named Symbol because there is
-  # a class 'Symbol' after ruby 1.5.
-  #
-
+  # Stands terminal and nonterminal symbols.
   class Sym
 
-    def initialize( val, dummy )
+    def initialize(val, dummy)
       @ident = nil
       @value = val
       @dummy = dummy
@@ -775,22 +701,17 @@ module Racc
                 end
     end
 
-
     class << self
-      def once_writer( nm )
+      def once_writer(nm)
         nm = nm.id2name
         module_eval(<<-EOS)
-          def #{nm}=( v )
+          def #{nm}=(v)
             bug! unless @#{nm}.nil?
             @#{nm} = v
           end
         EOS
       end
     end
-
-    #
-    # attributes
-    #
 
     once_writer :ident
     attr_reader :ident
@@ -804,40 +725,62 @@ module Racc
     def terminal?()    @term end
     def nonterminal?() @nterm end
 
-    def term=( t )
+    def term=(t)
       bug! unless @term.nil?
       @term = t
       @nterm = !t
     end
 
-    def conv=( str ) @conv = @uneval = str end
     attr_reader :conv
+
+    def conv=(str)
+      @conv = @uneval = str
+    end
 
     attr_accessor :prec
     attr_accessor :assoc
 
-    def to_s()   @to_s.dup end
-    def uneval() @uneval.dup end
+    def to_s
+      @to_s.dup
+    end
+
+    def uneval
+      @uneval.dup
+    end
+
     alias inspect to_s
 
     #
-    # computed
+    # cache
     #
 
     attr_reader :heads
     attr_reader :locate
 
+    def self_null?
+      @snull
+    end
+
     once_writer :snull
-    def self_null?() @snull end
 
-    def nullable?() @null end
-    def null=(n)    @null = n end
+    def nullable?
+      @null
+    end
 
-    once_writer :expand
+    def null=(n)
+      @null = n
+    end
+
     attr_reader :expand
+    once_writer :expand
 
-    def useless=(f) @useless = f end
-    def useless?() @useless end
+    def useless?
+      @useless
+    end
+
+    def useless=(f)
+      @useless = f
+    end
 
   end   # class Sym
 

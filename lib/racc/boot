@@ -1,5 +1,5 @@
 #
-# boot.rb
+# boot
 #
 
 require 'racc/compat'
@@ -8,23 +8,26 @@ require 'racc/grammar'
 require 'racc/state'
 require 'racc/output'
 
-
 module Racc
 
   class State
-
-    def sr_conflict( *args )
+    def sr_conflict(*args)
       raise 'Racc boot script fatal: S/R conflict in build'
     end
 
-    def rr_conflict( *args )
+    def rr_conflict(*args)
       raise 'Racc boot script fatal: R/R conflict in build'
     end
-
   end
       
 
   class Compiler
+
+    def initialize
+      @ruletable = nil
+      @symboltable = nil
+      @statetable = nil
+    end
 
     attr_reader :ruletable
     attr_reader :symboltable
@@ -48,14 +51,14 @@ module Racc
     def d_prec()  false end
 
 
-    def _( rulestr, actstr )
+    def _(rulestr, actstr)
       nonterm, symlist = parse_rule_exp(rulestr)
       lineno = /:(\d+)(?:\z|:)/.match(caller(1)[0])[1].to_i + 1
       symlist.push UserAction.new(format_action(actstr), lineno)
       @ruletable.register_rule nonterm, symlist
     end
 
-    def parse_rule_exp( str )
+    def parse_rule_exp(str)
       tokens = str.strip.scan(/[\:\|]|'.'|\w+/)
       nonterm = (tokens[0] == '|') ? nil : @symboltable.get(tokens.shift.intern)
       tokens.shift   # discard ':' or '|'
@@ -68,12 +71,12 @@ module Racc
              }
     end
 
-    def format_action( str )
+    def format_action(str)
       str.sub(/\A */, '').sub(/\s+\z/, '')\
           .map {|line| line.sub(/\A {20}/, '') }.join('')
     end
 
-    def build( debugflag )
+    def build(debugflag)
       @dflag = debugflag
 
       @symboltable = SymbolTable.new(self)

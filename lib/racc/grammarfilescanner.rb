@@ -1,11 +1,11 @@
 #
 # grammarfilescanner.rb
 #
-# Copyright (c) 1999-2003 Minero Aoki <aamine@loveruby.net>
+# Copyright (c) 1999-2004 Minero Aoki
 #
 # This program is free software.
 # You can distribute/modify this program under the terms of
-# the GNU LGPL, Lesser General Public License version 2.
+# the GNU LGPL, Lesser General Public License version 2.1.
 # For details of the GNU LGPL, see the file "COPYING".
 #
 
@@ -16,7 +16,7 @@ module Racc
   
   class GrammarFileScanner
 
-    def initialize( str )
+    def initialize(str)
       @lines  = str.split(/\n|\r\n|\r/)
       @lineno = -1
       @line_head   = true
@@ -120,7 +120,7 @@ module Racc
       'end'      => :XEND
     }
 
-    def check_atom( cur )
+    def check_atom(cur)
       if cur == 'end'
         symbol = :XEND
         @in_conv_blk = false
@@ -238,24 +238,24 @@ module Racc
       raise 'Racc FATAL: scan finished before parse finished'
     end
 
-    def literal_head?( pre, post )
+    def literal_head?(pre, post)
       (not pre or not /[a-zA-Z_0-9]/n === pre[-1,1]) and
       not post.empty? and not /\A[\s\=]/n === post
     end
 
-    def read( len )
+    def read(len)
       s = @line[0, len]
       @line = @line[len .. -1]
       s
     end
 
-    def reads( re )
+    def reads(re)
       m = re.match(@line) or return nil
       @line = m.post_match
       m[0]
     end
 
-    def scan_quoted( left, tag = 'string' )
+    def scan_quoted(left, tag = 'string')
       buf = left.dup
       buf = "||#{tag}->" + buf if $raccs_print_type
       re = get_quoted_re(left)
@@ -284,12 +284,12 @@ module Racc
 
     CACHE = {}
 
-    def get_quoted_re( left )
+    def get_quoted_re(left)
       term = Regexp.quote(LEFT_TO_RIGHT[left] || left)
       CACHE[left] ||= /\A[^#{term}\\]*(?:\\.[^\\#{term}]*)*#{term}/
     end
 
-    def scan_error!( msg )
+    def scan_error!(msg)
       raise ScanError, "#{lineno()}: #{msg}"
     end
 

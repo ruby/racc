@@ -1,7 +1,7 @@
 #
 # parser.rb
 #
-# Copyright (c) 1999-2003 Minero Aoki <aamine@loveruby.net>
+# Copyright (c) 1999-2004 Minero Aoki
 #
 # This program is free software.
 # You can distribute/modify this program under the same terms of ruby.
@@ -23,7 +23,6 @@ end
 unless defined?(::ParseError)
   ParseError = Racc::ParseError
 end
-
 
 module Racc
 
@@ -106,7 +105,7 @@ module Racc
       raise NotImplementedError, "#{self.class}\#next_token is not defined"
     end
 
-    def _racc_do_parse_rb( arg, in_debug )
+    def _racc_do_parse_rb(arg, in_debug)
       action_table, action_check, action_default, action_pointer,
       goto_table,   goto_check,   goto_default,   goto_pointer,
       nt_base,      reduce_table, token_table,    shift_n,
@@ -151,11 +150,11 @@ module Racc
     ### yyparse
     ###
 
-    def yyparse( recv, mid )
+    def yyparse(recv, mid)
       __send__(Racc_YY_Parse_Method, recv, mid, _racc_setup(), true)
     end
 
-    def _racc_yyparse_rb( recv, mid, arg, c_debug )
+    def _racc_yyparse_rb(recv, mid, arg, c_debug)
       action_table, action_check, action_default, action_pointer,
       goto_table,   goto_check,   goto_default,   goto_pointer,
       nt_base,      reduce_table, token_table,    shift_n,
@@ -174,7 +173,6 @@ module Racc
           end
         end
         recv.__send__(mid) do |tok, val|
-# $stderr.puts "rd: tok=#{tok}, val=#{val}"
           unless tok
             @racc_t = 0
           else
@@ -188,12 +186,7 @@ module Racc
                  act = action_table[i] and
                  action_check[i] == @racc_state[-1]
             act = action_default[@racc_state[-1]]
-# $stderr.puts "02: act=#{act}"
-# $stderr.puts "curstate=#{@racc_state[-1]}"
-          else
-# $stderr.puts "01: act=#{act}"
           end
-
           while act = _racc_evalact(act, arg)
             ;
           end
@@ -206,9 +199,6 @@ module Racc
                    act = action_table[i] and
                    action_check[i] == @racc_state[-1]
               act = action_default[@racc_state[-1]]
-# $stderr.puts "04: act=#{act}"
-            else
-# $stderr.puts "03: act=#{act}"
             end
             while act = _racc_evalact(act, arg)
               ;
@@ -222,13 +212,12 @@ module Racc
     ### common
     ###
 
-    def _racc_evalact( act, arg )
-# $stderr.puts "ea: act=#{act}"
+    def _racc_evalact(act, arg)
       action_table, action_check, action_default, action_pointer,
       goto_table,   goto_check,   goto_default,   goto_pointer,
       nt_base,      reduce_table, token_table,    shift_n,
       reduce_n,     use_result,   * = arg
-nerr = 0   # tmp
+      nerr = 0   # tmp
 
       if act > 0 and act < shift_n
         #
@@ -299,7 +288,6 @@ nerr = 0   # tmp
               break
             end
           end
-
           throw :racc_end_parse, nil if @racc_state.size <= 1
           @racc_state.pop
           @racc_vstack.pop
@@ -319,7 +307,7 @@ nerr = 0   # tmp
       nil
     end
 
-    def _racc_do_reduce( arg, act )
+    def _racc_do_reduce(arg, act)
       action_table, action_check, action_default, action_pointer,
       goto_table,   goto_check,   goto_default,   goto_pointer,
       nt_base,      reduce_table, token_table,    shift_n,
@@ -360,7 +348,7 @@ nerr = 0   # tmp
       goto_default[k1]
     end
 
-    def on_error( t, val, vstack )
+    def on_error(t, val, vstack)
       raise ParseError, sprintf("\nparse error on value %s (%s)",
                                 val.inspect, token_to_str(t) || '?')
     end
@@ -381,20 +369,20 @@ nerr = 0   # tmp
     # for debugging output
     #
 
-    def racc_read_token( t, tok, val )
+    def racc_read_token(t, tok, val)
       @racc_debug_out.print 'read    '
       @racc_debug_out.print tok.inspect, '(', racc_token2str(t), ') '
       @racc_debug_out.puts val.inspect
       @racc_debug_out.puts
     end
 
-    def racc_shift( tok, tstack, vstack )
+    def racc_shift(tok, tstack, vstack)
       @racc_debug_out.puts "shift   #{racc_token2str tok}"
       racc_print_stacks tstack, vstack
       @racc_debug_out.puts
     end
 
-    def racc_reduce( toks, sim, tstack, vstack )
+    def racc_reduce(toks, sim, tstack, vstack)
       out = @racc_debug_out
       out.print 'reduce '
       if toks.empty?
@@ -413,20 +401,20 @@ nerr = 0   # tmp
       @racc_debug_out.puts
     end
 
-    def racc_e_pop( state, tstack, vstack )
+    def racc_e_pop(state, tstack, vstack)
       @racc_debug_out.puts 'error recovering mode: pop token'
       racc_print_states state
       racc_print_stacks tstack, vstack
       @racc_debug_out.puts
     end
 
-    def racc_next_state( curstate, state )
+    def racc_next_state(curstate, state)
       @racc_debug_out.puts  "goto    #{curstate}"
       racc_print_states state
       @racc_debug_out.puts
     end
 
-    def racc_print_stacks( t, v )
+    def racc_print_stacks(t, v)
       out = @racc_debug_out
       out.print '        ['
       t.each_index do |i|
@@ -435,19 +423,19 @@ nerr = 0   # tmp
       out.puts ' ]'
     end
 
-    def racc_print_states( s )
+    def racc_print_states(s)
       out = @racc_debug_out
       out.print '        ['
       s.each {|st| out.print ' ', st }
       out.puts ' ]'
     end
 
-    def racc_token2str( tok )
+    def racc_token2str(tok)
       self.class::Racc_token_to_s_table[tok] or
           raise RuntimeError, "[Racc Bug] can't convert token #{tok} to string"
     end
 
-    def token_to_str( t )
+    def token_to_str(t)
       self.class::Racc_token_to_s_table[t]
     end
 

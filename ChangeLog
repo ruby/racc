@@ -1,3 +1,29 @@
+Mon Feb 16 16:10:46 2004  Minero Aoki  <aamine@loveruby.net>
+
+	* lib/racc/boot: update coding style.
+
+	* lib/racc/compat.rb: ditto.
+
+	* lib/racc/compiler.rb: ditto.
+
+	* lib/racc/grammar.rb: ditto.
+
+	* lib/racc/grammarfileparser.rb.in: ditto.
+
+	* lib/racc/grammarfilescanner.rb: ditto.
+
+	* lib/racc/info.rb: ditto.
+
+	* lib/racc/iset.rb: ditto.
+
+	* lib/racc/output.rb: ditto.
+
+	* lib/racc/parser.rb: ditto.
+
+	* lib/racc/state.rb: ditto.
+
+	* lib/racc/usercodeparser.rb: ditto.
+
 Mon Feb 16 16:01:34 2004  Minero Aoki  <aamine@loveruby.net>
 
 	* lib/racc/rubyloader.rb: imported rev1.6.

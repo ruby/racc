@@ -3,11 +3,11 @@
 #
 # grammerfileparser.rb
 #
-# Copyright (c) 1999-2003 Minero Aoki <aamine@loveruby.net>
+# Copyright (c) 1999-2004 Minero Aoki
 #
 # This program is free software.
 # You can distribute/modify this program under the terms of
-# the GNU LGPL, Lesser General Public License version 2.
+# the GNU LGPL, Lesser General Public License version 2.1.
 # For details of the GNU LGPL, see the file "COPYING".
 #
 
@@ -16,12 +16,11 @@ require 'racc/parser'
 require 'racc/grammarfilescanner'
 require 'racc/usercodeparser'
 
-
 module Racc
 
   class GrammarFileParser < Parser
 
-    def initialize( racc )
+    def initialize(racc)
       @yydebug     = racc.d_parse && Racc_debug_parser
       @ruletable   = racc.ruletable
       @symboltable = racc.symboltable
@@ -33,7 +32,7 @@ module Racc
     attr_reader :class_name
     attr_reader :super_class
 
-    def parse( str )
+    def parse(str)
       @scanner = GrammarFileScanner.new(str)
       @scanner.debug = @yydebug
       do_parse
@@ -45,7 +44,7 @@ module Racc
       @scanner.scan
     end
 
-    def on_error( tok, val, _values )
+    def on_error(tok, val, _values)
       if val.respond_to?(:id2name)
         v = val.id2name
       elsif String === val

@@ -1,22 +1,20 @@
 #
 # output.rb
 #
-# Copyright (c) 1999-2003 Minero Aoki <aamine@loveruby.net>
+# Copyright (c) 1999-2004 Minero Aoki
 #
 # This program is free software.
 # You can distribute/modify this program under the terms of
-# the GNU LGPL, Lesser General Public License version 2.
+# the GNU LGPL, Lesser General Public License version 2.1.
 # For details of the GNU LGPL, see the file "COPYING".
 #
 
 require 'racc/compat'
 
-
 module Racc
 
   class Formatter
-
-    def initialize( racc )
+    def initialize(racc)
       @ruletable   = racc.ruletable
       @symboltable = racc.symboltable
       @statetable  = racc.statetable
@@ -30,13 +28,12 @@ module Racc
       @result      = racc.result_var    ? true : false
       @showall     = racc.d_la || racc.d_state
     end
-
   end
 
 
   class CodeGenerator < Formatter
 
-    def output( out )
+    def output(out)
       out.print "\n##### racc #{Racc::Version} generates ###\n\n"
       output_reduce_table out
       output_action_table out
@@ -49,7 +46,7 @@ module Racc
 
     private
 
-    def output_reduce_table( out )
+    def output_reduce_table(out)
       out << "racc_reduce_table = [\n"
       out << " 0, 0, :racc_error,"
       sep = "\n"
@@ -67,7 +64,7 @@ module Racc
       out << "racc_shift_n = #{@actions.shift_n}\n\n"
     end
 
-    def output_action_table( out )
+    def output_action_table(out)
       tbl  = []   # yytable
       chk  = []   # yycheck
       defa = []   # yydefact
@@ -97,7 +94,7 @@ module Racc
       output_table out, defa, 'racc_action_default'
     end
 
-    def output_goto_table( out )
+    def output_goto_table(out)
       tbl  = []   # yytable (2)
       chk  = []   # yycheck (2)
       ptr  = []   # yypgoto
@@ -152,7 +149,7 @@ module Racc
       output_table out, defg, 'racc_goto_default'
     end
 
-    def addent( all, dummy, arr, chkval, ptr )
+    def addent(all, dummy, arr, chkval, ptr)
       max = arr.size
       min = nil
       item = idx = nil
@@ -185,7 +182,7 @@ module Racc
       ;
     end
 
-    def mkmapexp( arr )
+    def mkmapexp(arr)
       i = ii = 0
       as = arr.size
       map = ''
@@ -218,7 +215,7 @@ module Racc
       Regexp.compile(map, 'n')
     end
 
-    def set_table( entries, dummy, tbl, chk, ptr )
+    def set_table(entries, dummy, tbl, chk, ptr)
       upper = 0
       map = '-' * 10240
 
@@ -243,7 +240,7 @@ module Racc
       end
     end
 
-    def act2actid( act )
+    def act2actid(act)
       case act
       when Shift  then act.goto_id
       when Reduce then -act.ruleid
@@ -254,7 +251,7 @@ module Racc
       end
     end
 
-    def output_table( out, tab, label )
+    def output_table(out, tab, label)
       if tab.size > 2000
         #
         # compressed table
@@ -268,7 +265,7 @@ module Racc
       end
     end
 
-    def output_table_c( out, tab, label )
+    def output_table_c(out, tab, label)
       sep  = "\n"
       nsep = ",\n"
       buf  = ''
@@ -306,7 +303,7 @@ end
 EOS
     end
 
-    def output_table_s( out, tab, label )
+    def output_table_s(out, tab, label)
       sep  = ''
       nsep = ','
       buf  = ''
@@ -328,7 +325,7 @@ EOS
       out.print " ]\n\n"
     end
 
-    def output_token_table( out )
+    def output_token_table(out)
       sep = "\n"
       sep_rest = ",\n"
       out << "racc_token_table = {"
@@ -341,7 +338,7 @@ EOS
       out << " }\n\n"
     end
 
-    def output_other( out )
+    def output_other(out)
       out << "racc_use_result_var = #{@result}\n\n"
       out.print(<<EOS)
 racc_nt_base = #{@symboltable.nt_base}
@@ -370,7 +367,7 @@ EOS
       out << "Racc_debug_parser = #{@dsrc}\n\n"
     end
 
-    def output_actions( out )
+    def output_actions(out)
       rl = act = nil
 
       if @result
@@ -438,13 +435,10 @@ module_eval <<'.,.,', '%s', %d
 
   end   # class CodeGenerator
 
-  ###
-  ###
-  ###
 
   class VerboseOutputter < Formatter
 
-    def output( out )
+    def output(out)
       output_conflict out; out.puts
       output_useless  out; out.puts
       output_rule     out; out.puts
@@ -456,7 +450,7 @@ module_eval <<'.,.,', '%s', %d
     # Warnings
     #
 
-    def output_conflict( out )
+    def output_conflict(out)
       @statetable.each do |state|
         if state.srconf
           out.printf "state %d contains %d shift/reduce conflicts\n",
@@ -469,7 +463,7 @@ module_eval <<'.,.,', '%s', %d
       end
     end
 
-    def output_useless( out )
+    def output_useless(out)
       rl = t = nil
       used = []
       @ruletable.each do |rl|
@@ -489,7 +483,7 @@ module_eval <<'.,.,', '%s', %d
     # States
     #
 
-    def output_state( out )
+    def output_state(out)
       ptr = nil
       out << "--------- State ---------\n"
 
@@ -505,7 +499,7 @@ module_eval <<'.,.,', '%s', %d
       end
     end
 
-    def pointer_out( out, ptr )
+    def pointer_out(out, ptr)
       buf = sprintf("%4d) %s :", ptr.rule.ident, ptr.rule.target.to_s)
       ptr.rule.symbols.each_with_index do |tok, idx|
         buf << ' _' if idx == ptr.index
@@ -515,7 +509,7 @@ module_eval <<'.,.,', '%s', %d
       out.puts buf
     end
 
-    def action_out( f, state )
+    def action_out(f, state)
       r = ''
       e = ''
       sr = state.srconf && state.srconf.dup
@@ -558,7 +552,7 @@ module_eval <<'.,.,', '%s', %d
       end
     end
 
-    def outact( f, t, act )
+    def outact(f, t, act)
       case act
       when Shift
         f.printf "  %-12s  shift, and go to state %d\n", 
@@ -575,7 +569,7 @@ module_eval <<'.,.,', '%s', %d
       end
     end
 
-    def outsrconf( f, confs )
+    def outsrconf(f, confs)
       confs.each do |c|
         r = c.reduce
         f.printf "  %-12s  [reduce using rule %d (%s)]\n",
@@ -583,7 +577,7 @@ module_eval <<'.,.,', '%s', %d
       end
     end
 
-    def outrrconf( f, confs )
+    def outrrconf(f, confs)
       confs.each do |c|
         r = c.low_prec
         f.printf "  %-12s  [reduce using rule %d (%s)]\n",
@@ -595,7 +589,7 @@ module_eval <<'.,.,', '%s', %d
     # Rules
     #
 
-    def output_rule( out )
+    def output_rule(out)
       out.print "-------- Grammar --------\n\n"
       @ruletable.each_rule do |rl|
         if @debug or rl.ident != 0
@@ -609,7 +603,7 @@ module_eval <<'.,.,', '%s', %d
     # Tokens
     #
 
-    def output_token( out )
+    def output_token(out)
       out.print "------- Symbols -------\n\n"
 
       out.print "**Nonterminals, with rules where they appear\n\n"
@@ -630,7 +624,7 @@ SRC
       end
     end
 
-    def locatestr( ptrs )
+    def locatestr(ptrs)
       list = ptrs.map {|ptr|
                     i = ptr.rule.ident
                     (i == 0) ? nil : i

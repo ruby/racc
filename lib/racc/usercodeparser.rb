@@ -1,19 +1,18 @@
 #
 # usercodeparser.rb
 #
-# Copyright (c) 1999-2003 Minero Aoki <aamine@loveruby.net>
+# Copyright (c) 1999-2004 Minero Aoki
 #
 # This program is free software.
 # You can distribute/modify this program under the terms of
-# the GNU LGPL, Lesser General Public License version 2.
+# the GNU LGPL, Lesser General Public License version 2.1.
 # For details of the GNU LGPL, see the file "COPYING".
 #
 
 module Racc
 
   class GrammarFileParser < Parser
-
-    def GrammarFileParser.get_usercode( fname )
+    def GrammarFileParser.get_usercode(fname)
       ret = {}
       re = /\A----+\s*(header|inner|footer|prepare|driver)\s*(=)?/i
       str = nil
@@ -34,7 +33,6 @@ module Racc
 
       ret
     end
-  
   end
 
 end

@@ -1,47 +1,41 @@
 #
 # iset.rb
 #
-# Copyright (c) 1999-2003 Minero Aoki <aamine@loveruby.net>
+# Copyright (c) 1999-2004 Minero Aoki
 #
 # This program is free software.
 # You can distribute/modify this program under the terms of
-# the GNU LGPL, Lesser General Public License version 2.
+# the GNU LGPL, Lesser General Public License version 2.1.
 # For details of the GNU LGPL, see the file "COPYING".
 #
 
 module Racc
 
-  #
-  # ISet
-  #
-  # indexed set.
-  # all items must respond to :ident
-  #
-
+  # An "indexed" set.  All items must respond to :ident.
   class ISet
 
-    def initialize( a = [] )
+    def initialize(a = [])
       @set = a
     end
 
     attr_reader :set
 
-    def add( i )
+    def add(i)
       @set[i.ident] = i
     end
 
-    def []( key )
+    def [](key)
       @set[key.ident]
     end
 
-    def []=( key, val )
+    def []=(key, val)
       @set[key.ident] = val
     end
 
     alias include? []
     alias key? []
 
-    def update( other )
+    def update(other)
       s = @set
       o = other.set
       o.each_index do |idx|
@@ -51,19 +45,19 @@ module Racc
       end
     end
 
-    def update_a( a )
+    def update_a(a)
       s = @set
       i = nil
       a.each {|i| s[i.ident] = i }
     end
 
-    def delete( key )
+    def delete(key)
       i = @set[key.ident]
       @set[key.ident] = nil
       i
     end
 
-    def each( &block )
+    def each(&block)
       @set.compact.each(&block)
     end
 

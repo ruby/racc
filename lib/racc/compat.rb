@@ -1,11 +1,11 @@
 #
 # compat.rb
 #
-# Copyright (c) 1999-2003 Minero Aoki <aamine@loveruby.net>
+# Copyright (c) 1999-2004 Minero Aoki
 #
 # This program is free software.
 # You can distribute/modify this program under the terms of
-# the GNU LGPL, Lesser General Public License version 2.
+# the GNU LGPL, Lesser General Public License version 2.1.
 # For details of the GNU LGPL, see the file "COPYING".
 #
 
@@ -26,11 +26,11 @@ unless [].respond_to?(:map)
 end
 
 unless File.respond_to?(:read)
-  def File.read( filename )
+  def File.read(filename)
     File.open(filename) {|f| return f.read }
   end
 end
 
-def bug!( msg )
+def bug!(msg)
   raise '[Racc BUG] ' + msg
 end

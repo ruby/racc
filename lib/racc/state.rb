@@ -1,30 +1,24 @@
 #
 # state.rb
 #
-# Copyright (c) 1999-2003 Minero Aoki <aamine@loveruby.net>
+# Copyright (c) 1999-2004 Minero Aoki
 #
 # This program is free software.
 # You can distribute/modify this program under the terms of
-# the GNU LGPL, Lesser General Public License version 2.
+# the GNU LGPL, Lesser General Public License version 2.1.
 # For details of the GNU LGPL, see the file "COPYING".
 #
 
 require 'racc/iset'
 
-
 module Racc
 
   class RaccError < StandardError; end
 
-  #
-  # StateTable
-  #
-  # the table of lalr states.
-  #
-
+  # A table of LALR states.
   class StateTable
 
-    def initialize( racc )
+    def initialize(racc)
       @ruletable   = racc.ruletable
       @symboltable = racc.symboltable
 
@@ -50,23 +44,23 @@ module Racc
 
     alias to_s inspect
 
-    def []( i )
+    def [](i)
       @states[i]
     end
 
-    def each_state( &block )
+    def each_state(&block)
       @states.each(&block)
     end
 
     alias each each_state
 
-    def each_index( &block )
+    def each_index(&block)
       @states.each_index(&block)
     end
 
-    ###
-    ### nfa
-    ###
+    #
+    # nfa
+    #
 
     def init
       # add state 0
@@ -82,7 +76,7 @@ module Racc
       @actions.init
     end
 
-    def generate_states( state )
+    def generate_states(state)
       puts "dstate: #{state}" if @d_state
 
       table = {}
@@ -113,14 +107,14 @@ module Racc
       end
     end
 
-    def addsym( table, sym, ptr )
+    def addsym(table, sym, ptr)
       unless s = table[sym]
         table[sym] = s = ISet.new
       end
       s.add ptr
     end
 
-    def core_to_state( core )
+    def core_to_state(core)
       #
       # convert CORE to a State object.
       # If matching state does not exist, create it and add to the table.
@@ -145,13 +139,13 @@ module Racc
       dest
     end
 
-    def fingerprint( arr )
+    def fingerprint(arr)
       arr.map {|i| i.ident }.pack('L*')
     end
 
-    ###
-    ### dfa
-    ###
+    #
+    # dfa
+    #
 
     def determine
       la = lookahead
@@ -166,10 +160,6 @@ module Racc
       end
       check_useless
     end
-
-    #
-    # lookahead
-    #
 
     def lookahead
       #
@@ -189,7 +179,6 @@ module Racc
       @states.each do |state|
         state.check_la la_rules
       end
-
 
       ### initialize_F()
       f     = create_tmap(gotos.size)
@@ -215,7 +204,6 @@ module Racc
         puts "\n--- F1 (reads) ---"
         print_tab gotos, reads, f
       end
-
 
       ### build_relations()
       ### compute_FOLLOWS
@@ -251,7 +239,6 @@ module Racc
         print_tab gotos, includes, f
       end
 
-
       ### compute_lookaheads
       la = create_tmap(la_rules.size)
       lookback.each_with_index do |arr, i|
@@ -269,11 +256,11 @@ module Racc
       la
     end
     
-    def create_tmap( size )
+    def create_tmap(size)
       Array.new(size, 0)   # use Integer as bitmap
     end
 
-    def addrel( tbl, i, item )
+    def addrel(tbl, i, item)
       if a = tbl[i]
         a.push item
       else
@@ -281,7 +268,7 @@ module Racc
       end
     end
 
-    def record_path( begst, rule )
+    def record_path(begst, rule)
       st = begst
       path = []
       rule.symbols.each do |t|
@@ -292,7 +279,7 @@ module Racc
       path
     end
 
-    def transpose( rel )
+    def transpose(rel)
       new = Array.new(rel.size, nil)
       rel.each_with_index do |arr, idx|
         if arr
@@ -304,7 +291,7 @@ module Racc
       new
     end
 
-    def digraph( map, relation )
+    def digraph(map, relation)
       n = relation.size
       index    = Array.new(n, nil)
       vertices = []
@@ -318,7 +305,7 @@ module Racc
       end
     end
 
-    def traverse( i, index, vertices, map, relation )
+    def traverse(i, index, vertices, map, relation)
       vertices.push i
       index[i] = height = vertices.size
 
@@ -347,17 +334,15 @@ module Racc
       end
     end
 
-    ###
-
-    # debug method
-    def print_atab( idx, tab )
+    # for debug
+    def print_atab(idx, tab)
       tab.each_with_index do |i,ii|
         printf '%-20s', idx[ii].inspect
         p i
       end
     end
 
-    def print_tab( idx, rel, tab )
+    def print_tab(idx, rel, tab)
       tab.each_with_index do |bin,i|
         print i, ' ', idx[i].inspect, ' << '; p rel[i]
         print '  '
@@ -366,23 +351,23 @@ module Racc
       end
     end
 
-    # debug method
-    def print_tab_i( idx, rel, tab, i )
+    # for debug
+    def print_tab_i(idx, rel, tab, i)
       bin = tab[i]
       print i, ' ', idx[i].inspect, ' << '; p rel[i]
       print '  '
       each_t(@symboltable, bin) {|t| print ' ', t }
     end
 
-    # debug method
-    def printb( i )
+    # for debug
+    def printb(i)
       each_t(@symboltable, i) do |t|
         print t, ' '
       end
       puts
     end
 
-    def each_t( tbl, set )
+    def each_t(tbl, set)
       i = ii = idx = nil
       0.upto( set.size ) do |i|
         (0..7).each do |ii|
@@ -397,7 +382,7 @@ module Racc
     # resolve
     #
 
-    def resolve( state )
+    def resolve(state)
       if state.conflict?
         resolve_rr state, state.ritems
         resolve_sr state, state.stokens
@@ -414,7 +399,7 @@ module Racc
       end
     end
 
-    def resolve_rr( state, r )
+    def resolve_rr(state, r)
       pt = t = act = item = nil
 
       r.each do |item|
@@ -435,7 +420,7 @@ module Racc
       end
     end
 
-    def resolve_sr( state, s )
+    def resolve_sr(state, s)
       stok = rtok = goto = act = nil
 
       s.each do |stok|
@@ -488,7 +473,7 @@ module Racc
       :Nonassoc => :Error
     }
    
-    def do_resolve_sr( stok, rtok )
+    def do_resolve_sr(stok, rtok)
       puts "resolve_sr: s/r conflict: rtok=#{rtok}, stok=#{stok}" if @d_prec
 
       unless rtok and rtok.prec
@@ -529,7 +514,7 @@ module Racc
       acc_state.defact = @actions.accept
     end
 
-    def pack( state )
+    def pack(state)
       ### find most frequently used reduce rule
       act = state.action
       arr = Array.new(@ruletable.size, 0)
@@ -575,31 +560,20 @@ module Racc
   end   # class StateTable
 
 
-  #
-  # State
-  #
-  # represents a LALR state.
-  #
-
+  # A LALR state.
   class State
 
-    def initialize( ident, core )
+    def initialize(ident, core)
       @ident = ident
-      @core  = core
-
+      @core = core
       @goto_table = {}
-      @gotos      = {}
-
+      @gotos = {}
       @stokens = nil
       @ritems = nil
-
       @action = {}
       @defact = nil
-
       @rrconf = nil
       @srconf = nil
-
-      ###
 
       @closure = make_closure(@core)
     end
@@ -630,13 +604,13 @@ module Racc
 
     alias to_s inspect
 
-    def ==( oth )
+    def ==(oth)
       @ident == oth.ident
     end
 
     alias eql? ==
 
-    def make_closure( core )
+    def make_closure(core)
       set = ISet.new
       core.each do |ptr|
         set.add ptr
@@ -647,7 +621,7 @@ module Racc
       set.to_a
     end
 
-    def check_la( la_rules )
+    def check_la(la_rules)
       @conflict = false
       s = []
       r = []
@@ -685,7 +659,7 @@ module Racc
       @conflict
     end
 
-    def rruleid( rule )
+    def rruleid(rule)
       if i = @la_rules.index(rule.ident)
         @la_rules_i + i
       else
@@ -698,7 +672,7 @@ module Racc
       end
     end
 
-    def set_la( la )
+    def set_la(la)
       return unless @conflict
 
       i = @la_rules_i
@@ -709,7 +683,7 @@ module Racc
       end
     end
 
-    def rr_conflict( high, low, ctok )
+    def rr_conflict(high, low, ctok)
       c = RRconflict.new(@ident, high, low, ctok)
 
       @rrconf ||= {}
@@ -720,7 +694,7 @@ module Racc
       end
     end
 
-    def sr_conflict( shift, reduce )
+    def sr_conflict(shift, reduce)
       c = SRconflict.new(@ident, shift, reduce)
 
       @srconf ||= {}
@@ -735,17 +709,13 @@ module Racc
 
 
   #
-  # Goto
-  #
-  # represents a transition on the grammar.
-  # REAL GOTO means transition by nonterminal,
+  # Represents a transition on the grammar.
+  # "Real goto" means a transition by nonterminal,
   # but this class treats also terminal's.
   # If one is a terminal transition, .ident returns nil.
   #
-
   class Goto
-
-    def initialize( ident, sym, from, to )
+    def initialize(ident, sym, from, to)
       @ident      = ident
       @symbol     = sym
       @from_state = from
@@ -760,19 +730,12 @@ module Racc
     def inspect
       "(#{@from_state.ident}-#{@symbol}->#{@to_state.ident})"
     end
-  
   end
 
 
-  #
-  # Item
-  #
-  # a LALR item. A set of rule and its lookahead tokens.
-  #
-
+  # LALR item.  A set of rule and its lookahead tokens.
   class Item
-  
-    def initialize( rule, la )
+    def initialize(rule, la)
       @rule = rule
       @la  = la
     end
@@ -780,7 +743,7 @@ module Racc
     attr_reader :rule
     attr_reader :la
 
-    def each_la( tbl )
+    def each_la(tbl)
       la = @la
       i = ii = idx = nil
       0.upto(la.size - 1) do |i|
@@ -791,20 +754,14 @@ module Racc
         end
       end
     end
-
   end
 
 
-  #
-  # ActionTable
-  #
   # The table of LALR actions. Actions are either of
   # Shift, Reduce, Accept and Error.
-  #
-
   class ActionTable
 
-    def initialize( rt, st )
+    def initialize(rt, st)
       @ruletable = rt
       @statetable = st
 
@@ -829,7 +786,7 @@ module Racc
       @reduce.size
     end
 
-    def reduce( i )
+    def reduce(i)
       case i
       when Rule    then i = i.ident
       when Integer then ;
@@ -842,7 +799,7 @@ module Racc
       r
     end
 
-    def each_reduce( &block )
+    def each_reduce(&block)
       @reduce.each(&block)
     end
 
@@ -850,7 +807,7 @@ module Racc
       @shift.size
     end
 
-    def shift( i )
+    def shift(i)
       case i
       when State   then i = i.ident
       when Integer then ;
@@ -861,7 +818,7 @@ module Racc
       @shift[i] or raise "Racc FATAL: shift action #{i} not exist"
     end
 
-    def each_shift( &block )
+    def each_shift(&block)
       @shift.each(&block)
     end
 
@@ -872,8 +829,7 @@ module Racc
 
 
   class Shift
-
-    def initialize( goto )
+    def initialize(goto)
       @goto_state = goto
     end
 
@@ -886,13 +842,11 @@ module Racc
     def inspect
       "<shift #{@goto_state.ident}>"
     end
-
   end
 
 
   class Reduce
-
-    def initialize( rule )
+    def initialize(rule)
       @rule = rule
       @refn = 0
     end
@@ -916,35 +870,22 @@ module Racc
       @refn -= 1
       bug! 'act.refn < 0' if @refn < 0
     end
-
   end
 
-
   class Accept
-
     def inspect
       "<accept>"
     end
-
   end
 
-
   class Error
-
     def inspect
       "<error>"
     end
-  
   end
 
-
-  #
-  # Conflicts
-  #
-
   class SRconflict
-
-    def initialize( sid, shift, reduce )
+    def initialize(sid, shift, reduce)
       @stateid = sid
       @shift   = shift
       @reduce  = reduce
@@ -958,12 +899,10 @@ module Racc
       sprintf('state %d: S/R conflict rule %d reduce and shift %s',
               @stateid, @reduce.ruleid, @shift.to_s)
     end
-
   end
 
   class RRconflict
-    
-    def initialize( sid, high, low, tok )
+    def initialize(sid, high, low, tok)
       @stateid   = sid
       @high_prec = high
       @low_prec  = low
@@ -979,7 +918,6 @@ module Racc
       sprintf('state %d: R/R conflict with rule %d and %d on %s',
               @stateid, @high_prec.ident, @low_prec.ident, @token.to_s)
     end
-
   end
 
 end
