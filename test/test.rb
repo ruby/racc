@@ -153,7 +153,11 @@ def racc( arg )
 end
 
 def clean( dir )
-  FileUtils.rm_rf dir
+  if File.file?('/bin/rm')
+    system "/bin/rm -r #{dir}"
+  else
+    FileUtils.rm_rf dir   # does not work on ruby 1.4.
+  end
   FileUtils.mkdir dir
 end
 

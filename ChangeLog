@@ -1,3 +1,7 @@
+Sun Oct 12 15:10:13 2003  Minero Aoki  <aamine@loveruby.net>
+
+	* test/test.rb: use /bin/rm if exists.
+
 Sun Oct 12 14:33:29 2003  Minero Aoki  <aamine@loveruby.net>
 
 	* rubyloader.rb: imported from amstd, rev 1.5.
