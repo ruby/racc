@@ -3,30 +3,21 @@ Racc README
   Racc is a LALR(1) parser generator.
   It is written in Ruby and outputs Ruby script.
 
-
 [Requirement]
 
   *  ruby version 1.4.x or later. Latest 1.6 is best.
- (*) make, C compiler
-
-  make / C compiler is optional.
+  *  make, C compiler
 
 [Installation]
 
-  Simplest way for installation is below:
+  Type this:
 
-  (in the top directory of package)
-  $ ruby setup.rb config
-  $ ruby setup.rb setup
-  # ruby setup.rb install   (maybe by root)
+    $ ruby install.rb config
+    $ ruby install.rb setup
+    # ruby install.rb install   (maybe by root)
 
   You can install Racc into your favorite directory by using
-  setup.rb options. For detail, type "ruby setup.rb --help".
-
-  If you don't have C compiler, "config" step might be:
-
-  $ ruby setup.rb config --without=ext/*
-
+  install.rb options. For details, try "ruby install.rb --help".
 
 [Testing Racc]
 
@@ -42,13 +33,11 @@ Racc README
   For Racc details, see HTML documents placed under 'doc.en/'
   and sample grammer files under 'sample/'.
 
-
 [License]
 
   Racc is distributed under the terms of the GNU Lesser General
   Public License version 2. But ruby script file generated
   by Racc is not. You can treat those files as you like.
-
 
 [Bug]
 

@@ -3,37 +3,26 @@ Racc README
 [必要環境]
 
   *  ruby version 1.4 以降 (できるだけ 1.6 の最新がよい)
- (*) C コンパイラ、make
-
-  コンパイラ、make はなくても構いません。
+  *  C コンパイラ、make
 
 
 [インストール]
-
-  << コンパイラを持っている場合 >>
 
   コマンドラインで次のように打ってください。
   # の部分は普通はルート権限が必要です。
 
       (パッケージのトップディレクトリで)
-      $ ruby setup.rb config
-      $ ruby setup.rb setup
-      # ruby setup.rb install
+      $ ruby install.rb config
+      $ ruby install.rb setup
+      # ruby install.rb install
 
   これで、通常のパスに Racc がインストールされます。自分の好き
   なディレクトリにインストールしたいときは、setup.rb config に
   各種オプションをつけて実行してください。オプションのリストは
 
-      $ ruby setup.rb --help
+      $ ruby install.rb --help
 
   で見られます。
-
-
-  << Windows 環境などで、コンパイラがない場合 >>
-
-  config の時に次のようにしてください。
-
-      $ ruby setup.rb config --without=ext/*
 
 
 [テスト]
