@@ -41,7 +41,7 @@
     @interf     = BuildInterface.new( self )
     @code       = {}
     @parser     = RaccParser.new( self )
-    @statetable = LALRstatTable.new( self )
+    @statetable = LALRstateTable.new( self )
     @formatter  = RaccFormatter.new( self )
   end
 

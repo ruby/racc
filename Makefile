@@ -46,6 +46,7 @@ LIBSRC   = \
 					 must.rb     \
 					 bug.rb      \
 					 scanner.rb  \
+					 #
 
 CALCSRC  = calc.y
 CALCTOOL = calc.makefile
@@ -115,6 +116,7 @@ set_lib:
 
 set_calc:
 	cupdate -t -c -s. -d ${ARCDIR} ${CALCSRC}
+	mupdate calc.makefile ${ARCDIR}/Makefile
 
 set_html:
 	cupdate -c -s${HTMLDIR}/ja -d${ARCDIR}/doc.ja ${HTML}
@@ -128,7 +130,7 @@ set_text:
 
 site:
 	rm -f ${SITEDIR}/${APPNAME}-*.tar.gz
-	mupdate ${ARC} ${SITEDIR}/${ARC}
+	cp ${ARC} ${SITEDIR}/${ARC}
 	cupdate -c -s${HTMLDIR}/ja -d${JSITEDOC} ${HTML}
 	cupdate -c -s${HTMLDIR}/en -d${ESITEDOC} ${HTML}
 

@@ -1,62 +1,64 @@
 
-  class LALRstatTable
+  class LALRstateTable
 
-    def initialize( rac )
-      @racc = rac
-      @ruletable  = rac.ruletable
+    def initialize( racc )
+      @racc = racc
+      @ruletable  = racc.ruletable
       @tokentable = @ruletable.tokentable
-      @prectable  = rac.prectable
+      @prectable  = racc.prectable
 
-      @d_state  = rac.d_state
-      @d_reduce = rac.d_reduce
-      @d_shift  = rac.d_shift
+      @d_state  = racc.d_state
+      @d_reduce = racc.d_reduce
+      @d_shift  = racc.d_shift
 
-      @stats = []
-      @statcache = {}
+      @states = []
+      @statecache = {}
     end
     
 
     def each_state
-      @stats.each{|st| yield st }
+      @states.each{|st| yield st }
     end
 
-    def to_a() @stats end
+    def to_a
+      @states
+    end
 
-    def to_s() "<LALRstatTable size #{@stats.size}>" end
+    def to_s
+      "<LALRstateTable size #{@states.size}>"
+    end
 
 
     def do_initialize
-      # add start closure
-      add_new_state( [ @ruletable[0].ptrs(0) ] )
+      # add first state (ID 0)
+      add_new_state [ @ruletable[0].ptrs(0) ]
 
       cur = 0
-      while cur < @stats.size do
-        
-        # state is added in develop_state
-        develop_state( @stats[cur] )
+      while cur < @states.size do
+        develop_state @states[cur]   # state is added here
         cur += 1
       end
     end
 
 
     def resolve
-      @stats.each do |stat|
-        act = stat.action
-        if act.type == LookaheadAction then
-
-          (@d_reduce or @d_shift) and
-            puts "resolve state #{stat.stateid} -----------------"
+      @states.each do |state|
+        if state.conflicting? then
+          if @d_reduce or @d_shift then
+            puts "resolve state #{state.stateid} -------------"
+          end
 
           ### default
 
-          de   = @tokentable.get_token( Parser::Default )
-          rptr = stat.reduce_ptrs[0]
-          act.store( de, ReduceAction.new(rptr) )
+          # de   = @tokentable.get_token( Parser::Default )
+          # rptr = state.reduce_ptrs[0]
+          # goto = state.goto_state_from_rptr
+          # act[ de ] = ReduceAction.new( goto, rptr.rule )
 
           ### resolve
 
-          stat.resolve_rr
-          stat.resolve_sr
+          state.resolve_rr
+          state.resolve_sr
         end
       end
     end
@@ -65,80 +67,105 @@
     private
 
     
-    def develop_state( stat )
-      @d_state and
-        puts "develop_state: start\n#{stat.inspect}"
+    def develop_state( state )
+      puts "develop_state: start\n#{state.inspect}" if @d_state
 
-      stat.develop_seed.each do |tok, arr|
-        @d_state and
-          puts "init_stat: each: tok #{tok}, arr #{arr.join(' ')}"
-
-        # 'arr's must be same order
+      state.next_seed.each do |tok, arr|
+        # all 'arr's must be same order
         # (rule table order, upper to lower)
-        arr.sort! do |a, b| a.hash <=> b.hash end
+        arr.sort!{|a, b| a.hash <=> b.hash }
 
-        unless (dest = @statcache[arr]) then
+        puts "init_state: each: tok=#{tok} arr=#{arr.join(' ')}" if @d_state
+
+        unless dest = @statecache[arr] then
           # not registered yet
-          dest = add_new_state( arr )
+          dest = add_new_state( arr, hash )
           
-          @d_state and
-            puts "init_stat: create dest.    ID #{dest.stateid}"
+          puts "init_state: create dest.    ID #{dest.stateid}" if @d_state
         else
           if @d_state then
-            puts "init_stat: dest is cached. ID #{dest.stateid}"
-            puts "init_stat: dest seed #{dest.seed.join(' ')}"
+            puts "init_state: dest is cached. ID #{dest.stateid}"
+            puts "init_state: dest seed #{dest.seed.join(' ')}"
           end
         end
 
-        stat.is_goto( tok, dest )
-        dest.is_from( tok, stat )
+        state.is_goto( tok, dest )
+        dest.is_from( tok, state )
       end
     end
 
 
     def add_new_state( seed )
-      temp = LALRstat.new(
-        closure( seed ),
-        @stats.size,
-        seed,
-        @racc
-      )
-      @stats.push temp
-      @statcache.store( seed, temp )
+      lr_closure = closure( seed )
 
-      return temp
+      ns = {}   # next seed
+      rp = []   # reduce ptrs
+      sp = []   # shift ptrs
+      st = {}   # shift tokens
+
+      lr_closure.each do |ptr|
+        if ptr.reduce? then
+          rp.push ptr
+        else
+          sp.push ptr
+
+          tok = ptr.unref
+          if tok.terminal? then
+            st[ tok ] = true
+          end
+
+          inc = ptr.increment
+
+          if hash = ns[ tok ] then
+            hash[ inc ] = true
+          else
+            ns[ tok ] = { inc => true }
+          end
+        end
+      end
+      st = st.keys
+
+      tmp = LALRstate.new( @states.size, lr_closure,
+                           seed, ns,
+                           sp, st, rp,
+                           @racc )
+      @states.push tmp
+      @statecache[ seed ] = tmp
+
+      tmp
     end
 
 
     def closure( orig_ptrs )
-      ptrs = orig_ptrs.uniq
-      @d_state and puts "closure: start: ptrs #{ptrs.join(' ')}"
+      puts "closure: start: ptrs #{ptrs.join(' ')}" if @d_state
 
+      ptrs = orig_ptrs.dup
       temp = {}
+
       ptrs.each do |ptr|
-        temp.store( ptr, true )
+        temp[ ptr ] = true
 
         tok = ptr.unref
-        ptr.reduce? or tok.term or temp.update( tok.expand )
+        ptr.reduce? or tok.terminal? or temp.update( tok.expand )
       end
       ret = temp.keys
       ret.sort!{|a,b| a.hash <=> b.hash }
 
       @d_state and puts "closure: ret #{ret.join(' ')}"
-      return ret
+      ret
     end
 
-  end   # LALRstatTable
+  end   # LALRstateTable
 
 
 
-  class LALRstat
+  class LALRstate
 
     attr :stateid
     attr :ptrs
 
     attr :seed
-    attr :develop_seed
+    attr :next_seed
 
     attr :action
     attr :reduce_ptrs
@@ -148,75 +175,65 @@
     attr :from_table
 
 
-    def initialize( arr, sid, sed, rac )
-      @ptrs    = arr
-      @stateid = sid
-      @seed    = sed
-      @racc    = rac
-      @ruletable  = rac.ruletable
-      @d_reduce   = rac.d_reduce
-      @d_shift    = rac.d_shift
+    def initialize( state_id, lr_closure,
+                    seed, next_seed,
+                    shift_ptrs, shift_toks, reduce_ptrs,
+                    racc )
+
+      @stateid      = state_id
+      @ptrs         = lr_closure
+
+      @seed         = seed
+      @develop_seed = next_seed
+
+      @reduce_ptrs  = reduce_ptrs
+      @shift_ptrs   = shift_ptrs
+      @shift_toks   = shift_toks
+
+      @racc    = racc
+      @ruletable  = racc.ruletable
+      @d_reduce   = racc.d_reduce
+      @d_shift    = racc.d_shift
 
       @from_table = {}
       @goto_table = {}
 
-      @lookahead = false
+      @lookahead = nil
+
+      @action = {}
 
       @rrconf = []
       @srconf = []
-
-      @reduce_ptrs  = []
-      @shift_ptrs   = []
-      @shift_toks   = []
-      @develop_seed = {}
-
-      @ptrs.each do |ptr|
-        if ptr.reduce? then
-          @reduce_ptrs.push ptr
-        else
-          @shift_ptrs.push ptr
-
-          tok = ptr.unref
-          if tok.term then
-            @shift_toks.push tok
-          end
-
-          inc = ptr.increment
-
-          if (arr = @develop_seed[ tok ]) then
-            arr.push inc
-          else
-            @develop_seed.store( tok, [ inc ] )
-          end
-        end
-      end
-      @shift_toks.uniq!
-
-      if @reduce_ptrs.size > 0 then
-        if @ptrs.size == 1 then
-          @action = ReduceAction.new( @reduce_ptrs[0] )
-        else
-          @action = LookaheadAction.new
-        end
-      else
-        @action = ShiftAction.new
-      end
     end
 
 
-    def ==( oth ) @stateid == oth.stateid end
+    def ==( oth )
+      @stateid == oth.stateid
+    end
 
-    def eql?( oth ) @seed == oth.seed end
+    def eql?( oth )
+      @seed == oth.seed
+    end
 
-    def stateq( oth ) @stateid == oth.stateid end
+    def stateeq( oth )
+      @stateid == oth.stateid
+    end
 
-    def seedeq( oth ) @seed == oth end
+    def seedeq( oth )
+      @seed == oth
+    end
 
-    def hash() @stateid end
+    def hash
+      @stateid
+    end
 
-    def size() @ptrs.size end
+    def size
+      @ptrs.size
+    end
 
-    def to_s() "<LALR state #{@stateid}>" end
+    def to_s
+      "<LALR state #{@stateid}>"
+    end
 
     def inspect
       "state #{@stateid}\n" + @ptrs.join("\n")
@@ -231,36 +248,52 @@
 
       # check infinite recursion
       did = dest.stateid
-      if (@stateid == did) and (size < 2) then
+      if @stateid == did and size < 2 then
         rid = dest.ptrs[0].ruleid
-        @racc.logic.push(
-          "Infinite recursion: state #{did}, with rule #{rid}" )
+        @racc.logic.push "Infinite recursion: state #{did}, with rule #{rid}"
       end
 
       # goto
-      @goto_table.store( tok, dest )
+      @goto_table[ tok ] = dest
     end
 
     
-    def is_from( tok, stat )
-      if (temp = @from_table[ tok ]) then
-        temp.push stat
+    def is_from( tok, state )
+      if temp = @from_table[ tok ] then
+        temp.push state
       else
-        @from_table.store( tok, [ stat ] )
+        @from_table[ tok ] = [ state ]
       end
+    end
+
+
+    def conflicting?
+      if @reduce_ptrs.size > 0 then
+        if @ptrs.size == 1 then
+          @action[ ] = ReduceAction.new
+        else
+          return true
+        end
+      else
+        @action = ShiftAction.new
+      end
+
+      return false
     end
 
 
     def resolve_sr
 
       @shift_toks.each do |stok|
-        unless (temp = @action.fetch( stok )) then
+        goto_st = @goto_table[ stok ]
+
+        unless act = @action[ stok ] then
           # no conflict
-          @action.store( stok, ShiftAction.new )
+          @action[ stok ] = ShiftAction.new( goto_st )
         else
-          if temp.type == ReduceAction then
+          if ReduceAction === act then
             # conflict on stok
-            rtok = temp.value.prec
+            rtok = act.rule.prec
             ret = do_resolve_sr( stok, rtok )
 
             case ret
@@ -269,16 +302,16 @@
 
             when :Shift
               # overwrite
-              @action.store( stok, ShiftAction.new )
+              @action[ stok ] = ShiftAction.new( goto_st )
 
             when :Remove
               # remove action
-              @action.delete( stok )
+              @action.delete stok
 
             when :CantResolve
               # shift to default
-              @action.store( stok, ShiftAction.new )
-              srconf( stok, temp.value )
+              @action[ stok ] = ShiftAction.new( goto_st )
+              srconf stok, act.rule
 
             else
               bug! "do_resolve_sr return wrong val: #{ret}"
@@ -293,20 +326,20 @@
 
     def resolve_rr
       @reduce_ptrs.each do |curptr|
-        @d_reduce and
-          puts "resolve_rr: each: state #{@stateid}, #{curptr}"
+        puts "resolve_rr: each: state #{@stateid}, #{curptr}" if @d_reduce
 
         la_toks( curptr ).each_key do |tok|
-          temp = @action.fetch( tok )
-          if ReduceAction === temp then
+          act = @action[ tok ]
+          if ReduceAction === act then
             #
             # can't resolve R/R conflict (on tok),
             #   reduce with upper rule as default
             #
-            rrconf( temp.value, curptr.rule, tok )
+            rrconf act.rule, curptr.rule, tok
           else
-            # no conflict
-            @action.store( tok, ReduceAction.new( curptr ) )
+            # resolved
+            goto_st = @goto_table[ tok ]
+            @action[ tok ] = ReduceAction.new( goto_st, curptr.rule )
           end
         end
       end
@@ -314,33 +347,33 @@
 
 
     def lookahead( idlock )
-      @d_reduce and puts "lookahead: state #{@stateid}"
+      puts "lookahead: state #{@stateid}" if @d_reduce
 
       idlock[ @stateid ] = true         # recurcive lock
-      @lookahead and return @lookahead  # cached
+      return @lookahead if @lookahead   # cached
 
       ret  = {}
+      tmp = {}
 
-      temp = []
-      @develop_seed.each_key do |tok|
+      @next_seed.each_key do |tok|
         ret.update tok.first
         if tok.nullp then
-          temp.push @goto_table.fetch( tok )
+          tmp[ @goto_table[ tok ] ] = true
         end
       end
       @reduce_ptrs.each do |ptr|
-        temp.concat backtrack( ptr )
+        tmp.update backtrack( ptr )
       end
-      temp.uniq!
 
-      temp.each do |st|
+      tmp.each_key do |st|
         unless idlock[ st.stateid ] then
           ret.update st.lookahead( idlock )
         end
       end
       @lookahead = ret
 
-      @d_reduce and puts "lookahead: lookahead #{ret.keys.join(' ')}"
+      puts "lookahead: lookahead #{ret.keys.join(' ')}" if @d_reduce
+
       return ret
     end
 
@@ -350,17 +383,16 @@
 
     
     def do_resolve_sr( stok, rtok )
-      @d_shift and
-        puts "resolve_sr: s/r conflict: rtok=#{rtok}, stok=#{stok}"
+      puts "resolve_sr: s/r conflict: rtok=#{rtok}, stok=#{stok}" if @d_shift
 
       unless rtok and rtok.prec then
-        @d_shift and puts "resolve_sr: no prec for #{rtok}(R)"
+        puts "resolve_sr: no prec for #{rtok}(R)" if @d_shift
         return :CantResolve
       end
       rprec = rtok.prec
 
       unless stok and stok.prec then
-        @d_shift and puts "resolve_sr: no prec for #{stok}(S)"
+        puts "resolve_sr: no prec for #{stok}(S)" if @d_shift
         return :CantResolve
       end
       sprec = stok.prec
@@ -381,8 +413,7 @@
         end
       end
 
-      @d_shift and
-        puts "resolve_sr: resolved as #{ret.id2name}"
+      puts "resolve_sr: resolved as #{ret.id2name}" if @d_state
 
       return ret
     end
@@ -400,36 +431,42 @@
 
 
     def backtrack( ptr )
-      @d_reduce and
-        puts "backtrack: start: state #{@stateid}, ptr #{ptr}"
+      cur = { self => true }
+      newstates = {}
+      backed = nil
 
-      sarr = [ self ]
-      newstats = []
+      puts "backtrack: start: state #{@stateid}, ptr #{ptr}" if @d_reduce
 
       until ptr.head? do
         ptr = ptr.decrement
         tok = ptr.unref
 
-        sarr.each do |st|
-          (bstats = st.from_table.fetch(tok)) or con_bug!( st, tok )
-          newstats.concat bstats
+        cur.each_key do |st|
+          unless backed = st.from_table[ tok ] then
+            con_bug! st, tok
+          end
+          newstates.update backed
         end
-        newstats.uniq!
 
-        sarr.replace newstats
-        newstats.clear
+        tmp = cur
+        cur = newstates
+        newstates = tmp
+        newstates.clear
       end
 
       sim = ptr.rule.simbol
-      sarr.filter do |st| st.goto_table[ sim ] end
+      ret = newstates
+      cur.each_key{|st| ret[ st.goto_table[ sim ] ] = true }
 
-      @d_reduce and
-        puts "backtrack: from #{@stateid} to #{sarr2s(sarr)}"
+      puts "backtrack: from #{@stateid} to #{sh2s ret}" if @d_reduce
 
-      return sarr
+      ret
     end
 
-    def sarr2s( sar ) sar.collect{|s| s.stateid}.join(' ') end
+    # simbol hash to string
+    def sh2s( sh )
+      '[' + sh.collect {|s| s.stateid }.join(' ') + ']'
+    end
 
     def con_bug!( st, tok )
       bug! "from table void: state #{st.stateid} key #{tok}"
@@ -444,32 +481,43 @@
       @racc.srconf.push SRconflict.new( @stateid, stok, rrule )
     end
 
-  end   # LALRstat
+  end   # LALRstate
 
   
 
   class LALRaction
-    attr :value
+
+    def initialize( goto )
+      @goto_state = goto
+    end
+
+    attr :goto_state
+
   end
+
 
   class ShiftAction < LALRaction
-    def initialize() @value = Parser::Shift end
-    def to_s()       '<ShiftAction>'        end
+
+    def to_s
+      '<action Shift>'
+    end
+
   end
+
 
   class ReduceAction < LALRaction
-    def initialize( ptr ) @value = ptr.rule end
-    def to_s()            '<ReduceAction>'  end
-  end
 
-  class LookaheadAction < LALRaction
-    def initialize()      @value = {}               end
-    def each()            @value.each{|t| yield t } end
-    def size()            @value.size               end
-    def fetch( arg )      @value.fetch( arg )       end
-    def store( arg, val ) @value.store( arg, val )  end
-    def delete( key )     @value.delete( key )      end
-    def to_s()            '<LookaheadAction>'       end
+    def initialize( goto, rule )
+      @goto_state = goto
+      @rule = rule
+    end
+
+    def to_s
+      '<action Reduce>'
+    end
+
+    attr :rule
+
   end
 
 
