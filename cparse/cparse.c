@@ -13,7 +13,7 @@
 #include <stdio.h>
 #include "ruby.h"
 
-#define RACC_VERSION "1.3.5"
+#define RACC_VERSION "1.3.6"
 
 #define DFLT_TOK -1
 #define ERR_TOK   1
@@ -682,14 +682,21 @@ Init_cparse()
 {
     VALUE Racc;
     VALUE Parser;
+    ID id_racc = rb_intern("Racc");
 
-    Parser = rb_eval_string("::Racc::Parser");
+    if (rb_const_defined(rb_cObject, id_racc)) {
+        Racc = rb_const_get(rb_cObject, id_racc);
+        Parser = rb_const_get_at(Racc, rb_intern("Parser"));
+    }
+    else {
+        Racc = rb_define_module("Racc");
+        Parser = rb_define_class_under(Racc, "Parser", rb_cObject);
+    }
     rb_define_private_method(Parser, "_racc_do_parse_c", racc_cparse, 2);
     rb_define_private_method(Parser, "_racc_yyparse_c", racc_yyparse, 4);
     rb_define_const(Parser, "Racc_c_parser_version", rb_str_new2(RACC_VERSION));
 
-    Racc = rb_eval_string("::Racc");
-    CparseParams = rb_define_class_under(Racc, "RaccCparseParams", rb_cObject);
+    CparseParams = rb_define_class_under(Racc, "CparseParams", rb_cObject);
 
     RaccBug = rb_eRuntimeError;
 
