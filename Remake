@@ -81,23 +81,22 @@ Racc (Ruby yACC) is a LALR(1) parser generator for Ruby.
     DEPENDS
   )
 
-  def links
-    ln_sf '/home/aamine/r/amstd/rubyloader.rb', '.'
-    ln_sf '/home/aamine/r/racc/rubycvs/lib/racc/parser.rb', '.'
-    ln_sf '/home/aamine/r/racc/rubycvs/ext/racc/cparse/cparse.so', '.'
+  def init
+    ln_sf '../amstd/rubyloader.rb', '.'
+    ln_sf 'rubycvs/lib/racc/parser.rb', '.'
+    ln_sf 'rubycvs/ext/racc/cparse/cparse.so', '.'
+    build
   end
 
   def build
     update_src $bootsrc
-    command "ruby #{$bootsrc}"
+    ruby $bootsrc
   end
 
-  def update
+  def do_update
     build
-    update_src $bin, $rubysrc
-    upemail Dir.glob('README.*')
     $misc.each do |n|
-      upemail 'misc/' + n
+      update_text 'misc/' + n
     end
     $<raccrt>.update
   end
@@ -134,11 +133,7 @@ environ( 'rubyprog/raccrt' ) {
 
   $rb = %w( parser.rb )
 
-  def update
-    update_src $rb
-    upemail Dir.glob('README.*')
-    $<cparse>.update
-  end
+  $text = %w( README.ja README.en )
 
   def set_files_doc( dest )
     set_files_text dest
@@ -154,14 +149,6 @@ environ( 'rubyprog/raccrt' ) {
 
     $c        = %w( cparse.c )
     $tools    = %w( MANIFEST extconf.rb )
-
-    def update
-      update_src $c
-    end
-
-    def set_files( dest )
-      raise 'cparse.set_files called???'
-    end
 
   }
 }
