@@ -440,7 +440,7 @@ EOS
   ###
 
   def init_user_code
-    @usercode = Racc::GrammarFileParser.get_ucode(@srcfn)
+    @usercode = Racc::GrammarFileParser.get_usercode(@srcfn)
     check_dup_ucode
   end
 
