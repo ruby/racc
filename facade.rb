@@ -9,7 +9,7 @@ module Racc
 
   Version = '0.10.5'
 
-class Core
+class Compiler
 
   attr :class_name
 

@@ -59,15 +59,17 @@ module Racc
       # actions
       #
 
-      sep = "\n"
-      sep_rest = ",\n"
       out << "LR_reduce_table = [\n"
       out << "0, 0, :racc_error,"
+      sep = "\n"
+      sep_rest = ",\n"
       @ruletable.each_with_index do |rl, i|
         next if i == 0
         out << sep; sep = sep_rest
-        out << sprintf( "%d, %d, :_reduce_%d",
-                        rl.size, rl.simbol.tokenid, i )
+        out << sprintf( '%d, %d, :_reduce_%s',
+                        rl.size,
+                        rl.simbol.tokenid,
+                        rl.action ? i.to_s : 'none' )
       end
       out << " ]\n"
       out << "\nLR_reduce_n = #{@actions.reduce_n}\n"
@@ -170,15 +172,17 @@ module Racc
 
     def reduce_methods_tab( out )
       @ruletable.each_rule do |rl|
-        rl.action.sub! /\A\s*(\n|\r\n|\r)/o, ''
-        rl.action.sub! /\s+\z/o, ''
-        out << sprintf( <<SOURCE, rl.ruleid, rl.action )
+        if rl.action then
+          out << sprintf( <<SOURCE, rl.ruleid, rl.action )
 
  def _reduce_%d( val, _values, result )
 %s
   result
  end
 SOURCE
+        else
+          out << sprintf( "\n # reduce %d omitted\n", rl.ruleid )
+        end
       end
     end
 

@@ -254,6 +254,12 @@ module Racc
       @hash    = hval
       @prec    = tprec
 
+      @action.sub! /\A\s*(\n|\r\n|\r)/o, ''
+      @action.sub! /\s+\z/o, ''
+      if @action.empty? then
+        @action = nil
+      end
+
       @ptrs = []
       rlarr.each_index do |idx|
         @ptrs[ idx ] = RulePointer.new( self, idx, rlarr[idx] )

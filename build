@@ -21,7 +21,7 @@ module Racc
 
   Version = '0.10.5'
 
-class Core
+class Compiler
 
   attr :ruletable
   attr :tokentable
@@ -71,7 +71,7 @@ class Core
     # 1
     r :xclass, [ :CLASS, :TOKEN, :params, :RULE, :rules, :XEND ], %{
       @interf.end_register_rule
-      @classname = if Integer === val[1] then val[1].id2name else val[1] end
+      @classname = (Integer === val[1]) ? val[1].id2name : val[1]
     }
 ############
     # 2
@@ -198,9 +198,9 @@ class Core
       f.puts "  class RaccParser < Parser"
       f.write openread( 'p.inner' )
       @formatter.source( f )
-      f.puts '  end'
+      f.puts '  end   # class RaccParser'
       f.puts
-      f.puts 'end'
+      f.puts 'end   # module Racc'
     end
 
     File.open( 'b.output', 'w' ) do |f|
@@ -215,4 +215,4 @@ end
 end
 
 
-Racc::Core.new.build( (ARGV[0] == '-g') )
+Racc::Compiler.new.build( (ARGV[0] == '-g') )

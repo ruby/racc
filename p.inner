@@ -4,7 +4,7 @@
 
 
     def initialize( racc )
-      racc.must Racc::Core
+      racc.must Racc::Compiler
       @racc   = racc
       @interf = racc.interf
 

@@ -231,7 +231,7 @@ end
 
 GC.disable   # :-)
 
-racc = Racc::Core.new
+racc = Racc::Compiler.new
 
 if $OPT_g then
   racc.dsrc = true

@@ -27,10 +27,11 @@ class Parser
 
   begin
     require 'racc/cparse'   # def _c_parse
-    Racc_Main_Parsing_Routine = :c
+    Racc_Main_Parsing_Routine = :_c_parse
   rescue LoadError
-    Racc_Main_Parsing_Routine = :rb
+    Racc_Main_Parsing_Routine = :_rb_parse
   end
+  # Racc_Main_Parsing_Routine = :_rb_parse
 
 
   def next_token
@@ -44,39 +45,26 @@ class Parser
     end
     @yydebug = @yydebug ? true : false
 
-    case Racc_Main_Parsing_Routine
-    when :c  then
-      t = self.type
-      _c_parse([ t::LR_action_table,
-                 t::LR_action_table_ptr,
-                 t::LR_goto_table,
-                 t::LR_goto_table_ptr,
-                 t::LR_reduce_table,
-                 t::LR_token_table,
-                 t::LR_shift_n,
-                 t::LR_reduce_n ], false )
-    when :rb then
-      _rb_parse
-    else
-      bug!
-    end
+    t = self.type
+    send( Racc_Main_Parsing_Routine,
+          t::LR_action_table,
+          t::LR_action_table_ptr,
+          t::LR_goto_table,
+          t::LR_goto_table_ptr,
+          t::LR_reduce_table,
+          t::LR_token_table,
+          t::LR_shift_n,
+          t::LR_reduce_n,
+          false )
   end
 
 
-  def _rb_parse
+  def _rb_parse( action_table, action_ptr, goto_table, goto_ptr,
+                 reduce_table, token_table, shift_n, reduce_n,
+                 in_debug )
     #
     # local variables
     #
-
-    t = self.type
-    action_table = t::LR_action_table
-    action_ptr   = t::LR_action_table_ptr
-    goto_table   = t::LR_goto_table
-    goto_ptr     = t::LR_goto_table_ptr
-    reduce_table = t::LR_reduce_table
-    token_table  = t::LR_token_table
-    shift_n      = t::LR_shift_n
-    reduce_n     = t::LR_reduce_n
 
     state    = [ 0 ]
     curstate = 0
@@ -246,7 +234,7 @@ class Parser
 
 
   def on_error( t, val, vstack )
-    raise ParseError, "unexpected token '#{val.inspect}'"
+    raise ParseError, "unexpected token #{val.inspect}"
   end
 
 
@@ -268,7 +256,8 @@ class Parser
     state[ -len, len ]  = void_array
 
     # tstack must be renewed AFTER method calling
-    vstack.push send( method_id, tmp_v, vstack, tmp_v[0] )
+    vstack.push( (method_id == :_reduce_none) ?
+                     tmp_v[0] : send(method_id, tmp_v, vstack, tmp_v[0]) )
     tstack.push reduce_to
 
     _reduce( tmp_t, reduce_to, tstack ) if @yydebug
