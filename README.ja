@@ -25,37 +25,29 @@ Racc readme
   setup.rb config にロングオプションを与えてください。
   オプションは ruby setup.rb --help で見られます。
 
-  また、自分で(手動で)インストールしたいときは
-  racc/* を cparse.so といっしょに RUBYLIB/racc/ に、
-  amstd/* を RUBYLIB/amstd に、
-  strscan/strscan.so を拡張モジュールの置場に、
-  bin/* を /usr/local/bin などにインストールしてください。
-  ファイル一覧は FILES というファイルに書いてあります。
-
 
   << Windows 環境などで、コンパイラがない場合 >>
 
   config の時に次のようにしてください。
 
-  $ ruby setup.rb config --without=ext/cparse
-
-  ようするに、拡張モジュールを外せってことです。
+  $ ruby setup.rb config --without=ext/*
 
 
 サンプルをコンパイルしてみる
 
-  Racc のサンプルとして、簡単な計算機がついています。
-  コンパイル用のスクリプトがあるので、
+  sample/ 以下にいくつか Racc ファイルのサンプルを用意しています。
+  動くのも動かないのもあります。とりあえず calc-ja.y は動くので
+  これを処理してみましょう。Racc をインストールして
 
-  $ ruby compile.rb jcalc
+  $ racc -e ruby -o calc calc-ja.y
 
-  として下さい。コンパイルは数秒(または一瞬)で終わるので、
+  として下さい。処理は数秒(または一瞬)で終わるので、
 
-  $ ./calc.rb
+  $ ./calc
 
   を実行してください。ちゃんとうごいていますか？
   この計算機では、加減乗除とかっこがつかえます。
-  式をまちがえると…
+  式をまちがえると…？
 
   Racc の文法など詳しいことは doc.ja/ ディレクトリ以下の
   HTML を参照してください。

@@ -1,3 +1,4 @@
-BUGS
+Known Bugs
 
-*  does not check infinite recursion
+  * If both of "error" token shift and default reduce were exist,
+    default action is used (? maybe).

@@ -25,18 +25,18 @@ It is written by Ruby and output Ruby script.
 
   If you don't have C compiler, "config" step might be:
 
-  $ ruby setup.rb config --without=ext/cparse
+  $ ruby setup.rb config --without=ext/*
 
 
 [Test Racc]
 
 Racc comes with simple calcurator. To compile this, on shell:
 
-  $ ruby compile.rb
+  $ racc -e ruby -o calc calc.y
 
 Probabry, compilation costs few seconds (or less). Then type
 
-  $ ./calc.rb
+  $ ./calc
 
 Is it OK ?
 For Racc details, see HTML documents placed under 'doc.en/'.

@@ -3,7 +3,8 @@
 require 'amstd/must'
 
 require 'racc/info'
-require 'racc/register'
+require 'racc/iset'
+require 'racc/grammer'
 require 'racc/state'
 require 'racc/format'
 
@@ -31,59 +32,71 @@ end
 class Compiler
 
   attr :ruletable
-  attr :tokentable
+  attr :symboltable
   attr :statetable
 
   def filename() '(build)' end
 
-  def verbose() false end
+  def verbose()      false end
   def make_profile() false end
   def debug_parser() @dflag end
   def convert_line() true end
-  def omit_action() true end
-  def result_var() true end
+  def omit_action()  true end
+  def result_var()   true end
 
-  def debug() false end
+  def debug()   false end
   def d_parse() false end
-  def d_rule() false end
+  def d_rule()  false end
   def d_token() false end
   def d_state() false end
-  def d_shift() false end
-  def d_reduce() false end
+  def d_la()    false end
+  def d_prec()  false end
 
 
-  def r( symbol, rarr, act )
-    symbol = @interf.get_symbol( symbol ) if symbol
+  def r( targ, symlist, act )
+    targ = @symboltable.get( targ ) if targ
 
-    rarr.collect! do |i|
-      bug! 'nil in rulearr' unless i
-      @interf.get_symbol( i )
+    symlist.collect! do |i|
+      bug! 'nil in symlist' unless i
+      @symboltable.get(i)
     end
     act.sub!( /\A\s*\n/, '' )
     act.sub!( /\s+\z/, '' )
 
     /:(\d+)(?:\z|:)/ === caller(1)[0]
     lineno = $1.to_i + 1
-    rarr.push Action.new( act, lineno )
+    symlist.push UserAction.new( act, lineno )
 
-    @interf.register_rule( symbol, rarr )
+    @ruletable.register_rule( targ, symlist )
   end
 
 
-  def build( debugflag, index_table )
+  def build( debugflag )
     @dflag = debugflag
 
-    @tokentable = TokenTable.new( self )
-    @ruletable  = RuleTable.new( self )
-    @statetable = LALRstateTable.new( self )
-
-    @interf = BuildInterface.new( self )
+    @symboltable = SymbolTable.new( self )
+    @ruletable   = RuleTable.new( self )
+    @statetable  = StateTable.new( self )
 
 ############
     # 1
-    r :xclass, [ :XCLASS, :XSYMBOL, :params, :XRULE, :rules, :XEND ], %{
-      @interf.end_register_rule
-      @classname = val[1].id2name
+    r :xclass, [ :XCLASS, :class, :params, :XRULE, :rules, :XEND ], %{
+      @ruletable.end_register_rule
+    }
+############
+    r :class, [ :rubyconst ], %{
+      @class_name = val[0]
+    }
+    r nil, [ :rubyconst, '<', :rubyconst ], %{
+      @class_name = val[0]
+      @super_class = val[2]
+    }
+############
+    r :rubyconst, [ :XSYMBOL ], %{
+      result = result.id2name
+    }
+    r nil, [ :rubyconst, ':', ':', :XSYMBOL ], %{
+      result << '::' << val[3].id2name
     }
 ############
     # 2
@@ -93,41 +106,41 @@ class Compiler
 ############
     # 4
     r :param_seg, [ :XCONV, :convdefs, :XEND ], %{
-      @interf.end_register_conv
+      @symboltable.end_register_conv
     }
     # 5
     r nil, [ :xprec ], ''
     # 6
     r nil, [ :XSTART, :symbol ], %{
-      @interf.register_start val[1]
+      @ruletable.register_start val[1]
     }
     # 7
     r nil, [ :XTOKEN, :symbol_list ], %{
-      @interf.register_token val[1]
+      @symboltable.register_token val[1]
     }
     # 8
     r nil, [ :XOPTION, :bare_symlist ], %{
       val[1].each do |s|
-        @interf.register_option s.to_s
+        @ruletable.register_option s.to_s
       end
     }
 ############
     # 7
     r :convdefs, [ :symbol, :STRING ], %{
-      @interf.register_conv( val[0], val[1] )
+      @symboltable.register_conv( val[0], val[1] )
     }
     # 8
     r nil, [ :convdefs, :symbol, :STRING ], %{
-      @interf.register_conv( val[1], val[2] )
+      @symboltable.register_conv( val[1], val[2] )
     }
 ############
     # 9
     r :xprec, [ :XPRECHIGH, :preclines, :XPRECLOW ], %{
-      @interf.end_register_prec( true )
+      @symboltable.end_register_prec( true )
     }
     # 10
     r nil, [ :XPRECLOW, :preclines, :XPRECHIGH ], %{
-      @interf.end_register_prec( false )
+      @symboltable.end_register_prec( false )
     }
 ############
     # 11
@@ -137,15 +150,15 @@ class Compiler
 ############
     # 13
     r :precline, [ :XLEFT, :symbol_list ], %{
-      @interf.register_prec( :Left, val[1] )
+      @symboltable.register_prec( :Left, val[1] )
     }
     # 14
     r nil, [ :XRIGHT, :symbol_list ], %{
-      @interf.register_prec( :Right, val[1] )
+      @symboltable.register_prec( :Right, val[1] )
     }
     # 15
     r nil, [ :XNONASSOC, :symbol_list ], %{
-      @interf.register_prec( :Nonassoc, val[1] )
+      @symboltable.register_prec( :Nonassoc, val[1] )
     }
 ############
     # 16
@@ -156,20 +169,21 @@ class Compiler
     r nil, [ :symbol_list, :symbol ], %{
       result.push val[1]
     }
+    r nil, [ :symbol_list, '|' ], ''
 ############
     # 18
     r :symbol, [ :XSYMBOL ], %{
-      result = @interf.get_symbol( result )
+      result = @symboltable.get( result )
     }
     # 19
     r nil,    [ :STRING ], %{
-      result = @interf.get_symbol( eval '"' + val[0] + '"' )
+      result = @symboltable.get( eval '"' + val[0] + '"' )
     }
 ############
     # 20
     r :rules, [ :rules_core ], %{
       unless result.empty? then
-        @interf.register_from_array result
+        @ruletable.register_rule_from_array result
       end
     }
     # 21
@@ -186,7 +200,7 @@ class Compiler
     # 24
     r nil,         [ :rules_core, ';' ], %{
       unless result.empty? then
-        @interf.register_from_array result
+        @ruletable.register_rule_from_array result
       end
       result.clear
     }
@@ -194,7 +208,7 @@ class Compiler
     r nil,         [ :rules_core, ':' ], %{
       pre = result.pop
       unless result.empty? then
-        @interf.register_from_array result
+        @ruletable.register_rule_from_array result
       end
       result = [pre]
     }
@@ -211,7 +225,7 @@ class Compiler
     }
     # 29
     r nil,        [ :ACTION ], %{
-      result = Action.new( *result )
+      result = UserAction.new( *result )
     }
 ############
     r :bare_symlist, [ :XSYMBOL ], %{
@@ -224,7 +238,7 @@ class Compiler
 
     @ruletable.init
     @statetable.init
-    @statetable.resolve
+    @statetable.determine
 
     File.open( 'raccp.rb', 'w' ) do |f|
       f.write <<'HEADER_END'
@@ -246,13 +260,16 @@ module Racc
   class RaccParser < Parser
 
     def initialize( racc )
-      @yydebug   = racc.d_parse && Racc_debug_parser
-      @interf    = racc.interf
-      @ruletable = racc.ruletable
+      @yydebug     = racc.d_parse && Racc_debug_parser
+      @ruletable   = racc.ruletable
+      @symboltable = racc.symboltable
+
+      @class_name = nil
+      @super_class = 'Racc::Parser'
     end
 
-
-    attr :classname
+    attr :class_name
+    attr :super_class
 
     def parse( str )
       @scanner = RaccScanner.new( str )
@@ -263,7 +280,6 @@ module Racc
 
 
     private
-
 
     def next_token
       @scanner.scan
@@ -281,8 +297,7 @@ module Racc
     end
 
 HEADER_END
-      fmt = (index_table ?
-             IndexTableGenerator : AListTableGenerator).new( self )
+      fmt = CodeGenerator.new( self )
       fmt.output( f )
       f.write <<'FOOTER_END'
   end   # class RaccParser
@@ -291,7 +306,7 @@ end   # module Racc
 FOOTER_END
     end
 
-    ver = VerboseOutputFormatter.new( self )
+    ver = VerboseOutputter.new( self )
     File.open( 'b.output', 'w' ) do |f|
       ver.output( f )
     end
@@ -303,12 +318,9 @@ end
 
 
 de = false
-ix = true
 ARGV.each do |i|
   case i
   when '-g' then de = true
-  when '-i' then ix = true
-  when '-a' then ix = false
   end
 end
-Racc::Compiler.new.build de, ix
+Racc::Compiler.new.build de

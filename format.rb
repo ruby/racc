@@ -13,74 +13,42 @@ require 'amstd/bug'
 
 module Racc
 
-  class RaccFormatter
+  class Formatter
 
     def initialize( racc )
-      @fname      = racc.filename
-      @ruletable  = racc.ruletable
-      @tokentable = racc.tokentable
-      @statetable = racc.statetable
-      @actions    = racc.statetable.actions
-      @dsrc       = racc.debug_parser
-      @debug      = racc.debug
-      @verbose    = racc.verbose
-      @line       = racc.convert_line
-      @omit       = racc.omit_action
-      @result     = racc.result_var
+      @ruletable   = racc.ruletable
+      @symboltable = racc.symboltable
+      @statetable  = racc.statetable
+      @actions     = racc.statetable.actions
+
+      @fname       = racc.filename
+      @debug       = racc.debug
+      @dsrc        = racc.debug_parser
+      @verbose     = racc.verbose
+      @line        = racc.convert_line
+      @omit        = racc.omit_action
+      @result      = racc.result_var
+      @showall     = racc.d_la || racc.d_state
     end
 
-    # abstract output( outf )
-  
   end
 
 
-  class RaccCodeGenerator < RaccFormatter
+  class CodeGenerator < Formatter
 
     def output( out )
-      out << "##### racc #{Racc::Version} generates ###\n\n"
+      out.print "\n##### racc #{Racc::Version} generates ###\n\n"
       output_reduce_table out
       output_action_table out
       output_goto_table out
       output_token_table out
       output_other out
-      out << "##### racc system variables end #####\n\n"
+      out.puts '##### racc system variables end #####'
       output_actions out
     end
 
 
     private
-
-    def act2actid( act )
-      case act
-      when ShiftAction  then act.goto_id
-      when ReduceAction then -act.ruleid
-      when AcceptAction then @actions.shift_n
-      when ErrorAction  then @actions.reduce_n * -1
-      else
-        bug! "wrong act type #{act.type} in state #{state.stateid}"
-      end
-    end
-
-    def output_table( out, arr )
-      i = 0
-      sep = ''
-      sep_rest = ','
-      buf = ''
-
-      arr.each do |t|
-        buf << sep ; sep = sep_rest
-        if i == 10 then
-          i = 0
-          buf << "\n"
-          out << buf
-          buf = ''
-        end
-        buf << (t ? sprintf('%6d', t) : '   nil')
-        i += 1
-      end
-      out << buf unless buf.empty?
-      out << " ]\n\n"
-    end
 
 
     def output_reduce_table( out )
@@ -90,161 +58,23 @@ module Racc
       sep_rest = ",\n"
       @ruletable.each_with_index do |rl, i|
         next if i == 0
-        out << sep; sep = sep_rest
-        out << sprintf( ' %d, %d, :_reduce_%s',
-                        rl.size,
-                        rl.symbol.tokenid,
-                        (@omit and not rl.action) ? 'none' : i.to_s )
+        out.print sep; sep = sep_rest
+        out.printf ' %d, %d, :_reduce_%s',
+                   rl.size,
+                   rl.target.ident,
+                   (@omit and not rl.action) ? 'none' : i.to_s
       end
       out << " ]\n\n"
       out << "racc_reduce_n = #{@actions.reduce_n}\n\n"
       out << "racc_shift_n = #{@actions.shift_n}\n\n"
     end
 
-    def output_token_table( out )
-      sep = "\n"
-      sep_rest = ",\n"
-      out << "racc_token_table = {"
-      @tokentable.each do |tok|
-        if tok.terminal? then
-          out << sep ; sep = sep_rest
-          out << sprintf( " %s => %d", tok.uneval, tok.tokenid )
-        end
-      end
-      out << " }\n\n"
-    end
+    
+    #####
 
-    def output_actions( out )
-      rl = act = nil
-
-      if @result then
-        result1 = ', result '
-        result2 = "\n   result"
-        defact = ''
-      else
-        result1 = result2 = ''
-        defact = '  val[0]'
-      end
-      result = @result ? ', result ' : ''
-      if @line then
-        src = <<'--'
-
- module_eval( <<'.,.,', '%s', %d )
-  def _reduce_%d( val, _values%s)
-%s%s
-  end
-.,.,
---
-      else
-        src = <<'--'
-
-  def _reduce_%d( val, _values%s)
-%s%s
-  end
---
-      end
-
-      @ruletable.each_rule do |rl|
-        act = rl.action
-        if not act and @omit then
-          out << sprintf( "\n # reduce %d omitted\n",
-                          rl.ident )
-        else
-          act ||= defact
-          i = rl.lineno
-          while m = /\A[ \t\f]*(?:\n|\r\n|\r)/.match(act) do
-            act = m.post_match
-            i += 1
-          end
-          act.sub! /\s+\z/o, ''
-          if @line then
-            out << sprintf( src, @fname, i - 1, rl.ident,
-                            result1, act, result2 )
-          else
-            out << sprintf( src, rl.ident,
-                            result1, act, result2 )
-          end
-        end
-      end
-      out << sprintf(<<'--', result, @result ? 'result' : 'val[0]')
-
- def _reduce_none( val, _values%s)
-  %s
- end
---
-
-      out << "\n"
-    end
-
-  end
-
-
-  class AListTableGenerator < RaccCodeGenerator
-
-    private
 
     def output_action_table( out )
-      $stderr.puts 'generating action table (type a)' if @verbose
-
-      disc = []
-      tbl = []
-
-      @statetable.each_state do |state|
-        disc.push tbl.size
-        state.action.each do |tok, act|
-          tbl.push tok.tokenid
-          tbl.push act2actid( act )
-        end
-        tbl.push Token::Default_token_id
-        tbl.push act2actid( state.defact )
-      end
-
-      out << "racc_action_table = [\n"
-      output_table( out, tbl )
-
-      out << "racc_action_pointer = [\n"
-      output_table( out, disc )
-    end
-
-
-    def output_goto_table( out )
-      $stderr.puts 'generating goto table (type a)' if @verbose
-
-      disc = []
-      tbl = []
-      @statetable.each_state do |state|
-        if state.nonterm_table.size == 0 then
-          disc.push( -1 )
-        else
-          disc.push tbl.size
-          state.nonterm_table.each do |tok, dest|
-            tbl.push tok.tokenid
-            tbl.push dest.stateid
-          end
-        end
-      end
-      tbl.push( -1 ); tbl.push( -1 )   # detect bug
-
-      out << "racc_goto_table = [\n"
-      output_table( out, tbl )
-
-      out << "racc_goto_pointer = [\n"
-      output_table( out, disc )
-    end
-
-    def output_other( out )
-      raise
-    end
-
-  end
-
-
-  class IndexTableGenerator < RaccCodeGenerator
-  
-    private
-
-    def output_action_table( out )
-      $stderr.puts 'generating action table (type i)' if @verbose
+      $stderr.puts 'generating action table' if @verbose
 
       tbl  = []   # yytable
       chk  = []   # yycheck
@@ -254,40 +84,30 @@ module Racc
       e1 = []
       e2 = []
 
-      @statetable.each_state do |state|
-        # default
+      @statetable.each do |state|
         defa.push act2actid( state.defact )
 
         if state.action.empty? then
           ptr.push nil
           next
         end
-
         tmp = []
         state.action.each do |tok, act|
-          tmp[ tok.tokenid ] = act2actid( act )
+          tmp[ tok.ident ] = act2actid( act )
         end
-
-        addent( e1, e2, tmp, state.stateid, ptr )
+        addent( e1, e2, tmp, state.ident, ptr )
       end
       set_table e1, e2, tbl, chk, ptr
 
-      out << "racc_action_table = [\n"
-      output_table( out, tbl )
-
-      out << "racc_action_check = [\n"
-      output_table( out, chk )
-
-      out << "racc_action_default = [\n"
-      output_table( out, defa )
-
-      out << "racc_action_pointer = [\n"
-      output_table( out, ptr )
+      output_table out, tbl, 'racc_action_table'
+      output_table out, chk, 'racc_action_check'
+      output_table out, ptr, 'racc_action_pointer'
+      output_table out, defa, 'racc_action_default'
     end
 
 
     def output_goto_table( out )
-      $stderr.puts 'generating goto table (type i)' if @verbose
+      $stderr.puts 'generating goto table' if @verbose
 
       tbl  = []   # yytable (2)
       chk  = []   # yycheck (2)
@@ -297,20 +117,20 @@ module Racc
       e1 = []
       e2 = []
 
-      @tokentable.each_nonterm do |tok|
+      @symboltable.each_nonterm do |tok|
         tmp = []
 
         #
         # decide default
         #
         freq = Array.new( @statetable.size, 0 )
-        @statetable.each_state do |state|
+        @statetable.each do |state|
           st = state.goto_table[ tok ]
           if st then
-            st = st.stateid
+            st = st.ident
             freq[ st ] += 1
           end
-          tmp[ state.stateid ] = st
+          tmp[ state.ident ] = st
         end
         max = freq.max
         if max > 1 then
@@ -326,28 +146,21 @@ module Racc
         #
         # delete default value
         #
-        tmp.delete_at(-1) until tmp[-1] or tmp.empty?
+        tmp.pop until tmp[-1] or tmp.empty?
         if tmp.compact.empty? then
           # only default
           ptr.push nil
           next
         end
 
-        addent( e1, e2, tmp, tok.tokenid - @tokentable.nt_base, ptr )
+        addent( e1, e2, tmp, tok.ident - @symboltable.nt_base, ptr )
       end
       set_table e1, e2, tbl, chk, ptr
 
-      out << "racc_goto_table = [\n"
-      output_table( out, tbl )
-
-      out << "racc_goto_check = [\n"
-      output_table( out, chk )
-
-      out << "racc_goto_pointer = [\n"
-      output_table( out, ptr )
-
-      out << "racc_goto_default = [\n"
-      output_table( out, defg )
+      output_table out, tbl, 'racc_goto_table'
+      output_table out, chk, 'racc_goto_check'
+      output_table out, ptr, 'racc_goto_pointer'
+      output_table out, defg, 'racc_goto_default'
     end
 
     def addent( all, dummy, arr, chkval, ptr )
@@ -366,20 +179,47 @@ module Racc
       all.push ent
     end
 
+    begin
+      tmp = 2 ** 16
+      begin
+        Regexp.new("a{#{tmp}}")
+        RE_DUP_MAX = tmp
+      rescue RegexpError
+        tmp /= 2
+        retry
+      end
+      raise ArgumentError, 'dummy error to clear ruby_errinfo'
+    rescue ArgumentError
+      ;
+    end
+
     def mkmapexp( arr )
       i = ii = 0
       as = arr.size
       map = ''
+      maxdup = RE_DUP_MAX
+      curr = nil
+      ex = '-'
+      ne = '.'
+
       while i < as do
         ii = i + 1
         if arr[i] then
           ii += 1 while ii < as and arr[ii]
-          map << '-'
+          map << (curr = ex)
         else
           ii += 1 while ii < as and not arr[ii]
-          map << '.'
+          map << (curr = ne)
         end
-        map << "{#{ii - i}}" if ii - i > 1
+
+        offset = ii - i
+        if offset > 1 then
+          while offset > maxdup do
+            map << "#{curr}{#{maxdup}}"
+            offset -= maxdup
+          end
+          map << "#{curr}{#{offset}}" if offset > 1
+        end
         i = ii
       end
 
@@ -396,9 +236,7 @@ module Racc
       # sort long to short
       entries.sort! {|a,b| b[0].size <=> a[0].size }
 
-      entries.each do |ent|
-        arr, chkval, exp, min, ptri = *ent
-
+      entries.each do |arr, chkval, exp, min, ptri|
         if upper + arr.size > map.size then
           map << '-' * (arr.size + 1024)
         end
@@ -416,11 +254,117 @@ module Racc
       end
     end
 
+    def act2actid( act )
+      case act
+      when Shift  then act.goto_id
+      when Reduce then -act.ruleid
+      when Accept then @actions.shift_n
+      when Error  then @actions.reduce_n * -1
+      else
+        bug! "wrong act type #{act.type} in state #{state.ident}"
+      end
+    end
+
+    def output_table( out, tab, label )
+      if tab.size > 2000 then
+        #
+        # compressed table
+        #
+        output_table_c out, tab, label
+      else
+        #
+        # normal array
+        #
+        output_table_s out, tab, label
+      end
+    end
+
+    def output_table_c( out, tab, label )
+      sep  = "\n"
+      nsep = ",\n"
+      buf  = ''
+      com  = ''
+      ncom = ','
+      co   = com
+
+      out.print 'tmpa = ['
+      tab.each do |i|
+        buf << co << i.to_s; co = ncom
+        if buf.size > 66 then
+          out.print sep; sep = nsep
+          out.print "'<,", buf, ",>'"
+          buf = ''
+          co = com
+        end
+      end
+      unless buf.empty? then
+        out.print sep
+        out.print "'<,", buf, ",>'"
+      end
+      out.puts ' ]'
+
+      out.print <<S
+#{label} = arr = Array.new( #{tab.size}, nil )
+str = a = i = nil
+idx = 0
+tmpa.each do |str|
+  a = str.split(','); a.shift; a.pop
+  a.each do |i|
+    arr[idx] = i.to_i unless i.empty?
+    idx += 1
+  end
+end
+
+S
+    end
+
+    def output_table_s( out, tab, label )
+      sep  = ''
+      nsep = ','
+      buf  = ''
+      i = 0
+
+      out.puts "#{label} = ["
+      tab.each do |t|
+        buf << sep ; sep = nsep
+        if i == 10 then
+          i = 0
+          buf << "\n"
+          out << buf
+          buf = ''
+        end
+        buf << (t ? sprintf('%6d', t) : '   nil')
+        i += 1
+      end
+      out << buf unless buf.empty?
+      out.print " ]\n\n"
+    end
+
+
+    #####
+
+
+    def output_token_table( out )
+      sep = "\n"
+      sep_rest = ",\n"
+      out << "racc_token_table = {"
+      @symboltable.each do |tok|
+        if tok.terminal? then
+          out.print sep; sep = sep_rest
+          out.printf( " %s => %d", tok.uneval, tok.ident )
+        end
+      end
+      out << " }\n\n"
+    end
+
+
+    #####
+
 
     def output_other( out )
       out << "racc_use_result_var = #{@result}\n\n"
       out << <<S
-racc_nt_base = #{@tokentable.nt_base}
+racc_nt_base = #{@symboltable.nt_base}
 
 Racc_arg = [
  racc_action_table,
@@ -442,40 +386,110 @@ S
       if @dsrc then
         out << "Racc_debug_parser = true\n\n"
         out << "Racc_token_to_s_table = [\n"
-        out << @tokentable.collect{|tok| "'" + tok.to_s + "'" }.join(",\n")
+        out << @symboltable.collect{|tok| "'" + tok.to_s + "'" }.join(",\n")
         out << "]\n\n"
       else
         out << "Racc_debug_parser = false\n\n"
       end
     end
 
+
+    #####
+
+
+    def output_actions( out )
+      rl = act = nil
+
+      if @result then
+        result1 = ', result '
+        result2 = "\n   result"
+        defact = ''
+      else
+        result1 = result2 = ''
+        defact = '  val[0]'
+      end
+      result = @result ? ', result ' : ''
+      if @line then
+        src = <<'--'
+
+module_eval <<'.,.,', '%s', %d
+  def _reduce_%d( val, _values%s)
+%s%s
   end
+%s
+--
+      else
+        src = <<'--'
+
+  def _reduce_%d( val, _values%s)
+%s%s
+  end
+--
+      end
+
+      @ruletable.each_rule do |rl|
+        act = rl.action
+        if not act and @omit then
+          out.printf "\n # reduce %d omitted\n",
+                     rl.ident
+        else
+          act ||= defact
+          act.sub! /\s+\z/, ''
+          if @line then
+            i = rl.lineno
+            while m = /\A[ \t\f]*(?:\n|\r\n|\r)/.match(act) do
+              act = m.post_match
+              i += 1
+            end
+            delim = '.,.,'
+            while act.index(delim) do
+              delim *= 2
+            end
+            out.printf src, @fname, i - 1, rl.ident,
+                       result1, act, result2, delim
+          else
+            act.sub! /\A\s*(?:\n|\r\n|\r)/, ''
+            out.printf src, rl.ident,
+                       result1, act, result2
+          end
+        end
+      end
+      out.printf <<'--', result, (@result ? 'result' : 'val[0]')
+
+ def _reduce_none( val, _values%s)
+  %s
+ end
+--
+      out.puts
+    end
+
+  end   # class CodeGenerator
 
 
   ###
   ###
   ###
 
-  class VerboseOutputFormatter < RaccFormatter
+  class VerboseOutputter < Formatter
 
     def output( out )
-      output_conflict out; out << "\n"
-      output_useless  out; out << "\n"
-      output_rule     out; out << "\n"
-      output_token    out; out << "\n"
+      output_conflict out; out.puts
+      output_useless  out; out.puts
+      output_rule     out; out.puts
+      output_token    out; out.puts
       output_state    out
     end
 
 
     def output_conflict( out )
-      @statetable.each_state do |state|
+      @statetable.each do |state|
         if state.srconf then
-          out << sprintf( "state %d contains %d shift/reduce conflicts\n",
-                          state.stateid, state.srconf.size )
+          out.printf "state %d contains %d shift/reduce conflicts\n",
+                     state.stateid, state.srconf.size
         end
         if state.rrconf then
-          out << sprintf( "state %d contains %d reduce/reduce conflicts\n",
-                          state.stateid, state.rrconf.size )
+          out.printf "state %d contains %d reduce/reduce conflicts\n",
+                     state.stateid, state.rrconf.size
         end
       end
     end
@@ -486,14 +500,13 @@ S
       used = []
       @ruletable.each do |rl|
         if rl.useless? then
-          out << sprintf( "rule %d (%s) never reduced\n",
-                          rl.ident, rl.symbol.to_s )
+          out.printf "rule %d (%s) never reduced\n",
+                     rl.ident, rl.target.to_s
         end
       end
-      @tokentable.each_nonterm do |t|
+      @symboltable.each_nonterm do |t|
         if t.useless? then
-          out << sprintf( "useless nonterminal %s\n",
-                          t.to_s )
+          out.printf "useless nonterminal %s\n", t.to_s
         end
       end
     end
@@ -503,98 +516,100 @@ S
       ptr = nil
       out << "--------- State ---------\n"
 
-      @statetable.each_state do |state|
-        out << "\nstate #{state.stateid}\n\n"
+      @statetable.each do |state|
+        out << "\nstate #{state.ident}\n\n"
 
-        state.core.each do |ptr|
-          pointer_out( out, ptr ) if ptr.rule.ident != 0 or @debug
+        (@showall ? state.closure : state.core).each do |ptr|
+          pointer_out( out, ptr ) if ptr.rule.ident != 0 or @showall
         end
         out << "\n"
 
         action_out( out, state )
       end
-
-      return out
     end
 
     def pointer_out( out, ptr )
       tmp = sprintf( "%4d) %s :",
-                     ptr.rule.ident, ptr.rule.symbol.to_s )
-      ptr.rule.each_with_index do |tok, idx|
+                     ptr.rule.ident, ptr.rule.target.to_s )
+      ptr.rule.symbols.each_with_index do |tok, idx|
         tmp << ' _' if idx == ptr.index
         tmp << ' ' << tok.to_s
       end
       tmp << ' _' if ptr.reduce?
-      tmp << "\n"
-      out << tmp
+      out.puts tmp
     end
 
-    def action_out( out, state )
-      reduce_str = ''
+    def action_out( f, state )
+      r = ''
+      e = ''
+      sr = state.srconf && state.srconf.dup
+      rr = state.rrconf && state.rrconf.dup
+      acts = state.action.dup
+      keys = state.action.keys
+      keys.sort! {|a,b| a.ident <=> b.ident }
 
-      srconf = state.srconf && state.srconf.dup
-      rrconf = state.rrconf && state.rrconf.dup
+      [ Shift, Reduce, Error, Accept ].each do |type|
+        keys.delete_if do |tok|
+          act = acts[tok]
+          if type === act then
+            outact f, tok, act
+            if sr and c = sr.delete(tok) then
+              outsrconf f, c
+            end
+            if rr and c = rr.delete(tok) then
+              outrrconf f, c
+            end
 
-      state.action.each do |tok, act|
-        outact out, reduce_str, tok, act
-        if srconf and c = srconf.delete(tok) then
-          outsrconf reduce_str, c
-        end
-        if rrconf and c = rrconf.delete(tok) then
-          outrrconf reduce_str, c
+            true
+          else
+            false
+          end
         end
       end
-      if srconf and not srconf.empty? then
-        srconf.each do |tok, c|
-          outsrconf reduce_str, c
-        end
-      end
-      if rrconf and not rrconf.empty? then
-        rrconf.each do |tok, c|
-          outrrconf reduce_str, c
-        end
-      end
-      outact out, reduce_str, '$default', state.defact
 
-      out << reduce_str
-      out << "\n"
+      act = state.defact
+      if not Error === act or @debug then
+        outact f, '$default', act
+      end
 
-      state.goto_table.each do |tok, dest|
-        out << sprintf( "  %-12s  go to state %d\n", 
-                        tok.to_s, dest.stateid ) unless tok.terminal?
+      f.puts
+      state.goto_table.each do |t, st|
+        if t.nonterminal? then
+          f.printf "  %-12s  go to state %d\n", t.to_s, st.ident
+        end
       end
     end
 
-    def outact( out, r, tok, act )
+    def outact( f, t, act )
       case act
-      when ShiftAction
-        out << sprintf( "  %-12s  shift, and go to state %d\n", 
-                        tok.to_s, act.goto_id )
-      when ReduceAction
-        r << sprintf( "  %-12s  reduce using rule %d (%s)\n",
-                      tok.to_s, act.ruleid, act.rule.symbol.to_s )
-      when AcceptAction
-        out << sprintf( "  %-12s  accept\n", tok.to_s )
-      when ErrorAction
-        out << sprintf( "  %-12s  error\n", tok.to_s ) if @debug
+      when Shift
+        f.printf "  %-12s  shift, and go to state %d\n", 
+                 t.to_s, act.goto_id
+      when Reduce
+        f.printf "  %-12s  reduce using rule %d (%s)\n",
+                 t.to_s, act.ruleid, act.rule.target.to_s
+      when Accept
+        f.printf "  %-12s  accept\n", t.to_s
+      when Error
+        f.printf "  %-12s  error\n", t.to_s
       else
-        bug! "act is not shift/reduce/accept: act=#{act}(#{act.type})"
+        bug! "wrong act for outact: act=#{act}(#{act.type})"
       end
     end
 
-    def outsrconf( out, confs )
+    def outsrconf( f, confs )
       confs.each do |c|
         r = c.reduce
-        out << sprintf( "  %-12s  [reduce using rule %d (%s)]\n",
-                        c.shift.to_s, r.ruleid, r.symbol.to_s )
+        f.printf "  %-12s  [reduce using rule %d (%s)]\n",
+                 c.shift.to_s, r.ident, r.target.to_s
       end
     end
 
-    def outrrconf( out, confs )
+    def outrrconf( f, confs )
       confs.each do |c|
         r = c.low_prec
-        out << sprintf( "  %-12s  [reduce using rule %d (%s)]\n",
-                        c.token.to_s, r.ruleid, r.symbol.to_s )
+        f.printf "  %-12s  [reduce using rule %d (%s)]\n",
+                 c.token.to_s, r.ident, r.target.to_s
       end
     end
 
@@ -603,15 +618,13 @@ S
 
 
     def output_rule( out )
-      out << "-------- Grammar --------\n\n"
+      out.print "-------- Grammar --------\n\n"
       @ruletable.each_rule do |rl|
         if @debug or rl.ident != 0 then
-          out << sprintf( "rule %d %s: %s\n\n",
-            rl.ident, rl.symbol.to_s, rl.tokens.join(' ') )
+          out.printf "rule %d %s: %s\n",
+                     rl.ident, rl.target.to_s, rl.symbols.join(' ')
         end
       end
-
-      return out
     end
 
 
@@ -619,48 +632,33 @@ S
 
 
     def output_token( out )
-      out << "------- Token data -------\n\n"
+      out.print "------- Symbols -------\n\n"
 
-      out << "**Nonterminals, with rules where they appear\n\n"
-      tmp = "**Terminals, with rules where they appear\n\n"
-
-      @tokentable.each do |tok|
-        if tok.terminal? then
-          terminal_out( tmp, tok )
-        else
-          nonterminal_out( out, tok )
-        end
-      end
-
-      out << "\n" << tmp
-
-      return out
-    end
-
-    def terminal_out( out, tok )
-      tmp = <<SRC
-  %s (%d) %s
-
-SRC
-      out << sprintf( tmp, tok.to_s, tok.tokenid, locatestr( tok.locate ) )
-    end
-
-    def nonterminal_out( out, tok )
-      tmp = <<SRC
+      out.print "**Nonterminals, with rules where they appear\n\n"
+      @symboltable.each_nonterm do |t|
+        tmp = <<SRC
   %s (%d)
     on right: %s
     on left : %s
 SRC
-      out << sprintf( tmp, tok.to_s, tok.tokenid,
-                      locatestr( tok.locate ), locatestr( tok.heads ) )
+        out.printf tmp, t.to_s, t.ident,
+                   locatestr(t.locate), locatestr(t.heads)
+      end
+
+      out.print "\n**Terminals, with rules where they appear\n\n"
+      @symboltable.each_terminal do |t|
+        out.printf "  %s (%d) %s\n",
+                   t.to_s, t.ident, locatestr(t.locate)
+      end
     end
-    
+
     def locatestr( ptrs )
       arr = ptrs.collect {|ptr| i = ptr.rule.ident; i == 0 ? nil : i }
       arr.compact!
+      arr.uniq!
       arr.join(' ')
     end
 
-  end
+  end   # class VerboseOutputter
 
-end   # module Racc
+end

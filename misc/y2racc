@@ -1,0 +1,334 @@
+#!/usr/local/bin/ruby
+#
+# y2racc  --  yacc to racc converter
+#
+#   Copyright (c) 2000 Minero Aoki <aamine@dp.u-netsurf.ne.jp>
+#
+#   This program is free software.
+#   You can distribute/modify this program under the terms of
+#   the GNU Lesser General Public Lisence version 2 or later.
+#
+
+require 'English'
+require 'getopts'
+require 'strscan'
+require 'amstd/bug'
+
+
+unless $LOADED_FEATURES.include? 'strscan.so' then
+  $stderr.puts "#{$0}: DO NOT USE ruby-level strscan with y2racc"
+  exit 3
+end
+
+class Y
+
+  Version = '1.1.0'
+
+
+  def initialize( cname )
+    @cname = cname
+    @prectab = []
+    @start = nil
+    @tokens = []
+    @grammer = []
+
+    @header = nil
+    @footer = nil
+  end
+
+  COMMENT = %r</\*[^*]*\*+(?:[^/*][^*]*\*+)*/>
+
+  #
+  # parse
+  #
+
+  def parse( f, fname )
+    @fname = fname
+    str = f.read
+    s = StringScanner.new( str )
+
+    procdef s
+    procrule s
+  end
+
+
+  def procdef( s )
+    skip_until_percent s
+    until s.empty? do
+      if t = s.scan( /(left|right|nonassoc|token|start)\b/ ) then
+        send 'proc_' + t, get_tokens( s )
+
+      elsif s.skip %r<(?:
+            type | union | expect | thong | binary |
+            semantic_parser | pure_parser | no_lines |
+            raw | token_table                          )\b>x then
+        skip_until_percent s
+
+      elsif s.skip /\{/
+        @header = s.scan_until( /\%\}/ )
+        @header.chop!; @header.chop!   # %}
+        skip_until_percent s
+
+      elsif s.skip /\%/ then   # %%
+        return
+
+      else
+        bug!
+      end
+    end
+  end
+
+  def skip_until_percent( s )
+    until s.empty? do
+      s.skip /[^\%\/]+/
+      if t = s.scan( COMMENT ) then
+        ;
+      elsif s.getch == '/' then
+        ;
+      else
+        return
+      end
+    end
+  end
+
+  def get_tokens( s )
+    ret = []
+    until s.empty? do
+      s.skip /\s+/
+      next if s.skip COMMENT
+
+      if t = s.scan( /'((?:[^'\\]+|\\.)*)'/ ) then
+        ret.push t
+      elsif t = s.scan( /"((?:[^"\\]+|\\.)*)"/ ) then
+        ret.push t
+      elsif s.skip /\%/ then
+        break
+      elsif t = s.scan( /\S+/ ) then
+        ret.push t
+      else
+        bug!
+      end
+    end
+
+    ret
+  end
+
+  def proc_left( arr )
+    @prectab.push ['left', arr]
+  end
+
+  def proc_right( arr )
+    @prectab.push ['right', arr]
+  end
+
+  def proc_nonassoc( arr )
+    @prectab.push ['nonassoc', arr]
+  end
+
+  def proc_token( arr )
+    if /\A\<.*\>\z/ === arr[0] then
+      arr.shift
+    end
+    @tokens.concat arr
+  end
+
+  def proc_start( arr )
+    @start = arr[0]
+  end
+
+  ###
+
+  STRINGq = /'(?:[^'\\]+|\\.)*'/
+  STRINGQ = /"(?:[^"\\]+|\\.)*"/
+
+  def procrule( s )
+    @text = []
+
+    until s.empty? do
+      if t = s.scan( /[^%'"{\/]+/ ) then
+        @text.push t
+        break if s.empty?
+      end
+
+      if s.skip /\{/ then
+        if $OPT_A then
+          skip_action s
+        else
+          scan_action s
+        end
+      elsif t = s.scan( STRINGq ) then @text.push t
+      elsif t = s.scan( STRINGQ ) then @text.push t
+      elsif t = s.scan( COMMENT ) then @text.push t
+      elsif s.skip /%prec\b/      then @text.push '='
+      elsif s.skip /%%/           then
+        if $OPT_u then
+          @footer = s.rest
+        end
+        break
+      else
+        @text.push s.getch
+      end
+    end
+  end
+
+  def skip_action( s )
+    @text, save = [], @text
+    scan_action s
+    @text = save
+    @text.push "{\n                # action\n            }"
+  end
+
+  def scan_action( s )
+    @text.push '{'
+
+    nest = 1
+    until s.empty? do
+      if t = s.scan( /[^{'"}\/]+/ ) then
+        @text.push t
+        break if s.empty?
+      end
+      if t = s.scan( COMMENT ) then
+        @text.push t
+        next
+      end
+
+      c = s.getch
+      @text.push c
+      case c
+      when '{'
+        nest += 1
+      when '}'
+        nest -= 1
+        if nest == 0 then
+          return
+        end
+      else
+        ;
+      end
+    end
+
+    $stderr.puts "warning: unterminated action in #{@fname}"
+  end
+
+
+  #
+  # output
+  #
+
+  def output( f )
+    f.print <<SRC
+#
+# converted from "#{@fname}" by y2racc version #{Version}
+#
+
+class #{@cname}
+
+SRC
+    f.print 'token'
+    total = 0
+    @tokens.each do |t|
+      if total > 60 then
+        f.print "\n     "
+        total = 0
+      end
+      total += f.write( " #{t}" )
+    end
+    f.puts
+    f.puts
+
+    unless @prectab.empty? then
+      f.puts 'preclow'
+      @prectab.each do |type, toks|
+        f.printf "  %-8s %s\n", type, toks.join(' ') unless toks.empty?
+      end
+      f.puts 'prechigh'
+      f.puts
+    end
+
+    if @start then
+      f.puts "start #{@start}"
+      f.puts
+    end
+
+    f.puts 'rule'
+    @text.each {|t| f.print t }
+    f.puts
+    f.puts 'end'
+
+    if not $OPT_H and @header then
+      f.puts
+      f.puts '---- header'
+      f.puts @header
+    end
+    if not $OPT_u and @footer then
+      f.puts
+      f.puts '---- footer'
+      f.puts @footer
+    end
+  end
+
+end
+
+
+def usage( stat = 1 )
+  if stat != 0 then
+    $stderr.puts "#{File.basename $0}: wrong option"
+  end
+  $stderr.print <<MSG
+
+y2racc version #{Y::Version}
+
+usage:
+
+    y2racc [-AC] [-c classname] [-o outfile] yaccfile
+
+    -o <file>    name of output file  [r.<inputfile>]
+    -c <name>    name of parser class [MyParser]
+    -u           output also user code (%%....)
+    -H           cut off header (%{....%})
+    -A           cut off actions
+    -U           cut off user code (%%....) (default)
+
+MSG
+  exit stat
+end
+
+
+unless getopts( 'uAHU', 'c:', 'o:', 'version', 'copyright', 'help' ) then
+  usage 1
+end
+if $OPT_U then
+  $OPT_u = false
+end
+if $OPT_version then
+  $stderr.puts "y2racc version #{Y::Version}"
+  exit 0
+end
+if $OPT_help then
+  usage 0
+end
+if $OPT_copyright then
+  $stderr.puts 'Copyright (c) 2000 Minero Aoki <aamine@dp.u-netsurf.ne.jp>'
+  exit 0
+end
+unless ARGV.size == 1 then
+  usage 1
+end
+
+
+cname = $OPT_c || 'MyParser'
+fname = ARGV[0]
+outf = $OPT_o || 'r.' + fname
+
+y = Y.new( cname )
+begin
+  File.open( fname ) do |f|
+    y.parse f, fname
+  end
+rescue Errno::ENOENT
+  $stderr.puts "no such file: #{fname}"
+  exit 1
+end
+File.open( outf, 'w' ) do |f|
+  y.output f
+end

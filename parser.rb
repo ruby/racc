@@ -28,252 +28,292 @@ module Racc
 
 
     begin
+      if defined? Racc_Debug_Ruby_Level_Parser then
+        raise LoadError, 'debug ruby routine'
+      end
       require 'racc/cparse'   # def _c_parse
       Racc_Main_Parsing_Routine = :_c_parse
+      Racc_YY_Parse_Method      = :_racc_yyparse_c
     rescue LoadError
       Racc_Main_Parsing_Routine = :_rb_parse
+      Racc_YY_Parse_Method      = :_racc_yyparse_rb
     end
 
 
-    def next_token
-      raise NotImplementError, "#{self.type}#next_token must be defined"
-    end
-
-
-    def do_parse
+    def _racc_setup
       t = self.type
+
       unless t::Racc_debug_parser then
         @yydebug = false
       end
-      @yydebug = @yydebug ? true : false
+      @yydebug = false unless defined? @yydebug
+
       if @yydebug then
+        @racc_debug_out = $stderr unless defined? @racc_debug_out
         @racc_debug_out ||= $stderr
       end
 
-      send Racc_Main_Parsing_Routine, t::Racc_arg, true
+      arg = t::Racc_arg
+      if arg.size < 14 then
+        arg[13] = true
+      end
+      arg
     end
 
+    def _racc_init_sysvars
+      @racc_state = [ 0 ]
+      @racc_tstack = []
+      @racc_vstack = []
+
+      @racc_t = nil
+      @racc_val = nil
+
+      @racc_read_next = true
+
+      @racc_user_yyerror = false
+      @racc_error_status = 0
+    end
+
+
+    ###
+    ### do_parse
+    ###
+
+    def do_parse
+      __send__ Racc_Main_Parsing_Routine, _racc_setup(), false
+    end
+
+    def next_token
+      raise NotImplementError, "#{self.type}\#next_token must be defined"
+    end
 
     def _rb_parse( arg, in_debug )
       action_table, action_check, action_default, action_pointer,
-      goto_table, goto_check, goto_default, goto_pointer,
-      nt_base, reduce_table, token_table, shift_n, reduce_n,
-      use_result = *arg
-      if use_result.nil? then
-        use_result = arg[-1] = true
-      end
+      goto_table,   goto_check,   goto_default,   goto_pointer,
+      nt_base,      reduce_table, token_table,    shift_n,
+      reduce_n,     use_result    = arg
 
-      #
-      # local variables
-      #
-
-      state    = [ 0 ]
-      curstate = 0
-
-      tstack = []
-      vstack = []
-
-      atmp = tok = val = t = nil
-      act = tmp = code = i = nil
-      read_next = true
-
-      @racc_error_status = 0
+      _racc_init_sysvars
+      act = i = nil
       nerr = 0
-      user_yyerror = false
 
-      t_end = 0    # $end
-      t_err = 1    # error token
 
-      yydebug = @yydebug
-
-      #
-      # LR parsing algorithm main loop
-      #
-
+      catch( :racc_end_parse ) {
       while true do
 
-        if i = action_pointer[ curstate ] then
-          if read_next then
-            if t != t_end then
-              atmp = next_token
-              tok = atmp[0]
-              val = atmp[1]
-              t = (token_table[tok] or t_err)
-              racc_read_token( t, tok, val ) if yydebug
+        if i = action_pointer[ @racc_state[-1] ] then
+          if @racc_read_next then
+            if @racc_t != 0 then   # $
+              tok, @racc_val = next_token()
+              @racc_t = (token_table[tok] or 1)   # error token
+              racc_read_token( @racc_t, tok, @racc_val ) if @yydebug
 
-              read_next = false
+              @racc_read_next = false
             end
           end
-          i += t
+          i += @racc_t
           if i >= 0 and act = action_table[i] and
-             action_check[i] == curstate then
+             action_check[i] == @racc_state[-1] then
+             ;
           else
-            act = action_default[ curstate ]
+            act = action_default[ @racc_state[-1] ]
           end
         else
-          act = action_default[ curstate ]
+          act = action_default[ @racc_state[-1] ]
         end
 
-    begin
-        if act > 0 and act < shift_n then
-          #
-          # shift
-          #
+        while act = _racc_evalact( act, arg ) do end
 
-          if @racc_error_status > 0 then
-            @racc_error_status -= 1
+        racc_next_state( @racc_state[-1], @racc_state ) if @yydebug
+
+      end
+      }
+    end
+
+
+    ###
+    ### yyparse
+    ###
+
+    def yyparse( recv, mid )
+      __send__ Racc_YY_Parse_Method, recv, mid, _racc_setup(), true
+    end
+
+    def _racc_yyparse_rb( recv, mid, arg, c_debug )
+      action_table, action_check, action_default, action_pointer,
+      goto_table,   goto_check,   goto_default,   goto_pointer,
+      nt_base,      reduce_table, token_table,    shift_n,
+      reduce_n,     use_result,   = arg
+
+      _racc_init_sysvars
+      tok = nil
+      act = nil
+      i = nil
+      nerr = 0
+
+
+      catch( :racc_end_parse ) {
+        until i = action_pointer[ @racc_state[-1] ] do
+          while act = _racc_evalact(
+                  action_default[ @racc_state[-1] ], arg ) do end
+        end
+
+        recv.__send__( mid ) do |tok, val|
+# $stderr.puts "rd: tok=#{tok}, val=#{val}"
+          @racc_val = val
+          @racc_t = (token_table[tok] or 1)   # error token
+          @racc_read_next = false
+
+          i += @racc_t
+          if i >= 0 and act = action_table[i] and
+             action_check[i] == @racc_state[-1] then
+# $stderr.puts "01: act=#{act}"
+          else
+            act = action_default[ @racc_state[-1] ]
+# $stderr.puts "02: act=#{act}"
+# $stderr.puts "curstate=#{@racc_state[-1]}"
           end
 
-          vstack.push val
-          if yydebug then
-            tstack.push t
-            racc_shift( t, tstack, vstack )
-          end
+          while act = _racc_evalact( act, arg ) do end
 
-          curstate = act
-          state.push curstate
-
-          read_next = true
-
-        elsif act < 0 and act > -reduce_n then
-          #
-          # reduce
-          #
-
-          code = catch( :racc_jump ) {
-            curstate = racc_do_reduce( arg, state, vstack, tstack, act )
-            state.push curstate; false
-          }
-          if code then
-            case code
-            when 1 # yyerror
-              act = -reduce_n
-              user_yyerror = true
-              redo
-            when 2 # yyaccept
-              act = shift_n
-              redo
+          while not (i = action_pointer[ @racc_state[-1] ]) or
+                not @racc_read_next or
+                @racc_t == 0 do   # $
+            if i and i += @racc_t and
+               i >= 0 and
+               act = action_table[i] and
+               action_check[i] == @racc_state[-1] then
+# $stderr.puts "03: act=#{act}"
+              ;
             else
-              raise RuntimeError, '[Racc Bug] unknown jump code'
+# $stderr.puts "04: act=#{act}"
+              act = action_default[ @racc_state[-1] ]
             end
+
+            while act = _racc_evalact( act, arg ) do end
           end
-
-        elsif act == shift_n then
-          #
-          # accept
-          #
-
-          racc_accept if yydebug
-          return vstack[0]
-
-        elsif act == -reduce_n then
-          #
-          # error
-          #
-
-          case @racc_error_status
-          when 0
-            unless user_yyerror then
-              nerr += 1
-              on_error( t, val, vstack )
-            end
-          when 3
-            if t == t_end then
-              return nil
-            end
-            read_next = true
-          end
-          user_yyerror = false
-          @racc_error_status = 3
-
-          while true do
-            if i = action_pointer[curstate] then
-              i += t_err
-              if i >= 0 and
-                 (act = action_table[i]) and
-                 action_check[i] == curstate then
-                break
-              end
-            end
-
-            return nil if state.size < 2
-            state.pop
-            vstack.pop
-            if yydebug then
-              tstack.pop
-              racc_e_pop( state, tstack, vstack )
-            end
-            curstate = state[-1]
-          end
-
-          if act > 0 and act < shift_n then
-            #
-            # error-shift
-            #
-            vstack.push val
-            if yydebug then
-              tstack.push t_err
-              racc_shift( t_err, tstack, vstack )
-            end
-
-            curstate = act
-            state.push curstate
-            
-          elsif act < 0 and act > -reduce_n then
-            #
-            # error-reduce
-            #
-            code = catch( :racc_jump ) {
-              curstate = racc_do_reduce( arg, state, vstack, tstack, act )
-              state.push curstate; 0
-            }
-            unless code == 0 then
-              case code
-              when 1 # yyerror
-                act = -reduce_n
-                user_yyerror = true
-                redo
-              when 2 # yyaccept
-                act = shift_n
-                redo
-              else
-                raise RuntimeError, '[Racc Bug] unknown jump code'
-              end
-            end
-
-          elsif act == shift_n then
-            #
-            # error-accept
-            #
-            racc_accept if yydebug
-            return vstack[0]
-
-          else
-            raise RuntimeError, "[Racc Bug] wrong act value #{act.inspect}"
-          end
-
-        else
-          raise RuntimeError, "[Racc Bug] unknown action #{act.inspect}"
         end
-    end while false
+      }
+    end
 
-        racc_next_state( curstate, state ) if yydebug
+
+    ###
+    ### common
+    ###
+
+    def _racc_evalact( act, arg )
+# $stderr.puts "ea: act=#{act}"
+      action_table, action_check, action_default, action_pointer,
+      goto_table,   goto_check,   goto_default,   goto_pointer,
+      nt_base,      reduce_table, token_table,    shift_n,
+      reduce_n,     use_result,   = arg
+nerr = 0
+
+      if act > 0 and act < shift_n then
+        #
+        # shift
+        #
+
+        if @racc_error_status > 0 then
+          @racc_error_status -= 1 unless @racc_t == 1   # error token
+        end
+
+        @racc_vstack.push @racc_val
+        @racc_state.push act
+        @racc_read_next = true
+
+        if @yydebug then
+          @racc_tstack.push @racc_t
+          racc_shift( @racc_t, @racc_tstack, @racc_vstack )
+        end
+
+      elsif act < 0 and act > -reduce_n then
+        #
+        # reduce
+        #
+
+        code = catch( :racc_jump ) {
+          @racc_state.push _racc_do_reduce( arg, act )
+          false
+        }
+        if code then
+          case code
+          when 1 # yyerror
+            @racc_user_yyerror = true   # user_yyerror
+            return -reduce_n
+          when 2 # yyaccept
+            return shift_n
+          else
+            raise RuntimeError, '[Racc Bug] unknown jump code'
+          end
+        end
+
+      elsif act == shift_n then
+        #
+        # accept
+        #
+
+        racc_accept if @yydebug
+        throw :racc_end_parse, @racc_vstack[0]
+
+      elsif act == -reduce_n then
+        #
+        # error
+        #
+
+        case @racc_error_status
+        when 0
+          unless arg[21] then   # user_yyerror
+            nerr += 1
+            on_error @racc_t, @racc_val, @racc_vstack
+          end
+        when 3
+          if @racc_t == 0 then   # is $
+            throw :racc_end_parse, nil
+          end
+          @racc_read_next = true
+        end
+        @racc_user_yyerror = false
+        @racc_error_status = 3
+
+        while true do
+          if i = action_pointer[ @racc_state[-1] ] then
+            i += 1   # error token
+            if i >= 0 and
+               (act = action_table[i]) and
+               action_check[i] == @racc_state[-1]  then
+               break
+            end
+          end
+
+          throw :racc_end_parse, nil if @racc_state.size < 2
+          @racc_state.pop
+          @racc_vstack.pop
+          if @yydebug then
+            @racc_tstack.pop
+            racc_e_pop( @racc_state, @racc_tstack, @racc_vstack )
+          end
+        end
+
+        return act
+
+      else
+        raise RuntimeError, "[Racc Bug] unknown action #{act.inspect}"
       end
 
-      raise RuntimeError, '[Racc Bug] must not reach here'
+      racc_next_state( @racc_state[-1], @racc_state ) if @yydebug
+
+      nil
     end
 
-
-    def on_error( t, val, vstack )
-      raise ParseError, "\nunexpected token #{val.inspect}"
-    end
-
-
-    def racc_do_reduce( arg, state, vstack, tstack, act )
+    def _racc_do_reduce( arg, act )
       action_table, action_check, action_default, action_pointer,
-      goto_table, goto_check, goto_default, goto_pointer,
-      nt_base, reduce_table, token_table, shift_n, reduce_n,
-      use_result = *arg
+      goto_table,   goto_check,   goto_default,   goto_pointer,
+      nt_base,      reduce_table, token_table,    shift_n,
+      reduce_n,     use_result,   = arg
+      state = @racc_state
+      vstack = @racc_vstack
+      tstack = @racc_tstack
 
       i = act * -3
       len       = reduce_table[i]
@@ -287,11 +327,11 @@ module Racc
       vstack[ -len, len ] = void_array
       state[ -len, len ]  = void_array
 
-      # tstack must be renewed AFTER method call
+      # tstack must be updated AFTER method call
       if use_result then
-        vstack.push send(method_id, tmp_v, vstack, tmp_v[0])
+        vstack.push __send__(method_id, tmp_v, vstack, tmp_v[0])
       else
-        vstack.push send(method_id, tmp_v, vstack)
+        vstack.push __send__(method_id, tmp_v, vstack)
       end
       tstack.push reduce_to
 
@@ -305,6 +345,10 @@ module Racc
         end
       end
       goto_default[ k1 ]
+    end
+
+    def on_error( t, val, vstack )
+      raise ParseError, "\nparse error on value #{val.inspect}"
     end
 
     def yyerror

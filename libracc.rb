@@ -9,9 +9,11 @@
 #
 
 require 'racc/info'
+require 'racc/iset'
 require 'racc/facade'
-require 'racc/register'
+require 'racc/grammer'
 require 'racc/raccp'
+require 'racc/ucodep'
 require 'racc/raccs'
 require 'racc/state'
 require 'racc/format'

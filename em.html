@@ -4,12 +4,13 @@
 <h1>Racc User Manual</h1>
 
 <p>
-updated for version 1.1
+updated for version 1.3.0
 
 <ul>
 <li><a href="usage.html">Usage</a>
 <li><a href="command.html">racc Command Reference</a>
 <li><a href="grammer.html">Racc Grammer Reference</a>
+<li><a href="parser.html">Racc::Parser class Reference</a>
 <li><a href="debug.html">For Debug</a>
 <li><a href="changes.html">Change Log</a>
 </ul>
@@ -18,20 +19,20 @@ updated for version 1.1
 . file usage.html ---------------------------------------------------
 <% header 'Usage' %>
 
-<h1>Usage</a>
+<h1>Usage</h1>
 
 <hr>
 
-<h2>Compiling racc grammer file</h2>
+<h2>Compiling Racc grammer file</h2>
 
 <p>
-To compile racc grammer file, simply type:
+To compile Racc grammer file, simply type:
 <pre>
 
   $ racc parse.y
 
 </pre>
-This create ruby script file "parse.tab.y". -o option changes this.
+This creates ruby script file "parse.tab.y". -o option changes this.
 
 
 <h2>Creating Parser with Racc</h2>
@@ -64,51 +65,45 @@ But (of cource), action is Ruby code. yacc's $$ is 'result', $0, $1... is
 an array 'val', $-1, $-2... is an array '_values'.
 
 <p>
-yylex() is method "next_token()".
-This method must returns an array like [TOKENSYMBOL, ITS_VALUE].
+Then you must prepare parse entry method. There's two types of
+racc's parse method, 
+<a href="parser.html#do_parse">"do_parse()"</a> and
+<a href="parser.html#yyparse">"yyparse()"</a>.
+<br>
+"do_parse()" is simple. it is yyparse() of yacc, and "next_token()" is
+yylex(). This method must returns an array like [TOKENSYMBOL, ITS_VALUE].
 EOF is [false, false].
 (token symbol is ruby symbol (got by String#intern) as default.
  If you want to change this, see <a href="grammer#token">grammer reference</a>.
+<br> 
+"yyparse()" is little complecated, but useful. It does not use "next_token()",
+it gets tokens from any iterator. For example, "yyparse(obj, :scan)" causes
+calling obj#scan, and you can return tokens by yielding them from obj#scan.
 
 <p>
-yyparse() is method "do_parse()".
-
-<p>
-When debug, "-v" or/and "-g" option is helpful.<br>
-"-v" causes creating verbose output file (.output).<br>
+When debug, "-v" or/and "-g" option is helpful.
+"-v" causes creating verbose log file (.output).
 "-g" causes creating "Verbose Parser".
 Verbose Parser prints internal status when parsing.
-But, attention please! it is <em>not</em> automatic.
-You must use -g option and be @yydebug true to get output.
--g option only create verbose parser.
+But it is <em>not</em> automatic.
+You must use -g option and set @yydebug true to get output.
+-g option only creates verbose parser.
 
 
 <h3>re-distributing Racc runtime</h3>
 
 <p>
 A parser, which is created by Racc, requires Racc runtime.
-You should re-distribute Racc runtime with your parser, or
-users need to install Racc.
-
-<p>
-A Ruby script "rtpack.rb" helps you to include Racc runtime
-into your own package. Usage of pack.rb is:
+You should re-distribute Racc runtime with your parser.
+It can be done by '-E' option.
 <pre>
 
-  /usr/src/racc-xxx/ $ ruby pack.rb TARGET/
+  racc -E myparser.y
 
 </pre>
-This copies Racc runtime under directory TARGET/ .
-(attention: pack.rb will clears TARGET/)
-
-<p>
-And the way to install Racc runtime when your installation is:
-<pre>
-
-  cd TARGET/
-  ruby setup.rb
-
-</pre>
+This creates myparser.tab.rb which INCLUDES racc runtime.
+Only you must do is to distribute your .tab.rb file.
+(License problem does not exist.)
 
 <% footer 1999 %>
 . file command.html ------------------------------------------------------
@@ -231,7 +226,20 @@ class block is like this:
 
 </pre>
 <var>class_name</var> is a name of parser class.
-This is equal to name of generating parser class.
+This is the name of generating parser class.
+
+<p>
+If <var>class_name</var> includes '::', Racc outputs module clause.
+For example, "class M::C" causes creating the code bellow:
+<pre>
+
+module M
+  class C
+    :
+  end
+end
+
+</pre>
 
 
 <h3><a name="grammer">rule block</a></h3>
@@ -283,7 +291,7 @@ rule
 end
 
 </pre>
-You can use these spetial local variables in action.
+You can use these special local variables in action.
 <dl>
 <dt>result ($$)
 <dd>
@@ -295,7 +303,8 @@ an array of value of right-hand side (rhs).
 
 <dt>_values (...$-2,$-1,$0)
 <dd>
-a stack of values
+a stack of values.
+DO NOT CHANGE this stack unless you know what you are doing.
 
 </dl>
 
@@ -317,8 +326,8 @@ To designate this block:
 
 </pre>
 'right' is '%right', 'left' is '%left'. While this example is written
-'prechigh' upper and 'preclow' lower, but another format 'preclow...prechigh'
-is also premitted.
+'prechigh' upper and 'preclow' lower, another format 'preclow...prechigh'
+is also OK.
 
 <p>
 '%prec' can be used. format is like this:
@@ -366,7 +375,7 @@ Now options are:
 <dt>omit_action_call <dd>if omit empty action call
 <dt>result_var       <dd>if use variable "result"
 </dl>
-These flags can be given with 'no_' prefix.
+These flags also can be given with 'no_' prefix.
 
 
 <h3><a name="convert">Convert Token Symbol</a></h3>
@@ -403,7 +412,7 @@ For example:
     end
 
 </pre>
-These are <em>not BUG, but FEATURE</em>.
+This is <em>not BUG, but FEATURE</em>.
 
 
 <h3><a name="start">Start Rule</a></h3>
@@ -450,12 +459,83 @@ You can include other file as user code like this:
 
 ---- footer = init.rb run.rb
 
-print "these code is used as driver, too!!"
+print 'this code is executed too.'
 
 </pre>
 This statement makes racc to use "init.rb" "run.rb" as 'footer' user code.
 
 <% footer 1999 %>
+. file parser.html -------------------------------------------------
+<% header 'Racc::Parser' %>
+
+<h1>class Racc::Parser</h1>
+<dl>
+<dt><a name="do_parse">do_parse</a>
+<dd>
+Parse entry point. This method is used with 
+<a href="#next_token">next_token</a>. If Racc want to get token
+(and its value), call next_token.
+<pre>
+
+# example
+
+---- inner
+  def parse
+    @q = [[1,1],
+	  [2,2],
+	  [3,3],
+	  [false, '$']]
+    do_parse
+  end
+
+  def next_token
+    @q.shift
+  end
+
+</pre>
+
+<dt><a name="next_token">next_token</a> [abstract]
+<dd>
+token getter method. If you use 'do_parse' method, you must also
+implement this method. The format of return value is
+[TOKEN-SYMBOL, VALUE]. token-symbol is represented by Ruby's symbol
+as default. For example, :IDENT for 'IDENT' in Racc. ";" (String) for ';'.
+Last symbol (EOF) must be false.
+
+<dt><a name="yyparse">yyparse( recv, mid )</a>
+<dd>
+parse entry point (2). If you use this method, you must also implement
+<var>recv</var>#<var>mid</var> method.
+<p>
+<var>recv</var>#<var>mid</var> is token getter method.
+It must 'yield's token, which format is [TOKEN-SYMBOL, VALUE].
+
+<dt><a name="on_error">on_error( err_tok, err_val, _values )</a>
+<dd>
+called when parse error is found.
+err_tok is an internal token number which makes error.
+err_val is its value.
+_values is a stack of symbol values. DO NOT EDIT this object.
+<p>
+This method raises ParseError as default.
+<p>
+If you override this method and
+make not raise exceptions, parser enters into "error recovering" mode.
+
+<dt><a name="yyerror">yyerror</a>
+<dd>
+If this method is called, racc enters error recovering mode.
+
+<dt><a name="yyerrok">yyerrok</a>
+<dd>
+leave error recovering mode.
+
+<dt><a name="yyaccept">yyaccept</a>
+<dd>
+return from parse routine (return value is Symbol-Value-Stack[0]).
+
+</dl>
+<% footer 2000 %>
 . file debug.html --------------------------------------------------
 <% header 'Debug' %>
 
@@ -485,6 +565,66 @@ This statement makes racc to use "init.rb" "run.rb" as 'footer' user code.
 <h1>Change Log</h1>
 
 <hr>
+<h2>1.3.1 (2000-12-17)</h2>
+<p>
+<ul>
+<li>dynamically determine RE_DUP_MAX
+<li>ruby version routine was used always
+</ul>
+
+<h2>1.3.0 (2000-11-30)</h2>
+<p>
+<ul>
+<li>can yield(sym,val) from scanner (Parser#yyparse)
+</ul>
+
+<hr>
+<h2>1.2.6 (2000-11-28)</h2>
+<p>
+<ul>
+<li>class M::C
+</ul>
+
+<h2>1.2.5 (2000-11-20)</h2>
+<p>
+<ul>
+<li>big changes in option; -h -f -p -i -n -c -A are incompatible
+<li>support long options
+<li>y2racc, racc2y leaves actions as default
+</ul>
+
+<h2>1.2.4 (2000-09-13)</h2>
+<p>
+<ul>
+<li>updates installer and documents
+</ul>
+
+<h2>1.2.3 (2000-08-14)</h2>
+<p>
+<ul>
+<li>output useless rules and nonterminals (version 2)
+<li>nonassoc makes error (never shift/reduce)
+</ul>
+
+<h2>1.2.2 (2000-08-12)</h2>
+<p>
+<ul>
+<li>internal changes
+</ul>
+
+<h2>1.2.1 (2000-08-05)</h2>
+<p>
+<ul>
+<li>racc2y, y2racc
+</ul>
+
+<h2>1.2.0 (2000-08-02)</h2>
+<p>
+<ul>
+<li>uses bison's lookahead algorithm
+</ul>
+
+<hr>
 <h2>1.1.6 (2000-07-25)</h2>
 <p>
 <ul>
@@ -494,7 +634,7 @@ This statement makes racc to use "init.rb" "run.rb" as 'footer' user code.
 <h2>1.1.5 (2000-07-21)</h2>
 <p>
 <ul>
-<li>[important] change keyword "token" to "convert"
+<li>[IMPORTANT] change keyword "token" to "convert"
 <li>NEW keyword "token" for token declearation
 </ul>
 

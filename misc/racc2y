@@ -1,0 +1,267 @@
+#!/usr/local/bin/ruby
+#
+# r2yacc  ---  racc to yacc converter
+#
+#   Copyright (c) 2000 Minero Aoki <aamine@dp.u-netsurf.ne.jp>
+#
+#   This program is feee software.
+#   You can distribute/modify this program under the terms of
+#   the GNU Lesser General Public License version 2 or later.
+#
+
+require 'getopts'
+require 'racc/libracc'
+
+
+class R
+
+  Version = '1.1.0'
+
+
+  def initialize
+    @symboltable = Racc::SymbolTable.new( self )
+    @ruletable   = Racc::RuleTable.new( self )
+    @parser      = Racc::RaccParser.new( self )
+  end
+
+  attr :ruletable
+  attr :symboltable
+  attr :parser
+
+  def debug()   false end
+  def verbose() false end
+  def d_parse() false end
+  def d_token() false end
+  def d_rule()  false end
+  def d_state() false end
+
+
+  ###
+  ### parse
+  ###
+
+  def parse( str, fname )
+    @fname = fname
+    @parser.parse( str )
+    @ruletable.init
+
+    u = Racc::RaccParser.get_ucode( fname )
+    @header, = u['header']
+    @inner,  = u['inner']
+    @footer, = u['footer']
+  end
+
+
+  ###
+  ### output
+  ###
+
+  def output( f )
+    rule = t = nil
+
+    f.print <<SRC
+/*
+
+    generated from #{@fname} by racc2y version #{R::Version}
+
+*/
+
+SRC
+    if $OPT_H and @header then
+      f.puts '%{'
+      f.puts '/*---- header ----*/'
+      f.puts @header
+      f.puts '%}'
+      f.puts
+    end
+
+    output_defs f
+    output_grammer f
+
+    if $OPT_I and @inner then
+      f.puts
+      f.puts '/*---- inner ----*/'
+      f.puts
+      f.puts @inner
+    end
+    if $OPT_F and @footer then
+      f.puts
+      f.puts '/*---- footer ----*/'
+      f.puts
+      f.puts @footer
+    end
+  end
+
+  def output_defs( f )
+    output_token f
+    f.puts
+    prec = getprecs
+    unless prec.empty? then
+      output_prec f, prec
+    end
+  end
+
+  def output_token( f )
+    f.puts '/* tokens */'
+    anc = @symboltable.anchor
+    err = @symboltable.error
+    total = 6
+    f.print '%token'
+    @symboltable.each do |t|
+      next unless t.terminal?
+      next if t.dummy?
+      next if t == err
+      next if t == anc
+
+      unless String === t.value then
+        if total > 60 then
+          f.print "\n     "
+          total = 0
+        end
+        total += f.write( " #{tok t}" )
+      end
+    end
+    f.puts
+  end
+
+  def getprecs
+    prec = []
+    @symboltable.each do |t|
+      next unless t.prec
+      if a = prec[t.prec] then
+        a.push t
+      else
+        prec[t.prec] = [t.assoc, t]
+      end
+    end
+
+    prec
+  end
+
+  def output_prec( f, tab )
+    f.puts '/* precedance table */'
+    tab.each do |a|
+      if a then
+        f.printf '%%%-8s', a.shift.id2name.downcase
+        a.each do |t|
+          f.print ' ', tok(t)
+        end
+        f.puts
+      end
+    end
+    f.puts
+  end
+
+
+  def output_grammer( f )
+    f.puts '%%'
+
+    targ   = nil
+    indent = 10
+    fmt    = "\n%-10s:"
+    emb    = []
+
+    @ruletable.each do |rule|
+      if rule.target.dummy? then
+        emb.push rule.action if rule.action
+        next
+      end
+
+      if rule.target == targ then
+        f.print ' ' * indent, '|'
+      else
+        targ = rule.target
+        f.printf fmt, tok(targ)
+      end
+      rule.symbols.each do |t|
+        if t.dummy? then   # target of dummy rule for embedded action
+          f.puts
+          output_act f,
+                     emb.shift,
+                     indent
+          f.print ' ' * (indent + 1)
+        else
+          f.print ' ', tok(t)
+        end
+      end
+      if rule.specified_prec then
+        f.print ' %prec ', tok(rule.specified_prec)
+      end
+      f.puts
+      if rule.action then
+        output_act f, rule.action, indent
+      end
+    end
+
+    f.puts "\n%%"
+  end
+
+  def output_act( f, str, indent )
+    f.print ' ' * (indent + 4), "{\n"
+    f.print ' ' * (indent + 6), str, "\n" unless $OPT_A
+    f.print ' ' * (indent + 4), "}\n"
+  end
+
+  def tok( t )
+    s = t.to_s
+    s.gsub '"', "'"
+  end
+
+end   # class R
+
+
+def usage( stat = 0 )
+  if stat != 0 then
+    $stderr.puts 'wrong option'
+  end
+  $stderr.print <<MSG
+
+racc2y version #{R::Version}
+
+usage:
+
+    racc2y [-AHIF] [-o outfile] raccfile
+
+    -o <file>  output file name  [y.<inputfile>]
+    -A         did not output actions
+    -H         output 'header'
+    -I         output 'inner'
+    -F         output 'footer'
+
+MSG
+  exit stat
+end
+
+unless getopts( 'AHIF', 'o:', 'version', 'help', 'copyright' ) then
+  usage 1
+end
+if $OPT_version then
+  $stderr.puts "racc2y version #{R::Version}"
+  exit 0
+end
+if $OPT_help then
+  usage 0
+end
+if $OPT_copyright then
+  $stderr.puts "Copyright (c) 2000 Minero Aoki <aamine@dp.u-netsurf.ne.jp>"
+  exit 0
+end
+unless ARGV.size == 1 then
+  usage 1
+end
+
+
+fname = ARGV[0]
+outf = $OPT_o || 'y.' + fname
+begin
+  str = nil
+  File.open( fname ) {|f| str = f.read }
+rescue Errno::ENOENT
+  $stderr.puts "#{File.basename $0}: no such file: #{fname}"
+  exit 1
+end
+r = R.new
+r.parse( str, fname )
+File.open( outf, 'w' ) do |f|
+  r.output f
+end

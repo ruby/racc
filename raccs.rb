@@ -74,6 +74,9 @@ module Racc
               no = lineno
               return [:ACTION, [scan_action, no]]
             else
+              if ch == '|' then
+                @line_head = false
+              end
               return [ch, ch]
             end
 
@@ -128,8 +131,9 @@ module Racc
       if cur == 'end' then
         sret = :XEND
         @in_conv_blk = false
+        @in_rule_blk = false
       else
-        if @line_head and not @in_conv_blk then
+        if @line_head and not @in_conv_blk and not @in_rule_blk then
           sret = ResWord[cur] || :XSYMBOL
         else
           sret = :XSYMBOL

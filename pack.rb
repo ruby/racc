@@ -5,7 +5,7 @@ require 'amstd/pack'
 
 environ( 'racc' ) do
 
-  set :version, '1.1.6'
+  set :version, '1.3.1'
 
   set :dir, expand('~/r/racc')
 
@@ -24,8 +24,10 @@ environ( 'racc' ) do
   set :mainrb, %w(
     libracc.rb
     facade.rb
+    ucodep.rb
     raccs.rb
-    register.rb
+    iset.rb
+    grammer.rb
     state.rb
     format.rb
     info.rb
@@ -40,7 +42,11 @@ environ( 'racc' ) do
 
   set :tool, %w(
     pack.rb
-    setup.rb
+  )
+
+  set :misc, %w(
+    y2racc
+    racc2y
   )
 
   set :text, %w(
@@ -48,13 +54,6 @@ environ( 'racc' ) do
     BUGS.ja
     BUGS.en
   )
-
-  set :sample, %w(
-    calc.y
-    calc2-ja.y
-    compile.rb
-  )
-
 
   set :extern_libs, %w( raccrt amstd )
 
@@ -68,9 +67,7 @@ environ( 'racc' ) do
 
 
   def update
-    upd a((g :bin), (g :mainrb), (g :src)), 2, (g :version)
-    detab a(g :tool), 2
-    detab all_sample, 2
+    upver a(g(:bin), g(:mainrb), g(:src)), (g :version)
     (e :raccrt).update
   end
 
@@ -78,22 +75,16 @@ environ( 'racc' ) do
     all_in a('sample'), /\.(y|rb)\z/
   end
 
-
-  # def set_files( packdir )
-
-  # def set_files_main( packdir )
-
   def set_files_etc( packdir )
     cp a(g :src), isdir( packdir, 'src' )
     cp all_sample, isdir( packdir, 'sample' )
+    cp d(a('misc'), g(:misc)), isdir( packdir, 'misc' )
   end
 
   def raw
     super
     (e :raccrt).raw
   end
-
-  # def set_raw( packdir )
 
   def site
     super
@@ -123,20 +114,12 @@ environ( 'racc' ) do
 
 
     def update
-      untab a(g :rb), 2
-      untab a(g :tool), 2
       (e :cparse).update
     end
-
-    # def set_files( packdir )
-
-    # def set_files_main( packdir )
 
     def set_files_etc( packdir )
       cp a(g :tool), packdir
     end
-
-    # def set_raw( packdir )
 
     def site
       cp_archive_site
@@ -146,8 +129,6 @@ environ( 'racc' ) do
 
 
   environ( 'cparse' ) do
-
-    set :version, '1.1.5'
 
     set :dir, expand('~/r/racc/cp')
 
@@ -161,14 +142,12 @@ environ( 'racc' ) do
 
 
     def update
-      upd a(g :c), 4, (e :version)
+      upver a(g :c), (e :racc).g(:version)
     end
 
     def set_files( packdir )
       bug!
     end
-
-    # def set_files_main( packdir )
 
   end
 
