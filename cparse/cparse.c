@@ -8,6 +8,7 @@
     You can distribute/modify this program under the terms of
     the GNU Lesser General Public Lisence version 2 or later.
 
+    $Id$
 */
 
 #include <stdio.h>

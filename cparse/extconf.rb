@@ -1,2 +1,4 @@
+# $Id$
+
 require 'mkmf'
-create_makefile 'cparse'
+create_makefile 'racc/cparse'
