@@ -1,3 +1,7 @@
+Mon Nov  3 17:19:01 2003  Minero Aoki  <aamine@loveruby.net>
+
+	* Makefile: update version in parser.rb, cparse.c.
+
 Sun Oct 12 23:49:58 2003  Minero Aoki  <aamine@loveruby.net>
 
 	* version 1.4.4.

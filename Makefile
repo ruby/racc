@@ -16,7 +16,7 @@ all: update
 	cd lib/racc && $(MAKE)
 
 update:
-	update-version --version=$(version) lib/racc/info.rb
+	update-version --version=$(version) lib/racc/info.rb lib/racc/parser.rb ext/racc/cparse/cparse.c
 
 doc:
 	mldoc-split --lang=ja doc/NEWS.rd.m > NEWS.ja
