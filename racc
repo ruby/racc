@@ -296,7 +296,8 @@ def write_table_file( racc, srcfn, opt )
 
   RaccTableFile.new( tabfn, srcfn, opt['--line-convert'] ) do |f|
     f.executable opt['--executable'] if opt['--executable']
-    f.require opt['--embedded'], opt['--rumtime'] || 'racc/parser'
+    f.require opt['--embedded'], opt['--runtime'] || 'racc/parser'
+p opt['--line-convert-all']
     f.header opt['--line-convert-all']
     f.parser_class( racc.parser.class_name,
                     opt['--super'] || racc.parser.super_class ) {
@@ -358,7 +359,9 @@ class RaccTableFile
 #
 
 S
-      embed 'racc/parser.rb'
+      is_top {
+        embed 'racc/parser.rb'
+      }
       @f.puts
     else
       @f.puts  "require '#{parser_rb}'"
@@ -434,13 +437,13 @@ S
 
   def embed( rbfile )
     @f.print <<S
-###### #{feature}
+###### #{rbfile}
 
 unless $".index '#{rbfile}' then
 $".push '#{rbfile}'
 S
-    add_file RubyEmulator.find_feature feature
-    @f.puts "end   # end of #{feature}"
+    add_file RubyEmulator.find_feature rbfile
+    @f.puts "end   # end of #{rbfile}"
   end
 
 
@@ -471,7 +474,7 @@ S
 
 
   ###
-  ### rowest
+  ### low level code
   ###
 
   def add_file( fname )
@@ -481,23 +484,23 @@ S
   end
 
   def add( str, fn, lineno )
-    surrounding_by_eval( fn, str, lineno ) do
+    @f.puts
+    if @convline then
+      surrounding_by_eval( fn, str, lineno ) {
+        @f.puts str
+      }
+    else
       @f.puts str
     end
   end
 
 
   def surrounding_by_eval( nm, str, lineno )
-    @f.puts
-    if @convline then
-      sep = makesep( nm, str )
-      @f.print 'type.' if toplevel?
-      @f.puts "module_eval <<'#{sep}', '#{nm}', #{lineno}"
-      yield
-      @f.puts sep
-    else
-      yield
-    end
+    sep = makesep( nm, str )
+    @f.print 'type.' if toplevel?
+    @f.puts "module_eval <<'#{sep}', '#{nm}', #{lineno}"
+    yield
+    @f.puts sep
   end
 
   def is_top

@@ -19,6 +19,8 @@ environ( 'racc' ) do
   set :package,   'racc'
   set :instpath,  'racc'
 
+  set :raw, true
+
 
   set :bin, %w( racc )
 
