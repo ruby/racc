@@ -53,7 +53,7 @@ racc's parse method,
 yylex(). This method must returns an array like [TOKENSYMBOL, ITS_VALUE].
 EOF is [false, false].
 (token symbol is ruby symbol (got by String#intern) as default.
- If you want to change this, see <a href="grammar#token">grammar reference</a>.
+ If you want to change this, see <a href="grammar.html#token">grammar reference</a>.
 <br> 
 "yyparse()" is little complecated, but useful. It does not use "next_token()",
 it gets tokens from any iterator. For example, "yyparse(obj, :scan)" causes
