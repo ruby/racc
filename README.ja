@@ -34,7 +34,7 @@ Racc README
   config を以下のようにすれば、拡張モジュールなしで
   インストールできます。
 
-      $ ruby install.rb --without-ext
+      $ ruby install.rb config --without-ext
 
 
 テスト

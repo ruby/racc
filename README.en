@@ -2,7 +2,7 @@ Racc README
 ===========
 
   Racc is a LALR(1) parser generator.
-  It is written in Ruby and outputs Ruby script.
+  It is written in Ruby itself, and generates Ruby program.
 
 
 Requirement
@@ -30,8 +30,8 @@ Installation
   For details, try "ruby install.rb --help".
 
 
-  For Windows Users
-  -----------------
+  If you don't have C Compiler
+  ----------------------------
 
   You can install Racc without C compilers. Type following
   command in config phase.
