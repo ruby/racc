@@ -1,10 +1,25 @@
-
-RACC   = %w( parser.rb )
-CPARSE = %w( cparse.c depend MANIFEST extconf.rb )
-
+#
+# racc runtime library packager
+#
 
 require 'amstd/futils'
 include FileUtils
+
+def allfile
+  ret = []
+  Dir.foreach( '.' ) do |i|
+    if file? i then
+      ret.push i
+    end
+  end
+  ret
+end
+
+
+RACCRT = %w(
+  parser.rb
+  scanner.rb
+)
 
 $target = expand( ARGV[0] )
 
@@ -15,16 +30,16 @@ end
 cp 'rtsetup.rb', $target + '/setup.rb'
 
 chdir( 'amstd' ) do
-  dn = isdir( $target + '/amstd' )
-  foreach_fullpath( '.' ) do |fn|
-    cp fn, dn if file? fn
-  end
+  cp allfiles, isdir( $target + '/amstd' )
 end
 
 chdir( 'racc' ) do
-  cp RACC, isdir( $target + '/racc' )
+  cp RACCRT, isdir( $target + '/racc' )
 
+  chdir( 'strscan' ) do
+    cp allfiles, isdir( $target + '/strscan' )
+  end
   chdir( 'cparse' ) do
-    cp CPARSE, isdir( $target + '/racc/cparse' )
+    cp allfiles, isdir( $target + '/racc/cparse' )
   end
 end

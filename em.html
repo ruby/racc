@@ -1,0 +1,799 @@
+. file index.html
+. header Racc User Manual
+
+<h1>Racc user manual</h1>
+
+<p>
+updated for version 0.10
+
+<ul>
+<li><a href="usage.html">usage</a>
+<li><a href="command.html">racc command reference</a>
+<li><a href="grammer.html">racc grammer reference</a>
+<li><a href="debug.html">for debug</a>
+<li><a href="scan.html">writing scanner for racc parser</a>
+<li><a href="changes.html">change log</a>
+</ul>
+
+. footer
+. file usage.html
+. header Usage
+
+<h1>Usage</a>
+
+<hr>
+
+<h2>Compiling racc grammer file</h2>
+
+<p>
+To compile racc grammer file, simply type:
+<pre>
+
+  $ racc parse.y
+
+</pre>
+This create ruby script file "parse.tab.y". -o option changes this.
+
+
+<h2>Creating Parser with Racc</h2>
+
+<p>
+If you want your own parser, you have to write grammer file.
+A grammer file contains name of parser class, grammer the parser can parse,
+user code, and any.<br>
+When writing grammer file, yacc's knowledge is helpful.
+If you have not use yacc, also racc is too difficult.
+
+<p>
+Here's example of Racc grammer file.
+<pre>
+
+class Calcparser
+
+rule
+  target: exp { print val[0] }
+        ;
+  exp: exp '+' exp
+     | exp '*' exp
+     | '(' exp ')'
+     | NUMBER
+     ;
+end
+
+</pre>
+Racc grammer file is resembles to yacc file.
+But (of cource), action is Ruby code. yacc's $$ is 'result', $0, $1... is
+an array 'val', $-1, $-2... is an array '_values'.
+
+<p>
+yylex() is method "next_token()".
+This method must returns an array like [TOKENSIMBOL, ITS_VALUE].
+EOF is [false, false].
+(token simbol is ruby simbol (got by String#intern) as default.
+ If you want to change this, see <a href="grammer#token">grammer reference</a>.
+
+<p>
+yyparse() is method "do_parse()".
+
+<p>
+When debug, "-v" or/and "-g" option is helpful.<br>
+"-v" causes creating verbose output file (.output).<br>
+"-g" causes creating "Verbose Parser".
+Verbose Parser prints internal status when parsing.
+But, attention please! it is <em>not</em> automatic.
+You must use -g option and be @yydebug true to get output.
+-g option only create verbose parser.
+
+
+<h3>re-distributing Racc runtime</h3>
+
+<p>
+A parser, which is created by Racc, requires Racc runtime.
+You should re-distribute Racc runtime with your parser, or
+users need to install Racc.
+
+<p>
+A Ruby script "rtpack.rb" helps you to include Racc runtime
+into your own package. Usage of pack.rb is:
+<pre>
+
+  /usr/src/racc-xxx/ $ ruby pack.rb TARGET/
+
+</pre>
+This copies Racc runtime under directory TARGET/ .
+(attention: pack.rb will clears TARGET/)
+
+<p>
+And the way to install Racc runtime when your installation is:
+<pre>
+
+  cd TARGET/
+  ruby setup.rb
+
+</pre>
+
+. footer
+. file command
+. header racc command
+
+<h1>racc command reference</h1>
+
+<hr>
+
+<p align=justify>
+  racc.rb [-vgE] [--version] [--help] [-o<var>outfile</var>] [-e<var>path</var>]
+    [-n<var>classname</var>] [-h<var>header</var>] [-i<var>inner</var>]
+    [-f<var>footer</var>] <var>filename</var>
+</p>
+
+<dl>
+<dt><var>filename</var>
+<dd>
+racc file. Any extention is permitted.
+
+<dt>-o<var>outfile</var>
+<dd>
+A filename for output. default is <filename>.tab.rb
+
+<dt>-e<var>path</var>
+<dd>
+output executable file(mode 755). <var>path</var> is a path of ruby interpreter.
+
+<dt>-v
+<dd>
+verbose mode. create "filename".output file, like y.output file.
+
+<dt>-g
+<dd>
+add debug code to parser class. To display debuggin information,
+use this '-g' option and set @yydebug true in parser class.
+
+<dt>-E
+<dd>
+output parser file which doesn't need runtime files(ex. racc/parser).
+A file created by this option working with only ruby.
+
+<dt>-n<var>classname</var>
+<dd>
+designate name of parser class. This option overwrite racc file's.
+
+<dt>-h<var>header</var>
+<dd>
+designate filename of 'header' user code.
+
+<dt>-i<var>inner</var>
+<dd>
+designate filename of 'inner' user code.
+
+<dt>-f<var>footer</var>
+<dd>
+designate filename of 'footer' user code.
+
+<dt>--version
+<dd>
+print Racc version and quit.
+
+<dt>--help
+<dd>
+print usage.
+
+</dl>
+
+. footer
+. file grammer.html
+. header grammer
+
+<h1>Racc grammer reference</h1>
+
+<hr>
+
+<p>
+updated for v0.10.2
+
+<p>
+This is temporary specification.
+
+
+<h2><a name="whole">global structure</a></h2>
+
+<h3><a name="blocks">blocks in file</a></h3>
+<p>
+There's two block on toplevel.
+one is 'class' block, another is 'user code' block. 'user code' block MUST
+places after 'class' block.
+
+
+<h3><a name="comment">comment</a></h3>
+
+<p>
+You can insert comment about all places. Two style comment can be used,
+Ruby style (#.....) and C style (/*......*/) .
+
+
+<h2><a name="class">class block</a></h2>
+
+<p>
+class block is like this:
+<pre>
+
+    class <var>class_name</var>
+      [<var>precedance</var>]
+      [<var>start</var>]
+      [<var>token</var>]
+    rule
+      <var>RULES</var>
+    end
+
+</pre>
+<var>class_name</var> is a name of parser class.
+This is equal to name of generating parser class.
+
+
+<h3><a name="grammer">rule block</a></h3>
+
+<p>
+'rule block' discripts grammer which is able to be understood by parser.
+For example:
+<pre>
+
+   (token): (token) (token) (token).... (action) ;
+
+   (token): (token) (token) (token).... (action)
+          | (token) (token) (token).... (action)
+          | (token) (token) (token).... (action)
+          ;
+
+</pre>
+This resembles to yacc, but semicolon MUST NOT be ommited.
+
+<p>
+(action) is an action which is executed when its (token)s are found.
+(action) is like this:
+<pre>
+
+        { print val[0]
+          puts val[1] }
+
+</pre>
+In (action), you cannot use '%' string, here document, '%r' regexp.
+You can omit action. When it is omitted, ''(void string) is used as action.
+
+<p>
+A return value of action is a value of left side value ($$).
+It is value of result, or returned value by "return" statement.
+
+<p>
+Then, here's a sample of whole 'rule block'.
+<pre>
+
+rule
+  goal: definition ruls source { result = val } ;
+
+  definition: /* none */   { result = [] }
+    | definition startdesig  { result[0] = val[1] }
+    | definition
+             precrule   # this line continue from upper line
+      {
+        result[1] = val[1]
+      }
+    ;
+
+  startdesig: START TOKEN ;
+
+end
+
+</pre>
+You can use these spetial local variables in action.
+<dl>
+<dt>result ($$)
+<dd>
+value of left-hand side (lhs). A default value is val[0].
+
+<dt>val ($1,$2,$3...)
+<dd>
+an array of value of right-hand side (rhs).
+
+<dt>_values (...$-2,$-1,$0)
+<dd>
+a stack of values
+
+</dl>
+
+
+
+<h3><a name="prec">Operator precedance</a></h3>
+
+<p>
+This function is equal to '%prec' in yacc.
+To designate this block:
+<pre>
+
+    prechigh
+      nonassoc '++'
+      left     '*' '/'
+      left     '+' '-'
+      right    '='
+    preclow
+
+</pre>
+'right' is '%right', 'left' is '%left'. While this example is written
+'prechigh' upper and 'preclow' lower, but another format 'preclow...prechigh'
+is also premitted.
+
+<p>
+'%prec' can be used. format is like this:
+<pre>
+
+  prechigh
+    nonassoc UMINUS
+    left '*' '/'
+    left '+' '-'
+  preclow
+
+  rule
+    exp: exp '*' exp
+       | exp '-' exp
+       | '-' exp       = UMINUS   # this!!!
+           :
+
+</pre>
+
+
+<h3><a name="start">start statement</a></h3>
+
+<p>
+'%start' in yacc. This changes start rule.
+<pre>
+
+      start real_target
+
+</pre>
+
+<p>
+this statement won't be used forever, I think.
+
+
+<h3><a name="token">Convert Token Simbol</a></h3>
+
+<p>
+token simbol is, as default,
+<dl>
+<dt>naked token string in racc file (TOK, XFILE, this_is_token, ...)
+<dd>simbol of it (:TOK, :XFILE, :this_is_token, ...)
+<dt>quoted string (':', '.', '(', ...)
+<dd>same string (':', '.', '(', ...)
+</dl>
+
+<p>
+You can change this by 'token' block. This is example:
+<pre>
+
+    token
+      PLUS 'PlusClass'      # not use :PLUS but PlusClass
+      MIN  'MinusClass'     # not use :MIN but MinusClass
+    end
+
+</pre>
+Almost all ruby value can be used by token simbol,
+but 'false' and 'nil' are NOT. These are causes unexpected parse error.
+
+<p>
+If you want to use String as token simbol, special care is required.
+For example:
+<pre>
+
+    token
+      class '"cls"'            # in code, "cls"
+      PLUS '"plus\n"'          # in code, "plus\n"
+      MIN  "\"minus#{val}\""   # in code, \"minus#{val}\"
+    end
+
+</pre>
+These are not BUG, but FEATURE.
+
+
+<h2><a name="usercode">User Code</a></h2>
+
+<p>
+'user block' is Ruby source code which is copied to output.
+In <a href="command.html">racc command</a>, Three spetial user code
+'header' 'inner' 'footer' are used.<br>
+Until version 0.10.2, they are called prepare/inner/driver.
+It is also OK, but they will be eliminated in future.
+
+<p>
+format of user code is like this:
+<pre>
+
+---- header
+  ruby statement
+  ruby statement
+  ruby statement
+
+---- inner
+  ruby statement
+     :
+
+</pre>
+If 4 '-' exist on line head, racc treat it as beginning of user code.
+A name of user code must be one word.
+
+<p>
+You can include other file as user code like this:
+<pre>
+
+---- footer = init.rb run.rb
+
+print "these code is used as driver, too!!"
+
+</pre>
+This statement makes racc to use "init.rb" "run.rb" as 'footer' user code.
+
+. footer
+. file debug.html
+. header debug info
+
+<h1>For debug</h1>
+
+<h2>when parse error</h2>
+
+<ul>
+<li>Threre is semicolon after action?
+<li>Isn't there too many "end" ? grammer of racc file is changed in v0.10.
+</ul>
+
+<h2>when parsing</h2>
+
+<ul>
+<li>Does your parser have method "next_token" ?
+<li>"next_token" returns Array of simbol and its value.
+<li>When there is no token, "next_token" must returns [false, false].
+<li>now "next_value" "peep_token" is obsolute.
+<li>Were all terminal tokens listed corectry in ".output" file ?
+    (and also nonterminal?)
+</ul>
+
+. footer
+. file scan.html
+. header scan
+
+<h1>scanner creation kit</h1>
+<hr>
+
+<h2>StringScanner user guide</h2>
+
+<h3>Porpose of this extension</h3>
+
+<p>
+StrScanner is Ruby extension for fast scanning.
+
+<p>
+Since Regexp class of Ruby cannot match to sub-string,
+to scan string you must make new String. For example
+<pre>
+       p " I_want_to_match_this_word but can't".index( /\A\w+/, 1 )
+</pre>
+This code display "nil".  Another way to match is as like this:
+
+<p><pre>
+str = " word word word"
+while str.size > 0 do
+  if /\A[ \t]+/ === str then
+    str = $'
+  elsif /\A\w+/ === str then
+    str = $'
+  end
+end
+</pre>
+
+<p>
+But, this method has big problem on speed issue.  $' makes new string EVERY time.
+Then, in this example, all these strings are created:<br>
+" word word word",<br>
+"word word word",<br>
+" word word"<br>
+"word word"<br>
+" word"<br>
+"word"<br>
+""<br>
+
+<p>
+This makes heavy load. If length of 'str' is 50KB,
+nearly 50KB ** 2 / 5 = 50MB memory is used!!
+
+<p>
+StrScanner class resolve this.<br>
+StrScanner has C string and pointer to it. When scanning, StrScanner do only
+increment pointer and not create new string. As a result, both of speed and
+application memory size decrease.
+
+
+<h3>simple examples, and methods</h3>
+
+<p>
+Then, here's two short example of scanning routine.<br>
+First is easy to write but slow scanning code.  Second is also easy to write,
+but FAST scanning code using StrScanner class.
+
+<p>
+First example:
+<pre>
+ATOM = /\A\w+/
+SPACE = /\A[ \t]+/
+
+while str.size > 0 do
+  if ATOM === str then
+    str = $'
+    return $&
+  elsif SPACE === str then
+    str = $'
+    return $&
+  end
+end
+</pre>
+
+<p>
+Second example:
+<pre>
+ATOM = /\A\w+/
+SPACE = /\A[ \t]+/
+
+s = StringScanner.new( str )
+while s.rest? do
+  if tmp = s.scan( ATOM ) then
+    return tmp
+  elsif tmp = s.scan( SPACE ) then
+    return tmp
+  end
+end
+</pre>
+
+<p>
+Usage of StrScanner is simple.<br>
+First: Create StrScanner object, next call 'scan' method. It return matched
+string and at the same time it increments its internal maintained "scan pointer".
+It is simply implemented as pointer to char(char*).<br>
+'skip' method is similer to 'scan', but it returns length of matched string.
+
+<p><pre>
+s = StrScanner.new( "abcdefg" )   # scan pointer is on 'a', index 0
+puts s.scan( /\Aa/ )              # return 'a'. scan pointer is on 'b', index 1
+puts s.skip( /\Abc/ )             # return 2. scan pointer is on 'd', index 3
+</pre>
+continue...
+
+<p>
+At that time previous "scan pointer" is preserved in StrScanner object. Then,
+str[ prev pointer..current pointer ] means the string which is returned from
+'scan' --- "matched string". We can get it by 'matched' method.
+
+<p><pre>
+puts s.matched                    # return 'bc'. scan pointer don't move
+puts s.scan( /\Aa/ )              # return nil. scan pointer don't move, too.
+puts s.matched                    # return 'bc'.
+</pre>
+
+<p>
+To puts scan pointer back, is also permitted. 'unscan' method implements that.
+But 'unscan' can do only ONE times for one 'scan' because StrScanner object
+can't preserve more than one pointers.
+
+<p><pre>
+puts s.scan( /\Ade/ )             # return 'de'. scan pointer is on 'f', index 5
+s.unscan                          # scan pointer is on 'd', index 3
+puts s.scan( /\Adef/ )            # return 'def'. scan pointer is on 'g', index 6
+</pre>
+
+<p>
+Yes, all these regexp begin with "\A". This is important. If regexp matching happen
+on non zero index, 'scan' (and other methods) return string from TOP OF POINTER to
+matched end. In example:
+
+<p><pre>
+str = StrScanner.new( 'aaaabbbbcccc' ).scan( /bbbb/ )
+p str    # will print "aaaabbbb"
+</pre>
+
+<p>
+For more details, see reference manual below (and/or make experiments).
+And of course, source code is most inportant documentation, I think :-)
+
+
+<hr>
+
+<h2>StrScanner reference manual</h2>
+
+
+<h3>Class Methods</h3>
+
+<dl>
+<dt>new( str : String, dup_p = true ) : StrScanner
+<dd>
+create new StrScanner object. 'str' is string to scan, 'dup_p' is a flag
+if duplicate string. dup_p may be kept untouch.
+
+</dl>
+
+
+<h3>Methods</h3>
+<dl>
+<dt>scan( regex: Regexp ): String
+<dd>
+do match with 'regex'.<br>
+if match, make "scan pointer" forward and return matched string.
+else return nil.
+
+
+<dt>skip( regex : Regexp ) : Integer
+<dd>
+do match with 'regex'.<br>
+if match, make "scan pointer" forward and return length of matched string.
+else return nil.
+
+
+<dt>match?( regex: Regexp ): Boolean
+<dd>
+do match with 'regex'.<br>
+if match, keep "scan pointer" untouch and return length of matched string.
+else return nil.
+
+
+<dt>fullscan( regex: Regexp, makestr_p: Boolean, fwdptr_p: Boolean ): Object
+<dd>
+do match with 'regex'.
+if match then
+  if fwdptr_p then forward pointer else keep untouch end
+  return (makestr_p ? matched string : length of matched string)
+else
+  return nil
+end
+
+
+<dt>getch : String
+<dd>
+return 1 byte which is pointed by "scan pointer", and make pointer forward.
+
+
+<dt>rest : String
+<dd>
+return string after the byte which is pointed by "scan pointer".
+
+
+<dt>rest? : Boolean
+<dd>
+return true if un-scanned string exists.
+
+
+<dt>restsize : Integer
+<dd>
+length of 'rest' string
+
+
+<dt>unscan
+<dd>
+set "scan pointer" back for one times.
+more than one times of 'unscan' for one 'scan' (or skip or...) raises ScanError.
+
+
+<dt>matched
+<dd>
+return previous matching string.
+It may done with 'scan' or 'skip'. 'match?' is not because 'match?' won't make
+"scan pointer" forward.
+
+
+<dt>matchedsize
+<dd>
+return length of 'matched' string.
+
+
+</dl>
+
+. footer
+. file changes.html
+. header changes
+
+<h1>Change Log</h1>
+
+<hr>
+<h2>0.10.9 (2000/01/19)</h2>
+<p>
+<ul>
+<li>change package/setup
+</ul>
+
+<h2>0.10.8 (2000/01/03)</h2>
+<p>
+<ul>
+<li>?
+<li>(1/17 re-packed) add/modify documents
+</ul>
+
+<h2>0.10.7 (2000/01/03)</h2>
+<p>
+thanks: Koji Arai
+<ul>
+<li>modify setup.rb compile.rb amstd/inst
+</ul>
+
+<h2>0.10.6 (1999/12/24)</h2>
+<p>
+<ul>
+<li>racc -e ruby
+<li>omit void action call
+</ul>
+
+<h2>0.10.5 (1999/12/21)</h2>
+<p>
+thanks: Toshiro Kuwabara (Tosh)
+<ul>
+<li>critical bug in embedded action implement
+<li>bug in setup.rb
+<li>modify calc[2].y for 0.10
+</ul>
+
+<h2>0.10.4 (1999/12/19)</h2>
+<p>
+<ul>
+<li>support error recover ('error' token)
+<li>can embed runtime by "racc -E"
+<li>Racc is module
+</ul>
+
+<h2>0.10.3 (1999/12/01)</h2>
+<p>
+<ul>
+<li>support embedded action
+<li>modify .output bug
+</ul>
+
+<h2>0.10.2 (1999/11/27)</h2>
+<p>
+<ul>
+<li>update document
+<li>separate libracc.rb
+</ul>
+
+<h2>0.10.1 (1999/11/19)</h2>
+<p>
+<ul>
+<li>rewrite runtime routine in C
+<li>once next_token returns [false, *], not call next_token
+<li>action is only default, not call next_token
+<li>$end is obsolute
+<li>LALRactionTable
+</ul>
+
+<h2>0.10.0 (1999/11/06)</h2>
+<p>
+<ul>
+<li>next_value, peep_token is obsolute
+<li>@__debug__ -&gt; @yydebug
+<li>class...rule...end
+<li>refine libracc.rb
+<li>unify strscan library
+<li>*.rb are installed in lib/ruby/VERSION/racc/
+</ul>
+
+<hr>
+
+<h2>0.9.5 (1999/10/03)</h2>
+<p>
+<ul>
+<li>too few arguments for __show_stack__
+<li>could not scan $end
+<li>typo in d.format.rb
+</ul>
+
+<h2>0.9.1 (1999/06/08)</h2>
+<h2>0.9.0 (1999/06/03)</h2>
+<h2>0.8.11 (?)</h2>
+<h2>0.8.10 (?)</h2>
+<h2>0.8.9 (1999/03/21)</h2>
+<h2>0.8.8 (1999/03/20)</h2>
+<h2>0.8.7 (1999/03/01)</h2>
+<h2>0.8.0 (1999/01/16)</h2>
+<h2>0.5.0 (1999/01/07)</h2>
+<h2>0.1.0 (1999/01/01)</h2>
+
+. footer

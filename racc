@@ -1,6 +1,6 @@
 #!/usr/local/bin/ruby
 #
-# racc version 0.10.8
+# racc version 0.10.9
 #
 #   Copyright (c) 1999 Minero Aoki <aamine@dp.u-netsurf.ne.jp>
 #
@@ -301,7 +301,7 @@ if $OPT_P then
 end
 
 if $OPT_v then
-  output_fn = make_filename( srcfn, '.output' )
+  output_fn = make_filename( $OPT_o || srcfn, '.output' )
 
   File.open( output_fn, 'w' ) do |f|
     if racc.rrconf.size > 0 then

@@ -1,0 +1,74 @@
+Racc readme
+
+必要環境
+
+  o  ruby version 1.4 以降
+  o  C compiler
+
+  Racc は一部に拡張モジュールを使っています。
+  また、Racc で生成したパーサの動作時には基本的に Racc ランタイムが必要です
+  (racc の -E オプションでランタイムが必要ないパーザを生成することもできます)。
+
+
+インストール
+
+  シェルで次のように打ってください。
+  # の部分は普通はスーパーユーザの権限が必要です。
+
+  $ tar zxf racc-XXX.tar.gz
+  $ cd racc-XXXX
+  $ ruby setup.rb config
+  $ ruby setup.rb setup
+  # ruby setup.rb install
+
+  これで、通常のパスに Racc がインストールされます。
+  自分の好きなディレクトリにインストールしたいときは、
+  setup.rb config にロングオプションを与えてください。
+  オプションは ruby setup.rb --help で見られます。
+
+  また、自分で(手動で)インストールしたいときは
+  racc/* を cparse.so といっしょに RUBYLIB/racc/ に、
+  amstd/* を RUBYLIB/amstd に、
+  strscan/strscan.so を拡張モジュールの置場に、
+  bin/* を /usr/local/bin などにインストールしてください。
+  ファイル一覧は FILES というファイルに書いてあります。
+
+
+サンプルをコンパイルしてみる
+
+  Raccのサンプルとして、簡単な計算機がついています。
+  コンパイル用のスクリプトがあるので、
+
+  $ ruby compile.rb calc2
+
+  として下さい。コンパイルは数秒(または一瞬)で終わるので、
+
+  $ ./calc.rb
+
+  を実行してください。ちゃんとうごいていますか？
+  この計算機では、加減乗除とかっこがつかえます。
+  式をまちがえると…
+
+  Raccの文法など詳しいことは doc.ja ディレクトリ以下のHTMLを参照してください。
+
+
+著作権
+
+  このパッケージに付属するファイルの著作権はMinero Aokiが保持します。
+  ライセンスは GNU Lesser General Public License (LGPL) version 2 です。
+  ただし Racc によって生成したRubyスクリプトはその対象外とします。
+
+
+バグなど
+
+  Racc を使っていてバグらしき現象に遭遇したら、下記のアドレスまでメールを
+  ください。作者にはバグを修正する義務はありませんがその意思はあります。
+  また、そのときは  どのような現象が起きたのか  ということをできるだけ詳しく
+  記述していただくようお願いします。文法ファイル、-g をつけたときの出力も
+  できるだけつけてください。
+
+
+Minero Aoki (あおきみねろう)
+
+mail  aamine@dp.u-netsurf.ne.jp
+site  http://www1.u-netsurf.ne.jp/~brew/mine/ja/
