@@ -100,6 +100,11 @@ This tool is written in Ruby and outputs Ruby scripts.
     $<raccrt>.update
   end
 
+  def set_files_main( packdir )
+    super
+    cp '/home/aamine/r/amstd/rubyloader.rb', isdir(packdir, 'lib', $instpath)
+  end
+
   def set_files_etc( packdir )
     cp $src,                   isdir(packdir, 'src')
     cp Dir.glob('sample/*.y'), isdir(packdir, 'sample')

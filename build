@@ -1,7 +1,5 @@
 #!/usr/local/bin/ruby
 
-require 'amstd/must'
-
 require 'racc/info'
 require 'racc/grammar'
 require 'racc/state'

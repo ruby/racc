@@ -301,7 +301,7 @@ end
 
 ##### output -----------------------------------------------
 
-require 'amstd/rubyloader'
+require 'racc/rubyloader'
 
 
 def write_table_file( racc, srcfn, opt )
