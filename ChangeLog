@@ -1,3 +1,11 @@
+Sun Oct 12 15:25:23 2003  Minero Aoki  <aamine@loveruby.net>
+
+	* lib/racc/compiler.rb: adjust file names.
+
+	* lib/racc/grammarfileparser.rb.in: ditto.
+
+	* lib/racc/grammarfilescanner.rb: ditto.
+
 Sun Oct 12 15:24:53 2003  Minero Aoki  <aamine@loveruby.net>
 
 	* Makefile: new file.

@@ -13,7 +13,7 @@
 
 require 'racc/compat'
 require 'racc/parser'
-require 'racc/raccscanner'
+require 'racc/grammarfilescanner'
 require 'racc/usercodeparser'
 
 

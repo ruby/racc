@@ -1,5 +1,5 @@
 #
-# raccs.rb
+# grammarfilescanner.rb
 #
 # Copyright (c) 1999-2003 Minero Aoki <aamine@loveruby.net>
 #
