@@ -13,7 +13,7 @@
 ##### main -----------------------------------------------------
 
 def racc_main
-  opt = get_options
+  opt = get_options()
   require opt['-R'] || 'racc/compiler'
   srcfn = ARGV[0]
 
@@ -180,10 +180,10 @@ def get_options
 end
 
 
-def usage( status = 1, msg = nil )
-  f = (status == 0) ? $stdout : $stderr
+def usage( status, msg = nil )
+  f = (status == 0 ? $stdout : $stderr)
   f.puts "#{File.basename $0}: #{msg}" if msg
-  f.print <<EOS
+  f.print(<<EOS)
 
 Usage: racc [options] <grammar file>
 

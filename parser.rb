@@ -114,7 +114,7 @@ module Racc
       nt_base,      reduce_table, token_table,    shift_n,
       reduce_n,     use_result,   * = arg
 
-      _racc_init_sysvars()
+      _racc_init_sysvars
       tok = act = i = nil
       nerr = 0
 
