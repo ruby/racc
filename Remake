@@ -83,8 +83,7 @@ Racc (Ruby yACC) is a LALR(1) parser generator for Ruby.
 
   def init
     ln_sf '../amstd/rubyloader.rb', '.'
-    ln_sf 'rubycvs/lib/racc/parser.rb', '.'
-    ln_sf 'rubycvs/ext/racc/cparse/cparse.so', '.'
+    ln_sf 'cparse/cparse.so', '.'
     boot
   end
 
@@ -120,9 +119,6 @@ Racc (Ruby yACC) is a LALR(1) parser generator for Ruby.
 
 environ( 'rubyprog/raccrt' ) {
 
-  $origdir = $dir
-  $dir = $origdir + '/rubycvs/lib/racc'
-
   $version = $<racc>.$version
 
   $packaging   = %w( single )
@@ -145,7 +141,7 @@ environ( 'rubyprog/raccrt' ) {
 
   environ( 'cparse' ) {
 
-    $dir = $origdir + '/rubycvs/ext/racc/cparse'
+    $dir += '/cparse'
 
     $type     = 'ext'
     $topfile  =  nil
