@@ -5,12 +5,12 @@
     attr :classname
 
 
-    def initialize( rac )
-      @racc   = (rac.must Racc)
-      @interf = @racc.interf
+    def initialize( racc )
+      racc.must Racc
+      @racc   = racc
+      @interf = racc.interf
 
       @scanner = RaccScanner.new
-
       @scanner.debug = @yydebug = $RACCPARSER_DEBUG
     end
 

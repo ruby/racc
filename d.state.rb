@@ -4,6 +4,7 @@
     def initialize( racc )
       @racc = racc
       @ruletable  = racc.ruletable
+      @tokentable = racc.tokentable
 
       @d_state  = racc.d_state
       @d_reduce = racc.d_reduce
@@ -47,19 +48,24 @@
             puts "resolving state #{state.stateid} -------------"
           end
 
-          ### default
-
-          # de   = Token.default
-          # rptr = state.reduce_ptrs[0]
-          # goto = state.goto_state_from_rptr
-          # act[ de ] = ReduceAction.new( rptr.rule )
-
-          ### resolve
-
           state.resolve_rr
           state.resolve_sr
         end
       end
+
+      # set accept
+
+      anch = @tokentable.anchor
+      s = @states[0].nonterm_table[ @ruletable.start ]
+      s = s.action[ anch ].goto_state
+      s = @states[s]
+      s = s.action[ anch ].goto_state
+      s = @states[s]
+      s.action.clear
+      s.nonterm_table.clear
+      s.action[ @tokentable.default ] = AcceptAction.new
+
+      enshort   #not_enshort
     end
 
 
@@ -168,6 +174,54 @@
       end
     end
 
+
+    def not_enshort
+      deft = @tokentable.default
+      @states.each do |st|
+        st.action[deft] ||= ErrorAction.new
+      end
+    end
+
+    def enshort
+      arr = []
+      act = nil
+      i = nil
+      deft = @tokentable.default
+      dflt = nil
+
+      @states.each do |st|
+        #
+        # find most used reduction
+        #
+        act = st.action
+        (@ruletable.size - 1).downto(0){|i| arr[i] = 0 }
+        act.each do |t,a|
+          if ReduceAction === a then
+            arr[a.rule.ruleid] += 1
+          end
+        end
+        i = 1
+        s = nil
+        arr.each_with_index do |n,idx|
+          if n > i then
+            i = n
+            s = idx
+          end
+        end
+
+        dflt = act[deft]
+        if s then
+          r = ReduceAction::Instance[s]
+          if not dflt or dflt == r then
+            act.delete_if {|t,a| a == r }
+            act[deft] = r
+          end
+        else
+          act[deft] = ErrorAction.new unless dflt
+        end
+      end
+    end
+
   end   # LALRstateTable
 
 
@@ -196,6 +250,7 @@
       @seed = seed
 
       @racc      = racc
+      @tokentable = racc.tokentable
       @d_reduce  = racc.d_reduce
       @d_shift   = racc.d_shift
 
@@ -240,7 +295,7 @@
     def conflicting?
       if @reduce_ptrs.size > 0 then
         if @closure.size == 1 then
-          @action[ Token.default ] = ReduceAction.new( @closure[0].rule )
+          @action[ @tokentable.default ] = ReduceAction.new( @closure[0].rule )
         else
           return true
         end
@@ -536,6 +591,42 @@
       "<reduce #{@rule.ruleid}>"
     end
 
+  end
+
+
+  class AcceptAction < LALRaction
+
+    Instance = []
+
+    class << self
+      alias orig_new new
+      def new
+        Instance[0] || orig_new
+      end
+    end
+
+    def inspect
+      "<accept>"
+    end
+
+  end
+
+
+  class ErrorAction < LALRaction
+
+    Instance = []
+
+    class << self
+      alias orig_new new
+      def new
+        Instance[0] || orig_new
+      end
+    end
+
+    def inspect
+      "<error>"
+    end
+  
   end
 
 

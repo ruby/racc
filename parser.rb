@@ -5,8 +5,8 @@
 #    aamine@dp.u-netsurf.ne.jp
 #
 
-require 'extmod'
-require 'bug'
+require 'amstd/extmod'
+require 'amstd/bug'
 
 
 class ParseError < StandardError ; end
@@ -14,29 +14,48 @@ class ParseError < StandardError ; end
 
 class Parser
 
-  Shift   = Integer
-  Reduce  = Array
-  Accept  = Object.new
-
-  Dammy   = Object.new
-  Default = Object.new
-  Anchor  = false
-
-
   private
+
+
+  begin
+    require 'racc/cparse'   # def _c_parse
+    $Racc_Main_Parsing_Routine = :c
+  rescue LoadError
+    $Racc_Main_Parsing_Routine = :rb
+  end
 
 
   abstract :next_token
 
 
   def do_parse
+    unless self.type::DEBUG_PARSER then
+      @yydebug = false
+    end
+    @yydebug = @yydebug ? true : false
 
+    case $Racc_Main_Parsing_Routine
+    when :c  then _c_parse false
+    when :rb then _rb_parse
+    else
+      bug!
+    end
+  end
+
+
+  def _rb_parse
     #
     # local parameters
     #
 
-    lr_action_table = self.type::LR_action_table
-    lr_goto_table   = self.type::LR_goto_table
+    action_table = self.type::LR_action_table
+    action_ptr   = self.type::LR_action_table_ptr
+    goto_table   = self.type::LR_goto_table
+    goto_ptr     = self.type::LR_goto_table_ptr
+    reduce_table = self.type::LR_reduce_table
+    token_table  = self.type::LR_token_table
+    shift_n      = self.type::LR_shift_n
+    reduce_n     = self.type::LR_reduce_n
 
     state    = [ 0 ]
     curstate = 0
@@ -47,22 +66,19 @@ class Parser
     atmp = next_token
     tok = atmp[0]
     val = atmp[1]
+    t = token_table[tok]
 
-    hash = nil
-    act  = nil
+    act = nil
+    i = ii  = nil
 
     len       = nil
     reduce_to = nil
+    method_id = nil
 
     tmp_t = nil
     tmp_v = nil
 
     void_array = []
-
-    unless self.type::DEBUG_PARSER then
-      @yydebug = false
-    end
-
 
     #
     # LR parsing algorithm main loop
@@ -70,16 +86,25 @@ class Parser
 
     while true do
 
-      hash = lr_action_table[ curstate ]
-      act = (hash[ tok ] or hash[ Default ])
+      i = action_ptr[curstate]
+      while true do
+        ii = action_table[i]
+        if ii == t or ii == 0 then
+          act = action_table[i+1]
+          break
+        end
+        i += 2
+      end
 
-      case act
-      when Shift
+      if act >= 0 and act <= shift_n then
+        #
+        # shift
+        #
 
-        tstack.push tok
+        tstack.push t
         vstack.push val
 
-        _shift( tok, tstack ) if @yydebug
+        _shift( t, tstack ) if @yydebug
 
         curstate = act
         state.push curstate
@@ -87,13 +112,17 @@ class Parser
         atmp = next_token
         tok = atmp[0]
         val = atmp[1]
+        t = token_table[tok]
 
-      when Reduce
+      elsif act < 0 and act >= -reduce_n then
+        #
+        # reduce
+        #
 
-        # act = [len, reduce_to, method_ID]
-
-        len       = act[0]
-        reduce_to = act[1]
+        i = act * -3
+        len       = reduce_table[i]
+        reduce_to = reduce_table[i+1]
+        method_id = reduce_table[i+2]
 
         tmp_t = tstack[ -len, len ]
         tmp_v = vstack[ -len, len ]
@@ -102,51 +131,58 @@ class Parser
         state[ -len, len ]  = void_array
 
         # tstack must be renewed AFTER method calling
-        vstack.push send( act[2], tmp_t, tmp_v, tstack, vstack, state )
+        vstack.push send( method_id, tmp_t, tmp_v, tstack, vstack, state )
         tstack.push reduce_to
-
-        break if reduce_to == Accept
 
         _reduce( tmp_t, reduce_to, tstack ) if @yydebug
 
-        curstate = lr_goto_table[ state[-1] ][ reduce_to ]
+        i = goto_ptr[state[-1]]
+        while true do
+          ii = goto_table[i]
+          if ii == reduce_to or ii == 0 then
+            curstate = goto_table[i+1]
+            break
+          end
+          i += 2
+        end
         state.push curstate
 
-      when Accept
+      elsif act == -1 - reduce_n then
+        #
+        # accept
+        #
 
-        break   # not used yet
+        _accept if @yydebug
+        break
+
+      elsif act == shift_n + 1 then
+        #
+        # error
+        #
+
+        begin
+          on_error( tok, val, tstack, vstack, state )
+        rescue ParseError
+          raise
+        rescue
+          raise ParseError,
+            "raised in user define 'on_error', message:\n#{$!}"
+        end
 
       else
-        unless act then
-          _error_handler( tok, val, tstack, vstack, state )
-        else
-          bug! "act is not Shift/Reduce, '#{act}'(#{act.type})"
-        end
+        bug! "unknown action #{act}"
       end
 
       _print_state( curstate, state ) if @yydebug
     end
 
-    _accept if @yydebug
-
-    return vstack[0]
-  end
-
-
-  def _error_handler( tok, val, tstack, vstack, state )
-    begin
-      on_error( tok, val, tstack, vstack, state )
-    rescue ParseError
-      raise
-    rescue
-      raise ParseError, "raised in user define 'on_error', message:\n#{$!}"
-    end
+    vstack[0]
   end
 
 
   def on_error( tok, val, tstack, vstack, state )
     raise ParseError,
-      "\nunexpected token '#{val}', in state #{state[-1]}"
+      "\nIn state #{state[-1]}, got unexpected token '#{val.inspect}'"
   end
 
 

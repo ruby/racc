@@ -92,9 +92,8 @@ def any_to_file( arg, mode, &block )
 end
 
 def connect_f( from, to )
-  to.puts
-  to.puts
   from.each {|line| to.write line }
+  to.puts
 end
 
 def connect( from, to )
@@ -236,7 +235,10 @@ tabfn = $OPT_o || make_filename( srcfn, '.tab.rb' )
 class_name = $OPT_n || racc.class_name
 
 File.open( tabfn, 'w' ) do |f|
-  f.print "#!#{$OPT_e}\n\n" if $OPT_e
+  if $OPT_e then
+    f.puts "#!#{$OPT_e}"
+    f.puts
+  end
   f.puts  "require '#{$OPT_X || 'racc/parser'}'"
   connect_part srcfn, f, $OPT_p, 'prepare'
   f.puts  "class #{class_name} < #{$OPT_S || 'Parser'}\n"

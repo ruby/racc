@@ -4,6 +4,7 @@
 
   attr :parser
   attr :ruletable
+  attr :tokentable
   attr :statetable
   attr :formatter
   attr :interf
@@ -33,6 +34,7 @@
   end
 
   def reset
+    @tokentable = TokenTable.new( self )
     @ruletable  = RuleTable.new( self )
     @interf     = BuildInterface.new( self )
     @parser     = RaccParser.new( self )

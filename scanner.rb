@@ -5,8 +5,8 @@
 #     aamine@dp.u-netsurf.ne.jp
 #
 
-require 'bug'
-require 'must'
+require 'amstd/bug'
+require 'amstd/must'
 require 'strscan'
 
 

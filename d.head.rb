@@ -5,7 +5,7 @@
 #    aamine@dp.u-netsurf.ne.jp
 #
 
-require 'must'
-require 'extmod'
+require 'amstd/must'
+require 'amstd/extmod'
 require 'racc/parser'
 require 'racc/scanner'

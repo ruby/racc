@@ -3,6 +3,7 @@
 
     def initialize( racc )
       @ruletable  = racc.ruletable
+      @tokentable = racc.tokentable
 
       @precs = []
 
@@ -13,7 +14,7 @@
 
     
     def get_token( val )
-      Token.new( val )
+      @tokentable.get( val )
     end
     
     def register_rule( simbol, rulearr, tempprec, actstr )
@@ -86,7 +87,8 @@
   class RuleTable
 
     def initialize( rac )
-      @racc     = rac
+      @racc = rac
+      @tokentable = rac.tokentable
 
       @d_token = rac.d_token
       @d_rule  = rac.d_rule
@@ -111,13 +113,16 @@
     end
    
     
-    def do_initialize( start )
+    attr :start
 
-      ### add dammy rule
+    def do_initialize( start = nil )
 
-      start  = (start or @rules[0].simbol)
+      ### add dummy rule
 
-      temp = Rule.new( Token.dammy, [ start, Token.anchor ], '',
+      @start = start || @rules[0].simbol
+
+      temp = Rule.new( @tokentable.dummy,
+             [ @start, @tokentable.anchor, @tokentable.anchor ], '',
              0, 0, nil )
            # id hash prec
       @rules.unshift temp
@@ -130,13 +135,9 @@
         rule.simbol.rules.push rule.ptrs(0)
       end
 
-      Token.each do |tok|
+      @tokentable.each do |tok|
         tok.term = (tok.rules.size == 0)
       end
-
-      #Token.each do |tok|
-      #  tok.first
-      #end
 
       @rules.each do |rule|
         temp = nil
@@ -167,6 +168,10 @@
 
     def each_with_index( &block )
       @rules.each_with_index( &block )
+    end
+
+    def size
+      @rules.size
     end
 
     def to_s
@@ -353,51 +358,63 @@
 
 
 
-  class Token
+  class TokenTable
 
-    Instance = {}
+    include Enumerable
 
-    class << self
-
-      alias orig_new new
-
-      def new( val )
-        unless ret = Instance[ val ] then
-          ret = orig_new( val )
-          Instance[ val ] = ret
-        end
-
-        ret
-      end
-
-      def each( &block )
-        Instance.each_value( &block )
-      end
-
-      def dammy
-        new( Parser::Default )
-      end
-
-      def anchor
-        new( Parser::Anchor )
-      end
-
-      def default
-        new( Parser::Default )
-      end
-
+    def initialize( racc )
+      @nextid = 2
+      @chk = {}
+      @tokens = []
+      
+      @default = get( :$default, Token::Default )
+      @dummy   = get( :$start,   Token::Dummy )
+      @anchor  = get( :$end,     Token::Anchor )
     end
 
+attr :tokens
+    def get( val, tid = nil )
+      unless ret = @chk[ val ] then
+        unless tid then
+          tid = @tokens.size
+          tid = 2 if tid < 2
+        end
+        ret = Token.new( val, tid )
+        @chk[ val ] = ret
+        @tokens[tid] = ret if tid >= 0
+      end
 
-    def initialize( tok )
+      ret
+    end
+
+    def each( &block )
+      @tokens.each &block
+      block.call @anchor
+    end
+
+    attr :dummy
+    attr :anchor
+    attr :default
+
+  end
+
+
+  class Token
+
+    Anchor  = -1
+    Default = 0
+    Dummy   = 1
+
+    def initialize( tok, tid )
 if Token === tok then
   bug! 'Token for Token.new'
 end
       @value = tok
+      @tokenid = tid
 
-      @valtype = @value.type
-      @dammy   = (@value == Dammy)
-      @anchor  = (@value == Anchor)
+      @dummy   = (tid == Dummy)
+      @anchor  = (tid == Anchor)
+      @defualt = (tid == Default)
       @hash    = @value.hash
 
       @rules  = []
@@ -409,12 +426,8 @@ end
       @bfrom  = nil
     end
 
-
-    Dammy   = Parser::Dammy
-    Anchor  = Parser::Anchor
-    Default = Parser::Default
-
     attr     :value
+    attr     :tokenid
     attr     :rules
     attr     :locate
     attr     :term,                true
@@ -426,36 +439,31 @@ end
     alias terminal? term
     alias null?     nullp
 
-    attr :dammy
+    attr :dummy
     attr :anchor
     attr :hash
 
-    alias dammy?  dammy
+    alias dummy?  dummy
     alias anchor? anchor
 
 
-    def to_s
-      if    Integer === @value  then @value.id2name
-      elsif String  === @value  then @value.inspect
-      elsif @value  ==  Anchor  then '$end'
-      elsif @value  ==  Default then '$default'
-      elsif @value  ==  Dammy   then '$dammy'
+    def to_s   # for system internal
+      case @value
+      when Integer then @value.id2name
+      when String  then @value.inspect
       else
-        bug! "wrong token type: val=#{@value}(#{@value.type})"
+        bug! "wrong token value: #{@value}(#{@value.type})"
       end
     end
     alias inspect to_s
 
-
-    def uneval
-      if    @conv               then @conv.dup
-      elsif @value  ==  Dammy   then 'Dammy'
-      elsif Integer === @value  then ':' + @value.id2name
-      elsif String  === @value  then @value.inspect
-      elsif @value  ==  Anchor  then 'Anchor'
-      elsif @value  ==  Default then 'Default'
+    def uneval   # for output
+      if    @conv              then @conv
+      elsif anchor?            then 'false'
+      elsif Integer === @value then ':' + @value.id2name
+      elsif String === @value  then @value.inspect
       else
-        bug! "wrong token type: val=#{@value}(#{@value.type})"
+        bug! "wrong token value: #{@value}(#{@value.type})"
       end
     end
 
@@ -471,7 +479,6 @@ end
 
       if @term then
         bug! '"first" called for terminal'
-        #ret[ self ] = true
       else
         tmp = {}
         @rules.each do |ptr|
