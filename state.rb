@@ -8,6 +8,7 @@
 #   the GNU Lesser General Public License version 2 or later.
 #
 
+require 'racc/iset'
 require 'amstd/must'
 
 

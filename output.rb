@@ -379,7 +379,8 @@ Racc_arg = [
 
 ---
       out << "Racc_token_to_s_table = [\n"
-      out << @symboltable.collect{|tok| "'" + tok.to_s + "'" }.join(",\n")
+      out << @symboltable.collect {|tok|
+              "'" + tok.to_s.gsub(/'/, '\\\'') + "'" }.join(",\n")
       out << "]\n\n"
       out << "Racc_debug_parser = #{@dsrc}\n\n"
     end

@@ -3,7 +3,8 @@
 
 <h1>Racc user manual</h1>
 
-updated for version 1.3.7
+<p>
+updated for version 1.3.8
 
 <p>
 Racc は文法規則から Ruby で書かれたパーサを生成するパーサジェネレータです。
@@ -31,10 +32,9 @@ racc は yacc を知っていることを前提にしていますので、もし知らないのな
 <blockquote>
 そんなことはないです。これは断言できます
 </blockquote>
-と書かれてしまったので筆者ももう少しねばってみます。
-しかし、やっぱり親切丁寧というわけにはいかないので、詳しくは 2001 年
-2 月末発売予定の「Ruby を 256 倍使う本 無道編」(青木峰郎著、ASCII)を
-読んでください。
+と書かれてしまったので筆者ももう少しねばってみます。しかしやっぱり初歩
+から親切丁寧というわけにはいかないので、詳しくは 2001 年 2 月末発売の
+「Ruby を 256 倍使う本 無道編」(青木峰郎著、ASCII) を読んでください。
 
 <h2>Racc とはなにか</h2>
 <p>
@@ -948,115 +948,133 @@ HelperClass は ::MyMod::MyMod::HelperClass になってしまいます。
 . file parser.html ------------------------------------------------
 <% header 'Parser' %>
 
-<h1>parser.rb</h1>
-
-<hr>
-
-<h2><a name="parser">Racc::Parserクラス</a></h2>
+<h1><a name="parser">Racc::Parserクラス</a></h1>
 <p>
-Racc の生成するパーサはすべて Parser クラスを継承します。
-Parser クラスにはパース中に使用するメソッドがいくつかあり、
+Racc の生成するパーサはすべて <code>Parser</code> クラスを継承します。
+<code>Parser<code> クラスにはパース中に使用するメソッドがいくつかあり、
 そのようなメソッドをオーバーロードすると、パーサの初期化などができます。
 逆に言うと、これらのメソッドを変に再定義すると挙動がおかしく
 なるわけですから注意してください。
 
-<h3>ファイル</h3>
-<p>
-racc/parser.rb
-
-<h3>スーパークラス</h3>
+<h2>スーパークラス</h2>
 <p>
 Object
 
-<h3>定数</h3>
+<h2>定数</h2>
 <p>
 プリフィックス "Racc_" がついた定数はパーサの予約定数です。
 そのような定数は使わないでください。動作不可能になります。
 
-<h3>メソッド</h3>
-<dl>
-<dt><a name="do_parse">do_parse</a>
-<dd>
-このメソッドを呼ぶことによってパースが開始します。また、
-トークンが必要になった時は next_token を呼び出します。
+<h2>メソッド</h2>
+<p>
+ここに載っているもののほか、プリフィクス "racc_" および "_racc_" が
+ついたメソッドはパーサの予約名です。そのようなメソッドは使わないで
+ください。
 
-<dt><a name="next_token">next_token</a> [abstract]
-<dd>
-パーサが次のトークンを読みこむ時に使います。[トークンシンボル,その値]
-の形式の配列を返してください。トークンシンボルの値は、デフォルトでは
+<dl>
+<dt><a name="do_parse"><code>do_parse</code></a>
+<dd><p>
+このメソッドを呼ぶことによってパースが開始します。また、トークンが必要
+になった時は <code>next_token</code> を呼び出します。
+
+<dt><a name="next_token"><code>next_token</code></a> [abstract]
+<dd><p>
+パーサが次のトークンを読みこむ時に使います。[記号, その値]の形式の配列
+を返してください。記号はデフォルトでは
 <ul>
 <li>文法中、引用符でかこまれていないもの<br>
-    →その名前の文字列を intern して得られるシンボル(たとえば:ATOM)
+    →その名前の文字列のシンボル (たとえば <code>:ATOM</code> )
 <li>引用符でかこまれているもの<br>
-    →その文字列そのまま(たとえば、'=')
+    →その文字列そのまま(たとえば、<code>'='</code>)
 </ul>
-です。これを変更する方法については、
+で表します。これを変更する方法については、
 <a href="grammer.html#token">文法リファレンス</a>を参照してください。
 <p>
-また、もう送るシンボルがなくなったときには、[false,なにか] を返してください。
-これを忘れるとわけのわからないパースエラーになります。(一回送れば十分です)<br>
-ただし 1.3.7 からは試験的に nil も終端として認めるようにしています。
+また、もう送るシンボルがなくなったときには <code>[false, なにか]
+</code> を返してください。これを忘れるとわけのわからないパースエラーに
+なります (一回送れば十分です)。ただし 1.3.7 からは試験的に 
+<code>nil</code> も終端として認めるようにしています。
 <p>
-このメソッドは抽象メソッドなので do_parse を使う場合は<em>必ず</em>
-下位クラスで再定義する必要があります。定義しないままパースを始めると
-例外 NotImplementedError が発生します。
+このメソッドは抽象メソッドなので <code>do_parse</code> を使う場合は
+<em>必ず</em>下位クラスで再定義する必要があります。定義しないままパー
+スを始めると例外 <code>NotImplementedError</code> が発生します。
 
-<dt><a name="yyparse">yyparse( recv, mid )</a>
-<dd>
-このメソッドを呼ぶことによってパースが開始します。
-このメソッドでは始めてトークンが必要になった時点で recv に対して
-mid メソッドを呼び出し、そのブロックからトークンを得ます。
-つまり、recv#mid というメソッドを用意して yyparse(recv,mid) とすれば
-recv#mid からトークンを yield して渡すことができます。yield するのは
-next_token と同じ形式の [記号, 値] です。ちなみにこのような動作は、
-Ruby の特性から
-<blockquote><pre>n
+<dt><a name="yyparse"><code>yyparse( <var>recv</var>, <var>mid</var> )</code></a>
+<dd><p>
+このメソッドを呼ぶことによってパースが開始します。このメソッドでは始め
+てトークンが必要になった時点で <var>recv</var> に対して <var>mid</var> 
+メソッドを呼び出し、そのブロックからトークンを得ます。つまり 
+<code>recv#mid</code>というメソッドを用意して 
+<code>yyparse(recv,mid)</code> とすれば <code>recv#mid</code> からトー
+クンを <code>yield</code> して渡すことができます。<code>yield</code> 
+するのは <code>next_token</code> と同じ形式の [記号, 値] です。さらに
+このような動作は Ruby の <code>yield</code> の特性から
+
+<blockquote><pre>
 yield 記号, 値
 </pre></blockquote>
+
 と書けます。いちおう書いておくと
-<blockquote><pre>n
+
+<blockquote><pre>
 yield [記号, 値]
 </pre></blockquote>
+
 は意図したのとは違って
-<blockquote><pre>n
+
+<blockquote><pre>
 yield()[記号, 値]
 </pre></blockquote>
+
 になります。
 <p>
-少し注意が必要なのは、recv#mid が呼び出されるのは始めてトークンが
-必要になった時点であるということで、つまりその時点でもうパースが
-進行中だということです。よって、recv#mid の最初でパースの初期化を
-するとうまくいかない場合があります。それから、トークンの終端を示す
-[false, なにか] を渡したらそれ以上は yield しないでください。その
-場合には例外が発生します。
+少し注意が必要なのは、<code>recv#mid</code> が呼び出されるのは始めてトー
+クンが必要になった時点であるということで、つまりその時点でもうパースが
+進行中だということです。よって <code>recv#mid</code> の最初でパースの
+初期化をするとうまくいかない場合があります。それから、トークンの終端を
+示す<code>[false, なにか]</code> を渡したらそれ以上は 
+<code>yield</code> しないでください。その場合には例外が発生します。
 <p>
-さらにさらに言うと、recv#mid では必ず yield してください。
-しない場合は何が起きても責任持てません。
+さらにさらに言うと、<code>recv#mid</code> では必ず <code>yield</code> 
+してください。しない場合は何が起きても責任持てません。
 
-<dt>on_error( err_tok, err_val, _values )
-<dd>
-パーサコアが文法エラーを検出するとよびだします(yyerror)。
-エラーメッセージを出すなり、例外を発生するなりしてください。
-このメソッドからもどったあとは、パーサはエラー回復モードに移行します。
+<dt><a name="on_error"><code>
+    on_error( <var>err_tok</var>, <var>err_val</var>, <var>_values</var> )
+    </code></a>
+<dd><p>
+パーサコアが文法エラーを検出するとよびだします(yacc での
+<code>yyerror</code>)。エラーメッセージを出すなり、例外を発生するなり
+してください。このメソッドからもどったあとは、パーサはエラー回復モード
+に移行します。
 <p>
-引数は、err_tok がパースエラーをおこした記号(の内部表現の整数)、
-err_val がその値、_values はその時点の値スタックです。
+引数は、<var>err_tok</var> がパースエラーをおこした記号(の内部表現の整
+数)、<var>err_val</var> がその値、<var>_values</var> はその時点の値ス
+タックです。<var>err_tok</var> は <code>token_to_str</code> で文法ファ
+イル上の表現に直せます。また <code>_values</code> を変更してはいけません。
 <p>
-デフォルトでは例外 ParseError を発生します。
+デフォルトでは例外 <code>ParseError</code> を発生します。
 
-<dt>yyerror
-<dd>
-アクション中で呼びだすとエラー回復モードに入ります。
-このとき on_error は呼ばれません。
+<dt><a name="token_to_str"><code>token_to_str( <var>t</var> )</a></code>
+<dd><p>
+Racc トークンの内部表現(整数)を文法ファイル上の記号表現の文字列に変換
+します。<var>t</var> が整数でない場合は <code>NameError</code> を発生
+します。<var>t</var> が範囲外の整数だった場合は <code>nil</code> を返
+します。
 
-<dt>yyerrok
-<dd>
-アクション中で呼びだすとエラー回復モードから復帰します。
+<dt><a name="yyerror"><code>yyerror</code></a>
+<dd><p>
+エラー回復モードに入ります。このとき <code>on_error</code> は呼ばれません。
+アクション以外からは呼び出さないでください。
 
-<dt>yyaccept
+<dt><a name="yyerrok">yyerrok</a>
+<dd><p>
+エラー回復モードから復帰します。アクション以外からは呼び出さないでくだ
+さい。
+
+<dt><a name="yyaccept">yyaccept</a>
 <dd>
-このメソッドを呼びだすとすぐに値スタックの先頭の値を返して
-do_parse を抜けます。
+すぐに値スタックの先頭の値を返して <code>do_parse</code>、
+<code>yyparse</code> を抜けます。
 
 </dl>
 

@@ -370,7 +370,7 @@ nerr = 0   # tmp
     def on_error( t, val, vstack )
       raise ParseError, sprintf("\nparse error on value %s (%s)",
                                 val.inspect,
-                                type::Racc_token_to_s_table[t] || '?')
+                                token_to_str(t) || '?')
     end
 
     def yyerror
@@ -452,6 +452,10 @@ nerr = 0   # tmp
     def racc_token2str( tok )
       type::Racc_token_to_s_table[tok] or
         raise RuntimeError, "[Racc Bug] can't convert token #{tok} to string"
+    end
+
+    def token_to_str( t )
+      type::Racc_token_to_s_table[t]
     end
 
   end

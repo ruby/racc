@@ -3,10 +3,9 @@
 require 'amstd/must'
 
 require 'racc/info'
-require 'racc/iset'
 require 'racc/grammer'
 require 'racc/state'
-require 'racc/format'
+require 'racc/output'
 
 
 def openread( fn )
@@ -254,6 +253,8 @@ class Compiler
 #
 
 require 'racc/parser'
+require 'racc/raccs'
+require 'racc/ucodep'
 
 
 module Racc

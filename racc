@@ -14,7 +14,7 @@
 
 def racc_main
   opt = get_options
-  require opt['-R'] || 'racc/libracc'
+  require opt['-R'] || 'racc/compiler'
   srcfn = ARGV[0]
 
   racc = Racc::Compiler.new
@@ -132,7 +132,7 @@ def get_options
   end
 
 
-  if opt['-h'] then
+  if opt['--help'] then
     usage 0
   end
 

@@ -1,5 +1,5 @@
 #
-# facade.rb
+# compiler.rb
 #
 #   Copyright (c) 1999-2001 Minero Aoki <aamine@dp.u-netsurf.ne.jp>
 #
@@ -7,6 +7,11 @@
 #   You can distribute/modify this program under the terms of
 #   the GNU Lesser General Public License version 2 or later.
 #
+
+require 'racc/raccp'
+require 'racc/grammer'
+require 'racc/state'
+require 'racc/output'
 
 require 'amstd/must'
 
