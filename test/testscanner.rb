@@ -7,21 +7,39 @@ require 'racc/raccs'
 
 class ScanError < StandardError; end
 
-def testdata
-  Dir.glob( File.dirname($0) + '/scandata/*' ) -
-  Dir.glob( File.dirname($0) + '/scandata/*.swp' )
+def testdata( dir, argv )
+  if argv.empty? then
+    Dir.glob( dir + '/*' ) -
+    Dir.glob( dir + '/*.swp' ) -
+    [ dir + '/CVS' ]
+  else
+    argv.collect {|i| dir + '/' + i }
+  end
 end
 
-testdata().each do |file|
+
+if ARGV.delete '--print' then
+  $raccs_print_type = true
+  printonly = true
+else
+  printonly = false
+end
+
+testdata( File.dirname($0) + '/scandata', ARGV ).each do |file|
   $stderr.print File.basename(file) + ': '
   begin
     ok = File.read(file)
     s = Racc::RaccScanner.new( ok )
     sym, (val, lineno) = s.scan
+    if printonly then
+      $stderr.puts
+      $stderr.puts val
+      next
+    end
+
     val = '{' + val + "}\n"
-    :ACTION == sym or raise ScanError, 'is not action!'
-    val == ok or raise ScanError,
-        "data not same\n>>>\n" + ok + "----\n" + val + '<<<'
+    sym == :ACTION  or raise ScanError, 'is not action!'
+    val == ok       or raise ScanError, "\n>>>\n#{ok}----\n#{val}<<<"
 
     $stderr.puts 'ok'
   rescue => err
