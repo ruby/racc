@@ -1,5 +1,7 @@
 
-all: update libracc.rb
+all:
+	make update
+	make libracc.rb
 
 
 DEBUG = #-g
@@ -10,7 +12,7 @@ DRACC    = ./racc.rb ${TMP} -e${RUBYPATH}
 
 # app data
 
-VERSION  = 0.9.2
+VERSION  = 0.9.4
 APPNAME  = racc
 
 
@@ -24,10 +26,8 @@ include ../makefile.common
 BACKUPF  = ${RACCSRC} ${RACCTOOL} ${RACCBIN} \
            ${CALCSRC} ${CALCTOOL}
 
-RACCBIN  = racc.rb
-RACCRB   = \
-           racc.rb     \
-           libracc.rb
+RACCBIN  = racc
+RACCRB   = racc libracc.rb
 
 RACCSRC  = \
            d.head.rb   \
@@ -39,7 +39,6 @@ RACCSRC  = \
            d.format.rb \
 
 RACCTOOL = Makefile bld.rb
-R10SRC   = e.racc.y e.scan
 
 LIBSRC   = \
            extmod.rb   \
@@ -58,7 +57,7 @@ HTML     = \
            changes.html \
            debug.html
 
-TEXT     = README.jp README.en
+TEXT     = README.ja README.en
 
 #-------------------------------------------------------------
 
@@ -68,60 +67,6 @@ libracc.rb: ${RACCTOOL} ${RACCSRC}
 debug: ${RACCTOOL} ${RACCSRC}
 	update -w2 -v${VERSION} ${RACCSRC} ${RACCBIN}
 	./bld.rb -g &> er
-
-#-------------------------------------------------------------
-
-install: racc.rb libracc.rb
-	mupdate racc.rb ${BINDIR}/racc.rb
-	mupdate libracc.rb ${LIBDIR}/libracc.rb
-
-pack:
-	make update
-	make archive
-
-clean:
-	rm -f timestamp-* libracc.rb racc*.tar.gz chk.rb
-	cd ${BINDIR} ; rm -f racc.rb
-	cd ${LIBDIR} ; rm -f libracc.rb
-	touch ${HTMLDIR}/*.html
-
-update:
-	update -w2 -v${VERSION} ${RACCSRC} ${RACCBIN}
-
-#-------------------------------------------------------------
-
-archive: ${ARC}
-
-${ARC}: set_ruby set_lib set_calc set_text set_html
-	rm -rf ${APPNAME}-0.9.*.tar.gz
-	mv ${ARCDIR} ${PACKDIR}
-	tar c ${PACKDIR} | gzip > $@
-	mv ${PACKDIR} ${ARCDIR}
-
-set_ruby:
-	cupdate -t -v${VERSION} -c -s. -d${ARCDIR} ${RACCRB}
-
-set_lib:
-	cupdate -t -c -s${LIBDIR} -d${ARCDIR} ${LIBSRC}
-
-set_calc:
-	cupdate -t -c -s. -d ${ARCDIR} ${CALCSRC}
-
-set_html:
-	cupdate -c -s${HTMLDIR}/jp -d${ARCDIR}/doc.jp ${HTML}
-	cupdate -c -s${HTMLDIR}/en -d${ARCDIR}/doc.en ${HTML}
-
-set_text:
-	tab ${TEXTDIR}/*.en
-	cupdate -c -s${TEXTDIR} -d${ARCDIR} ${TEXT}
-
-#-------------------------------------------------------------
-
-site:
-	rm -f ${SITEDIR}/${APPNAME}-*.tar.gz
-	mupdate ${ARC} ${SITEDIR}/${ARC}
-	cupdate -c -s${HTMLDIR}/jp -d${JSITEDOC} ${HTML}
-	cupdate -c -s${HTMLDIR}/en -d${ESITEDOC} ${HTML}
 
 #-------------------------------------------------------------
 
@@ -137,5 +82,54 @@ calc: libracc.rb racc.rb
 
 rmcalc:
 	rm -f calc.rb calc.output
+
+#-------------------------------------------------------------
+
+clean:
+	rm -f libracc.rb racc-*.tar.gz chk.rb
+	cd ${BINDIR} ; rm -f racc.rb
+	cd ${LIBDIR} ; rm -f libracc.rb
+
+install: racc.rb libracc.rb
+	mupdate racc.rb ${BINDIR}/racc.rb
+	mupdate libracc.rb ${LIBDIR}/libracc.rb
+
+pack:
+	make update
+	make archive
+
+update:
+	cupdate -t -w2 -v${VERSION} ${RACCSRC} ${RACCBIN}
+
+#-------------------------------------------------------------
+
+archive: ${ARC}
+
+set_arcsource: set_ruby set_lib set_calc set_text set_html
+
+set_ruby:
+	cupdate -t -v${VERSION} -c -s. -d${ARCDIR} ${RACCRB}
+
+set_lib:
+	cupdate -t -c -s${LIBDIR} -d${ARCDIR} ${LIBSRC}
+
+set_calc:
+	cupdate -t -c -s. -d ${ARCDIR} ${CALCSRC}
+
+set_html:
+	cupdate -c -s${HTMLDIR}/ja -d${ARCDIR}/doc.ja ${HTML}
+	cupdate -c -s${HTMLDIR}/en -d${ARCDIR}/doc.en ${HTML}
+
+set_text:
+	tab ${TEXTDIR}/*.en
+	cupdate -c -s${TEXTDIR} -d${ARCDIR} ${TEXT}
+
+#-------------------------------------------------------------
+
+site:
+	rm -f ${SITEDIR}/${APPNAME}-*.tar.gz
+	mupdate ${ARC} ${SITEDIR}/${ARC}
+	cupdate -c -s${HTMLDIR}/ja -d${JSITEDOC} ${HTML}
+	cupdate -c -s${HTMLDIR}/en -d${ESITEDOC} ${HTML}
 
 #-------------------------------------------------------------

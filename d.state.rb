@@ -16,7 +16,9 @@
     end
     
 
-    def each_state( &data ) @stats.each( &data ) end
+    def each_state
+      @stats.each{|st| yield st }
+    end
 
     def to_a() @stats end
 
@@ -220,7 +222,9 @@
       "state #{@stateid}\n" + @ptrs.join("\n")
     end
 
-    def each_ptr( &data ) @ptrs.each( &data ) end
+    def each_ptr
+      @ptrs.each{|ptr| yield ptr }
+    end
 
 
     def is_goto( tok, dest )
@@ -450,21 +454,22 @@
 
   class ShiftAction < LALRaction
     def initialize() @value = Parser::Shift end
-    def to_s() '<ShiftAction>' end
+    def to_s()       '<ShiftAction>'        end
   end
 
   class ReduceAction < LALRaction
     def initialize( ptr ) @value = ptr.rule end
-    def to_s() '<ReduceAction>' end
+    def to_s()            '<ReduceAction>'  end
   end
 
   class LookaheadAction < LALRaction
-    def initialize()      @value = {}              end
-    def each( &data )     @value.each( &data )     end
-    def size()            @value.size              end
-    def fetch( arg )      @value.fetch( arg )      end
-    def store( arg, val ) @value.store( arg, val ) end
-    def to_s()            '<LookaheadAction>'      end
+    def initialize()      @value = {}               end
+    def each()            @value.each{|t| yield t } end
+    def size()            @value.size               end
+    def fetch( arg )      @value.fetch( arg )       end
+    def store( arg, val ) @value.store( arg, val )  end
+    def delete( key )     @value.delete( key )      end
+    def to_s()            '<LookaheadAction>'       end
   end
 
 

@@ -9,8 +9,8 @@ COMPILE  = ${RACC} ${RFLAG}
 
 all: calc.rb
 
-calc.rb: calc.ry racc.rb libracc.rb
-	${COMPILE} calc.ry
+calc.rb: calc.y racc.rb libracc.rb
+	${COMPILE} calc.y
 	@ echo ""
 	@ echo "-------------------------------------"
 	@ echo "    calc.rb successfully created."

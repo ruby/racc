@@ -1,4 +1,4 @@
-  Version = '0.9.2'
+  Version = '0.9.4'
 
   attr :code
   attr :classname

@@ -34,16 +34,11 @@ class Racc
 		simbol = @interf.get_token( simbol ) if simbol
 
     rarr.filter do |i|
-      i or bug! 'nil in rulearr'
+      bug! 'nil in rulearr' unless i
       @interf.get_token( i )
     end
 
-    @interf.register_rule(
-      simbol,
-      rarr,
-      nil,
-      act
-    )
+    @interf.register_rule( simbol, rarr, nil, act )
   end
 
 

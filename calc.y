@@ -1,4 +1,6 @@
 
+# simple calc parser
+
 class Calcp
 
   prechigh
@@ -8,38 +10,28 @@ class Calcp
   preclow
 
   rule
-    target: exp .
-      .
-      |
-      .
-        result = 0
-      .
+    target: exp
+      |  /* none */ { result = 0 }
       ;
 
-    exp: exp '+' exp . result += val[2]
-       .
-       | exp '-' exp . result -= val[2]
-       .
-       | exp '*' exp . result *= val[2]
-       .
-       | exp '/' exp . result /= val[2]
-       .
-       | '(' exp ')' . result = val[1]
-       .
-       | '-' NUMBER  = UMINUS . result = -val[1]
-       .
-       | NUMBER .
-       .
+    exp: exp '+' exp { result += val[2] }
+       | exp '-' exp { result -= val[2] }
+       | exp '*' exp { result *= val[2] }
+       | exp '/' exp { result /= val[2] }
+       | '(' exp ')' { result = val[1] }
+       | '-' NUMBER  = UMINUS { result = -val[1] }
+       | NUMBER
        ;
   end
 
 end # class
 
-prepare = code
-require 'must'
-.
 
-inner = code
+---- prepare ----
+require 'must'
+
+
+---- inner ----
   
   def parse( str )
     str.must String
@@ -79,10 +71,9 @@ inner = code
   def peep_token
     @tsrc[0]
   end      
-.
 
 
-driver = code
+---- driver ----
 
 class Nemui < Exception ; end
 
@@ -143,6 +134,3 @@ end
 
 print "\nじゃあ、またねっ\n\n"
 sleep(0.5)
-
-.
-

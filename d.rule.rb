@@ -154,19 +154,25 @@
         rule.each_ptr do |ptr|
           tok = ptr.unref
           tok.locate.push ptr
-          if tok.term then temp = tok end
+          temp = tok if tok.term
         end
 
-        (rule.prec = temp) unless rule.prec
+        rule.prec = temp unless rule.prec
       end
     end
 
 
-    def []( x ) @rules[x] end
+    def []( x )
+      @rules[x]
+    end
 
-    def each_rule ( &data ) @rules.each( &data ) end
+    def each_rule
+      @rules.each{|rl| yield rl }
+    end
 
-    def to_s() "<Racc::RuleTable>" end
+    def to_s
+      "<Racc::RuleTable>"
+    end
 
 
     def closure( ptrs )
@@ -220,13 +226,20 @@
       (tok = @rulearr[-1]) and tok.anchor?
     end
 
-    def each_token( &data ) @rulearr.each( &data ) end
+    def each_token
+      @rulearr.each{|t| yield t }
+    end
 
-    def each_ptr( &data )
+    def each_token_with_index
+      @rulearr.each_with_index{|t, i| yield t, i }
+    end
+
+    def each_ptr
       pmax = @ptrs.size - 1
       pidx = 0
       while pidx < pmax do
-        data.call @ptrs[ pidx ] ; pidx += 1
+        yield @ptrs[ pidx ]
+        pidx += 1
       end
     end
 
@@ -336,7 +349,9 @@
       return ret
     end
 
-    def each_token( &data ) @tokens.each_value( &data ) end
+    def each_token
+      @tokens.each_value{|tok| yield tok }
+    end
     
   end   # class TokenTable
 

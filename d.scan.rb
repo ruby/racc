@@ -17,39 +17,39 @@
 
     def scan
       while true do
-        unless @str.rest? then
+        unless @scan.rest? then
           @spipe.push false ; @vpipe.push false 
           @spipe.push false ; @vpipe.push false
           break
         end
 
-        @str.skip SPC
-        unless @str.skip COMMENT then
-          if @str.skip BEGIN_C then
+        @scan.skip SPC
+        unless @scan.skip COMMENT then
+          if @scan.skip BEGIN_C then
             scan_comment
             next
           end
         end
 
-        if temp = @str.scan( CODEBLOCK ) then
-          @str.unscan
-          @str.skip EOL ; @lineno += 1
+        if temp = @scan.scan( CODEBLOCK ) then
+          @scan.unscan
+          @scan.skip EOL ; @lineno += 1
           scan_usercode
-          @str.clear
+          @scan.clear
           next
         end
 
-        if @str.skip EOL then
+        if @scan.skip EOL then
           @lineno += 1
           next
         end
 
-        if atm = @str.scan( ATOM ) then
+        if atm = @scan.scan( ATOM ) then
           scan_atom( atm )
           break  #next
         end
 
-        case fch = @str.getch
+        case fch = @scan.getch
         when '"', "'"
           @spipe.push :STRING
           @vpipe.push scan_string( fch )
@@ -102,11 +102,11 @@
     END_C     = /\A\*+\//o
 
     def scan_comment
-      while @str.rest? do
-        if    @str.skip COM_ENT
-        elsif @str.skip COM_ENT2
-        elsif @str.skip EOL      then @lineno += 1
-        elsif @str.skip END_C    then return
+      while @scan.rest? do
+        if    @scan.skip COM_ENT
+        elsif @scan.skip COM_ENT2
+        elsif @scan.skip EOL      then @lineno += 1
+        elsif @scan.skip END_C    then return
         else
           scan_bug! 'in comment, no exp match'
         end
@@ -121,17 +121,17 @@
     def scan_action
       ret  = ''
       nest = 0
-      while @str.rest? do
-        if temp = @str.scan( SKIP ) then
+      while @scan.rest? do
+        if temp = @scan.scan( SKIP ) then
           ret << temp
         end
-        if temp = @str.scan( EOL ) then
+        if temp = @scan.scan( EOL ) then
           ret << temp
           @lineno += 1
           next
         end
 
-        case ch = @str.getch
+        case ch = @scan.getch
         when '{'
           nest += 1
           ret << ch
@@ -148,7 +148,7 @@
 
         when '/'
           if SPC === ret[-1,1] then
-            if @str.peep(1) != '=' then
+            if @scan.peep(1) != '=' then
               ret << ch << scan_string( ch ) << ch
               next
             end
@@ -156,7 +156,7 @@
           ret << ch
 
         when '#'
-          ret << ch << @str.scan( COMMENT_CONT ) << @str.scan( EOL )
+          ret << ch << @scan.scan( COMMENT_CONT ) << @scan.scan( EOL )
           @lineno += 1
 
         else
@@ -175,8 +175,8 @@
       bname = nil
       ret = ''
 
-      while @str.rest? do
-        unless line = @str.scan( LINE ) then        #p @str
+      while @scan.rest? do
+        unless line = @scan.scan( LINE ) then
           bug! 'in scan_rest, not match'
         end
 
