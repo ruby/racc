@@ -8,7 +8,7 @@ mount 'strscan'
 
 environ( 'rubyprog/racc' ) {
 
-  $version   = '1.3.11'
+  $version   = '1.3.12'
 
   $packaging = %w( single multi )
   $type      = 'ruby'
@@ -110,7 +110,7 @@ This tool is written in Ruby and outputs Ruby scripts.
 
   def pack
     super
-    $<raccrt>.pack_single
+    $<raccrt>.pack
   end
 
 }
@@ -120,6 +120,7 @@ environ( 'rubyprog/raccrt' ) {
 
   $version = $<racc>.$version
 
+  $packaging   = %w( single )
   $type        = 'ruby'
   $package     = 'raccrt'
   $instpath    = 'racc'
