@@ -1,5 +1,3 @@
-parser.rb
-cp
-rubyloader.rb
-rubycvs
 raccp.rb
+parser.rb
+rubyloader.rb
