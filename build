@@ -1,7 +1,5 @@
 #!/usr/local/bin/ruby
 
-require 'amstd/must'
-
 require 'racc/parser'
 
 require './rule'
@@ -19,7 +17,7 @@ end
 
 module Racc
 
-  Version = '0.10.5'
+  Version = '0.10.6'
 
 class Compiler
 
