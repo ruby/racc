@@ -23,15 +23,13 @@ contents: ITEM
             {
               result.push val[2]
             }
-end
 
 ---- inner
 
-  def parse( str )
-    str.strip!
-
+  def parse(str)
+    str = str.strip
     @q = []
-    until str.empty? do
+    until str.empty?
       case str
       when /\A\s+/
         str = $'
@@ -44,8 +42,7 @@ end
         str = str[1..-1]
       end
     end
-    @q.push [false, '$']   # optional from 1.3.7
-
+    @q.push [false, '$']   # is optional from Racc 1.3.7
     do_parse
   end
 
@@ -55,7 +52,7 @@ end
 
 ---- footer
 
-if $0 == __FILE__ then
+if $0 == __FILE__
   src = <<EOS
 [
   a, b, c,
@@ -66,5 +63,5 @@ EOS
   print src
   puts
   puts 'result:'
-  p ArrayParser.new.parse( src )
+  p ArrayParser.new.parse(src)
 end

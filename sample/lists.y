@@ -2,10 +2,10 @@
 # lists.y
 #
 # verious lists.
-# This file is just example, so don't run directly.
+# This file is just an example, don't run it.
 #
 
-# list, which minimum number of item is 0
+# a list, which minimum number of items is 0
 list0 :
           {
             result = []
@@ -15,7 +15,7 @@ list0 :
             result.push val[1]
           }
 
-# list, which minimum number of item is 1
+# a list, which minimum number of items is 1
 list1 : item
           {
             result = val
@@ -25,7 +25,7 @@ list1 : item
             result.push val[1]
           }
 
-# list, separated by comma
+# a list, separated by comma
 clist : item
           {
             result = val
@@ -35,7 +35,7 @@ clist : item
             result.push val[2]
           }
 
-# hash like list. see also "hash.y".
+# a hash. see also "hash.y".
 hash  : '{' hash_contents '}'
           {
             result = val[1]

@@ -1,3 +1,15 @@
+Fri Dec 12 01:57:47 2003  Minero Aoki  <aamine@loveruby.net>
+
+	* sample/hash.y: use no_result_var option.
+
+	* sample/array.y: use latest (my) coding style.
+
+	* sample/array2.y: ditto.
+
+	* sample/hash.y: ditto.
+
+	* sample/lists.y: ditto.
+
 Wed Nov  5 19:50:35 2003  Minero Aoki  <aamine@loveruby.net>
 
 	* test/bench.y: remove dependency on amstd.

@@ -6,43 +6,24 @@
 #
 
 class ArrayParser2
-
   options no_result_var
-
 rule
+  array   : '[' contents ']' { val[1] }
+          | '[' ']'          { [] }
 
-  array   : '[' contents ']'
-              {
-                val[1]
-              }
-          | '[' ']'
-              {
-                []
-              }
-
-  contents: ITEM
-              {
-                val
-              }
-          | contents ',' ITEM
-              {
-                val[0].push val[2]
-                val[0]
-              }
-end
+  contents: ITEM              { val }
+          | contents ',' ITEM { val[0].push val[2]; val[0] }
 
 ---- inner
 
-  def parse( str )
+  def parse(str)
     @str = str
     yyparse self, :scan
   end
 
   def scan
-    str = @str
-    str.strip!
-
-    until str.empty? do
+    str = @str.strip
+    until str.empty?
       case str
       when /\A\s+/
         str = $'
@@ -55,7 +36,7 @@ end
         str = str[1..-1]
       end
     end
-    yield false, '$'
+    yield false, '$'   # is optional from Racc 1.3.7
   end
 
   def next_token
@@ -64,7 +45,7 @@ end
 
 ---- footer
 
-if $0 == __FILE__ then
+if $0 == __FILE__
   src = <<EOS
 [
   a, b, c,
@@ -75,5 +56,5 @@ EOS
   print src
   puts
   puts 'result:'
-  p ArrayParser2.new.parse( src )
+  p ArrayParser2.new.parse(src)
 end

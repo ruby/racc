@@ -5,64 +5,60 @@
 #
 
 class HashParser
+ options no_result_var
 rule
 
-hash    : '{' contents '}'   { result = val[1] }
-        | '{' '}'            { result = Hash.new }
+hash    : '{' contents '}'   { val[1] }
+        | '{' '}'            { Hash.new }
          
-contents: IDENT '=>' IDENT   # Racc can handle string over 2 bytes.
-            {
-              result = { val[0] => val[2] }
-            }
-        | contents ',' IDENT '=>' IDENT
-            {
-              result[ val[2] ] = val[4]
-            }
+                # Racc can handle string over 2 bytes.
+contents: IDENT '=>' IDENT              { {val[0] => val[2]} }
+        | contents ',' IDENT '=>' IDENT { val[0][val[2]] = val[4]; val[0] }
 
 end
 
 ---- inner
 
-  def parse( str )
-    @q = []
-
-    until str.empty? do
-      case str
-      when /\A\s+/
-        ;
-      when /\A\w+/
-        @q.push [:IDENT, $&]
-      when /\A=>/
-        @q.push ['=>', '=>']
-      else
-        c = str[0,1]
-        @q.push [c, c]
-        str = str[1..-1]
-        next
-      end
-      str = $'
-    end
-    @q.push [false, '$']   # DO NOT FORGET THIS!!!
-
-    do_parse
+  def parse(str)
+    @str = str
+    yyparse self, :scan
   end
 
-  def next_token
-    @q.shift
+  private
+
+  def scan
+    str = @str
+    until str.empty?
+      case str
+      when /\A\s+/
+        str = $'
+      when /\A\w+/
+        yield :IDENT, $&
+        str = $'
+      when /\A=>/
+        yield '=>', '=>'
+        str = $'
+      else
+        c = str[0,1]
+        yield c, c
+        str = str[1..-1]
+      end
+    end
+    yield false, '$'   # is optional from Racc 1.3.7
   end
 
 ---- footer
 
-if $0 == __FILE__ then
-  src = <<S
+if $0 == __FILE__
+  src = <<EOS
 {
   name => MyName,
   id => MyIdent
 }
-S
-  puts 'parsing:'
+EOS
+  puts 'Parsing (String):'
   print src
   puts
-  puts 'result:'
-  p HashParser.new.parse( src )
+  puts 'Result (Ruby Object):'
+  p HashParser.new.parse(src)
 end
