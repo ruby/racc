@@ -667,7 +667,7 @@ Init_cparse()
     VALUE parser;
 
     parser = rb_eval_string("::Racc::Parser");
-    rb_define_private_method(parser, "_c_parse", racc_cparse, 2);
+    rb_define_private_method(parser, "_racc_do_parse_c", racc_cparse, 2);
     rb_define_private_method(parser, "_racc_yyparse_c", racc_yyparse, 4);
 
     RaccBug = rb_eRuntimeError;
