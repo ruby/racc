@@ -9,7 +9,7 @@ require 'amstd/must'
 
 module Racc
 
-  Version = '0.10.6'
+  Version = '0.10.7'
 
 class Compiler
 

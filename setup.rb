@@ -10,7 +10,7 @@ class RACCinstaller < Installer
   def com_install
     chdir( 'bin' ) do
       add_rubypath 'racc'
-      install 'racc', BINDIR, 0755, true
+      install 'racc', BINDIR, 0755
     end
 
     install_library 'amstd'

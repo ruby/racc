@@ -12,7 +12,7 @@ require 'amstd/bug'
 
 ###
 
-unless defined? ParseError then
+unless defined?(::ParseError) then
   class ParseError < StandardError ; end
 end
 
