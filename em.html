@@ -4,7 +4,7 @@
 <h1>Racc User Manual</h1>
 
 <p>
-updated for version 0.14
+updated for version 1.1
 
 <ul>
 <li><a href="usage.html">Usage</a>
@@ -65,9 +65,9 @@ an array 'val', $-1, $-2... is an array '_values'.
 
 <p>
 yylex() is method "next_token()".
-This method must returns an array like [TOKENSIMBOL, ITS_VALUE].
+This method must returns an array like [TOKENSYMBOL, ITS_VALUE].
 EOF is [false, false].
-(token simbol is ruby simbol (got by String#intern) as default.
+(token symbol is ruby symbol (got by String#intern) as default.
  If you want to change this, see <a href="grammer#token">grammer reference</a>.
 
 <p>
@@ -151,6 +151,14 @@ use this '-g' option and set @yydebug true in parser class.
 output parser file which doesn't need runtime files(ex. racc/parser).
 A file created by this option working with only ruby.
 
+<dt>-V
+<dd>
+prints messages time to time while compiling.
+
+<dt>-l
+<dd>
+turns off line number converting.
+
 <dt>-n<var>classname</var>
 <dd>
 designate name of parser class. This option overwrite racc file's.
@@ -212,9 +220,11 @@ class block is like this:
 <pre>
 
     class <var>class_name</var>
-      [<var>precedance</var>]
-      [<var>start</var>]
-      [<var>token</var>]
+      [<var>precedance table</var>]
+      [<var>token declearations</var>]
+      [<var>options</var>]
+      [<var>semantic value convertion</var>]
+      [<var>start rule</var>]
     rule
       <var>RULES</var>
     end
@@ -329,50 +339,64 @@ is also premitted.
 </pre>
 
 
-<h3><a name="start">start statement</a></h3>
-
+<h3><a name="token">Token Declearation</a></h3>
 <p>
-'%start' in yacc. This changes start rule.
+By declearing tokens that IT IS TOKEN, you can avoid many meanless bugs.
+If decleared token does not exist/existing token does not decleared,
+Racc output warnings.<br>
+Declearation syntax is:
 <pre>
 
-      start real_target
+  token TOKEN_NAME AND_IS_THIS
+        ALSO_THIS_IS AGAIN_AND_AGAIN THIS_IS_LAST
 
 </pre>
 
+
+<h3><a name="options">Options</a></h3>
 <p>
-this statement won't be used forever, I think.
+You can write options for racc command in your racc file.
+<pre>
+
+  options OPTION OPTION ...
+
+</pre>
+Now options are:
+<dl>
+<dt>omit_action_call <dd>if omit empty action call
+<dt>result_var       <dd>if use variable "result"
+</dl>
+These flags can be given with 'no_' prefix.
 
 
-<h3><a name="token">Convert Token Simbol</a></h3>
-
+<h3><a name="convert">Convert Token Symbol</a></h3>
 <p>
-token simbol is, as default,
+Token symbols are, as default,
 <dl>
 <dt>naked token string in racc file (TOK, XFILE, this_is_token, ...)
-<dd>simbol of it (:TOK, :XFILE, :this_is_token, ...)
+<dd>symbol of it (:TOK, :XFILE, :this_is_token, ...)
 <dt>quoted string (':', '.', '(', ...)
 <dd>same string (':', '.', '(', ...)
 </dl>
-
-<p>
-You can change this by 'token' block. This is example:
+You can change this by "convert" block. This is example:
 <pre>
 
-    token
+    convert
       PLUS 'PlusClass'      # not use :PLUS but PlusClass
       MIN  'MinusClass'     # not use :MIN but MinusClass
     end
 
 </pre>
-Almost all ruby value can be used by token simbol,
+
+Almost all ruby value can be used by token symbol,
 but 'false' and 'nil' are NOT. These are causes unexpected parse error.
 
 <p>
-If you want to use String as token simbol, special care is required.
+If you want to use String as token symbol, special care is required.
 For example:
 <pre>
 
-    token
+    convert
       class '"cls"'            # in code, "cls"
       PLUS '"plus\n"'          # in code, "plus\n"
       MIN  "\"minus#{val}\""   # in code, \"minus#{val}\"
@@ -380,6 +404,18 @@ For example:
 
 </pre>
 These are <em>not BUG, but FEATURE</em>.
+
+
+<h3><a name="start">Start Rule</a></h3>
+<p>
+'%start' in yacc. This changes start rule.
+<pre>
+
+      start real_target
+
+</pre>
+<p>
+this statement won't be used forever, I think.
 
 
 <h2><a name="usercode">User Code</a></h2>
@@ -435,7 +471,7 @@ This statement makes racc to use "init.rb" "run.rb" as 'footer' user code.
 
 <ul>
 <li>Does your parser have method "next_token" ?
-<li>"next_token" returns Array of simbol and its value.
+<li>"next_token" returns Array of symbol and its value.
 <li>When there is no token, "next_token" must returns [false, (ANY)].
 <li>now "next_value" "peep_token" is not used.
 <li>Were all terminal tokens listed corectry in ".output" file ?
@@ -449,47 +485,129 @@ This statement makes racc to use "init.rb" "run.rb" as 'footer' user code.
 <h1>Change Log</h1>
 
 <hr>
-<h2>0.14.6(2000/05/05)</h2>
+<h2>1.1.6 (2000-07-25)</h2>
+<p>
+<ul>
+<li>new keyword "options" and its parameter "no_result_var"
+</ul>
+
+<h2>1.1.5 (2000-07-21)</h2>
+<p>
+<ul>
+<li>[important] change keyword "token" to "convert"
+<li>NEW keyword "token" for token declearation
+</ul>
+
+<h2>1.1.4 (2000-07-13)</h2>
+<p>
+<ul>
+<li>update installer
+<li>samples had bugs
+</ul>
+
+<h2>1.1.3 (2000-06-30)</h2>
+<p>
+<ul>
+<li>new option -a; does not omit void action call
+</ul>
+
+<h2>1.1.2 (2000-06-29)</h2>
+<p>
+<ul>
+<li>now racc does not use strscan.so
+<li>ScanError -&gt; Racc::ScanError, ParseError -&gt; Racc::ParseError
+<li>more friendly error messages
+</ul>
+
+<h2>1.1.1 (2000-06-15)</h2>
+<p>
+<ul>
+<li>require miss
+<li>conflicts were not reported with -v
+</ul>
+
+<h2>1.1.0 (2000-06-12)</h2>
+<p>
+<ul>
+<li>use other algolithm for generating state table
+</ul>
+
+<hr>
+<h2>1.0.4 (2000-06-04)</h2>
+<p>
+<ul>
+<li>S/R conflict & -v flag causes unexpected exception (reported by Tosh)
+<li>output useless nonterminals/rules
+</ul>
+
+<h2>1.0.3 (2000-06-03)</h2>
+<p>
+<ul>
+<li>use collect!
+</ul>
+
+<h2>1.0.2 (2000-05-16)</h2>
+<p>
+<ul>
+<li>update installer (setup.rb)
+</ul>
+
+<h2>1.0.1 (2000-05-12)</h2>
+<p>
+<ul>
+<li>state.rb:  faster lookahead & debug lalr code
+<li>refine code
+<li>update amstd package (1.7.0)
+</ul>
+
+<h2>1.0.0 (2000-05-06)</h2>
+<p>
+<ul>
+<li>version 1.0
+</ul>
+
+<hr>
+<h2>0.14.6 (2000-05-05)</h2>
 <p>
 <ul>
 <li>much more debug output
 </ul>
 
-<h2>0.14.5(2000/05/01)</h2>
+<h2>0.14.5 (2000-05-01)</h2>
 <p>
 <ul>
 <li>modify installer for ruby 1.4.4 or upper 1.5
     (thanks rubykitch, Toshiro Kuwabara(Tosh))
 </ul>
 
-<h2>0.14.4(2000/04/09)</h2>
+<h2>0.14.4 (2000-04-09)</h2>
 <p>
 <ul>
 <li>Racc_* are included in Racc_arg
 <li>faster state generation (a little)
 </ul>
 
-<h2>0.14.3(2000/04/04)</h2>
+<h2>0.14.3 (2000-04-04)</h2>
 <p>
 <ul>
 <li>check both of SYM2ID and ID2SYM (thanks Katsuyuki Komatsu)
 </ul>
 
-<h2>0.14.2(2000/04/02)</h2>
+<h2>0.14.2 (2000-04-02)</h2>
 <p>
 <ul>
 <li>"class" on first line causes parse error (thanks Yoshiki Wada)
 <li>new option "racc -V"
 </ul>
 
-<h2>0.14.1(2000/03/31)</h2>
+<h2>0.14.1 (2000-03-31)</h2>
 <p>
 <ul>
 <li>if ruby path was given, change also ruby path for "system" call
     (thanks Toshiro Kuwabara(Tosh))
 </ul>
 
-<h2>0.14.0(2000/03/21)</h2>
+<h2>0.14.0 (2000-03-21)</h2>
 <p>
 <ul>
 <li>implement "fast" table (same to bison)
@@ -497,33 +615,33 @@ This statement makes racc to use "init.rb" "run.rb" as 'footer' user code.
 </ul>
 
 <hr>
-<h2>0.13.1(2000/03/21)</h2>
+<h2>0.13.1 (2000-03-21)</h2>
 <p>
 <ul>
 <li>racc --version --copyright did not work (thanks Tadayoshi Funaba)
 </ul>
 
-<h2>0.13.0(2000/03/120)</h2>
+<h2>0.13.0 (2000-03-20)</h2>
 <p>
 <ul>
 <li>implement yyerror/yyerrok/yyaccept
 </ul>
 
 <hr>
-<h2>0.12.2(2000/03/19)</h2>
+<h2>0.12.2 (2000-03-19)</h2>
 <p>
 <ul>
 <li>-E flag had bug
 </ul>
 
-<h2>0.12.1(2000/03/16)</h2>
+<h2>0.12.1 (2000-03-16)</h2>
 <p>
 <ul>
 <li>modify the way to decide default action
 </ul>
 
 <hr>
-<h2>0.12.0(2000/03/15)</h2>
+<h2>0.12.0 (2000-03-15)</h2>
 <p>
 <ul>
 <li>implement real LALR
@@ -531,61 +649,61 @@ This statement makes racc to use "init.rb" "run.rb" as 'footer' user code.
 </ul>
 
 <hr>
-<h2>0.11.3(2000/03/09)</h2>
+<h2>0.11.3 (2000-03-09)</h2>
 <p>
 <ul>
 <li>modify lookahead routine again
 </ul>
 
-<h2>0.11.2(2000/03/09)</h2>
+<h2>0.11.2 (2000-03-09)</h2>
 <p>
 <ul>
 <li>bug in lookahead routine
 <li>modify cparse.so for Symbol class of ruby 1.5
 </ul>
 
-<h2>0.11.1(2000/03/08)</h2>
+<h2>0.11.1 (2000-03-08)</h2>
 <p>
 <ul>
 <li>modify for Symbol
 <li>update strscan
 </ul>
 
-<h2>0.11.0(2000/02/19)</h2>
+<h2>0.11.0 (2000-02-19)</h2>
 <p>
 <ul>
 <li>if error is occured in action, ruby print line number of grammer file
 </ul>
 
 <hr>
-<h2>0.10.9 (2000/01/19)</h2>
+<h2>0.10.9 (2000-01-19)</h2>
 <p>
 <ul>
 <li>change package/setup
 </ul>
 
-<h2>0.10.8 (2000/01/03)</h2>
+<h2>0.10.8 (2000-01-03)</h2>
 <p>
 <ul>
 <li>?
-<li>(1/17 re-packed) add/modify documents
+<li>(1-17 re-packed) add/modify documents
 </ul>
 
-<h2>0.10.7 (2000/01/03)</h2>
+<h2>0.10.7 (2000-01-03)</h2>
 <p>
 thanks: Koji Arai
 <ul>
 <li>modify setup.rb compile.rb amstd/inst
 </ul>
 
-<h2>0.10.6 (1999/12/24)</h2>
+<h2>0.10.6 (1999-12-24)</h2>
 <p>
 <ul>
 <li>racc -e ruby
 <li>omit void action call
 </ul>
 
-<h2>0.10.5 (1999/12/21)</h2>
+<h2>0.10.5 (1999-12-21)</h2>
 <p>
 thanks: Toshiro Kuwabara (Tosh)
 <ul>
@@ -594,7 +712,7 @@ thanks: Toshiro Kuwabara (Tosh)
 <li>modify calc[2].y for 0.10
 </ul>
 
-<h2>0.10.4 (1999/12/19)</h2>
+<h2>0.10.4 (1999-12-19)</h2>
 <p>
 <ul>
 <li>support error recover ('error' token)
@@ -602,21 +720,21 @@ thanks: Toshiro Kuwabara (Tosh)
 <li>Racc is module
 </ul>
 
-<h2>0.10.3 (1999/12/01)</h2>
+<h2>0.10.3 (1999-12-01)</h2>
 <p>
 <ul>
 <li>support embedded action
 <li>modify .output bug
 </ul>
 
-<h2>0.10.2 (1999/11/27)</h2>
+<h2>0.10.2 (1999-11-27)</h2>
 <p>
 <ul>
 <li>update document
 <li>separate libracc.rb
 </ul>
 
-<h2>0.10.1 (1999/11/19)</h2>
+<h2>0.10.1 (1999-11-19)</h2>
 <p>
 <ul>
 <li>rewrite runtime routine in C
@@ -626,7 +744,7 @@ thanks: Toshiro Kuwabara (Tosh)
 <li>LALRactionTable
 </ul>
 
-<h2>0.10.0 (1999/11/06)</h2>
+<h2>0.10.0 (1999-11-06)</h2>
 <p>
 <ul>
 <li>next_value, peep_token is obsolute
@@ -639,7 +757,7 @@ thanks: Toshiro Kuwabara (Tosh)
 
 <hr>
 
-<h2>0.9.5 (1999/10/03)</h2>
+<h2>0.9.5 (1999-10-03)</h2>
 <p>
 <ul>
 <li>too few arguments for __show_stack__
@@ -647,15 +765,15 @@ thanks: Toshiro Kuwabara (Tosh)
 <li>typo in d.format.rb
 </ul>
 
-<h2>0.9.1 (1999/06/08)</h2>
-<h2>0.9.0 (1999/06/03)</h2>
+<h2>0.9.1 (1999-06-08)</h2>
+<h2>0.9.0 (1999-06-03)</h2>
 <h2>0.8.11 (?)</h2>
 <h2>0.8.10 (?)</h2>
-<h2>0.8.9 (1999/03/21)</h2>
-<h2>0.8.8 (1999/03/20)</h2>
-<h2>0.8.7 (1999/03/01)</h2>
-<h2>0.8.0 (1999/01/16)</h2>
-<h2>0.5.0 (1999/01/07)</h2>
-<h2>0.1.0 (1999/01/01)</h2>
+<h2>0.8.9 (1999-03-21)</h2>
+<h2>0.8.8 (1999-03-20)</h2>
+<h2>0.8.7 (1999-03-01)</h2>
+<h2>0.8.0 (1999-01-16)</h2>
+<h2>0.5.0 (1999-01-07)</h2>
+<h2>0.1.0 (1999-01-01)</h2>
 
 <% footer 1999 %>

@@ -11,6 +11,6 @@
 
 module Racc
 
-  Version = '0.15.0'
+  Version = '1.1.6'
 
 end

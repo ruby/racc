@@ -16,15 +16,17 @@ module Racc
   class RaccFormatter
 
     def initialize( racc )
+      @fname      = racc.filename
       @ruletable  = racc.ruletable
       @tokentable = racc.tokentable
       @statetable = racc.statetable
       @actions    = racc.statetable.actions
-      @parser     = racc.parser
-      @dsrc       = racc.dsrc
+      @dsrc       = racc.debug_parser
       @debug      = racc.debug
-      @verbose    = racc.d_verbose
-      @line       = racc.d_line
+      @verbose    = racc.verbose
+      @line       = racc.convert_line
+      @omit       = racc.omit_action
+      @result     = racc.result_var
     end
 
     # abstract output( outf )
@@ -36,24 +38,13 @@ module Racc
 
     def output( out )
       out << "##### racc #{Racc::Version} generates ###\n\n"
-
       output_reduce_table out
       output_action_table out
       output_goto_table out
       output_token_table out
       output_other out
-      if @dsrc then
-        out << "Racc_debug_parser = true\n\n"
-        out << "Racc_token_to_s_table = [\n"
-        out << @tokentable.collect{|tok| "'" + tok.to_s + "'" }.join(",\n")
-        out << "]\n\n"
-      else
-        out << "Racc_debug_parser = false\n\n"
-      end
       out << "##### racc system variables end #####\n\n"
-
       output_actions out
-      out << "\n"
     end
 
 
@@ -103,7 +94,7 @@ module Racc
         out << sprintf( ' %d, %d, :_reduce_%s',
                         rl.size,
                         rl.symbol.tokenid,
-                        rl.action ? i.to_s : 'none' )
+                        (@omit and not rl.action) ? 'none' : i.to_s )
       end
       out << " ]\n\n"
       out << "racc_reduce_n = #{@actions.reduce_n}\n\n"
@@ -124,40 +115,65 @@ module Racc
     end
 
     def output_actions( out )
-      line = @line
+      rl = act = nil
 
-      @ruletable.each_rule do |rl|
-        if str = rl.action then
-          i = rl.lineno
-          while /\A[ \t\f]*(?:\n|\r\n|\r)/ === str do
-            str = $'
-            i += 1
-          end
-          str.sub! /\s+\z/o, ''
-          if line then
-            out << sprintf( <<SOURCE, @parser.filename, i - 1, rl.ident, str )
+      if @result then
+        result1 = ', result '
+        result2 = "\n   result"
+        defact = ''
+      else
+        result1 = result2 = ''
+        defact = '  val[0]'
+      end
+      result = @result ? ', result ' : ''
+      if @line then
+        src = <<'--'
 
  module_eval( <<'.,.,', '%s', %d )
-  def _reduce_%d( val, _values, result )
-%s
-   result
+  def _reduce_%d( val, _values%s)
+%s%s
   end
 .,.,
-SOURCE
-          else
-            out << sprintf( <<SOURCE, rl.ident, str )
+--
+      else
+        src = <<'--'
 
-  def _reduce_%d( val, _values, result )
-%s
-   result
+  def _reduce_%d( val, _values%s)
+%s%s
   end
-SOURCE
-          end
-        else
+--
+      end
+
+      @ruletable.each_rule do |rl|
+        act = rl.action
+        if not act and @omit then
           out << sprintf( "\n # reduce %d omitted\n",
                           rl.ident )
+        else
+          act ||= defact
+          i = rl.lineno
+          while m = /\A[ \t\f]*(?:\n|\r\n|\r)/.match(act) do
+            act = m.post_match
+            i += 1
+          end
+          act.sub! /\s+\z/o, ''
+          if @line then
+            out << sprintf( src, @fname, i - 1, rl.ident,
+                            result1, act, result2 )
+          else
+            out << sprintf( src, rl.ident,
+                            result1, act, result2 )
+          end
         end
       end
+      out << sprintf(<<'--', result, @result ? 'result' : 'val[0]')
+
+ def _reduce_none( val, _values%s)
+  %s
+ end
+--
+
+      out << "\n"
     end
 
   end
@@ -217,18 +233,7 @@ SOURCE
     end
 
     def output_other( out )
-      out << <<S
-Racc_arg = [
- racc_action_table,
- racc_action_pointer,
- racc_goto_table,
- racc_goto_pointer,
- racc_reduce_table,
- racc_token_table,
- racc_shift_n,
- racc_reduce_n ]
-
-S
+      raise
     end
 
   end
@@ -413,6 +418,7 @@ S
 
 
     def output_other( out )
+      out << "racc_use_result_var = #{@result}\n\n"
       out << <<S
 racc_nt_base = #{@tokentable.nt_base}
 
@@ -429,9 +435,18 @@ Racc_arg = [
  racc_reduce_table,
  racc_token_table,
  racc_shift_n,
- racc_reduce_n ]
+ racc_reduce_n,
+ racc_use_result_var ]
 
 S
+      if @dsrc then
+        out << "Racc_debug_parser = true\n\n"
+        out << "Racc_token_to_s_table = [\n"
+        out << @tokentable.collect{|tok| "'" + tok.to_s + "'" }.join(",\n")
+        out << "]\n\n"
+      else
+        out << "Racc_debug_parser = false\n\n"
+      end
     end
 
   end
@@ -517,8 +532,8 @@ S
     def action_out( out, state )
       reduce_str = ''
 
-      srconf = state.srconf and state.srconf.dup
-      rrconf = state.rrconf and state.rrconf.dup
+      srconf = state.srconf && state.srconf.dup
+      rrconf = state.rrconf && state.rrconf.dup
 
       state.action.each do |tok, act|
         outact out, reduce_str, tok, act

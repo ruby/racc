@@ -1,6 +1,6 @@
 #!/usr/local/bin/ruby
 #
-# racc version 1.0.0
+# racc
 #
 #   Copyright (c) 1999,2000 Minero Aoki <aamine@dp.u-netsurf.ne.jp>
 #
@@ -23,8 +23,10 @@ usage: racc.rb [ options ] <source file>
     -g   output parser for user level debugging
     -v   make <filename>.output file
     -E   output file which don't need runtime
-    -V   report status time to time
-    -l   do not change line number in output (for ruby < 1.4.4)
+    -V   report message time to time
+    -l   turn off line number converting (for ruby<1.4.4)
+    -a   do not omit action call
+    -c   syntax check only
 
     -o<outfile>   file name of output [<fname>.tab.rb]
     -e<ruby-path> make output file executable ('ruby' to default)
@@ -32,7 +34,7 @@ usage: racc.rb [ options ] <source file>
     -h<header>    use <header> file for 'header' code
     -i<inner>     use <inner> file for 'inner' code
     -f<footer>    use <footer> file for 'footer' code
-    -O<outfile>   file name of verbose output [<outfile>.output]
+    -O<outfile>   file name of verbose output [<fname>.output]
 
     --help        print this message and quit
     --version     print version and quit
@@ -42,11 +44,10 @@ MESSAGE
 #
 # and, undocumented options :-)
 #
-# -c          syntax check only
 # -P          report profile
 #
 # -R<req>     require <req> instead of 'racc/libracc'
-# -D<flags>   set (racc's) debug flags (collection of [prtseh])
+# -D<flags>   set (racc's) debug flags
 # -X<req>     make output file require <req> instead of 'racc/parser'
 # -S<super>   replace super class of parser by <super>
 # -T[ia]      i: index table,  a: alist table
@@ -55,7 +56,7 @@ MESSAGE
 end
 $USAGE = 'usage'
 
-getopts( "cvgPEVl",
+getopts( "acglvEPV",
   'o:', 'n:', 'h:', 'i:', 'f:', 'e:', 'O:',
   'R:', 'D:', 'X:', 'S:', 'T:',
   'help', 'version', 'copyright' ) or usage 1
@@ -184,15 +185,14 @@ def pcompile( racc, srcstr, srcfn )
   times.push [ 'parse',   get_lap{ racc.parse(srcstr, srcfn) } ]
   times.push [ 'state',   get_lap{ racc.nfa } ]
   times.push [ 'resolve', get_lap{ racc.dfa } ]
-
-  return times
+  times
 end
 
-def report_profile( srcs )
+def report_profile( prof )
   out = $stderr
 
   whole = 0
-  $OPT_P.each do |arr|
+  prof.each do |arr|
     whole += arr[1]
   end
   if whole == 0 then
@@ -201,7 +201,7 @@ def report_profile( srcs )
 
   out.puts '--task-----------+--sec------+---%-'
 
-  $OPT_P.each do |arr|
+  prof.each do |arr|
     name, time = arr
     out.printf( "%-19s %s %3d%%\n",
                 name, pjust(time,4,4), (time/whole * 100).to_i )
@@ -241,28 +241,27 @@ end
 ##### main -------------------------------------------------
 
 
-def mk_debug_opt
-  dopt = {}
-  dopt[ 'debug-src' ] = $OPT_g ? true : false
-  dopt[ 'verbose' ]   = $OPT_V ? true : false
-  dopt[ 'profile' ]   = $OPT_P ? true : false
-  dopt[ 'line' ]      = $OPT_l ? false : true
+def set_flags( racc )
+  # overwrite source's
+  racc.debug_parser = true  if $OPT_g
+  racc.convert_line = false if $OPT_l
+  racc.omit_action  = false if $OPT_a
+  racc.make_profile = true  if $OPT_P
+  racc.verbose      = true  if $OPT_V
 
   if $DEBUG then
     $OPT_D ||= ''
   end
   if $OPT_D then
     $stdout.sync = true
-    dopt[ 'debug' ]  = true
-    dopt[ 'prec' ]   = true if /p/i === $OPT_D
-    dopt[ 'rule' ]   = true if /r/i === $OPT_D
-    dopt[ 'token' ]  = true if /t/i === $OPT_D
-    dopt[ 'state' ]  = true if /s/i === $OPT_D
-    dopt[ 'reduce' ] = true if /e/i === $OPT_D
-    dopt[ 'shift' ]  = true if /h/i === $OPT_D
+    racc.debug    = true
+    racc.d_parse  = true if /p/i === $OPT_D
+    racc.d_rule   = true if /r/i === $OPT_D
+    racc.d_token  = true if /t/i === $OPT_D
+    racc.d_state  = true if /s/i === $OPT_D
+    racc.d_reduce = true if /e/i === $OPT_D
+    racc.d_shift  = true if /h/i === $OPT_D
   end
-
-  dopt
 end
 
 
@@ -354,19 +353,21 @@ def racc_main( racc, srcfn )
   File.open( fchk(srcfn), 'r' ) {|f| srcstr = f.read }
 
   if $OPT_P then
-    $OPT_P = pcompile( racc, srcstr, srcfn )
-  elsif $OPT_c then
-    racc.parse( srcstr, srcfn )
-    puts 'syntax ok'
-    exit 0
+    prof = pcompile( racc, srcstr, srcfn )
   else
-    racc.compile( srcstr, srcfn )
+    racc.parse( srcstr, srcfn )
+    if $OPT_c then
+      puts 'syntax ok'
+      exit 0
+    end
+    set_flags racc
+    racc.compile
   end
 
   write_table_file racc, srcfn
 
-  if $OPT_P then
-    report_profile $OPT_P
+  if prof then
+    report_profile prof
   end
 
   if $OPT_v then
@@ -382,10 +383,15 @@ end
 
 
 begin
-  racc = Racc::Compiler.new( mk_debug_opt )
-  racc_main racc, ARGV[0]
-rescue ParseError, ScanError, Racc::RaccError
+  srcfn = ARGV[0]
+  racc = Racc::Compiler.new
+  racc_main racc, srcfn
+rescue Racc::ParseError, Racc::ScanError, Racc::RaccError
   raise if racc.debug
-  $stderr.puts "#{File.basename $0}: " + $!.to_s
+  msg = $!.to_s
+  unless /\A\d/ === msg then
+    msg[0,0] = ' '
+  end
+  $stderr.puts "#{File.basename $0}:#{srcfn}:" + msg
   exit 1
 end

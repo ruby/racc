@@ -3,204 +3,270 @@
 #
 #   Copyright (c) 1999,2000 Minero Aoki <aamine@dp.u-netsurf.ne.jp>
 #
-#   This library is free (and open source) software.
-#   You can distribute/modify this library under the terms of
-#   the GNU Library General Public License.
+#   This program is free software.
+#   You can distribute/modify this program under the terms of
+#   the GNU Lesser General Public License version 2 or later.
 #
 
-require 'racc/scanner'
 require 'amstd/bug'
 
 
 module Racc
 
-  class RaccScanner < Scanner
+  class ScanError < StandardError; end
 
-    # pattern
-
-    COMMENT  = /\A\#[^\n\r]*/
-    BEGIN_C  = /\A\/\*[^\n\r\*\/]*/
-    ATOM     = /\A[a-zA-Z_]\w*/
-    USERCODE = /\A(?:\n|\r\n|\r)\-\-\-\-+/
-
+  
+  class RaccScanner
 
     def initialize( str )
-      super
-      @rule_seen = false
-      @eol_seen = true
-      @token_seen = false
+      @lines  = str.split( /\n|\r\n|\r/ )
+      @lineno = -1
+
+      @line_head   = true
+      @in_rule_blk = false
+      @in_conv_blk = false
+
+      @in_block = nil
+
+      @debug = false
+
+      next_line
     end
 
+    def lineno
+      @lineno + 1
+    end
+
+    attr :debug, true
+
+
     def scan
-      ret = nil
-
-      while true do
-        unless @scan.rest? then
-          ret = [false, '$']
-          break
-        end
-
-        @scan.skip SPACE
-        unless @scan.skip COMMENT then
-          if @scan.skip BEGIN_C then
-            scan_comment
-            next
-          end
-        end
-
-        if @scan.skip USERCODE then
-          @lineno += 1
-          @scan.clear
-          next
-        end
-
-        if @scan.skip EOL then
-          eol_found
-          next
-        end
-
-        if atm = @scan.scan( ATOM ) then
-          ret = scan_atom( atm )
-          break
-        end
-
-        case fch = @scan.getch
-        when '"', "'"
-          ret = [:STRING, scan_string( fch )]
-        when '{'
-          no = lineno
-          ret = [:ACTION, [ scan_action, no ]]
-        else
-          ret = [fch, fch]
-        end
-
-        break
+      ret = do_scan
+      if @debug then
+        $stderr.printf "%7d %-10s %s\n",
+                       lineno, ret[0].inspect, ret[1].inspect
       end
-
-      debug_report ret if @debug
       ret
     end
 
+    def do_scan
+      begin
+        until @line.empty? do
+          @line.sub! /\A\s+/, ''
+
+          if /\A\#/ === @line then
+            next_line
+
+          elsif /\A\/\*/ === @line then
+            skip_comment
+
+          elsif m = /\A[a-zA-Z_]\w*/.match( @line ) then
+            @line = m.post_match
+            return check_atom( m[0] )
+
+          elsif m = /\A./.match( @line ) then
+            ch = m[0]
+            @line = m.post_match
+            case ch
+            when '"', "'"
+              return [:STRING, eval(scan_string ch)]
+            when '{'
+              no = lineno
+              return [:ACTION, [scan_action, no]]
+            else
+              return [ch, ch]
+            end
+
+          else
+            ;
+          end
+        end
+      end while next_line
+
+      [false, '$']
+    end
 
 
     private
 
+    def next_line
+      @lineno += 1
+      @line = @lines[ @lineno ]
 
-    STOS = {
-      'end'      => :XEND,
-      'token'    => :XTOKEN,
+      if not @line or /\A----/ === @line then
+        @lines.clear
+        @line = nil
+        if @in_block then
+          scan_error! sprintf('unterminated %s', @in_block)
+        end
+
+        false
+      else
+        @line.sub! /(?:\n|\r\n|\r)\z/, ''
+        @line_head = true
+        true
+      end
+    end
+
+
+    ResWord = {
       'right'    => :XRIGHT,
       'left'     => :XLEFT,
       'nonassoc' => :XNONASSOC,
       'preclow'  => :XPRECLOW,
       'prechigh' => :XPRECHIGH,
+      'token'    => :XTOKEN,
+      'convert'  => :XCONV,
+      'options'  => :XOPTION,
       'start'    => :XSTART,
       'class'    => :XCLASS,
-      'rule'     => :XRULE
+      'rule'     => :XRULE,
+      'end'      => :XEND
     }
 
-    def scan_atom( cur )
-# puts "eol=#{@eol_seen}"
-# puts "tok=#{@token_seen}"
+    def check_atom( cur )
       if cur == 'end' then
         sret = :XEND
-        @token_seen = false
+        @in_conv_blk = false
       else
-        if @eol_seen and not @token_seen then
-          sret = STOS[ cur ] || :TOKEN
+        if @line_head and not @in_conv_blk then
+          sret = ResWord[cur] || :XSYMBOL
         else
-          sret = :TOKEN
+          sret = :XSYMBOL
         end
 
         case sret
-        when :XRULE  then @rule_seen  = true
-        when :XTOKEN then @token_seen = true
+        when :XRULE then @in_rule_blk = true
+        when :XCONV then @in_conv_blk = true
         end
       end
-      @eol_seen = false
+      @line_head = false
 
-# printf "%10s : %10s\n", cur, sret.id2name
       [sret, cur.intern]
     end
 
 
-    def eol_found
-# puts
-      @lineno += 1
-      @eol_seen = true unless @rule_seen
-    end
-
-  # BEGIN_C   = /\A\/\*[^\n\r\*\/]*/o
-    COM_ENT   = /\A[^\n\r*]+/o
-    COM_ENT2  = /\A\*+[^*\/\r\n]/o
-    END_C     = /\A\*+\//o
-
-    def scan_comment
-      while @scan.rest? do
-        if    @scan.skip COM_ENT
-        elsif @scan.skip COM_ENT2
-        elsif @scan.skip EOL      then eol_found
-        elsif @scan.skip END_C    then return
-        else
-          scan_bug! 'in comment, no exp match'
-        end
+    def skip_comment
+      @in_block = 'comment'
+      until m = /\*\//.match( @line ) do
+        next_line
       end
-      scan_error! 'find unterminated comment'
+      @line = m.post_match
+      @in_block = nil
     end
 
-
-    SKIP         = /\A[^\'\"\`\{\}\/\#\r\n]+/o
-    COMMENT_CONT = /\A[^\r\n]*/o
 
     def scan_action
-      ret  = ''
-      nest = 0
-      while @scan.rest? do
-        if temp = @scan.scan( SKIP ) then
-          ret << temp
-        end
-        if temp = @scan.scan( EOL ) then
-          ret << temp
-          @lineno += 1
-          next
-        end
+      ret = ''
+      nest = 1
 
-        case ch = @scan.getch
-        when '{'
-          nest += 1
-          ret << ch
+      @in_block = 'action'
 
-        when '}'
-          nest -= 1
-          if nest < 0 then
-            break
+      begin
+        pre = nil
+
+        until @line.empty? do
+          if m = /\A[^'"`{}%#\/]+/.match( @line ) then
+            pre = m[0]
+            ret << pre
+            @line = m.post_match
+            next
           end
-          ret << ch
 
-        when "'", '"', '`'
-          ret << ch << scan_string( ch ) << ch
+          ch = @line[0,1]
+          @line = @line[ 1, @line.size - 1 ]
+          case ch
+          when '{'
+            nest += 1
+            pre = ch
+            ret << ch
 
-        when '/'
-          if SPACE === ret[-1,1] then
-            if @scan.peep(1) != '=' then
-              ret << ch << scan_string( ch ) << ch
-              next
+          when '}'
+            nest -= 1
+            if nest == 0 then
+              @in_block = nil
+              return ret
             end
+            pre = ch
+            ret << ch
+
+          when '#'
+            ret << ch << @line
+            break
+
+          when "'", '"', '`'
+            pre = scan_string( ch )
+            ret << pre
+
+          when '%'
+            if (not pre or /\W/ === pre[-1,1]) and
+               (tmp = @line[0,1]) and /[a-zA-Z=]/ === tmp then
+              # % string
+              ret << ch
+              @line = @line[ 1, @line - 1 ]
+              pre = scan_string( @line[1,1] )
+            else
+              # mod
+              pre = ch
+            end
+            ret << pre
+
+          when '/'
+            if (not pre or /\W/ === pre[-1,1]) and
+               (tmp = @line[0,1]) and not /[\s\=]/ === tmp or
+               not tmp then
+              # regexp
+              pre = scan_string(ch)
+            else
+              # division
+              pre = ch
+            end
+            ret << pre
+
+          else
+            bug!
           end
-          ret << ch
-
-        when '#'
-          ret << ch << @scan.scan( COMMENT_CONT ) << @scan.scan( EOL )
-          @lineno += 1
-
-        else
-          bug!
         end
-      end
 
-      return ret
+        ret << "\n"
+      end while next_line
+
+      bug!
     end
 
+
+    LEFT_TO_RIGHT = {
+      '(' => ')',
+      '{' => '}',
+      '[' => ']',
+      '<' => '>'
+    }
+
+    def scan_string( left )
+      ret = left.dup
+      term = LEFT_TO_RIGHT[left] || left
+      eline = /\A(?:[^\\#{term}]+|\\.)*#{term}/
+
+      @in_block = 'string'
+      begin
+        if m = eline.match( @line ) then
+          ret << m[0]
+          @line = m.post_match
+          break
+        else
+          ret << @line
+        end
+      end while next_line
+      @in_block = nil
+
+      ret
+    end
+
+
+    def scan_error!( msg )
+      raise ScanError, "#{lineno}: #{msg}"
+    end
+          
   end
 
-end
+end   # module Racc

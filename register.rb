@@ -64,14 +64,14 @@ module Racc
   class BuildInterface
 
     def initialize( racc )
+      @racc       = racc
       @ruletable  = racc.ruletable
       @tokentable = racc.tokentable
       
-      @d_prec = racc.d_prec
-
       @precs = []
       @emb = 1
       @tmpprec = nil
+      @token_list = nil
 
       @end_rule = false
       @end_conv = false
@@ -79,7 +79,7 @@ module Racc
     end
 
     
-    def get_token( val )
+    def get_symbol( val )
       @tokentable.get( val )
     end
 
@@ -88,7 +88,7 @@ module Racc
       sym = arr.shift
       case sym
       when OrMark, Action, Prec
-        raise ParseError, "line #{sym.lineno}: unexpected token #{sym.name}"
+        raise ParseError, "#{sym.lineno}: unexpected token #{sym.name}"
       end
       tmp = []
       arr.each do |i|
@@ -107,7 +107,7 @@ module Racc
     
 
     def embed_symbol( act )
-      sim = get_token( "@#{@emb}".intern )
+      sim = get_symbol( "@#{@emb}".intern )
       @emb += 1
       @ruletable.register sim, [], nil, act
 
@@ -137,6 +137,11 @@ module Racc
 
     def end_register_rule
       @end_rule = true
+      if @ruletable.size == 0 then
+        raise RaccError, 'rules not exist'
+      end
+
+      @ruletable.token_list = @token_list if @token_list
     end
 
     def register_tmpprec( prec )
@@ -148,8 +153,6 @@ module Racc
 
 
     def register_prec( atr, toks )
-      puts "register: atr=#{atr.id2name}, toks=#{toks.join(' ')}" if @d_prec
-
       if @end_prec then
         raise ParseError, "'prec' block is defined twice"
       end
@@ -179,7 +182,7 @@ module Racc
 
     def register_conv( tok, str )
       if @end_conv then
-        raise ParseError, "'token' block is defined twice"
+        raise ParseError, "'convert' block is defined twice"
       end
 
       tok.conv = str
@@ -190,10 +193,39 @@ module Racc
     end
 
 
+    def register_token( list )
+      @token_list ||= []
+      @token_list.concat list
+    end
+
+
     def register_start( tok )
       unless @ruletable.start = tok then
         raise ParseError, "'start' defined twice'"
       end
+    end
+
+
+    def register_option( option )
+      if m = /\Ano_/.match(option) then
+        opt = m.post_match
+        flg = true
+      else
+        opt = option
+        flg = false
+      end
+      case opt
+      when 'omit_action_call'
+        @racc.omit_action = inv(flg, true)
+      when 'result_var'
+        @racc.result_var = inv(flg, true)
+      else
+        raise ParseError, "unknown option '#{option}'"
+      end
+    end
+    
+    def inv( i, f )
+      if i then !f else f end
     end
 
   end   # BuildInterface

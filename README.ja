@@ -2,21 +2,20 @@ Racc readme
 
 必要環境
 
-  o  ruby version 1.4 以降
-  o  C compiler
+  *  ruby version 1.4 以降
+ (*) C コンパイラ
 
-  Racc は一部に拡張モジュールを使っています。
-  また、Racc で生成したパーサの動作時には基本的に Racc ランタイムが必要です
-  (racc の -E オプションでランタイムが必要ないパーザを生成することもできます)。
+  コンパイラはなくても使えます。
 
 
 インストール
 
-  シェルで次のように打ってください。
-  # の部分は普通はスーパーユーザの権限が必要です。
+  << コンパイラを持っている場合 >>
 
-  $ tar zxf racc-XXX.tar.gz
-  $ cd racc-XXXX
+  シェルで次のように打ってください。
+  # の部分は普通はルート権限が必要です。
+
+  (パッケージのトップディレクトリで)
   $ ruby setup.rb config
   $ ruby setup.rb setup
   # ruby setup.rb install
@@ -34,12 +33,21 @@ Racc readme
   ファイル一覧は FILES というファイルに書いてあります。
 
 
+  << Windows 環境などで、コンパイラがない場合 >>
+
+  config の時に次のようにしてください。
+
+  $ ruby setup.rb config --without=ext/cparse
+
+  ようするに、拡張モジュールを外せってことです。
+
+
 サンプルをコンパイルしてみる
 
-  Raccのサンプルとして、簡単な計算機がついています。
+  Racc のサンプルとして、簡単な計算機がついています。
   コンパイル用のスクリプトがあるので、
 
-  $ ruby compile.rb calc2
+  $ ruby compile.rb jcalc
 
   として下さい。コンパイルは数秒(または一瞬)で終わるので、
 
@@ -49,7 +57,8 @@ Racc readme
   この計算機では、加減乗除とかっこがつかえます。
   式をまちがえると…
 
-  Raccの文法など詳しいことは doc.ja ディレクトリ以下のHTMLを参照してください。
+  Racc の文法など詳しいことは doc.ja/ ディレクトリ以下の
+  HTML を参照してください。
 
 
 著作権
@@ -68,7 +77,5 @@ Racc readme
   できるだけつけてください。
 
 
-Minero Aoki (あおきみねろう)
-
-mail  aamine@dp.u-netsurf.ne.jp
-site  http://www1.u-netsurf.ne.jp/~brew/mine/ja/
+あおきみねろう <aamine@dp.u-netsurf.ne.jp>
+http://www1.u-netsurf.ne.jp/~brew/mine/ja/

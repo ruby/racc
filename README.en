@@ -1,35 +1,34 @@
 Racc README
 
-Racc is LALR(1) parser generator coded for Ruby.
-Written by Ruby and output Ruby source.
+Racc is LALR(1) parser generator.
+It is written by Ruby and output Ruby script.
 
 
 [Requirement]
 
-o  ruby version 1.4.x (maybe newer is better)
-o  C compiler
+  *  ruby version 1.4.x or later
+ (*) C compiler
 
+  C compiler is optional.
 
 [Install]
 
-Most simple (but little unstable) way to install is:
+  Simplest way for installation is below:
 
-  ('$' means shell prompt, '#' means super user)
-
-  $ tar zxf racc-XXX.tar.gz
-  $ cd racc-XXX
-	$ ruby setup.rb config
+  (in the top directory of package)
+  $ ruby setup.rb config
   $ ruby setup.rb setup
-  # ruby setup.rb install
+  # ruby setup.rb install   (maybe by root)
 
-You can install Racc into your favorite directory by using
-setup.rb options. For detail, type "ruby setup.rb --help".
+  You can install Racc into your favorite directory by using
+  setup.rb options. For detail, type "ruby setup.rb --help".
 
-Or, you would like to install files by your own hand,
-"FILES" file is helpful.
+  If you don't have C compiler, "config" step might be:
+
+  $ ruby setup.rb config --without=ext/cparse
 
 
-[To Test Racc]
+[Test Racc]
 
 Racc comes with simple calcurator. To compile this, on shell:
 

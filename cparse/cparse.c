@@ -1,4 +1,4 @@
-/* vi:set ts=4 sw=4:
+/* vi:set sw=4:
 
   cparse.c
   
@@ -102,6 +102,7 @@ struct cparse_params {
     long ruleno;
     int debug;
     int in_debug;
+    int use_result_var;
 };
 
 
@@ -157,8 +158,14 @@ do_reduce(val, data, self)
 
     /* method call must be done before tstack.push */
     if (mid != id_noreduce) {
-        tmp = rb_funcall(v->parser, mid,
-                         3, tmp_v, v->vstack, tmp);
+        if (v->use_result_var) {
+            tmp = rb_funcall(v->parser, mid,
+                             3, tmp_v, v->vstack, tmp);
+        }
+        else {
+            tmp = rb_funcall(v->parser, mid,
+                             2, tmp_v, v->vstack);
+        }
     }
     PUSH(v->vstack, tmp);
     if (debug) {
@@ -282,8 +289,9 @@ raccparse(parser, arg, indebug)
     D(puts("start cparse"));
 
     Check_Type(arg, T_ARRAY);
-    if (RARRAY(arg)->len != 13)
-        rb_raise(RaccBug, "[Racc Bug] arg.size is not 13");
+    if (!(RARRAY(arg)->len == 13 ||
+          RARRAY(arg)->len == 14))
+        rb_raise(RaccBug, "[Racc Bug] wrong arg.size %ld", RARRAY(arg)->len);
     act_tbl  = RARRAY(arg)->ptr[0];
     act_chk  = RARRAY(arg)->ptr[1];
     act_def  = RARRAY(arg)->ptr[2];
@@ -297,6 +305,14 @@ raccparse(parser, arg, indebug)
     tok_tbl  = RARRAY(arg)->ptr[10];
     shi_n    = RARRAY(arg)->ptr[11];
     red_n    = RARRAY(arg)->ptr[12];
+    if (RARRAY(arg)->len > 13) {
+        VALUE useres;
+        useres = RARRAY(arg)->ptr[13];
+        v.use_result_var = RTEST(useres);
+    }
+    else {
+        v.use_result_var = 1;
+    }
     Check_Type(act_tbl,  T_ARRAY);
     Check_Type(act_chk,  T_ARRAY);
     Check_Type(act_def,  T_ARRAY);
@@ -364,7 +380,11 @@ raccparse(parser, arg, indebug)
             if (read_next) {
                 if (in_tok != vFINAL_TOK) {
                     tmp = rb_funcall(v.parser, id_nexttoken, 0);
-                    Check_Type(tmp, T_ARRAY);
+                    if (TYPE(tmp) != T_ARRAY) {
+                        rb_raise(rb_eTypeError,
+                                 "next_token returns %s (must be Array[2])",
+                                 rb_class2name(CLASS_OF(tmp)));
+                    }
                     if (RARRAY(tmp)->len != 2)
                         rb_raise(rb_eArgError,
                                  "an array from next_token is not size 2");

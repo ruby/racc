@@ -1,12 +1,11 @@
 
 require 'pack/my'
-require 'strscan/pack'
 require 'amstd/pack'
 
 
 environ( 'racc' ) do
 
-  set :version, '1.0.0'
+  set :version, '1.1.6'
 
   set :dir, expand('~/r/racc')
 
@@ -44,7 +43,11 @@ environ( 'racc' ) do
     setup.rb
   )
 
-  set :text, %w( FILES )
+  set :text, %w(
+    FILES
+    BUGS.ja
+    BUGS.en
+  )
 
   set :sample, %w(
     calc.y
@@ -53,7 +56,7 @@ environ( 'racc' ) do
   )
 
 
-  set :extern_libs, %w( raccrt amstd strscan )
+  set :extern_libs, %w( raccrt amstd )
 
 
   def build
@@ -109,7 +112,7 @@ environ( 'racc' ) do
     set :instpath, 'racc'
 
 
-    set :rb, %w( parser.rb scanner.rb )
+    set :rb, %w( parser.rb )
 
     set :tool, %w(
       rtpack.rb
@@ -144,7 +147,7 @@ environ( 'racc' ) do
 
   environ( 'cparse' ) do
 
-    set :version, '0.4.2'
+    set :version, '1.1.5'
 
     set :dir, expand('~/r/racc/cp')
 

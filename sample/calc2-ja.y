@@ -1,7 +1,7 @@
 #
 # simple calc 2 (ja)
 #
-# This file includes Japanese characters !!!
+# This file includes Japanese characters (euc-jp) !!!
 #
 
 class Calcp

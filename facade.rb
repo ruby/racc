@@ -20,10 +20,10 @@ end
 
 module Racc
 
-  Version = '1.0.0'
 
 class Compiler
 
+  attr :filename
   attr :class_name
 
   attr :parser
@@ -33,53 +33,56 @@ class Compiler
   attr :formatter
   attr :interf
 
-  attr :dsrc
+  attr_accessor :debug_parser
+  attr_accessor :verbose
+  attr_accessor :make_profile
+  attr_accessor :convert_line
+  attr_accessor :omit_action
+  attr_accessor :result_var
   
-  attr :debug
-  attr :d_prec
-  attr :d_rule
-  attr :d_token
-  attr :d_state
-  attr :d_reduce
-  attr :d_shift
-  attr :d_verbose
-  attr :d_profile
-  attr :d_line
+  attr_accessor :debug
+  attr_accessor :d_parse
+  attr_accessor :d_rule
+  attr_accessor :d_token
+  attr_accessor :d_state
+  attr_accessor :d_reduce
+  attr_accessor :d_shift
 
+  def initialize
+    @debug_parser = false
+    @verbose      = false
+    @make_profile = false
+    @convert_line = true
+    @omit_action  = true
+    @result_var   = true
 
-  def initialize( debugopt )
-    @dsrc      = debugopt[ 'debug-src' ]
+    @debug    = nil
+    @d_parse  = nil
+    @d_rule   = nil
+    @d_token  = nil
+    @d_state  = nil
+    @d_reduce = nil
+    @d_shift  = nil
+  end
 
-    @debug     = debugopt[ 'debug' ]
-    @d_prec    = debugopt[ 'prec' ]
-    @d_rule    = debugopt[ 'rule' ]
-    @d_token   = debugopt[ 'token' ]
-    @d_state   = debugopt[ 'state' ]
-    @d_reduce  = debugopt[ 'reduce' ]
-    @d_shift   = debugopt[ 'shift' ]
-    @d_verbose = debugopt[ 'verbose' ]
-    @d_profile = debugopt[ 'profile' ]
-    @d_line    = debugopt[ 'line' ]
-
+  def parse( str, fname = '-' )
     @tokentable = TokenTable.new( self )
     @ruletable  = RuleTable.new( self )
     @interf     = BuildInterface.new( self )
     @parser     = RaccParser.new( self )
-    @statetable = LALRstateTable.new( self )
+
+    @filename = fname
+    @parser.parse( str )
+    @class_name = @parser.classname
   end
 
-  def compile( str, fn = '' )
-    parse( str, fn )
+  def compile
     nfa
     dfa
   end
 
-  def parse( str, fname = '' )
-    @parser.parse( str, fname )
-    @class_name = @parser.classname
-  end
-
   def nfa
+    @statetable = LALRstateTable.new( self )
     @ruletable.init
     @statetable.init
   end

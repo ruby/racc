@@ -102,15 +102,16 @@ module Racc
       @racc = racc
       @tokentable = racc.tokentable
 
+      @verbose = racc.verbose
       @d_token = racc.d_token
       @d_rule  = racc.d_rule
       @d_state = racc.d_state
-      @verbose = racc.d_verbose
 
       @rules    = []
       @finished = false
       @hashval  = 4
       @start    = nil
+      @tok_chk  = nil
     end
 
 
@@ -163,6 +164,13 @@ module Racc
     
     attr :start
 
+    def token_list=( list )
+      if @tok_chk then
+        bug! 'rule@tok_chk registered twice'
+      end
+      @tok_chk = list
+    end
+
 
     def init
       $stderr.puts 'initializing values' if @verbose
@@ -208,6 +216,7 @@ module Racc
       end
 
       @tokentable.fix
+      @tokentable.token_check @tok_chk if @tok_chk
 
       #
       # t.nt_heads, locate, rule.prec
@@ -603,15 +612,6 @@ module Racc
     attr :anchor
     attr :uniq_token
 
-    def get( val )
-      unless ret = @chk[ val ] then
-        @chk[ val ] = ret = Token.new( val, @racc )
-        @tokens.push ret
-      end
-
-      ret
-    end
-
     def fix
       term = []
       nt = []
@@ -630,6 +630,31 @@ module Racc
       @uniq_token = Token.new( :$uniq, @racc )
       @uniq_token.ident = @tokens.size
       @uniq_token.term = true
+    end
+
+    def token_check( list )
+      list.push @anchor
+      list.push @error
+
+      toks = @tokens[ 0, @nt_base ]
+      list.each do |t|
+        unless toks.delete t then
+          $stderr.puts "racc warning: terminal #{t} decleared but not used"
+        end
+      end
+      toks.each do |t|
+        $stderr.puts "racc warning: terminal #{t} used but not decleared"
+      end
+    end
+
+
+    def get( val )
+      unless ret = @chk[ val ] then
+        @chk[ val ] = ret = Token.new( val, @racc )
+        @tokens.push ret
+      end
+
+      ret
     end
 
     def []( id )
@@ -664,12 +689,13 @@ module Racc
     Error_token_id   = 1
 
     def initialize( tok, racc )
-      @ident   = nil
-      @value   = tok
+      @ident = nil
+      @value = tok
 
-      @term   = nil
-      @nterm  = nil
-      @conv   = nil
+      @term  = nil
+      @nterm = nil
+      @conv  = nil
+      @prec  = nil
 
       @heads       = []
       @nt_heads    = []
@@ -784,11 +810,11 @@ module Racc
       @tokentable = racc.tokentable
       @anchor_t   = racc.tokentable.anchor
 
+      @verbose  = racc.verbose
+      @prof     = racc.make_profile
       @d_state  = racc.d_state
       @d_reduce = racc.d_reduce
       @d_shift  = racc.d_shift
-      @verbose  = racc.d_verbose
-      @prof     = racc.d_profile
 
       @states = []
       @statecache = {}
@@ -1120,11 +1146,12 @@ module Racc
       @racc       = racc
       @uniq_t     = racc.tokentable.uniq_token
       @actions    = racc.statetable.actions
+
+      @verbose    = racc.verbose
+      @prof       = racc.make_profile
       @d_state    = racc.d_state
       @d_reduce   = racc.d_reduce
       @d_shift    = racc.d_shift
-      @verbose    = racc.d_verbose
-      @prof       = racc.d_profile
 
       @goto_table = {}
 
@@ -1187,7 +1214,7 @@ module Racc
             if i.la.delete uniq then
               tran[ transi.ptr.ident ] = transi
             end
-            transi.la.update(i.la) unless i.la.empty?
+            transi.la.update i.la
           end
         end
 
@@ -1210,11 +1237,9 @@ module Racc
         end
       end
 
-      clo_a = clo.to_a
-
       return clo if ip.reduce?
-
-      i = tmp = np = nil
+      clo_a = clo.to_a
+      i = tmp = np = f = nil
 
       #
       # generate intern

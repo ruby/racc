@@ -68,10 +68,10 @@ puts 'type "Q" to quit.'
 puts
 
 while true do
-  print "\n"
+  puts
   print '? '
   str = gets.chop!
-  if /q/io === str then break end
+  break if /q/i === str
 
   begin
     val = parser.parse( str )
@@ -79,7 +79,7 @@ while true do
   rescue ParseError
     puts $!
   rescue
-    puts 'unexpected error?!'
+    puts 'unexpected error ?!'
     raise
   end
 
