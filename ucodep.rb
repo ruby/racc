@@ -22,9 +22,9 @@ module Racc
         lineno += 1
         if m = re.match(line) then
           ret[ m[1].downcase ] = [
-              (str = ''),
+              str = '',
               lineno + 1,
-              (m[2] ?  m.post_match.strip.split(/\s+/) : nil)
+              (m[2] && !m[2].empty?) ?  m.post_match.strip.split(/\s+/) : nil
           ]
         else
           str << line if str

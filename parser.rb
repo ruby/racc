@@ -105,7 +105,7 @@ module Racc
       action_table, action_check, action_default, action_pointer,
       goto_table,   goto_check,   goto_default,   goto_pointer,
       nt_base,      reduce_table, token_table,    shift_n,
-      reduce_n,     use_result    = arg
+      reduce_n,     use_result,   * = arg
 
       _racc_init_sysvars
       tok = act = i = nil
@@ -159,7 +159,7 @@ module Racc
       action_table, action_check, action_default, action_pointer,
       goto_table,   goto_check,   goto_default,   goto_pointer,
       nt_base,      reduce_table, token_table,    shift_n,
-      reduce_n,     use_result,   = arg
+      reduce_n,     use_result,   * = arg
 
       _racc_init_sysvars
       tok = nil
@@ -226,7 +226,7 @@ module Racc
       action_table, action_check, action_default, action_pointer,
       goto_table,   goto_check,   goto_default,   goto_pointer,
       nt_base,      reduce_table, token_table,    shift_n,
-      reduce_n,     use_result,   = arg
+      reduce_n,     use_result,   * = arg
 nerr = 0   # tmp
 
       if act > 0 and act < shift_n then
@@ -330,7 +330,7 @@ nerr = 0   # tmp
       action_table, action_check, action_default, action_pointer,
       goto_table,   goto_check,   goto_default,   goto_pointer,
       nt_base,      reduce_table, token_table,    shift_n,
-      reduce_n,     use_result,   = arg
+      reduce_n,     use_result,   * = arg
       state = @racc_state
       vstack = @racc_vstack
       tstack = @racc_tstack

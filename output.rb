@@ -174,6 +174,9 @@ module Racc
       all.push ent
     end
 
+    unless defined? RegexpError then
+      RegexpError = RegxpError
+    end
     begin
       tmp = 2 ** 16
       begin
