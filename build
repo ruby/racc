@@ -18,7 +18,7 @@ end
 
 module Racc
 
-  Version = '0.14.0'
+  Version = '0.14.4'
 
 class LALRstate
   def sr_conflict( *args )

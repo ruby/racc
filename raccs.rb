@@ -27,7 +27,7 @@ module Racc
     def initialize( str )
       super
       @rule_seen = false
-      @eol_seen = false
+      @eol_seen = true
       @token_seen = false
     end
 
@@ -48,7 +48,7 @@ module Racc
           end
         end
 
-        if temp = @scan.scan( USERCODE ) then
+        if @scan.skip USERCODE then
           @lineno += 1
           @scan.clear
           next

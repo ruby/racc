@@ -8,7 +8,7 @@ environ( 'racc' ) do
 
   set :dir, expand('~/r/racc')
 
-  set :version, '0.14.0'
+  set :version, '0.14.4'
 
   set :bin, %w( racc )
 
@@ -140,7 +140,7 @@ environ( 'racc' ) do
 
   environ( 'cparse' ) do
 
-    set :version, '0.4.0'
+    set :version, '0.4.1'
 
     set :dir, expand('~/r/racc/cp')
 

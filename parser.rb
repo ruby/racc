@@ -336,10 +336,8 @@ class Parser
   end
 
   def _token2str( tok )
-    unless ret = self.type::Racc_token_to_s_table[tok] then
+    type::Racc_token_to_s_table[tok] or
       raise RuntimeError, "[Racc Bug] can't convert token #{tok} to string"
-    end
-    ret
   end
 
 end

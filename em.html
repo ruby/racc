@@ -4,7 +4,7 @@
 <h1>Racc User Manual</h1>
 
 <p>
-updated for version 0.12
+updated for version 0.14
 
 <ul>
 <li><a href="usage.html">Usage</a>
@@ -51,12 +51,11 @@ class Calcparser
 
 rule
   target: exp { print val[0] }
-        ;
+
   exp: exp '+' exp
      | exp '*' exp
      | '(' exp ')'
      | NUMBER
-     ;
 end
 
 </pre>
@@ -237,12 +236,8 @@ For example:
    (token): (token) (token) (token).... (action)
           | (token) (token) (token).... (action)
           | (token) (token) (token).... (action)
-          ;
 
 </pre>
-This resembles to yacc, but semicolon MUST NOT be ommited.
-
-<p>
 (action) is an action which is executed when its (token)s are found.
 (action) is like this:
 <pre>
@@ -252,7 +247,7 @@ This resembles to yacc, but semicolon MUST NOT be ommited.
 
 </pre>
 In (action), you cannot use '%' string, here document, '%r' regexp.
-You can omit action. When it is omitted, ''(void string) is used as action.
+Actions can be omitted. When it is omitted, ''(empty string) is used.
 
 <p>
 A return value of action is a value of left side value ($$).
@@ -263,7 +258,7 @@ Then, here's a sample of whole 'rule block'.
 <pre>
 
 rule
-  goal: definition ruls source { result = val } ;
+  goal: definition ruls source { result = val }
 
   definition: /* none */   { result = [] }
     | definition startdesig  { result[0] = val[1] }
@@ -272,9 +267,8 @@ rule
       {
         result[1] = val[1]
       }
-    ;
 
-  startdesig: START TOKEN ;
+  startdesig: START TOKEN
 
 end
 
@@ -385,7 +379,7 @@ For example:
     end
 
 </pre>
-These are not BUG, but FEATURE.
+These are <em>not BUG, but FEATURE</em>.
 
 
 <h2><a name="usercode">User Code</a></h2>
@@ -434,7 +428,6 @@ This statement makes racc to use "init.rb" "run.rb" as 'footer' user code.
 <h2>when parse error</h2>
 
 <ul>
-<li>Threre is semicolon after action?
 <li>Isn't there too many "end" ? grammer of racc file is changed in v0.10.
 </ul>
 
@@ -456,6 +449,47 @@ This statement makes racc to use "init.rb" "run.rb" as 'footer' user code.
 <h1>Change Log</h1>
 
 <hr>
+<h2>0.14.4(2000/04/09)</h2>
+<p>
+<ul>
+<li>Racc_* are included in Racc_arg
+<li>faster state generation (a little)
+</ul>
+
+<h2>0.14.3(2000/04/04)</h2>
+<p>
+<ul>
+<li>check both of SYM2ID and ID2SYM (thanks Katsuyuki Komatsu)
+</ul>
+
+<h2>0.14.2(2000/04/02)</h2>
+<p>
+<ul>
+<li>"class" on first line causes parse error (thanks Yoshiki Wada)
+<li>new option "racc -V"
+</ul>
+
+<h2>0.14.1(2000/03/31)</h2>
+<p>
+<ul>
+<li>if ruby path was given, change also ruby path for "system" call
+    (thanks Toshiro Kuwabara(Tosh))
+</ul>
+
+<h2>0.14.0(2000/03/21)</h2>
+<p>
+<ul>
+<li>implement "fast" table (same to bison)
+<li>stop line no. conversion temporaliry because of ruby bug
+</ul>
+
+<hr>
+<h2>0.13.1(2000/03/21)</h2>
+<p>
+<ul>
+<li>racc --version --copyright did not work (thanks Tadayoshi Funaba)
+</ul>
+
 <h2>0.13.0(2000/03/120)</h2>
 <p>
 <ul>

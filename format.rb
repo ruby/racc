@@ -19,6 +19,7 @@ module Racc
       @parser     = racc.parser
       @dsrc       = racc.dsrc
       @debug      = racc.debug
+      @verbose    = racc.d_verbose
     end
 
     # abstract output( outf )
@@ -87,7 +88,7 @@ module Racc
 
 
     def output_reduce_table( out )
-      out << "Racc_reduce_table = [\n"
+      out << "racc_reduce_table = [\n"
       out << " 0, 0, :racc_error,"
       sep = "\n"
       sep_rest = ",\n"
@@ -100,14 +101,14 @@ module Racc
                         rl.action ? i.to_s : 'none' )
       end
       out << " ]\n\n"
-      out << "Racc_reduce_n = #{@actions.reduce_n}\n\n"
-      out << "Racc_shift_n = #{@actions.shift_n}\n\n"
+      out << "racc_reduce_n = #{@actions.reduce_n}\n\n"
+      out << "racc_shift_n = #{@actions.shift_n}\n\n"
     end
 
     def output_token_table( out )
       sep = "\n"
       sep_rest = ",\n"
-      out << "Racc_token_table = {"
+      out << "racc_token_table = {"
       @tokentable.each do |tok|
         if tok.terminal? then
           out << sep ; sep = sep_rest
@@ -138,6 +139,7 @@ module Racc
 SOURCE
 =end
           src = <<SOURCE
+
   def _reduce_%d( val, _values, result )
 %s
    result
@@ -161,6 +163,8 @@ SOURCE
     private
 
     def output_action_table( out )
+      $stderr.puts 'generating action table (type a)' if @verbose
+
       disc = []
       tbl = []
 
@@ -174,15 +178,17 @@ SOURCE
         tbl.push act2actid( state.defact )
       end
 
-      out << "Racc_action_table = [\n"
+      out << "racc_action_table = [\n"
       output_table( out, tbl )
 
-      out << "Racc_action_table_ptr = [\n"
+      out << "racc_action_pointer = [\n"
       output_table( out, disc )
     end
 
 
     def output_goto_table( out )
+      $stderr.puts 'generating goto table (type a)' if @verbose
+
       disc = []
       tbl = []
       @statetable.each_state do |state|
@@ -198,14 +204,26 @@ SOURCE
       end
       tbl.push -1; tbl.push -1   # detect bug
 
-      out << "Racc_goto_table = [\n"
+      out << "racc_goto_table = [\n"
       output_table( out, tbl )
 
-      out << "Racc_goto_table_ptr = [\n"
+      out << "racc_goto_pointer = [\n"
       output_table( out, disc )
     end
 
     def output_other( out )
+      out << <<S
+Racc_arg = [
+ racc_action_table,
+ racc_action_pointer,
+ racc_goto_table,
+ racc_goto_pointer,
+ racc_reduce_table,
+ racc_token_table,
+ racc_shift_n,
+ racc_reduce_n ]
+
+S
     end
 
   end
@@ -216,11 +234,15 @@ SOURCE
     private
 
     def output_action_table( out )
+      $stderr.puts 'generating action table (type i)' if @verbose
+
       tbl  = []   # yytable
       chk  = []   # yycheck
       defa = []   # yydefact
       ptr  = []   # yypact
       state = tmp = min = max = i = nil
+      e1 = []
+      e2 = []
 
       @statetable.each_state do |state|
         # default
@@ -235,47 +257,42 @@ SOURCE
         state.action.each do |tok, act|
           tmp[ tok.tokenid ] = act2actid( act )
         end
-        max = tmp.size
-        0.upto( max ) do |i|
-          if tmp[i] then
-            min = i
-            break
-          end
-        end
 
-        # check
-        i = state.stateid
-        (max - min).times { chk.push i }
-
-        # table & pointer
-        tmp = tmp[ min, max - min ]
-        ptr.push tbl.size - min
-        tbl.concat tmp
+        addent( e1, e2, tmp, state.stateid, ptr )
       end
+      set_table e1, e2, tbl, chk, ptr
 
-      out << "Racc_action_table = [\n"
+      out << "racc_action_table = [\n"
       output_table( out, tbl )
 
-      out << "Racc_action_check = [\n"
+      out << "racc_action_check = [\n"
       output_table( out, chk )
 
-      out << "Racc_action_default = [\n"
+      out << "racc_action_default = [\n"
       output_table( out, defa )
 
-      out << "Racc_action_pointer = [\n"
+      out << "racc_action_pointer = [\n"
       output_table( out, ptr )
     end
 
 
     def output_goto_table( out )
+      $stderr.puts 'generating goto table (type i)' if @verbose
+
       tbl  = []   # yytable (2)
       chk  = []   # yycheck (2)
       ptr  = []   # yypgoto
       defg = []   # yydefgoto
       state = dflt = tmp = freq = min = max = i = nil
+      e1 = []
+      e2 = []
 
       @tokentable.each_nonterm do |tok|
         tmp = []
+
+        #
+        # decide default
+        #
         freq = Array.new( @statetable.size, 0 )
         @statetable.each_state do |state|
           st = state.nonterm_table[ tok ]
@@ -285,8 +302,6 @@ SOURCE
           end
           tmp[ state.stateid ] = st
         end
-        tmp.delete_at(-1) until tmp[-1] or tmp.empty?
-
         max = freq.max
         if max > 1 then
           dflt = freq.index( max )
@@ -295,64 +310,121 @@ SOURCE
           dflt = nil
         end
 
-        max = tmp.size
-        tmp.each_index do |i|
-          if tmp[i] then
-            min = i
-            break
-          end
-        end
-
         # default
         defg.push dflt
 
+        #
+        # delete default value
+        #
+        tmp.delete_at(-1) until tmp[-1] or tmp.empty?
         if tmp.compact.empty? then
+          # only default
           ptr.push nil
           next
         end
 
-        # check
-        i = tok.tokenid - @tokentable.nt_base
-        (max - min).times { chk.push i }
-
-        # table & pointer
-        tmp = tmp[ min, max - min ]
-        ptr.push tbl.size - min
-        tbl.concat tmp
+        addent( e1, e2, tmp, tok.tokenid - @tokentable.nt_base, ptr )
       end
-      # tbl.push -1; tbl.push -1   # detect bug
+      set_table e1, e2, tbl, chk, ptr
 
-      out << "Racc_goto_table = [\n"
+      out << "racc_goto_table = [\n"
       output_table( out, tbl )
 
-      out << "Racc_goto_check = [\n"
+      out << "racc_goto_check = [\n"
       output_table( out, chk )
 
-      out << "Racc_goto_pointer = [\n"
+      out << "racc_goto_pointer = [\n"
       output_table( out, ptr )
 
-      out << "Racc_goto_default = [\n"
+      out << "racc_goto_default = [\n"
       output_table( out, defg )
     end
 
+    def addent( all, dummy, arr, chkval, ptr )
+      max = arr.size
+      min = nil
+      item = idx = nil
+      arr.each_with_index do |item,idx|
+        if item then
+          min ||= idx
+        end
+      end
+      ptr.push -7777    # mark
+
+      arr = arr[ min, max - min ]
+      ent = [ arr, chkval, mkmapexp(arr), min, ptr.size - 1 ]
+      all.push ent
+    end
+
+    def mkmapexp( arr )
+      i = ii = 0
+      as = arr.size
+      map = ''
+      while i < as do
+        ii = i + 1
+        if arr[i] then
+          ii += 1 while ii < as and arr[ii]
+          map << '-'
+        else
+          ii += 1 while ii < as and not arr[ii]
+          map << '.'
+        end
+        map << "{#{ii - i}}" if ii - i > 1
+        i = ii
+      end
+
+      Regexp.new( map, 'n' )
+    end
+
+    def set_table( entries, dummy, tbl, chk, ptr )
+      a = b = ent = nil
+      idx = item = i = nil
+      arr = chkval = min = ptri = exp = nil
+      upper = 0
+      map = '-' * 10240
+
+      # sort long to short
+      entries.sort! {|a,b| b[0].size <=> a[0].size }
+
+      entries.each do |ent|
+        arr, chkval, exp, min, ptri = *ent
+
+        if upper + arr.size > map.size then
+          map << '-' * (arr.size + 1024)
+        end
+        idx = map.index( exp )
+        ptr[ ptri ] = idx - min
+        arr.each_with_index do |item, i|
+          if item then
+            i += idx
+            tbl[i] = item
+            chk[i] = chkval
+            map[i] = ?o
+          end
+        end
+        upper = idx + arr.size
+      end
+    end
+
+
     def output_other( out )
       out << <<S
-Racc_nt_base = #{@tokentable.nt_base}
+racc_nt_base = #{@tokentable.nt_base}
 
 Racc_arg = [
- Racc_action_table,
- Racc_action_check,
- Racc_action_default,
- Racc_action_pointer,
- Racc_goto_table,
- Racc_goto_check,
- Racc_goto_default,
- Racc_goto_pointer,
- Racc_nt_base,
- Racc_reduce_table,
- Racc_token_table,
- Racc_shift_n,
- Racc_reduce_n ]
+ racc_action_table,
+ racc_action_check,
+ racc_action_default,
+ racc_action_pointer,
+ racc_goto_table,
+ racc_goto_check,
+ racc_goto_default,
+ racc_goto_pointer,
+ racc_nt_base,
+ racc_reduce_table,
+ racc_token_table,
+ racc_shift_n,
+ racc_reduce_n ]
 
 S
     end
@@ -375,12 +447,20 @@ S
 
 
     def output_useless( out )
-      @tokentable.each do |tok|
-        if tok.useless? then
-          tok.rules.each do |rl|
-            out << sprintf( "rule %d (%s) never reduced\n",
-                            rl.ruleid, rl.simbol.to_s )
-          end
+      act = nil
+      used = []
+      @statetable.actions.each_reduce do |act|
+        if not act or act.refn == 0 then
+          out << sprintf( "rule %d (%s) never reduced\n",
+                          act.rule.ruleid, act.rule.simbol.to_s )
+        else
+          used[ act.rule.symbol.tokenid ] = true
+        end
+      end
+      @tokentable.nt_base.upto( @tokentable.nt_max ) do |n|
+        unless used[n] then
+          out << sprintf( "useless nonterminal %s",
+                          @tokentable[n].to_s )
         end
       end
     end

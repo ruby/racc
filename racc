@@ -1,8 +1,8 @@
 #!/usr/local/bin/ruby
 #
-# racc version 0.14.0
+# racc version 0.14.4
 #
-#   Copyright (c) 1999 Minero Aoki <aamine@dp.u-netsurf.ne.jp>
+#   Copyright (c) 1999,2000 Minero Aoki <aamine@dp.u-netsurf.ne.jp>
 #
 #   This program is free software.
 #   You can distribute/modify this program under the terms of
@@ -23,6 +23,7 @@ usage: racc.rb [ options ] <source file>
     -g   output parser for user level debugging
     -v   make <filename>.output file
     -E   output file which don't need runtime
+    -V   report status time to time
 
     -o<outfile>   file name of output [<fname>.tab.rb]
     -e<ruby-path> make output file executable ('ruby' to default)
@@ -47,7 +48,6 @@ MESSAGE
 # -D<flags>   set (racc's) debug flags (collection of [prtseh])
 # -X<req>     make output file require <req> instead of 'racc/parser'
 # -S<super>   replace super class of parser by <super>
-# -V          print resolver profile
 # -T[ia]      i: index table,  a: alist table
 #
   exit status
@@ -244,7 +244,8 @@ def racc_main
 
 dopt = {}
 dopt[ 'debug-src' ] = $OPT_g ? true : false
-dopt[ 'profile' ] = $OPT_V ? true : false
+dopt[ 'verbose' ] = $OPT_V ? true : false
+dopt[ 'profile' ] = $OPT_P ? true : false
 
 if $OPT_D then
   $stdout.sync = true

@@ -22,7 +22,8 @@ module Racc
       @d_state  = racc.d_state
       @d_reduce = racc.d_reduce
       @d_shift  = racc.d_shift
-      @prof     = racc.d_prof
+      @verbose  = racc.d_verbose
+      @prof     = racc.d_profile
 
       @states = []
       @statecache = {}
@@ -39,7 +40,7 @@ module Racc
 
 
     def inspect
-      "#<state table>"
+      '#<state table>'
     end
     alias to_s inspect
 
@@ -71,34 +72,29 @@ module Racc
 
 
     def resolve
-      $stderr.puts 'resolver start' if @prof
+      $stderr.puts "resolving #{@states.size} states" if @verbose
 
       @states.each do |state|
         state.compute_first_term
       end
-      if @prof then
-        b = Time.times.utime
-        slr = 0
-        lalr = 0
-      end
+
+      b = Time.times.utime
+      slr = 0
+      lalr = 0
       @states.each do |state|
-        if @prof then
-          if state.stateid % 40 == 39 then
-            $stderr.puts "end #{state.stateid + 1} states"
-          end
+        if @verbose and state.stateid % 40 == 39 then
+          $stderr.puts "end #{state.stateid + 1} states"
         end
 
         if state.conflicting? then
           ret = state.resolve
-          if ret == :slr then slr += 1 else lalr += 1 end if @prof
+          if ret == :slr then slr += 1 else lalr += 1 end
         end
       end
 
-      if @prof then
+      if @verbose then
         e = Time.times.utime
-        puts "total #{e - b} sec"
-        puts "slr #{slr}, lalr #{lalr}"
-        $stderr.puts 'resolve ok'
+        $stderr.puts "all resolved in #{e - b} sec: slr #{slr}, lalr #{lalr}"
       end
 
       # set accept
@@ -157,12 +153,13 @@ module Racc
 
 
     def seed_to_state( seed )
-      unless dest = @statecache[seed] then
+      k = sdigest( seed )
+      unless dest = @statecache[k] then
         # not registered yet
         dest = LALRstate.new( @states.size, seed, @racc )
         @states.push dest
 
-        @statecache[ seed ] = dest
+        @statecache[k] = dest
         
         puts "seed_to_state: create state   ID #{dest.stateid}" if @d_state
       else
@@ -173,6 +170,10 @@ module Racc
       end
 
       dest
+    end
+
+    def sdigest( arr )
+      arr.collect {|i| i.hash }.pack( 'L*' )
     end
 
 
@@ -260,7 +261,8 @@ module Racc
       @d_state    = racc.d_state
       @d_reduce   = racc.d_reduce
       @d_shift    = racc.d_shift
-      @prof       = racc.d_prof
+      @verbose    = racc.d_verbose
+      @prof       = racc.d_profile
 
       @from_table    = {}
       @term_table    = {}
@@ -370,10 +372,10 @@ module Racc
     def conflicting?
       if @reduce_ptrs.size > 0 then
         if @closure.size == 1 then
-          @defact = @actions.reduce( @reduce_ptrs[0].rule )
           #
           # reduce
           #
+          @defact = @actions.reduce( @reduce_ptrs[0].rule )
         else
           #
           # conflict
@@ -475,63 +477,56 @@ module Racc
       end
     end
 
-
     def lookahead( ptr, lock )
       puts "la> state #{@stateid},#{ptr}" if @d_reduce
-      st_beg = Time.times.utime if @prof
+      st_beg = Time.times.utime
 
       sim = ptr.rule.simbol
       ret = {}
       gotos = {}
       new = {}
-      goto = pt = nil
-      ff = len = nil
-      f = a = tmp = nil
-      nt = h = nil
+      goto = pt = ff = len = f = a = tmp = nt = h = nil
+      d_reduce = @d_reduce
 
       head_state( ptr ).each_key do |f|
         tmp = f.nonterm_table[ sim ]
         if a = gotos[tmp]; a[f]=1 else gotos[tmp] = {f,1} end
       end
 
-      i = 0 if @prof
+      i = 0
       until gotos.empty? do
-        i += 1 if @prof
+        i += 1
 
         gotos.each do |goto, froms|
-          puts "la: goto #{goto.stateid}" if @d_reduce
-
           next if lock[goto.stateid]
           lock[goto.stateid] = true
+          puts "la: goto #{goto.stateid}" if d_reduce
           ret.update goto.first_term
 
   goto.reduce_seed.each do |pt|
     sim = pt.rule.simbol
-
     froms.each do |f,len|
       if pt.index == len then
                   tmp = f.nonterm_table[ sim ]
-#unless tmp then p goto.stateid; p f.stateid; p pt; bug! end
+                  #unless tmp then p goto.stateid; p f.stateid; p pt; bug! end
                   if h = new[tmp]; h[f]=1 else new[tmp] = {f,1} end
       else
-#begin
-        f.head_state( pt.before(len) ).each_key do |ff|
-                  tmp = ff.nonterm_table[ sim ]
-#unless tmp then p goto.stateid; p ff.stateid; p pt; bug! end
-                  if h = new[tmp]; h[ff]=1 else new[tmp] = {ff,1} end
+        ff = f
+        #begin
+        ff.head_state( pt.before(len) ).each_key do |f|
+                  tmp = f.nonterm_table[ sim ]
+                  #unless tmp then p goto.stateid; p f.stateid; p pt; bug! end
+                  if h = new[tmp]; h[f]=1 else new[tmp] = {f,1} end
         end
-#rescue FindBug
-#p f
-#p len
-#p pt
-#raise
-#end
+        #rescue FindBug
+        #p f; p len; p pt; raise
+        #end
       end
     end
-  end           # seed.each
+  end
   goto.nullable.each do |nt|
                   tmp = goto.nonterm_table[ nt ]
-#unless tmp then p goto.stateid; p ff.stateid; p pt; bug! end
+                  #unless tmp then p goto.stateid; p nt; bug! end
                   if h = new[tmp] then
                     froms.each {|f,len| bug! if h[f]; h[f] = len + 1 }
                   else
@@ -539,7 +534,7 @@ module Racc
                     new[tmp] = h
                   end
   end
-        end     # gotos.each
+        end          # gotos.each
 
         tmp = gotos
         gotos = new
@@ -547,10 +542,10 @@ module Racc
         new.clear
       end            # until
 
-      if @prof
-        st_end = Time.times.utime
+      st_end = Time.times.utime
+      if @prof then
         printf "%-4d %4d %4d %f\n",
-               @stateid, lock.compact.size, i, st_end - st_beg
+            @stateid, lock.compact.size, i, st_end - st_beg
       end
 
       puts "la< state #{@stateid}" if @d_reduce
@@ -606,36 +601,34 @@ module Racc
           # no conflict
           @action[ stok ] = @actions.shift( goto )
         else
-          case act
-          when ShiftAction
-            # already set to shift
-
-          when ReduceAction
-            # conflict on stok
-
-            rtok = act.rule.prec
-            ret  = do_resolve_sr( stok, rtok )
-
-            case ret
-            when :Reduce        # action is already set
-
-            when :Shift         # overwrite
-              @action[ stok ] = @actions.shift( goto )
-
-            when :Remove        # remove
-              @action.delete stok
-
-            when :CantResolve   # shift as default
-              @action[ stok ] = @actions.shift( goto )
-              sr_conflict stok, act.rule
-            end
-          else
+          unless ReduceAction === act then
             bug! "wrong act in action table: #{act}(#{act.type})"
+          end
+
+          # conflict on stok
+
+          rtok = act.rule.prec
+          ret  = do_resolve_sr( stok, rtok )
+
+          case ret
+          when :Reduce        # action is already set
+
+          when :Shift         # overwrite
+            act.discard
+            @action[ stok ] = @actions.shift( goto )
+
+          when :Remove        # remove
+            act.discard
+            @action.delete stok
+
+          when :CantResolve   # shift as default
+            act.discard
+            @action[ stok ] = @actions.shift( goto )
+            sr_conflict stok, act.rule
           end
         end
       end
     end
-
     
     def do_resolve_sr( stok, rtok )
       puts "resolve_sr: s/r conflict: rtok=#{rtok}, stok=#{stok}" if @d_shift
@@ -736,7 +729,9 @@ module Racc
         i.must Integer
       end
 
-      unless ret = @reduce[i] then
+      if ret = @reduce[i] then
+        ret.used
+      else
         @reduce[i] = ret = ReduceAction.new( @ruletable[i] )
       end
 
@@ -819,9 +814,11 @@ module Racc
     def initialize( rule )
       rule.must Rule
       @rule = rule
+      @refn = 1
     end
 
     attr :rule
+    attr :refn
 
     def ruleid
       @rule.ruleid
@@ -829,6 +826,17 @@ module Racc
 
     def inspect
       "<reduce #{@rule.ruleid}>"
+    end
+
+    def used
+      @refn += 1
+    end
+
+    def discard
+      @refn -= 1
+      if @refn < 0 then
+        bug! 'act.refn < 0'
+      end
     end
 
   end

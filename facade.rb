@@ -9,7 +9,7 @@ require 'amstd/must'
 
 module Racc
 
-  Version = '0.14.0'
+  Version = '0.14.4'
 
 class Compiler
 
@@ -31,20 +31,22 @@ class Compiler
   attr :d_state
   attr :d_reduce
   attr :d_shift
-  attr :d_prof
+  attr :d_verbose
+  attr :d_profile
 
 
   def initialize( debugopt )
-    @dsrc     = debugopt[ 'debug-src' ]
+    @dsrc      = debugopt[ 'debug-src' ]
 
-    @debug    = debugopt[ 'debug' ]
-    @d_prec   = debugopt[ 'prec' ]
-    @d_rule   = debugopt[ 'rule' ]
-    @d_token  = debugopt[ 'token' ]
-    @d_state  = debugopt[ 'state' ]
-    @d_reduce = debugopt[ 'reduce' ]
-    @d_shift  = debugopt[ 'shift' ]
-    @d_prof   = debugopt[ 'profile' ]
+    @debug     = debugopt[ 'debug' ]
+    @d_prec    = debugopt[ 'prec' ]
+    @d_rule    = debugopt[ 'rule' ]
+    @d_token   = debugopt[ 'token' ]
+    @d_state   = debugopt[ 'state' ]
+    @d_reduce  = debugopt[ 'reduce' ]
+    @d_shift   = debugopt[ 'shift' ]
+    @d_verbose = debugopt[ 'verbose' ]
+    @d_profile = debugopt[ 'profile' ]
 
     @tokentable = TokenTable.new( self )
     @ruletable  = RuleTable.new( self )
