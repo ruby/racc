@@ -1,6 +1,7 @@
 Wed Nov  5 19:11:15 2003  Minero Aoki  <aamine@loveruby.net>
 
-	* bin/racc (get_options): remove --no-extensions option (tmp).
+	* bin/racc (get_options): remove --no-extensions option;
+	  racc/parser is preloaded, Racc_No_Extension does not work.
 
 Mon Nov  3 22:41:42 2003  Minero Aoki  <aamine@loveruby.net>
 
