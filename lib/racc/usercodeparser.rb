@@ -1,5 +1,5 @@
 #
-# ucodep.rb
+# usercodeparser.rb
 #
 # Copyright (c) 1999-2003 Minero Aoki <aamine@loveruby.net>
 #
@@ -13,7 +13,7 @@ module Racc
 
   class GrammarFileParser < Parser
 
-    def GrammarFileParser.get_ucode( fname )
+    def GrammarFileParser.get_usercode( fname )
       ret = {}
       re = /\A----+\s*(header|inner|footer|prepare|driver)\s*(=)?/i
       str = nil

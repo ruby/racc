@@ -10,7 +10,7 @@
 #
 
 require 'racc/compat'
-require 'racc/raccp'
+require 'racc/raccparser'
 require 'racc/grammar'
 require 'racc/state'
 require 'racc/output'

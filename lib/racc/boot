@@ -248,8 +248,8 @@ _"              |                                                        ", ''
       @statetable.init
       @statetable.determine
 
-      File.open('raccp.rb', 'w') {|f|
-        File.foreach('in.raccp.rb') do |line|
+      File.open('grammarfileparser.rb', 'w') {|f|
+        File.foreach('grammarfileparser.rb.in') do |line|
           if /STATE_TRANSITION_TABLE/ === line
             CodeGenerator.new(self).output f
           else

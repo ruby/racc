@@ -1,3 +1,47 @@
+Sun Oct 12 15:10:38 2003  Minero Aoki  <aamine@loveruby.net>
+
+	* racc              -> bin/racc
+
+	* .cvsignore        -> lib/racc/.cvsignore
+
+	* lib/racc/Makefile: new file.
+
+	* boot.rb           -> lib/racc/boot
+
+	* compat.rb         -> lib/racc/compat.rb
+
+	* compiler.rb       -> lib/racc/compiler.rb
+
+	* grammar.rb        -> lib/racc/grammar.rb
+
+	* in.raccp.rb       -> lib/racc/grammarfileparser.rb.in
+
+	* raccs.rb          -> lib/racc/grammarfilescanner.rb
+
+	* info.rb           -> lib/racc/info.rb
+
+	* iset.rb           -> lib/racc/iset.rb
+
+	* outpur.rb         -> lib/racc/output.rb
+
+	* parser.rb         -> lib/racc/parser.rb
+
+	* rubyloader.rb     -> lib/racc/rubyloader.rb
+
+	* state.rb          -> lib/racc/state.rb
+
+	* ucodep.rb         -> lib/racc/usercodeparser.rb
+
+	* cparse/MANIFEST   -> ext/racc/cparse/MANIFEST
+
+	* cparse/cparse.c   -> ext/racc/cparse/cparse.c
+
+	* cparse/depend     -> ext/racc/cparse/depend
+
+	* cparse/extconf.rb -> ext/racc/cparse/extconf.rb
+
+	* cparse/.cvsignore -> ext/racc/cparse/.cvsignore
+
 Sun Oct 12 15:10:13 2003  Minero Aoki  <aamine@loveruby.net>
 
 	* test/test.rb: use /bin/rm if exists.
