@@ -1,423 +1,407 @@
-/* vi:set ts=4 sw=4: */
+/* vi:set ts=4 sw=4:
+
+  cparse.c version 0.2.1
+  
+    Copyright (c) 1999 Minero Aoki <aamine@dp.u-netsurf.ne.jp>
+  
+    This library is free software.
+    You can distribute/modify this program under the terms of
+    the GNU Lesser General Public Lisence version 2 or later.
+
+*/
 
 #include <stdio.h>
 #include "ruby.h"
 
+#define DFLT_TOK -1
+#define ERR_TOK   1
+#define FINAL_TOK 0
+
+static VALUE FindBug;
 
 static ID id_yydebug;
 static ID id_nexttoken;
 static ID id_onerror;
-
-static ID id_actiontable;
-static ID id_actionptr;
-static ID id_gototable;
-static ID id_gotoptr;
-static ID id_reducetable;
-static ID id_tokentable;
-static ID id_staten;
-static ID id_shiftn;
-static ID id_reducen;
-static ID id_tostable;
+static ID id_noreduce;
 
 static ID id__shift;
 static ID id__reduce;
 static ID id__accept;
 
-static VALUE findbug;
 
+#ifdef DEBUG
+# define D(code) if (in_debug) code
+#else
+# define D(code)
+#endif
 
-#define DEFAULT 0
-#define FINAL_TOKEN 1
-#define ERROR_TOKEN 2
-#define TRY_N 3
-
-
-struct cstack {
-    long *ptr;
-    long capa;
-    long len;
-}
 
 #define STACK_INIT_LEN 64
-
-/* C stack macros */
-
-#define INIT_C_STACK(s) {\
-    s.ptr = ALLOC_N(long, INIT_STACK_LEN); \
-    s.capa = INIT_STACK_LEN;               \
-    s.len = 0;                             \
-}
-
-#define FREE_C_STACK(s) \
-    free(s.ptr);
-
-#define C_PUSH(s, i) {\
-    if (s.len == s->capa)                     \
-        s.ptr = REALLOC_N(s.ptr, s.capa * 2); \
-    s.ptr[s.len] = i;                         \
-    s.len++;                                  \
-}
-
-#define C_POP(s) \
-    if (s.len) s.len--;
-
-#define C_CUT_TAIL(s, leng) {\
-    if (s->len > leng) s->len -= leng; \
-    else { \
-        ENSURE_DO; \
-        rb_raise(findbug, "[Racc Bug] c stack unexpected empty"); \
-}
-
-#define MUST_NOT_EMPTY(s) \
-    if (s.len == 0) { \
-        ENSURE_DO; \
-        rb_raise(findbug, "[Racc Bug] state stack unexpected empty"); \
-    }
-
-
-/* Ruby stack macros */
-
-#define INIT_R_STACK(s) \
+#define INIT_STACK(s) \
     s = rb_ary_new2(STACK_INIT_LEN);
 
-#define R_PUSH(s, i) \
-    rb_ary_store(s, RARRAY(s)->len, i);
+#define PUSH(s, i) \
+    rb_ary_store(s, RARRAY(s)->len, i)
 
-#define R_POP(s) \
-    rb_ary_pop(s);
+#define POP(s) \
+    rb_ary_pop(s)
 
-#define R_GET_TAIL(s, leng) \
-    rb_ary_new4(leng, RARRAY(s)->ptr + RARRAY(s)->len - leng);
+#define LAST_I(s) \
+    RARRAY(s)->ptr[RARRAY(s)->len - 1];
 
-#define R_CUT_TAIL(arr, leng) {\
-    long i;                \
-    for (i = leng; i; i--) \
-        rb_ary_pop(arr);   \
+#define GET_TAIL(s, leng) \
+    rb_ary_new4(leng, RARRAY(s)->ptr + RARRAY(s)->len - leng)
+
+#define CUT_TAIL(arr, leng) \
+if (1) {                    \
+    long i;                 \
+    for (i = leng; i; i--)  \
+        rb_ary_pop(arr);    \
+}
+
+/* this is fast but not safe
+   RARRAY(arr)->len -= leng */
+
+
+#define GET_POINTER(pointer, table, state, retvar) \
+if (1) {                                                              \
+    if (state < 0 || state >= RARRAY(pointer)->len)                   \
+      rb_raise(FindBug, "[Racc Bug] illegal state: %ld", state);      \
+    tmp = RARRAY(pointer)->ptr[state];                                \
+    retvar = FIX2LONG(tmp);                                           \
+    if (retvar < 0 || retvar > RARRAY(table)->len - 2)                \
+      rb_raise(FindBug, "[Racc Bug] illegal table ptr: %ld", retvar); \
+}
+
+#define SEARCH(table, i, t, retvar) \
+if (1) {                                                         \
+    if (i < 0 || i > RARRAY(table)->len - 2)                     \
+      rb_raise(FindBug, "[Racc Bug] illegal table ptr: %ld", i); \
+    while (1) {                                                  \
+        long lt;                                                 \
+        tmp = RARRAY(table)->ptr[i];                             \
+        lt = FIX2LONG(tmp);                                      \
+        if (lt == t || lt == DFLT_TOK) {                         \
+            tmp = RARRAY(table)->ptr[i+1];                       \
+            retvar = FIX2LONG(tmp);                              \
+            break;                                               \
+        }                                                        \
+        i += 2;                                                  \
+    }                                                            \
 }
 
 
+struct cp_params {
+    VALUE parser;
+    VALUE action_table;
+    VALUE action_ptr;
+    VALUE goto_table;
+    VALUE goto_ptr;
+    VALUE reduce_table;
+    VALUE token_table;
 
-static char*
-value_class(val)
-    VALUE val;
-{
-    VALUE tmp;
-
-    tmp = rb_class_of(val);
-    tmp = rb_class_path(tmp);
-    return STR2CSTR(tmp);
-}
+    VALUE state;
+    long curstate;
+    VALUE vstack;
+    VALUE tstack;
+};
 
 
 static void
-chk_params(val, type, tag)
-    VALUE val;
-    int type;
-    char *tag;
+do_reduce(v, ruleno, debug)
+    struct cp_params *v;
+    long ruleno;
+    int debug;
 {
-    if (TYPE(val) != type) {
-        rb_raise(rb_eTypeError, "[Racc Bug] illegal param type %s for %s",
-                 value_class(val), tag);
+    VALUE reduce_to, reduce_len, method_id;
+    long len, re;
+    ID mid;
+    VALUE tmp, tmp_t, tmp_v;
+    long ltmp, i;
+
+    reduce_len = RARRAY(v->reduce_table)->ptr[ruleno];
+    reduce_to  = RARRAY(v->reduce_table)->ptr[ruleno+1];
+    method_id  = RARRAY(v->reduce_table)->ptr[ruleno+2];
+    len = FIX2LONG(reduce_len);
+    re  = FIX2LONG(reduce_to);
+    mid = (ID)FIX2LONG(method_id);
+
+    if (len == 0) {
+        tmp = Qnil;
+        if (mid != id_noreduce)
+            tmp_v = rb_ary_new();
+        if (debug)
+            tmp_t = rb_ary_new();
     }
-}
-
-
-#define CHECK_TOKEN_TYPE(tok) \
-    if (TYPE(tok) != T_ARRAY)                                    \
-        rb_raise(rb_eTypeError,                                  \
-            "next_token returns wrong type %s (Array required)", \
-            value_class(tok));
-
-#define CONV_ERR(tok) {\
-    ENSURE_DO;                                                         \
-    if (NIL_P(tok))                                                    \
-        rb_raise(rb_eTypeError,                                        \
-                 "can't convert token simbol(%s) into internal value", \
-                 value_class(tok));                                    \
-    else                                                               \
-        rb_raise(findbug, "token table include non Fixnum: %s",        \
-                 value_class(tok));                                    \
-}
-
-#define FETCH_NEXT_TOKEN \
-    tmp = rb_funcall(parser, id_nexttoken, 0);                         \
-    CHECK_TOKEN_TYPE(tmp);                                             \
-    if (RARRAY(tmp)->len < 2)                                          \
-        rb_raise(rb_eArgError, "next_token returns too little array"); \
-    tok = RARRAY(tmp)->ptr[0];                                         \
-    val = RARRAY(tmp)->ptr[1];                                         \
-    tmp = rb_hash_aref(token_table, tok);                              \
-    if (!FIXNUM_P(tmp)) CONV_ERR(tmp);                                 \
-    t = FIX2INT(tmp)
-
-#define SEARCH_ERROR -1
-
-#define SEARCH(table, i, t, retvar) \
-    while (1) {                               \
-        long ii;                              \
-/* printf("i=%ld\n", i); */                   \
-        tmp = RARRAY(table)->ptr[i];          \
-        ii = FIX2LONG(tmp);                   \
-        if (ii == t || ii == DEFAULT) {       \
-            retvar = RARRAY(table)->ptr[i+1]; \
-            break;                            \
-        }                                     \
-        i += 2;                               \
+    else {
+        if (mid != id_noreduce) {
+            tmp_v = GET_TAIL(v->vstack, len);
+            tmp = RARRAY(tmp_v)->ptr[0];
+        }
+        else {
+            tmp = RARRAY(v->vstack)->ptr[ RARRAY(v->vstack)->len - len ];
+        }
+        CUT_TAIL(v->vstack, len);
+        if (debug) {
+            tmp_t = GET_TAIL(v->tstack, len);
+            CUT_TAIL(v->tstack, len);
+        }
+        CUT_TAIL(v->state, len);
     }
 
-#define ACCEPT {\
-    ENSURE_DO;                     \
-    return RARRAY(vstack)->ptr[0]; \
+    /* method call must be done before tstack.push */
+    if (mid != id_noreduce) {
+        tmp = rb_funcall(v->parser, mid,
+                         3, tmp_v, v->vstack, tmp);
+    }
+    PUSH(v->vstack, tmp);
+    if (debug) {
+        PUSH(v->tstack, reduce_to);
+        rb_funcall(v->parser, id__reduce,
+                   3, tmp_t, reduce_to, v->tstack);
+    }
+
+    if (RARRAY(v->state)->len == 0) {
+        rb_raise(FindBug, "state stack unexpected empty");
+    }
+    tmp = LAST_I(v->state);
+    ltmp = FIX2LONG(tmp);
+    GET_POINTER(v->goto_ptr, v->goto_table, ltmp, i);
+    SEARCH(v->goto_table, i, re, ltmp);
+    if (ltmp < 0) {
+        rb_raise(FindBug,
+          "[Racc Bug] state=%d, goto < 0", v->curstate);
+    }
+    v->curstate = ltmp;
+    PUSH(v->state, INT2FIX(ltmp));
 }
 
-#define ENSURE_DO {\
-    FREE_C_STACK(state); \
-}
+
+#define REDUCE(v, act) \
+    do_reduce(&v, -act * 3, debug)
+
+#define SHIFT(v, st, tok, val) \
+    PUSH(v.vstack, val);                       \
+    if (debug) {                               \
+        PUSH(v.tstack, INT2FIX(tok));          \
+        rb_funcall(v.parser, id__shift,        \
+                   2, INT2FIX(tok), v.tstack); \
+    }                                          \
+    v.curstate = st;                           \
+    PUSH(v.state, INT2FIX(v.curstate));
+
+#define ACCEPT(v) \
+    if (debug) rb_funcall(v.parser, id__accept, 0); \
+    return RARRAY(v.vstack)->ptr[0];
 
 static VALUE
-do_raccparse(parser)
-    VALUE parser;
+raccparse(parser,
+          action_table, action_ptr, goto_table, goto_ptr,
+          reduce_table, token_table, shn, rdn, indebug)
+    VALUE parser,
+          action_table, action_ptr, goto_table, goto_ptr,
+          reduce_table, token_table, shn, rdn, indebug;
 {
-    int in_debug;
-    VALUE parser_class;
     VALUE debugp;
-    int debug;
+    int debug, in_debug;
+    struct cp_params v;
+    long shift_n, reduce_n;
 
-    VALUE action_table, action_ptr;
-    VALUE goto_ptr, goto_table;
-    VALUE reduce_table, token_table;
-    VALUE shn, ren;
-    long state_n, reduce_n;
-
-    long curstate;
-    struct cstack state;
     long act;
-    VALUE tstack, vstack;
+    int read_next;
     VALUE tok, val;
     long t;
 
-    VALUE reduce_to, reduce_len, method_id, m_result;
-    long len, re;
-    VALUE tmp_t, tmp_v;
-
-    long err_state, err_total;
-
-    VALUE tmp;
-    long i;
-
-    VALUE pass[5];
+    long nerr, errstatus;
 
     /* --------------------------
        initialize local values
     -------------------------- */
 
-    in_debug = RTEST(indebug);
+    D(in_debug = RTEST(indebug));
 
-    parser_class = CLASS_OF(parser);
     debugp = rb_ivar_get(parser, id_yydebug);
     debug = RTEST(debugp);
 
-    if (in_debug) puts("start cparse");
+    D(puts("start cparse"));
 
-    action_table = rb_const_get(parser_class, id_actiontable);
-    action_ptr   = rb_const_get(parser_class, id_actionptr);
-    goto_table   = rb_const_get(parser_class, id_gototable);
-    goto_ptr     = rb_const_get(parser_class, id_gotoptr);
-    reduce_table = rb_const_get(parser_class, id_reducetable);
-    token_table  = rb_const_get(parser_class, id_tokentable);
-    chk_params(action_table, T_ARRAY, "action table");
-    chk_params(action_ptr,   T_ARRAY, "action pointer");
-    chk_params(goto_table,   T_ARRAY, "goto table");
-    chk_params(goto_ptr,     T_ARRAY, "goto pointer");
-    chk_params(reduce_table, T_ARRAY, "reduce table");
-    chk_params(token_table,  T_HASH,  "token table");
+    Check_Type(action_table, T_ARRAY);
+    Check_Type(action_ptr, T_ARRAY);
+    Check_Type(goto_table, T_ARRAY);
+    Check_Type(goto_ptr, T_ARRAY);
+    Check_Type(reduce_table, T_ARRAY);
+    Check_Type(token_table, T_HASH);
+    v.parser = parser;
+    v.action_table = action_table;
+    v.action_ptr   = action_ptr;
+    v.goto_table   = goto_table;
+    v.goto_ptr     = goto_ptr;
+    v.reduce_table = reduce_table;
+    v.token_table  = token_table;
 
-    shn = rb_const_get(parser_class, id_shiftn);
-    ren = rb_const_get(parser_class, id_reducen);
-    shift_n = FIX2LONG(shn);
-    reduce_n = FIX2LONG(ren);
+    shift_n  = NUM2LONG(shn);
+    reduce_n = NUM2LONG(rdn);
 
-    if (debug) INIT_R_STACK(tstack);
-    INIT_R_STACK(vstack);
-    INIT_C_STACK(state);
-    curstate = 0;
-    C_PUSH(state, 0);
+    if (debug) INIT_STACK(v.tstack);
+    INIT_STACK(v.vstack);
+    INIT_STACK(v.state);
+    v.curstate = 0;
+    PUSH(v.state, INT2FIX(0));
 
-    act = 0;
+    tok = val = Qnil;
+    t = FINAL_TOK + 1; /* must not init to FINAL_TOK */
 
-    err_state = 0;
-    total_err = 0;
+    read_next = 1;   /* causes yylex */
+    nerr = 0;
+    errstatus = 0;
 
-    if (in_debug) puts("params initialized");
+    D(puts("params initialized"));
 
     /* -----------------------------------
        LALR parsing algorithm main loop
     ----------------------------------- */
     
     while (1) {
-        if (in_debug) puts("enter new loop");
+        long i;
+        VALUE tmp;
 
-        if (!act) {
-            /* fetch action ID */
-
-            while (1) {
-                tmp = RARRAY(action_ptr)->ptr[state];
-                i = FIX2LONG(tmp);
-                if (RARRAY(action_table)->ptr[i] == 0) {
-                    tmp = RARRAY(action_table)->ptr[i+1];
-                    break;
-                }
-                if (t != FINAL_TOKEN)
-                    FETCH_NEXT_TOKEN;
-                SEARCH(action_table, i, t, tmp);
-                break;
-            }
-            act = FIX2LONG(tmp);
-            if (in_debug) printf("act=%ld\n", act);
-        }
-
+        D(puts("enter new loop"));
 
         /* decide action */
 
-        if (act > 0 && act < shift_n) {
-            /* shift */
-            
-            R_PUSH(vstack, val);
-            if (debug) {
-                R_PUSH(tstack, INT2FIX(t));
-                rb_funcall(parser, id__shift,
-                           2, INT2FIX(t), tstack);
-            }
-
-            curstate = act;
-            C_PUSH(state, INT2FIX(curstate));
-
-            act = 0;
-        }
-        else if (act < 0 && act > -reduce_n) {
-            /* reduce */
-
-            act = -act * 3;
-            reduce_len = RARRAY(reduce_table)->ptr[act];
-            reduce_to  = RARRAY(reduce_table)->ptr[act+1];
-            method_id  = RARRAY(reduce_table)->ptr[act+2];
-            len = FIX2LONG(reduce_len);
-            re = FIX2LONG(reduce_to);
-
-            if (len == 0) {
-                tmp_v = rb_ary_new();
-                m_result = Qnil;
-            }
-            else {
-                tmp_v = R_GET_TAIL(vstack, len);
-                m_result = RARRAY(tmp_v)->ptr[0];
-                R_CUT_TAIL(vstack, len);
-                C_CUT_TAIL(state, len);
-                if (debug) {
-                    tmp_t = R_GET_TAIL(tstack, len);
-                    R_CUT_TAIL(tstack, len);
-                }
-            }
-
-            /* method call must be done before tstack.push */
-            tmp = rb_funcall(parser, (ID)FIX2LONG(method_id),
-                             3, tmp_v, vstack, m_result);
-            R_PUSH(vstack, tmp);
-            if (debug) {
-                R_PUSH(tstack, reduce_to);
-                rb_funcall(parser, id__reduce,
-                           3, tmp_t, reduce_to, tstack);
-            }
-
-            MUST_NOT_EMPTY(state);
-            i = state.ptr[state.len - 1];
-            tmp = RARRAY(goto_pointer)->ptr[i];
-            i = FIX2LONG(tmp);
-            if (i == SEARCH_ERROR) rb_raise(findbug, "pointer is -1");
-            SEARCH(goto_table, i, re, tmp);
-            curstate = FIX2LONG(tmp);
-            C_PUSH(state, curstate);
-
-            act = 0;
-        }
-        else if (act == shift_n) {
-            /* error */
-
-            if (err_state == 0) {
-                err_total++;
-                rb_funcall(parser, id_onerror,
-                           3, INT2FIX(t), val, vstack);
-            }
-            if (err_state == 3) {
-                FETCH_NEXT_TOKEN;
-            }
-            err_state = 3;
-
-            while (1) {
-                tmp = RARRAY(action_ptr)->ptr[state];
-                i = FIX2LONG(tmp);
-                SEARCH(action_table, i, ERROR_TOKEN, tmp);
-                act = FIX2LONG(tmp);
-
-                if (act > 0) {
-                    if (act < shift_n) break;    /* shift */
-                }
-                if (act < 0) {
-                    act = -act;
-                    if (act == reduce_n) ACCEPT;
-                    if (act < reduce_n)  break;  /* reduce */
-                }
-
-                /* error yet ... */
-
-                MUST_NOT_EMPTY(state);
-
-                if (debug) R_POP(tstack);
-                R_POP(vstack);
-                C_POP(state);
-            }
-        }
-        else if (act == reduce_n) {
-            /* accept */
-
-            if (debug) rb_funcall(parser, id__accept, 0);
-            ACCEPT;
+        GET_POINTER(v.action_ptr, v.action_table, v.curstate, i);
+        if (RARRAY(v.action_table)->ptr[i] == DFLT_TOK) {
+            tmp = RARRAY(v.action_table)->ptr[i+1];
+            act = FIX2LONG(tmp);
         }
         else {
-            /* racc error */
+            if (read_next) {
+                if (t != FINAL_TOK) {
+                    tmp = rb_funcall(v.parser, id_nexttoken, 0);
+                    Check_Type(tmp, T_ARRAY);
+                    if (RARRAY(tmp)->len < 2)
+                        rb_raise(rb_eArgError,
+                                 "next_token returns too short array");
+                    tok = RARRAY(tmp)->ptr[0];
+                    val = RARRAY(tmp)->ptr[1];
+                    tmp = rb_hash_aref(v.token_table, tok);
+                    t = NIL_P(tmp) ? ERR_TOK : FIX2INT(tmp);
+                    D(printf("read token %ld\n", t));
+                }
+                read_next = 0;
+            }
+            SEARCH(v.action_table, i, t, act);
+        }
+        D(printf("act=%ld\n", act));
 
-            rb_raise(findbug, "[Racc Bug] unknown act value %ld", act);
+
+        if (act > 0 && act < shift_n) {
+            D(puts("shift"));
+
+            if (errstatus > 0) errstatus--;
+            SHIFT(v, act, t, val);
+            read_next = 1;
+        }
+        else if (act < 0 && act > -reduce_n) {
+            D(puts("reduce"));
+
+            REDUCE(v, act);
+        }
+        else if (act == -reduce_n) {
+            D(printf("error detected, status=%ld\n", errstatus));
+
+            if (errstatus == 0) {
+                nerr++;
+                rb_funcall(v.parser, id_onerror,
+                           3, INT2FIX(t), val, v.vstack);
+            }
+            else if (errstatus == 3) {
+                if (t == FINAL_TOK)
+                    return Qfalse;
+                read_next = 1;
+            }
+            errstatus = 3;
+
+            /* check if We can shift/reduce error token */
+            while (1) {
+                GET_POINTER(v.action_ptr, v.action_table, v.curstate, i);
+                while (1) {
+                    long lt;
+                    tmp = RARRAY(v.action_table)->ptr[i];
+                    lt = FIX2LONG(tmp);
+                    if (lt == DFLT_TOK) {
+                        D(puts("can't found error tok"));
+                        break;
+                    }
+                    if (lt == ERR_TOK) {
+                        D(puts("found error tok"));
+                        tmp = RARRAY(v.action_table)->ptr[i+1];
+                        act = FIX2LONG(tmp);
+                        D(printf("e act=%ld\n", act));
+                        break;
+                    }
+                    i += 2;
+                }
+
+                if (act != -reduce_n) { /* We can do. */
+                    D(puts("can handle error tok"));
+                    break;
+                }
+                else { /* We cannot: pop stack and try again */
+                    D(puts("can't handle error tok: pop"));
+                    if (RARRAY(v.state)->len == 0)
+                        return Qnil;
+                    POP(v.state);
+                    POP(v.vstack);
+                    tmp = LAST_I(v.state);
+                    v.curstate = FIX2LONG(tmp);
+                    if (debug) POP(v.tstack);
+                }
+            }
+
+            /* shift|reduce error token */
+
+            if (act > 0 && act < shift_n) {
+                D(puts("e shift"));
+                SHIFT(v, act, ERR_TOK, Qnil);
+            }
+            else if (act < 0 && act > -reduce_n) {
+                D(puts("e reduce"));
+                REDUCE(v, act);
+            }
+            else if (act == shift_n) {
+                D(puts("e accept"));
+                ACCEPT(v);
+            }
+            else {
+                rb_raise(FindBug, "[Racc Bug] unknown act value %ld", act);
+            }
+        }
+        else if (act == shift_n) {
+            D(puts("accept"));
+            ACCEPT(v);
+        }
+        else {
+            rb_raise(FindBug, "[Racc Bug] unknown act value %ld", act);
         }
     }
-
-    return Qnil;  /* not reach */
 }
 
 
 void
 Init_cparse()
 {
-    VALUE psr;
+    VALUE parser;
 
-    psr = rb_eval_string("Parser");
-    rb_define_private_method(psr, "_c_parse", raccparse, 1);
+    parser = rb_eval_string("::Racc::Parser");
+    rb_define_private_method(parser, "_c_parse", raccparse, 9);
 
-    findbug = rb_eval_string("FindBug");
+    FindBug = rb_eval_string("FindBug");
 
     id_yydebug      = rb_intern("@yydebug");
     id_nexttoken    = rb_intern("next_token");
     id_onerror      = rb_intern("on_error");
-
-    id_actiontable  = rb_intern("LR_action_table");
-    id_actionptr    = rb_intern("LR_action_table_ptr");
-    id_gototable    = rb_intern("LR_goto_table");
-    id_gotoptr      = rb_intern("LR_goto_table_ptr");
-    id_reducetable  = rb_intern("LR_reduce_table");
-    id_tokentable   = rb_intern("LR_token_table");
-    /* id_staten       = rb_intern("LR_state_n"); */
-    id_shiftn       = rb_intern("LR_shift_n");
-    id_reducen      = rb_intern("LR_reduce_n");
-    id_tostable     = rb_intern("LR_to_s_table");
+    id_noreduce     = rb_intern("_reduce_none");
 
     id__shift       = rb_intern("_shift");
     id__reduce      = rb_intern("_reduce");
