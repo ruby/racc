@@ -183,7 +183,7 @@ end
 
 
 def usage( status = 1, msg = nil )
-  f = $stderr
+  f = (status == 0) ? $stdout : $stderr
   f.puts "#{File.basename $0}: #{msg}" if msg
   f.print <<S
 
