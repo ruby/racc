@@ -55,7 +55,7 @@ environ( 'racc' ) do
     BUGS.en
   )
 
-  set :extern_libs, %w( raccrt amstd )
+  set :extern_libs, %w( raccrt strscan amstd )
 
 
   def build

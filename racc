@@ -36,18 +36,17 @@ def racc_main0( racc, srcfn, opt )
   srcstr = nil
   File.open( srcfn, 'r' ) {|f| srcstr = f.read }
 
-  if opt['-D'] and /p/ === opt['-D'] then
-    racc.d_parse = true
-  end
+  set_flags1 racc, opt
   if opt['-P'] then
-    prof = pcompile( racc, srcstr, srcfn ) { set_flags racc, opt }
+    prof = pcompile( racc, srcstr, srcfn ) {
+            set_flags2 racc, opt }
   else
     racc.parse( srcstr, srcfn )
     if opt['--check-only'] then
       $stderr.puts 'syntax ok'
       exit 0
     end
-    set_flags racc, opt
+    set_flags2 racc, opt
     racc.compile
   end
 
@@ -205,13 +204,20 @@ end
 
 ##### compile ----------------------------------------------
 
-def set_flags( racc, opt )
+def set_flags1( racc, opt )
+  racc.make_profile = opt['-P']
+  racc.verbose      = opt['--output-status']
+
+  if opt['-D'] and /p/ === opt['-D'] then
+    racc.d_parse = true
+  end
+end
+
+def set_flags2( racc, opt )
   # overwrite source's
   racc.debug_parser = opt['--debug']
   racc.convert_line = opt['--line-convert']
   racc.omit_action  = opt['--omit-action']
-  racc.make_profile = opt['-P']
-  racc.verbose      = opt['--output-status']
 
   if opt['-D'] or $DEBUG then
     optd = opt['-D'] || ''

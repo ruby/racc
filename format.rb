@@ -24,7 +24,6 @@ module Racc
       @fname       = racc.filename
       @debug       = racc.debug
       @dsrc        = racc.debug_parser
-      @verbose     = racc.verbose
       @line        = racc.convert_line
       @omit        = racc.omit_action
       @result      = racc.result_var
@@ -74,8 +73,6 @@ module Racc
 
 
     def output_action_table( out )
-      $stderr.puts 'generating action table' if @verbose
-
       tbl  = []   # yytable
       chk  = []   # yycheck
       defa = []   # yydefact
@@ -107,8 +104,6 @@ module Racc
 
 
     def output_goto_table( out )
-      $stderr.puts 'generating goto table' if @verbose
-
       tbl  = []   # yytable (2)
       chk  = []   # yycheck (2)
       ptr  = []   # yypgoto

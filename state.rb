@@ -28,8 +28,6 @@ module Racc
       @ruletable   = racc.ruletable
       @symboltable = racc.symboltable
 
-      @verbose = racc.verbose
-      @prof    = racc.make_profile
       @d_state = racc.d_state
       @d_la    = racc.d_la
       @d_prec  = racc.d_prec
@@ -72,8 +70,6 @@ module Racc
     ###
 
     def init
-      $stderr.puts 'generating states' if @verbose
-
       # add state 0
       core_to_state( [ @ruletable[0].ptrs[0] ] )
 
@@ -162,18 +158,10 @@ module Racc
     ###
 
     def determine
-      if @verbose then
-        $stderr.puts "resolving #{@states.size} states"
-        b = Time.times.utime
-      end
       la = lookahead
       @states.each do |state|
         state.set_la la
         resolve state
-      end
-      if @verbose then
-        e = Time.times.utime
-        $stderr.puts "all resolved in #{e - b} sec"
       end
 
       set_accept

@@ -82,7 +82,6 @@ module Racc
       @racc        = racc
       @symboltable = racc.symboltable
 
-      @verbose = racc.verbose
       @d_token = racc.d_token
       @d_rule  = racc.d_rule
       @d_state = racc.d_state
@@ -238,8 +237,6 @@ module Racc
     ###
 
     def init
-      $stderr.puts 'initializing values' if @verbose
-
       #
       # add dummy rule
       #

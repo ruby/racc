@@ -31,11 +31,14 @@ module Racc
     attr :formatter
 
     attr_accessor :debug_parser
-    attr_accessor :verbose
     attr_accessor :make_profile
     attr_accessor :convert_line
     attr_accessor :omit_action
     attr_accessor :result_var
+
+    def verbose=( f )
+      @verbose = f
+    end
     
     attr_accessor :debug
     attr_accessor :d_parse
@@ -63,6 +66,8 @@ module Racc
     end
 
     def parse( str, fname = '-' )
+      $stderr.puts 'parsing grammer file...' if @verbose
+
       # must be this order
       @symboltable = SymbolTable.new( self )
       @ruletable   = RuleTable.new( self )
@@ -78,25 +83,35 @@ module Racc
     end
 
     def nfa
+      $stderr.puts 'initializing state machine...' if @verbose
+
       @statetable = StateTable.new( self )
       @ruletable.init
       @statetable.init
     end
 
     def dfa
+      if @verbose then
+        $stderr.puts "resolving #{@statetable.size} states..."
+        b = Time.times.utime
+      end
       @statetable.determine
+      if @verbose then
+        e = Time.times.utime
+        $stderr.puts "all resolved in #{e - b} sec"
+      end
     end
 
-    def source( f = '' )
-      fmt = CodeGenerator.new( self )
-      fmt.output( f )
-      f
+    def source( f )
+      $stderr.puts 'creating table file...' if @verbose
+
+      CodeGenerator.new( self ).output f
     end
 
-    def output( f = '' )
-      fmt = VerboseOutputter.new( self )
-      fmt.output f
-      f
+    def output( f )
+      $stderr.puts 'creating .output file...' if @verbose
+
+      VerboseOutputter.new( self ).output f
     end
 
   end
