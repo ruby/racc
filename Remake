@@ -23,6 +23,7 @@ environ( 'rubyprog/racc' ) {
   $require   = 'ruby(>=1.4), C compiler'
   $license   = 'LGPL'
 
+  $since     =  1999
   $manual    =  true
 
   $description = {}

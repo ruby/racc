@@ -1,0 +1,70 @@
+<h1>racc command reference</h1>
+
+<hr>
+
+<p align=justify>
+  racc.rb [-vgE] [--version] [--help] [-o<var>outfile</var>] [-e<var>path</var>]
+    [-n<var>classname</var>] [-h<var>header</var>] [-i<var>inner</var>]
+    [-f<var>footer</var>] <var>filename</var>
+</p>
+
+<dl>
+<dt><var>filename</var>
+<dd>
+racc file. Any extention is permitted.
+
+<dt>-o<var>outfile</var>
+<dd>
+A filename for output. default is <filename>.tab.rb
+
+<dt>-e<var>path</var>
+<dd>
+output executable file(mode 755). <var>path</var> is a path of ruby interpreter.
+
+<dt>-v
+<dd>
+verbose mode. create "filename".output file, like y.output file.
+
+<dt>-g
+<dd>
+add debug code to parser class. To display debuggin information,
+use this '-g' option and set @yydebug true in parser class.
+
+<dt>-E
+<dd>
+output parser file which doesn't need runtime files(ex. racc/parser).
+A file created by this option working with only ruby.
+
+<dt>-V
+<dd>
+prints messages time to time while compiling.
+
+<dt>-l
+<dd>
+turns off line number converting.
+
+<dt>-n<var>classname</var>
+<dd>
+designate name of parser class. This option overwrite racc file's.
+
+<dt>-h<var>header</var>
+<dd>
+designate filename of 'header' user code.
+
+<dt>-i<var>inner</var>
+<dd>
+designate filename of 'inner' user code.
+
+<dt>-f<var>footer</var>
+<dd>
+designate filename of 'footer' user code.
+
+<dt>--version
+<dd>
+print Racc version and quit.
+
+<dt>--help
+<dd>
+print usage.
+
+</dl>

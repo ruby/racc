@@ -1,0 +1,107 @@
+<h1>Raccコマンドリファレンス</h1>
+
+<hr>
+
+<p>
+racc [-o<var>filename</var>] [--output-file=<var>filename</var>]
+     [-e<var>rubypath</var>] [--embedded=<var>rubypath</var>]
+     [-v] [--verbose]
+     [-O<var>filename</var>] [--log-file=<var>filename</var>]
+     [-g] [--debug]
+     [-E] [--embedded]
+     [-l] [--no-line-convert]
+     [-c] [--line-convert-all]
+     [-s<var>classname</var>] [--super=<var>classname</var>]
+     [-r<var>filename</var>] [--runtime=<var>filename</var>]
+     [-a] [--no-omit-actions]
+     [-C] [--check-only]
+     [-S] [--output-status]
+     [--version] [--copyright] [--help] <var>grammarfile</var>
+</p>
+
+<dl>
+<dt><var>grammarfile</var>
+<dd>
+Raccの文法ファイルを指定します。拡張子には特に制限はありません。
+
+<dt>-o<var>outfile</var>, --output-file=<var>outfile</var>
+<dd>
+作成するクラスをかきこむファイル名を指定します。デフォルトは<filename>.tab.rbです。
+
+<dt>-e<var>rubypath</var>, --executable=<var>rubypath</var>
+<dd>
+実行可能ファイルを生成します。<var>rubypath</var>は Ruby 本体のパスです。
+<var>rubypath</var>を単に 'ruby' にした時には Racc が動作している
+Ruby のパスを使用します。
+
+<dt>-v, --verbose
+<dd>
+ファイル "filename".output に詳細な解析情報を出力します。
+
+<dt>-O<var>filename</var>, --log-file=<var>filename</var>
+<dd>
+-v オプションをつけた時に生成するログファイルの名前を
+<var>filename</var> に変更します。デフォルトは "filename".output です。
+
+<dt>-g, --debug
+<dd>
+出力するコードにデバッグ用コードを加えます。-g をつけて生成したパーサで
+@yydebug を true にセットすると、デバッグ用のコードが出力されます。<br>
+-g をつけるだけでは何もおこりませんので注意してください。
+
+<dt>-E, --embedded
+<dd>
+ランタイムルーチンをすべて含んだコードを生成します。
+つまり、このオプションをつけて生成したコードは Ruby さえあれば動きます。
+
+<dt>-l, --no-line-convert
+<dd>
+Ruby では例外が発生した時のファイル名や行番号を表示してくれますが、
+Racc の生成したパーサは、デフォルトではこの場合のファイル名・行番号を
+文法ファイルでのものに置きかえます。このフラグはその機能をオフにします。
+<p>
+ruby 1.4.3 以前のバージョンではバグのために定数の参照に失敗する
+場合があるので、定数参照に関してなにかおかしいことがおこったらこのフラグを
+試してみてください。
+
+<dt>-c, --line-convert-all
+<dd>
+アクションと inner に加え header footer の行番号も変換します。
+header と footer がつながっているような場合には使わないでください。
+
+<dt>-s<var>classname</var>, --super=<var>classname</var>
+<dd>
+パーサのスーパークラスを Racc::Parser から <var>classname</var> に
+変更します。
+
+<dt>-r<var>filename</var>, --runtime=<var>filename</var>
+<dd>
+require あるいは埋めこむランタイムファイルを racc/parser から
+<var>filename</var>に変更します。
+
+<dt>-a, --no-omit-actions
+<dd>
+全てのアクションに対応するメソッド定義と呼び出しを行います。
+例えアクションが省略されていても空のメソッドを生成します。
+
+<dt>-C, --check-only
+<dd>
+(文法ファイルの)文法のチェックだけをして終了します。
+
+<dt>-S, --output-status
+<dd>
+進行状況を逐一報告します。
+
+<dt>--version
+<dd>
+Racc のバージョンを出力して終了します。
+
+<dt>--copyright
+<dd>
+著作権表示を出力して終了します。
+
+<dt>-h, --help
+<dd>
+オプションの簡単な説明を出力して終了します。
+
+</dl>
