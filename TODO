@@ -1,2 +1,6 @@
-* ensure 'error' token handling
-* optimize generator
+* ensure 'error' token handling.
+* rewrite generator core in C.
+* interactive transition table monitor.
+* support backtracking.
+* output Ruby extention library?
+* LL(k)? (But it should not be called Racc)
