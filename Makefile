@@ -6,7 +6,7 @@ version  = 1.4.4
 wcdir    = $(HOME)/c
 datadir  = $(HOME)/share
 tmpldir  = $(HOME)/share/template
-siteroot = $(HOME)/var/i.loveruby.net/tree
+siteroot = $(HOME)/var/www/tree
 
 .PHONY: default all test doc update import site dist
 
