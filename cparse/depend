@@ -1,1 +1,0 @@
-cparse.o: cparse.c extconf.rb
