@@ -1,3 +1,7 @@
+Sun Oct 12 23:41:53 2003  Minero Aoki  <aamine@loveruby.net>
+
+	* version 1.4.4.
+
 Sun Oct 12 23:41:46 2003  Minero Aoki  <aamine@loveruby.net>
 
 	* misc/dist.sh: cd before make.
