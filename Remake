@@ -74,6 +74,8 @@ Racc (Ruby yACC) is a LALR(1) parser generator for Ruby.
   )
 
   $text = %w(
+    README.ja
+    README.en
     BUGS.ja
     BUGS.en
     DEPENDS
