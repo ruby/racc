@@ -2,7 +2,7 @@
 
     cparse.c
   
-    Copyright (c) 1999,2000 Minero Aoki <aamine@dp.u-netsurf.ne.jp>
+    Copyright (c) 1999-2001 Minero Aoki <aamine@dp.u-netsurf.ne.jp>
   
     This library is free software.
     You can distribute/modify this program under the terms of
@@ -129,6 +129,9 @@ struct cparse_params {
 
     VALUE retval;
     int fin;
+#define CP_FIN_ACCEPT  1
+#define CP_FIN_EOT     2
+#define CP_FIN_CANTPOP 3
 
     int debug;
     int in_debug;
@@ -168,14 +171,14 @@ struct cparse_params {
 #define ACCEPT(v) \
     if (v->debug) rb_funcall(v->parser, id_d_accept, 0); \
     v->retval = RARRAY(v->vstack)->ptr[0];               \
-    v->fin = 1;                                          \
+    v->fin = CP_FIN_ACCEPT;                              \
     return;
 
 
 static void initvars _((VALUE, struct cparse_params*, VALUE, VALUE, ID));
 static void wrap_yyparse _((struct cparse_params*));
 static void parser_core _((struct cparse_params*, VALUE, VALUE, int));
-static void extract_utok _((VALUE, VALUE*, VALUE*));
+static void extract_utok _((struct cparse_params*, VALUE, VALUE*, VALUE*));
 static VALUE catch_iter _((VALUE));
 static VALUE do_reduce _((VALUE, VALUE, VALUE));
 
@@ -214,7 +217,7 @@ racc_yyparse(parser, recv, mid, arg, indebug)
     parser_core(v, Qnil, Qnil, 0);
     wrap_yyparse(v);
     if (! v->fin) {
-        rb_raise(rb_eArgError, "%s() is finished before '$end' found",
+        rb_raise(rb_eArgError, "%s() is finished before EndOfToken",
                  rb_id2name(v->mid));
     }
 
@@ -241,10 +244,12 @@ catch_scaniter(arr, data, self)
     VALUE tok, val;
 
     Data_Get_Struct(data, struct cparse_params, v);
-    extract_utok(arr, &tok, &val);
-    parser_core(v, tok, val, 1);
     if (v->fin)
-       /* rb_break */; 
+        rb_raise(rb_eArgError, "extra token after EndOfToken");
+    extract_utok(v, arr, &tok, &val);
+    parser_core(v, tok, val, 1);
+    if (v->fin && v->fin != CP_FIN_ACCEPT)
+       rb_iter_break(); 
 
     return Qnil;
 }
@@ -347,7 +352,8 @@ initvars(parser, v, arg, recv, mid)
 }
 
 static void
-extract_utok(arr, t_var, v_var)
+extract_utok(v, arr, t_var, v_var)
+    struct cparse_params *v;
     VALUE arr;
     VALUE *t_var, *v_var;
 {
@@ -359,12 +365,17 @@ extract_utok(arr, t_var, v_var)
     }
     if (TYPE(arr) != T_ARRAY) {
         rb_raise(rb_eTypeError,
-                 "next_token returned %s (must be Array[2])",
+                 "%s() %s %s (must be Array[2])",
+                 v->iterator_p ? rb_id2name(v->mid) : "next_token",
+                 v->iterator_p ? "yielded" : "returned",
                  rb_class2name(CLASS_OF(arr)));
     }
     if (RARRAY(arr)->len != 2)
         rb_raise(rb_eArgError,
-                 "size of array returned from next_token is not 2");
+                 "%s() %s wrong size of array (%ld for 2)",
+                 v->iterator_p ? rb_id2name(v->mid) : "next_token",
+                 v->iterator_p ? "yielded" : "returned",
+                 RARRAY(arr)->len);
     *t_var = AREF(arr, 0);
     *v_var = AREF(arr, 1);
 }
@@ -404,13 +415,13 @@ parser_core(v, tok, val, resume)
         D(puts("resuming..."));
         if (v->fin) {
             rb_raise(rb_eArgError,
-                     "too many tokens given to racc parser");
+                     "token given after EndOfToken seen");
         }
         v->i = i;
         return;
     }
                     tmp = rb_funcall(v->parser, id_nexttoken, 0);
-                    extract_utok(tmp, &tok, &val);
+                    extract_utok(v, tmp, &tok, &val);
     resume:
     if (v->iterator_p) {
         D(puts("resume"));
@@ -480,7 +491,7 @@ parser_core(v, tok, val, resume)
             if (v->errstatus == 3) {
                 if (v->t == vFINAL_TOK) {
                     v->retval = Qfalse;
-                    v->fin = 1;
+                    v->fin = CP_FIN_EOT;
                     return;
                 }
                 read_next = 1;
@@ -519,7 +530,7 @@ parser_core(v, tok, val, resume)
 
                 if (RARRAY(v->state)->len == 0) {
                     v->retval = Qnil;
-                    v->fin = 1;
+                    v->fin = CP_FIN_CANTPOP;
                     return;
                 }
                 POP(v->state);
