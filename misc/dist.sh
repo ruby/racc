@@ -33,4 +33,4 @@ cp $datadir/README.setup  racc-$version-all/README
 tar czf $ardir/racc/racc-$version-all.tar.gz racc-$version-all
 
 cd ..
-#rm -rf tmp
+rm -rf tmp
