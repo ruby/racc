@@ -100,6 +100,7 @@ environ( 'racc' ) do
 
   environ( 'raccrt' ) do
 
+    set :version, (e :racc).g(:version)
     set :dir, (e :racc).g(:dir)
 
     set :type,     'ruby'
@@ -126,6 +127,7 @@ environ( 'racc' ) do
 
   environ( 'cparse' ) do
 
+    set :version, (e :racc).g(:version)
     set :dir, expand('~/r/racc/cp')
 
     set :type,     'ext'
