@@ -1,29 +1,34 @@
 #!/usr/local/bin/ruby
 
-require 'amstd/futils'
 require 'amstd/must'
 require 'amstd/bug'
+require 'fileutils'
 
-if ARGV.include? '--1.4' then
-  $ruby = 'ruby-1.4.5'
-elsif ARGV.include? '--1.6' then
-  $ruby = 'ruby-1.6.2'
-else
-  $ruby = 'ruby'
+include FileUtils
+
+def clean( dir )
+  rm_rf dir
+  mkdir dir
 end
 
-File.open('err', 'w') { ; }
 
-def dotest( code )
-  File.open('err', 'a') {|f| f.puts $ruby+' '+code }
-  unless system "#{$ruby} #{code} 2>> err" then
-    puts "test '#{code}' failed"
-    exit 1
-  end
-  puts "ok: #{code}"
+def try( args, ok, exec = false )
+  targ = args[0].split('.')[0]
+  testing( targ ) {
+    compile_test args, ok
+    if exec then
+      testing( targ ) {
+        exec_test targ
+      }
+    end
+  }
 end
 
-def comptest( args, chk )
+clean 'log'
+clean 'tab'
+clean 'out'
+
+def compile_test( args, chk )
   fname = args.shift
   n = fname.sub(/\.y\z/, '')
   args.push '-Oout/' + n
@@ -32,7 +37,7 @@ def comptest( args, chk )
   args.unshift '../racc'
   args.push fname
 
-  dotest args.join(' ')
+  ruby args.join(' ')
   File.foreach( "log/#{fname}" ) do |line|
     line.strip!
     case line
@@ -42,30 +47,86 @@ def comptest( args, chk )
     when /ur/ then line.must_be "ur#{chk[3]}"
     when /ex/ then line.must_be "ex#{chk[4]}"
     else
-      bug!
+      raise TestError, 'racc outputs unknown debug report???'
+    end
+  end
+end
+
+def exec_test( file )
+  ruby 'tab/' + file
+end
+
+
+class TestError < StandardError; end
+
+@n_test = 0
+@n_ok = 0
+@errors = []
+@target = nil
+
+def testing( name )
+  return unless target? name
+  @target = name
+
+  $stderr.print '.'
+  @n_test += 1
+  begin
+    yield
+    @n_ok += 1
+  rescue TestError => err
+    $stderr.print 'F'
+    @errors.push [@target, err.message]
+  end
+end
+
+def target?( name )
+  ARGV.empty? or ARGV.include? name
+end
+
+def report
+  if @n_test == @n_ok then
+    printf "\nOK %d/%d tests\n", @n_ok, @n_test
+  else
+    printf "\n%d errors\n", @errors.size
+    @errors.each do |targ, msg|
+      puts targ + ' fail: ' + msg
     end
   end
 end
 
 
-comptest %w( syntax.y -v               ), [0,0,0,0,0]
-comptest %w( percent.y                 ), []; dotest 'tab/percent'
-comptest %w( newsyn.y                  ), []
-comptest %w( normal.y                  ), []
-comptest %w( normal.y -vg              ), []
-comptest %w( chk.y    -vg              ), []; dotest 'tab/chk'
-comptest %w( chk.y    -c               ), []; dotest 'tab/chk'
-comptest %w( echk.y   -E               ), []; dotest 'tab/echk'
-comptest %w( err.y                     ), []; dotest 'tab/err'
-comptest %w( mailp.y                   ), []
-comptest %w( conf.y   -v               ), [4,1,1,2]
-comptest %w( opt.y                     ), []; dotest 'tab/opt'
-comptest %w( yyerr.y                   ), []; dotest 'tab/yyerr'
-comptest %w( recv.y                    ), [5,10,1,4]
-comptest %w( ichk.y                    ), []; dotest 'tab/ichk'
-comptest %w( intp.y                    ), []; dotest 'tab/intp'
-comptest %w( expect.y                  ), [1,0,0,0,1]; dotest 'tab/intp'
-comptest %w( nullbug1.y                ), [0,0,0,0]
-comptest %w( nullbug2.y                ), [0,0,0,0]
+$ruby = 'ruby'
+if ENV['RUBY'] then
+  $ruby = ENV['RUBY']
+end
 
-print "\n\n        ok\n\n\n"
+clean 'err'
+
+def ruby( arg )
+  cmd = "#{$ruby} #{arg}"
+  system "#{cmd} 2>> err/#@target" or raise TestError, "'#{cmd}' failed"
+end
+
+
+try %w( syntax.y -v               ), [0,0,0,0,0]
+try %w( percent.y                 ), [], true
+try %w( scan.y                    ), [], true
+try %w( newsyn.y                  ), []
+try %w( normal.y                  ), []
+try %w( normal.y -vg              ), []
+try %w( chk.y    -vg              ), [], true
+try %w( chk.y    -c               ), [], true
+try %w( echk.y   -E               ), [], true
+try %w( err.y                     ), [], true
+try %w( mailp.y                   ), []
+try %w( conf.y   -v               ), [4,1,1,2]
+try %w( opt.y                     ), [], true
+try %w( yyerr.y                   ), [], true
+try %w( recv.y                    ), [5,10,1,4]
+try %w( ichk.y                    ), [], true
+try %w( intp.y                    ), [], true
+try %w( expect.y                  ), [1,0,0,0,1]
+try %w( nullbug1.y                ), [0,0,0,0]
+try %w( nullbug2.y                ), [0,0,0,0]
+try %w( firstline.y               ), []
+report

@@ -17,8 +17,8 @@ rule
 
   target : exp | /* none */ { result = 0 } ;
 
-  exp    : exp '+' exp { result += val[2]; a = 'plus' }
-         | exp '-' exp { result -= val[2]; "string test" }
+  exp    : exp '+' exp { result += val[2]; @plus = 'plus' }
+         | exp '-' exp { result -= val[2]; @str = "string test" }
          | exp '*' exp { result *= val[2] }
          | exp '/' exp { result /= val[2] }
          | '(' { $emb = true } exp ')'
@@ -36,14 +36,24 @@ end
 
 require 'amstd/bug'
 
-
 class Number ; end
 
 ------ inner -------------------------------
 
   def parse( src )
+    $emb = false
+    @plus = @str = nil
+
     @src = src
-    do_parse
+    ret = do_parse
+    if @plus then
+      @plus == 'plus' or bug! 'string parse failed'
+    end
+    if @str then
+      @str == 'string test' or bug! 'string parse failed'
+    end
+
+    ret
   end
 
   def next_token
