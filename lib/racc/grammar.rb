@@ -706,7 +706,7 @@ module Racc
         nm = nm.id2name
         module_eval(<<-EOS)
           def #{nm}=(v)
-            bug! unless @#{nm}.nil?
+            bug! '@#{nm} != nil' unless @#{nm}.nil?
             @#{nm} = v
           end
         EOS
