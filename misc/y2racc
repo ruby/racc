@@ -11,7 +11,6 @@
 
 require 'getopts'
 require 'strscan'
-require 'amstd/bug'
 
 
 unless defined? StringScanner_C or
@@ -73,7 +72,7 @@ class Y
         return
 
       else
-        bug!
+        raise 'scan error'
       end
     end
   end
@@ -106,7 +105,7 @@ class Y
       elsif t = s.scan( /\S+/ ) then
         ret.push t
       else
-        bug!
+        raise 'scan error'
       end
     end
 
