@@ -15,7 +15,7 @@ class Racc
 
     COMMENT   = /\A\#[^\n\r]*/o
     BEGIN_C   = /\A\/\*[^\n\r\*\/]*/o
-    ATOM      = /\A[a-zA-Z_]\w*|\A\$end/o
+    ATOM      = /\A[a-zA-Z_]\w*/o
     CODEBLOCK = /\A(?:\n|\r\n|\r)\-\-\-\-+/o
 
 
@@ -89,7 +89,6 @@ class Racc
       when 'class'    then sret = :CLASS
       when 'rule'     then sret = :RULE
       when 'file'     then sret = :XFILE
-      when '$end'     then vret = Parser::Anchor
       end
 
       [sret, vret]
