@@ -42,6 +42,17 @@ module Racc
       Racc_YY_Parse_Method      = :_racc_yyparse_rb
     end
 
+    Racc_ruby_parser_version = '1.3.3'
+    Racc_parser_version = Racc_ruby_parser_version
+
+    def self.racc_runtime_type
+      if Racc_Main_Parsing_Routine == :_racc_do_parse_c then
+        'c'
+      else
+        'ruby'
+      end
+    end
+
 
     def _racc_setup
       t = self.type
