@@ -19,7 +19,7 @@ end
 
 module Racc
 
-  Version = '0.10.4'
+  Version = '0.10.5'
 
 class Core
 
@@ -180,12 +180,12 @@ class Core
     ^
     # 26
     r nil,     [ :ACTION ], %{
-		  result = Action.new( result )
-		}
+      result = Action.new( result )
+    }
     # 27
     r nil,     [ '=', :terminal ], %{
       @interf.register_tmpprec val[1]
-			result = nil
+      result = nil
     }
 ############
 

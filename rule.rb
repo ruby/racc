@@ -6,15 +6,15 @@
 
 module Racc
 
-	class Action
-	
-	  def initialize( str )
-		  @val = str
-		end
+  class Action
+  
+    def initialize( str )
+      @val = str
+    end
 
-		attr :val
-	
-	end
+    attr :val
+  
+  end
 
 
   class BuildInterface
@@ -162,9 +162,9 @@ module Racc
       @start = start || @rules[0].simbol
 
       temp = Rule.new(
-			    @tokentable.dummy,
+          @tokentable.dummy,
           [ @start, @tokentable.anchor, @tokentable.anchor ],
-				  Action.new(''),
+          Action.new(''),
           0, 0, nil )
         # id hash prec
       @rules.unshift temp
