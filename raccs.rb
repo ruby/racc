@@ -256,14 +256,18 @@ module Racc
       '<' => '>'
     }
 
+    CACHE = {}
+
     def scan_string( left )
       ret = left.dup
       term = LEFT_TO_RIGHT[left] || left
-      eline = /\A[^#{term}\\]*(?:\\.[^\\#{term}]*)*#{term}/
+      unless re = CACHE[term] then
+        CACHE[term] = re = /\A[^#{term}\\]*(?:\\.[^\\#{term}]*)*#{term}/
+      end
 
       @in_block = 'string'
       begin
-        if m = eline.match( @line ) then
+        if m = re.match( @line ) then
           ret << m[0]
           @line = m.post_match
           break
