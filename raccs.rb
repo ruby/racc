@@ -9,6 +9,7 @@
 #
 
 require 'racc/scanner'
+require 'amstd/bug'
 
 
 module Racc
@@ -17,22 +18,29 @@ module Racc
 
     # pattern
 
-    COMMENT   = /\A\#[^\n\r]*/o
-    BEGIN_C   = /\A\/\*[^\n\r\*\/]*/o
-    ATOM      = /\A[a-zA-Z_]\w*/o
-    CODEBLOCK = /\A(?:\n|\r\n|\r)\-\-\-\-+/o
+    COMMENT  = /\A\#[^\n\r]*/
+    BEGIN_C  = /\A\/\*[^\n\r\*\/]*/
+    ATOM     = /\A[a-zA-Z_]\w*/
+    USERCODE = /\A(?:\n|\r\n|\r)\-\-\-\-+/
 
+
+    def initialize( str )
+      super
+      @rule_seen = false
+      @eol_seen = false
+      @token_seen = false
+    end
 
     def scan
       ret = nil
 
       while true do
         unless @scan.rest? then
-          ret = [false, false]
+          ret = [false, '$']
           break
         end
 
-        @scan.skip SPC
+        @scan.skip SPACE
         unless @scan.skip COMMENT then
           if @scan.skip BEGIN_C then
             scan_comment
@@ -40,14 +48,14 @@ module Racc
           end
         end
 
-        if temp = @scan.scan( CODEBLOCK ) then
+        if temp = @scan.scan( USERCODE ) then
           @lineno += 1
           @scan.clear
           next
         end
 
         if @scan.skip EOL then
-          @lineno += 1
+          eol_found
           next
         end
 
@@ -60,7 +68,8 @@ module Racc
         when '"', "'"
           ret = [:STRING, scan_string( fch )]
         when '{'
-          ret = [:ACTION, scan_action]
+          no = lineno
+          ret = [:ACTION, [ scan_action, no ]]
         else
           ret = [fch, fch]
         end
@@ -77,27 +86,49 @@ module Racc
     private
 
 
+    STOS = {
+      'end'      => :XEND,
+      'token'    => :XTOKEN,
+      'right'    => :XRIGHT,
+      'left'     => :XLEFT,
+      'nonassoc' => :XNONASSOC,
+      'preclow'  => :XPRECLOW,
+      'prechigh' => :XPRECHIGH,
+      'start'    => :XSTART,
+      'class'    => :XCLASS,
+      'rule'     => :XRULE
+    }
+
     def scan_atom( cur )
-      sret = :TOKEN
-      vret = cur.intern
+# puts "eol=#{@eol_seen}"
+# puts "tok=#{@token_seen}"
+      if cur == 'end' then
+        sret = :XEND
+        @token_seen = false
+      else
+        if @eol_seen and not @token_seen then
+          sret = STOS[ cur ] || :TOKEN
+        else
+          sret = :TOKEN
+        end
 
-      case cur
-      when 'end'      then sret = :XEND
-      when 'token'    then sret = :XTOKEN
-      when 'right'    then sret = :RIGHT
-      when 'left'     then sret = :LEFT
-      when 'nonassoc' then sret = :NONASSOC
-      when 'preclow'  then sret = :PRECLOW
-      when 'prechigh' then sret = :PRECHIGH
-      when 'start'    then sret = :START
-      when 'class'    then sret = :CLASS
-      when 'rule'     then sret = :RULE
-      when 'file'     then sret = :XFILE
+        case sret
+        when :XRULE  then @rule_seen  = true
+        when :XTOKEN then @token_seen = true
+        end
       end
+      @eol_seen = false
 
-      [sret, vret]
+# printf "%10s : %10s\n", cur, sret.id2name
+      [sret, cur.intern]
     end
 
+
+    def eol_found
+# puts
+      @lineno += 1
+      @eol_seen = true unless @rule_seen
+    end
 
   # BEGIN_C   = /\A\/\*[^\n\r\*\/]*/o
     COM_ENT   = /\A[^\n\r*]+/o
@@ -108,7 +139,7 @@ module Racc
       while @scan.rest? do
         if    @scan.skip COM_ENT
         elsif @scan.skip COM_ENT2
-        elsif @scan.skip EOL      then @lineno += 1
+        elsif @scan.skip EOL      then eol_found
         elsif @scan.skip END_C    then return
         else
           scan_bug! 'in comment, no exp match'
@@ -150,7 +181,7 @@ module Racc
           ret << ch << scan_string( ch ) << ch
 
         when '/'
-          if SPC === ret[-1,1] then
+          if SPACE === ret[-1,1] then
             if @scan.peep(1) != '=' then
               ret << ch << scan_string( ch ) << ch
               next

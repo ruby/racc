@@ -2,7 +2,7 @@
 
 require 'amstd/must'
 
-require 'amstd/must'
+require 'racc/register'
 require 'racc/rule'
 require 'racc/state'
 require 'racc/format'
@@ -18,19 +18,28 @@ end
 
 module Racc
 
-  Version = '0.10.9'
+  Version = '0.14.0'
 
+class LALRstate
+  def sr_conflict( *args )
+    bug! 'sr conflict in build'
+  end
+  def rr_conflict( *args )
+    bug! 'sr conflict in build'
+  end
+end
+    
 class Compiler
 
   attr :ruletable
   attr :tokentable
   attr :statetable
-  attr :formatter
-  attr :prectable
 
-  def logic()  bug! 'logic called'  end
-  def srconf() bug! 'srconf called' end
-  def rrconf() bug! 'rrconf called' end
+  class Par
+    def filename() '(build)' end
+  end
+  DUMMY = Par.new
+  def parser() DUMMY end
 
   def dsrc() @dflag end
 
@@ -41,6 +50,7 @@ class Compiler
   def d_state() false end
   def d_shift() false end
   def d_reduce() false end
+  def d_prof() false end
 
 
   def r( simbol, rarr, act )
@@ -50,27 +60,31 @@ class Compiler
       bug! 'nil in rulearr' unless i
       @interf.get_token( i )
     end
-    rarr.push Action.new( act )
+    act.sub!( /\A\s*\n/, '' )
+    act.sub!( /\s+\z/, '' )
+
+    /:(\d+)(?:\z|:)/ === caller(1)[0]
+    lineno = $1.to_i + 1
+    rarr.push Action.new( act, lineno )
 
     @interf.register_rule( simbol, rarr )
   end
 
 
-  def build( debugflag )
+  def build( debugflag, index_table )
     @dflag = debugflag
 
     @tokentable = TokenTable.new( self )
     @ruletable  = RuleTable.new( self )
     @statetable = LALRstateTable.new( self )
-    @formatter  = RaccFormatter.new( self )
 
     @interf = BuildInterface.new( self )
 
 ############
     # 1
-    r :xclass, [ :CLASS, :TOKEN, :params, :RULE, :rules, :XEND ], %{
+    r :xclass, [ :XCLASS, :TOKEN, :params, :XRULE, :rules, :XEND ], %{
       @interf.end_register_rule
-      @classname = (Integer === val[1]) ? val[1].id2name : val[1]
+      @classname = val[1].id2name
     }
 ############
     # 2
@@ -85,28 +99,25 @@ class Compiler
     # 5
     r nil, [ :xprec ], ''
     # 6
-    r nil, [ :START, :TOKEN ], %{
-      if @start then
-        raise ParseError, "start rule defined twice"
-      end
-      @start = @interf.get_token( val[1] )
+    r nil, [ :XSTART, :token ], %{
+      @interf.register_start val[1]
     }
 ############
     # 7
-    r :convdefs, [ :terminal, :STRING ], %{
+    r :convdefs, [ :token, :STRING ], %{
       @interf.register_conv( val[0], val[1] )
     }
     # 8
-    r nil, [ :convdefs, :terminal, :STRING ], %{
+    r nil, [ :convdefs, :token, :STRING ], %{
       @interf.register_conv( val[1], val[2] )
     }
 ############
     # 9
-    r :xprec, [ :PRECHIGH, :preclines, :PRECLOW ], %{
+    r :xprec, [ :XPRECHIGH, :preclines, :XPRECLOW ], %{
       @interf.end_register_prec( true )
     }
     # 10
-    r nil, [ :PRECLOW, :preclines, :PRECHIGH ], %{
+    r nil, [ :XPRECLOW, :preclines, :XPRECHIGH ], %{
       @interf.end_register_prec( false )
     }
 ############
@@ -116,96 +127,162 @@ class Compiler
     r nil, [ :preclines, :precline ], ''
 ############
     # 13
-    r :precline, [ :LEFT, :term_list ], %{
+    r :precline, [ :XLEFT, :token_list ], %{
       @interf.register_prec( :Left, val[1] )
     }
     # 14
-    r nil, [ :RIGHT, :term_list ], %{
+    r nil, [ :XRIGHT, :token_list ], %{
       @interf.register_prec( :Right, val[1] )
     }
     # 15
-    r nil, [ :NONASSOC, :term_list ], %{
+    r nil, [ :XNONASSOC, :token_list ], %{
       @interf.register_prec( :Nonassoc, val[1] )
     }
 ############
     # 16
-    r :term_list, [ :terminal ], %{
+    r :token_list, [ :token ], %{
       result = val
     }
     # 17
-    r nil, [ :term_list, :terminal ], %{
+    r nil, [ :token_list, :token ], %{
       result.push val[1]
     }
 ############
-    # 26
-    r :terminal, [ :TOKEN ], %{
-      result = @interf.get_token( val[0] )
+    # 18
+    r :token, [ :TOKEN ], %{
+      result = @interf.get_token( result )
     }
-    # 27
-    r nil,     [ :STRING ], %{
+    # 19
+    r nil,    [ :STRING ], %{
       result = @interf.get_token( eval '"' + val[0] + '"' )
     }
 ############
-    # 18
-    r :rules, [ :ruleseg, ';' ], ''
-    # 19
-    r nil, [ :rules, :ruleseg, ';' ], ''
-############
     # 20
-    r :ruleseg, [ :TOKEN, ':', :simbol_list ], %{
-      @interf.register_rule @interf.get_token(val[0]), val[2]
-    }
-    # 21
-    r nil, [ :ruleseg, '|', :simbol_list ], %{
-      @interf.register_rule nil, val[2]
+    r :rules, [ :rules_core ], %{
+      unless result.empty? then
+        @interf.register_from_array result
+      end
     }
 ############
+    # 21
+    r :rules_core, [ :token ], %{
+      result = val
+    }
     # 22
-    r :simbol_list, [], %{
-      result = []
+    r nil,         [ :rules_core, :rule_item ], %{
+      result.push val[1]
     }
     # 23
-    r nil, [ :simbol_list, :simbol ], %{
-      result.push val[1] if val[1]
+    r nil,         [ :rules_core, ';' ], %{
+      unless result.empty? then
+        @interf.register_from_array result
+      end
+      result.clear
+    }
+    # 24
+    r nil,         [ :rules_core, ':' ], %{
+      pre = result.pop
+      unless result.empty? then
+        @interf.register_from_array result
+      end
+      result = [pre]
     }
 ############
-    # 24
-    r :simbol, [ :TOKEN ], %{
-      result = @interf.get_token( val[0] )
-    }
     # 25
-    r nil,     [ :STRING ], %^
-      result = @interf.get_token( eval %<"\#{result}"> )
-    ^
+    r :rule_item, [ :token ], ''
     # 26
-    r nil,     [ :ACTION ], %{
-      result = Action.new( result )
+    r nil,        [ '|' ], %{
+      result = OrMark.new( @scanner.lineno )
     }
     # 27
-    r nil,     [ '=', :terminal ], %{
-      @interf.register_tmpprec val[1]
-      result = nil
+    r nil,        [ '=', :token ], %{
+      result = Prec.new( val[1], @scanner.lineno )
+    }
+    # 28
+    r nil,        [ :ACTION ], %{
+      result = Action.new( *result )
     }
 ############
 
-    @ruletable.do_initialize
-    @statetable.do_initialize
+    @ruletable.init
+    @tokentable.init
+    @statetable.init
     @statetable.resolve
 
     File.open( 'raccp.rb', 'w' ) do |f|
-      f.write openread( 'p.prepare' )
-      f.puts "  class RaccParser < Parser"
-      f.write openread( 'p.inner' )
-      @formatter.source( f )
-      f.puts '  end   # class RaccParser'
-      f.puts
-      f.puts 'end   # module Racc'
+      f.write <<'HEADER_END'
+#
+# raccp.rb
+#
+#   Copyright (c) 1999 Minero Aoki <aamine@dp.u-netsurf.ne.jp>
+#
+#   This program is free software.
+#   You can distribute/modify this program under the terms of
+#   the GNU Library General Public License.
+#
+
+require 'racc/parser'
+require 'amstd/symbol'
+
+
+module Racc
+
+  class RaccParser < Parser
+
+    def initialize( racc )
+      @racc = racc
+      @interf    = racc.interf
+      @ruletable = racc.ruletable
     end
 
+
+    attr :classname
+
+    attr :filename
+
+    def parse( str, fname, mydebug = false )
+      fname.must String
+      
+      @scanner = RaccScanner.new( str )
+      @scanner.debug    = @yydebug  = mydebug
+      @scanner.filename = @filename = fname
+
+      do_parse
+    end
+
+
+    private
+
+
+    def next_token
+      @scanner.scan
+    end
+
+    def on_error( tok, val, _values )
+      case val
+      when Symbol then v = val.id2name
+      when String then v = val
+      else
+        v = val.inspect
+      end
+      raise ParseError,
+%=parse error:#{@filename}:#{@scanner.lineno}: unexpected token '#{v}'=
+    end
+
+HEADER_END
+      fmt = (index_table ?
+             IndexTableGenerator : AListTableGenerator).new( self )
+      fmt.output( f )
+      f.write <<'FOOTER_END'
+  end   # class RaccParser
+
+end   # module Racc
+FOOTER_END
+    end
+
+    ver = VerboseOutputFormatter.new( self )
     File.open( 'b.output', 'w' ) do |f|
-      formatter.output_rule f
-      formatter.output_token f
-      formatter.output_state f
+      ver.output( f )
     end
   end
 
@@ -214,4 +291,13 @@ end
 end
 
 
-Racc::Compiler.new.build( (ARGV[0] == '-g') )
+de = false
+ix = true
+ARGV.each do |i|
+  case i
+  when '-g' then de = true
+  when '-i' then ix = true
+  when '-a' then ix = false
+  end
+end
+Racc::Compiler.new.build de, ix

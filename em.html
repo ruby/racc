@@ -1,23 +1,22 @@
-. file index.html
-. header Racc User Manual
+. file index.html --------------------------------------------------
+<% header 'Racc User Manual' %>
 
-<h1>Racc user manual</h1>
+<h1>Racc User Manual</h1>
 
 <p>
-updated for version 0.10
+updated for version 0.12
 
 <ul>
-<li><a href="usage.html">usage</a>
-<li><a href="command.html">racc command reference</a>
-<li><a href="grammer.html">racc grammer reference</a>
-<li><a href="debug.html">for debug</a>
-<li><a href="scan.html">writing scanner for racc parser</a>
-<li><a href="changes.html">change log</a>
+<li><a href="usage.html">Usage</a>
+<li><a href="command.html">racc Command Reference</a>
+<li><a href="grammer.html">Racc Grammer Reference</a>
+<li><a href="debug.html">For Debug</a>
+<li><a href="changes.html">Change Log</a>
 </ul>
 
-. footer
-. file usage.html
-. header Usage
+<% footer 1999 %>
+. file usage.html ---------------------------------------------------
+<% header 'Usage' %>
 
 <h1>Usage</a>
 
@@ -112,9 +111,9 @@ And the way to install Racc runtime when your installation is:
 
 </pre>
 
-. footer
-. file command
-. header racc command
+<% footer 1999 %>
+. file command.html ------------------------------------------------------
+<% header 'Racc Command' %>
 
 <h1>racc command reference</h1>
 
@@ -179,16 +178,13 @@ print usage.
 
 </dl>
 
-. footer
-. file grammer.html
-. header grammer
+<% footer 1999 %>
+. file grammer.html --------------------------------------------------
+<% header 'Grammer Reference' %>
 
 <h1>Racc grammer reference</h1>
 
 <hr>
-
-<p>
-updated for v0.10.2
 
 <p>
 This is temporary specification.
@@ -429,9 +425,9 @@ print "these code is used as driver, too!!"
 </pre>
 This statement makes racc to use "init.rb" "run.rb" as 'footer' user code.
 
-. footer
-. file debug.html
-. header debug info
+<% footer 1999 %>
+. file debug.html --------------------------------------------------
+<% header 'Debug' %>
 
 <h1>For debug</h1>
 
@@ -447,253 +443,72 @@ This statement makes racc to use "init.rb" "run.rb" as 'footer' user code.
 <ul>
 <li>Does your parser have method "next_token" ?
 <li>"next_token" returns Array of simbol and its value.
-<li>When there is no token, "next_token" must returns [false, false].
-<li>now "next_value" "peep_token" is obsolute.
+<li>When there is no token, "next_token" must returns [false, (ANY)].
+<li>now "next_value" "peep_token" is not used.
 <li>Were all terminal tokens listed corectry in ".output" file ?
     (and also nonterminal?)
 </ul>
 
-. footer
-. file scan.html
-. header scan
-
-<h1>scanner creation kit</h1>
-<hr>
-
-<h2>StringScanner user guide</h2>
-
-<h3>Porpose of this extension</h3>
-
-<p>
-StrScanner is Ruby extension for fast scanning.
-
-<p>
-Since Regexp class of Ruby cannot match to sub-string,
-to scan string you must make new String. For example
-<pre>
-       p " I_want_to_match_this_word but can't".index( /\A\w+/, 1 )
-</pre>
-This code display "nil".  Another way to match is as like this:
-
-<p><pre>
-str = " word word word"
-while str.size > 0 do
-  if /\A[ \t]+/ === str then
-    str = $'
-  elsif /\A\w+/ === str then
-    str = $'
-  end
-end
-</pre>
-
-<p>
-But, this method has big problem on speed issue.  $' makes new string EVERY time.
-Then, in this example, all these strings are created:<br>
-" word word word",<br>
-"word word word",<br>
-" word word"<br>
-"word word"<br>
-" word"<br>
-"word"<br>
-""<br>
-
-<p>
-This makes heavy load. If length of 'str' is 50KB,
-nearly 50KB ** 2 / 5 = 50MB memory is used!!
-
-<p>
-StrScanner class resolve this.<br>
-StrScanner has C string and pointer to it. When scanning, StrScanner do only
-increment pointer and not create new string. As a result, both of speed and
-application memory size decrease.
-
-
-<h3>simple examples, and methods</h3>
-
-<p>
-Then, here's two short example of scanning routine.<br>
-First is easy to write but slow scanning code.  Second is also easy to write,
-but FAST scanning code using StrScanner class.
-
-<p>
-First example:
-<pre>
-ATOM = /\A\w+/
-SPACE = /\A[ \t]+/
-
-while str.size > 0 do
-  if ATOM === str then
-    str = $'
-    return $&
-  elsif SPACE === str then
-    str = $'
-    return $&
-  end
-end
-</pre>
-
-<p>
-Second example:
-<pre>
-ATOM = /\A\w+/
-SPACE = /\A[ \t]+/
-
-s = StringScanner.new( str )
-while s.rest? do
-  if tmp = s.scan( ATOM ) then
-    return tmp
-  elsif tmp = s.scan( SPACE ) then
-    return tmp
-  end
-end
-</pre>
-
-<p>
-Usage of StrScanner is simple.<br>
-First: Create StrScanner object, next call 'scan' method. It return matched
-string and at the same time it increments its internal maintained "scan pointer".
-It is simply implemented as pointer to char(char*).<br>
-'skip' method is similer to 'scan', but it returns length of matched string.
-
-<p><pre>
-s = StrScanner.new( "abcdefg" )   # scan pointer is on 'a', index 0
-puts s.scan( /\Aa/ )              # return 'a'. scan pointer is on 'b', index 1
-puts s.skip( /\Abc/ )             # return 2. scan pointer is on 'd', index 3
-</pre>
-continue...
-
-<p>
-At that time previous "scan pointer" is preserved in StrScanner object. Then,
-str[ prev pointer..current pointer ] means the string which is returned from
-'scan' --- "matched string". We can get it by 'matched' method.
-
-<p><pre>
-puts s.matched                    # return 'bc'. scan pointer don't move
-puts s.scan( /\Aa/ )              # return nil. scan pointer don't move, too.
-puts s.matched                    # return 'bc'.
-</pre>
-
-<p>
-To puts scan pointer back, is also permitted. 'unscan' method implements that.
-But 'unscan' can do only ONE times for one 'scan' because StrScanner object
-can't preserve more than one pointers.
-
-<p><pre>
-puts s.scan( /\Ade/ )             # return 'de'. scan pointer is on 'f', index 5
-s.unscan                          # scan pointer is on 'd', index 3
-puts s.scan( /\Adef/ )            # return 'def'. scan pointer is on 'g', index 6
-</pre>
-
-<p>
-Yes, all these regexp begin with "\A". This is important. If regexp matching happen
-on non zero index, 'scan' (and other methods) return string from TOP OF POINTER to
-matched end. In example:
-
-<p><pre>
-str = StrScanner.new( 'aaaabbbbcccc' ).scan( /bbbb/ )
-p str    # will print "aaaabbbb"
-</pre>
-
-<p>
-For more details, see reference manual below (and/or make experiments).
-And of course, source code is most inportant documentation, I think :-)
-
-
-<hr>
-
-<h2>StrScanner reference manual</h2>
-
-
-<h3>Class Methods</h3>
-
-<dl>
-<dt>new( str : String, dup_p = true ) : StrScanner
-<dd>
-create new StrScanner object. 'str' is string to scan, 'dup_p' is a flag
-if duplicate string. dup_p may be kept untouch.
-
-</dl>
-
-
-<h3>Methods</h3>
-<dl>
-<dt>scan( regex: Regexp ): String
-<dd>
-do match with 'regex'.<br>
-if match, make "scan pointer" forward and return matched string.
-else return nil.
-
-
-<dt>skip( regex : Regexp ) : Integer
-<dd>
-do match with 'regex'.<br>
-if match, make "scan pointer" forward and return length of matched string.
-else return nil.
-
-
-<dt>match?( regex: Regexp ): Boolean
-<dd>
-do match with 'regex'.<br>
-if match, keep "scan pointer" untouch and return length of matched string.
-else return nil.
-
-
-<dt>fullscan( regex: Regexp, makestr_p: Boolean, fwdptr_p: Boolean ): Object
-<dd>
-do match with 'regex'.
-if match then
-  if fwdptr_p then forward pointer else keep untouch end
-  return (makestr_p ? matched string : length of matched string)
-else
-  return nil
-end
-
-
-<dt>getch : String
-<dd>
-return 1 byte which is pointed by "scan pointer", and make pointer forward.
-
-
-<dt>rest : String
-<dd>
-return string after the byte which is pointed by "scan pointer".
-
-
-<dt>rest? : Boolean
-<dd>
-return true if un-scanned string exists.
-
-
-<dt>restsize : Integer
-<dd>
-length of 'rest' string
-
-
-<dt>unscan
-<dd>
-set "scan pointer" back for one times.
-more than one times of 'unscan' for one 'scan' (or skip or...) raises ScanError.
-
-
-<dt>matched
-<dd>
-return previous matching string.
-It may done with 'scan' or 'skip'. 'match?' is not because 'match?' won't make
-"scan pointer" forward.
-
-
-<dt>matchedsize
-<dd>
-return length of 'matched' string.
-
-
-</dl>
-
-. footer
-. file changes.html
-. header changes
+<% footer 1999 %>
+. file changes.html --------------------------------------------------
+<% header 'Changes' %>
 
 <h1>Change Log</h1>
+
+<hr>
+<h2>0.13.0(2000/03/120)</h2>
+<p>
+<ul>
+<li>implement yyerror/yyerrok/yyaccept
+</ul>
+
+<hr>
+<h2>0.12.2(2000/03/19)</h2>
+<p>
+<ul>
+<li>-E flag had bug
+</ul>
+
+<h2>0.12.1(2000/03/16)</h2>
+<p>
+<ul>
+<li>modify the way to decide default action
+</ul>
+
+<hr>
+<h2>0.12.0(2000/03/15)</h2>
+<p>
+<ul>
+<li>implement real LALR
+<li>use both SLR and LALR to resolve conflicts
+</ul>
+
+<hr>
+<h2>0.11.3(2000/03/09)</h2>
+<p>
+<ul>
+<li>modify lookahead routine again
+</ul>
+
+<h2>0.11.2(2000/03/09)</h2>
+<p>
+<ul>
+<li>bug in lookahead routine
+<li>modify cparse.so for Symbol class of ruby 1.5
+</ul>
+
+<h2>0.11.1(2000/03/08)</h2>
+<p>
+<ul>
+<li>modify for Symbol
+<li>update strscan
+</ul>
+
+<h2>0.11.0(2000/02/19)</h2>
+<p>
+<ul>
+<li>if error is occured in action, ruby print line number of grammer file
+</ul>
 
 <hr>
 <h2>0.10.9 (2000/01/19)</h2>
@@ -796,4 +611,4 @@ thanks: Toshiro Kuwabara (Tosh)
 <h2>0.5.0 (1999/01/07)</h2>
 <h2>0.1.0 (1999/01/01)</h2>
 
-. footer
+<% footer 1999 %>

@@ -1,6 +1,6 @@
 #!/usr/local/bin/ruby
 #
-# racc version 0.10.9
+# racc version 0.14.0
 #
 #   Copyright (c) 1999 Minero Aoki <aamine@dp.u-netsurf.ne.jp>
 #
@@ -11,10 +11,10 @@
 
 ##### parse arg ------------------------------------------------
 
-require 'parsearg'
+require 'getopts'
 
-def usage
-  print <<MESSAGE
+def usage( status = 1 )
+  $stderr.print <<MESSAGE
 
 usage: racc.rb [ options ] <source file>
 
@@ -24,40 +24,46 @@ usage: racc.rb [ options ] <source file>
     -v   make <filename>.output file
     -E   output file which don't need runtime
 
-    -o<outfile>   designate output file name (default <fname>.tab.rb)
+    -o<outfile>   file name of output [<fname>.tab.rb]
     -e<ruby-path> make output file executable ('ruby' to default)
     -n<classname> use <classname> for name of parser class
     -h<header>    use <header> file for 'header' code
     -i<inner>     use <inner> file for 'inner' code
     -f<footer>    use <footer> file for 'footer' code
+    -O<outfile>   file name of verbose output [<outfile>.output]
 
-    --version     print version and quit
     --help        print this message and quit
+    --version     print version and quit
+    --copyright   print copyright and quit
 
 MESSAGE
 #
 # and, undocumented options :-)
 #
-# -P   report profile
+# -c          syntax check only
+# -P          report profile
 #
 # -R<req>     require <req> instead of 'racc/libracc'
 # -D<flags>   set (racc's) debug flags (collection of [prtseh])
 # -X<req>     make output file require <req> instead of 'racc/parser'
 # -S<super>   replace super class of parser by <super>
+# -V          print resolver profile
+# -T[ia]      i: index table,  a: alist table
 #
+  exit status
 end
 $USAGE = 'usage'
 
-parseArgs( 1, nil, "vgPE",
-  'o:', 'n:', 'h:', 'i:', 'f:', 'e:',
-  'R:', 'D:', 'X:', 'S:',
-  'version', 'help' )
+getopts( "cvgPEV",
+  'o:', 'n:', 'h:', 'i:', 'f:', 'e:', 'O:',
+  'R:', 'D:', 'X:', 'S:', 'T:',
+  'help', 'version', 'copyright' ) or usage 1
 
 
-if $OPT_R then
-  require $OPT_R
-else
-  require 'racc/libracc'
+require $OPT_R || 'racc/libracc'
+
+if $OPT_help then
+  usage 0
 end
 
 if $OPT_version then
@@ -65,9 +71,16 @@ if $OPT_version then
   exit 0
 end
 
-if $OPT_help then
-  usage
+if $OPT_copyright then
+  print <<S
+racc version #{Racc::Version}
+copyright (c) 1999,2000 Minero Aoki <aamine@dp.u-netsurf.ne.jp>
+S
   exit 0
+end
+
+if ARGV.size != 1 then
+  usage 1
 end
 
 
@@ -167,16 +180,16 @@ end
 
 def pcompile( racc, srcstr, srcfn )
   times = []
-  times.push [ 'setup',   get_lap{ racc.reset } ]
   times.push [ 'parse',   get_lap{ racc.parse(srcstr, srcfn) } ]
-  times.push [ 'cache',   get_lap{ racc.init_rule } ]
-  times.push [ 'state',   get_lap{ racc.init_state } ]
-  times.push [ 'resolve', get_lap{ racc.resolve } ]
+  times.push [ 'state',   get_lap{ racc.nfa } ]
+  times.push [ 'resolve', get_lap{ racc.dfa } ]
 
   return times
 end
 
 def report_profile( srcs )
+  out = $stderr
+
   whole = 0
   $OPT_P.each do |arr|
     whole += arr[1]
@@ -185,17 +198,17 @@ def report_profile( srcs )
     whole = 0.01
   end
 
-  puts '--task-----------+--sec------+---%-'
+  out.puts '--task-----------+--sec------+---%-'
 
   $OPT_P.each do |arr|
     name, time = arr
-    printf( "%-19s %s %3d%%\n",
-            name, pjust(time,4,4), (time/whole * 100).to_i )
+    out.printf( "%-19s %s %3d%%\n",
+                name, pjust(time,4,4), (time/whole * 100).to_i )
   end
 
-  puts '-----------------+-----------+-----'
-  printf( "%-20s%s\n",
-          'total', pjust(whole,4,4) )
+  out.puts '-----------------+-----------+-----'
+  out.printf( "%-20s%s\n",
+              'total', pjust(whole,4,4) )
 end
 
 def pjust( num, i, j )
@@ -205,7 +218,7 @@ def pjust( num, i, j )
     str << $2.ljust(j+1)[0,j+1]
   end
 
-  return str
+  str
 end
 
 
@@ -218,11 +231,6 @@ $".push '#{feature}.rb'
 S
   flag = false
   File.foreach( RubyEmuration.find_feature feature ) do |line|
-    if /\A###/ === line then
-      flag = true
-      next
-    end
-    next unless flag
     f.print line
   end
   f.puts "end   # end of #{feature}"
@@ -231,31 +239,39 @@ end
 
 ##### main -------------------------------------------------
 
-GC.disable   # :-)
+def racc_main
 
-racc = Racc::Compiler.new
 
-if $OPT_g then
-  racc.dsrc = true
-end
+dopt = {}
+dopt[ 'debug-src' ] = $OPT_g ? true : false
+dopt[ 'profile' ] = $OPT_V ? true : false
+
 if $OPT_D then
   $stdout.sync = true
-  racc.debug    = true
-  racc.d_prec   = true if /p/io === $OPT_D
-  racc.d_rule   = true if /r/io === $OPT_D
-  racc.d_token  = true if /t/io === $OPT_D
-  racc.d_state  = true if /s/io === $OPT_D
-  racc.d_reduce = true if /e/io === $OPT_D
-  racc.d_shift  = true if /h/io === $OPT_D
+  dopt[ 'debug' ]  = true
+  dopt[ 'prec' ]   = true if /p/i === $OPT_D
+  dopt[ 'rule' ]   = true if /r/i === $OPT_D
+  dopt[ 'token' ]  = true if /t/i === $OPT_D
+  dopt[ 'state' ]  = true if /s/i === $OPT_D
+  dopt[ 'reduce' ] = true if /e/i === $OPT_D
+  dopt[ 'shift' ]  = true if /h/i === $OPT_D
 end
+
+racc = Racc::Compiler.new( dopt )
+$racc = racc
 
 
 srcfn = ARGV[0]
 srcstr = nil
 File.open( fchk(srcfn), 'r' ) {|f| srcstr = f.read }
 
+
 if $OPT_P then
   $OPT_P = pcompile( racc, srcstr, srcfn )
+elsif $OPT_c then
+  racc.parse( srcstr, srcfn )
+  puts 'syntax ok'
+  exit 0
 else
   racc.compile( srcstr, srcfn )
 end
@@ -275,8 +291,7 @@ File.open( tabfn, 'w' ) do |f|
 #
 
 S
-    # embed 'amstd/bug',   f ; f.puts
-    embed 'racc/parser', f ; f.puts
+    embed 'racc/parser.rb', f; f.puts
   else
     f.puts
     f.puts  "require '#{$OPT_X || 'racc/parser'}'"
@@ -284,7 +299,11 @@ S
   connect_part srcfn, f, $OPT_h, 'header', 'prepare'
   f.puts  "class #{class_name} < #{$OPT_S || 'Racc::Parser'}\n"
   connect_part srcfn, f, $OPT_i, 'inner'
-  racc.source f
+  unless $OPT_T then
+    racc.source f
+  else
+    racc.send( $OPT_T == 'a' ? :alist_table : :index_table, f )
+  end
   f.puts  "end"
   connect_part srcfn, f, $OPT_f, 'footer', 'driver'
 end
@@ -301,35 +320,39 @@ if $OPT_P then
 end
 
 if $OPT_v then
-  output_fn = make_filename( $OPT_o || srcfn, '.output' )
+  output_fn = $OPT_O || make_filename( $OPT_o || srcfn, '.output' )
 
   File.open( output_fn, 'w' ) do |f|
-    if racc.rrconf.size > 0 then
-      f.write racc.rrconf.join("\n")
-      f.puts
-    end
-    if racc.srconf.size > 0 then
-      f.write racc.srconf.join("\n")
-      f.puts
-    end
-    if racc.logic.size > 0 then
-      f.write racc.logic.join("\n")
-      f.puts
-    end
-
     racc.output f
   end
 end
 
 
-if racc.logic.size > 0 then
-  print "#{racc.logic.size} logic error found\n"
+lo = 0
+sr = 0
+rr = 0
+racc.statetable.each do |st|
+  sr += st.srconf.size if st.srconf
+  rr += st.rrconf.size if st.rrconf
 end
 
-if racc.rrconf.size > 0 then
-  print "#{racc.rrconf.size} reduce/reduce conflicts\n"
+if lo > 0 then
+  $stderr.puts "#{lo} logic error found"
+end
+if sr > 0 then
+  $stderr.puts "#{sr} shift/reduce conflicts"
+end
+if rr > 0 then
+  $stderr.puts "#{rr} reduce/reduce conflicts"
 end
 
-if racc.srconf.size > 0 then
-  print "#{racc.srconf.size} shift/reduce conflicts\n"
+end   # def racc_main
+
+
+begin
+  racc_main
+rescue
+  raise if $racc.debug
+  $stderr.puts "#{File.basename $0}: " + $!.to_s
+  exit 1
 end

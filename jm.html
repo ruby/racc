@@ -1,768 +1,205 @@
 . file index.html -------------------------------------------------------
-. header Racc User Manual
+<% header 'Racc User Manual' %>
 
 <h1>Racc user manual</h1>
 
-updated for version 0.10.8
+updated for version 0.14
 
 <p>
-Racc$B$OJ8K!5,B'$+$i(BRuby$B$N%Q!<%5%/%i%9$r@8@.$9$k%Q!<%5%8%'%M%l!<%?$G$9!#(B
-$B%Q!<%5@8@.%"%k%4%j%:%`$H$7$F!"(Byacc $B$J$I$HF1$8(BLALR(1)$B$r;HMQ$7$F$$$^$9!#(B
+Racc ¤ÏÊ¸Ë¡µ¬Â§¤«¤é Ruby ¤Ç½ñ¤«¤ì¤¿¥Ñ¡¼¥µ¤òÀ¸À®¤¹¤ë¥Ñ¡¼¥µ¥¸¥§¥Í¥ì¡¼¥¿¤Ç¤¹¡£
+¥Ñ¡¼¥µÀ¸À®¥¢¥ë¥´¥ê¥º¥à¤È¤·¤Æ¡¢yacc ¤Ê¤É¤ÈÆ±¤¸ LALR(1) ¤ò»ÈÍÑ¤·¤Æ¤¤¤Þ¤¹¡£
 
 <ul>
-<li><a href="usage.html">Racc$B$N;H$$J}(B</a>
-<li><a href="command.html">racc $B%3%^%s%I%j%U%!%l%s%9(B</a>
-<li><a href="grammer.html">$B5,B'%U%!%$%kJ8K!%j%U%!%l%s%9(B</a>
-<li><a href="parser.html">Parser$B%/%i%9%j%U%!%l%s%9(B</a>
-<li><a href="debug.html">$B%G%P%C%0>pJs(B</a>
-<li><a href="scan.html">$B%9%-%c%J:n@.%i%$%V%i%j(B</a>
-<li><a href="changes.html">$BJQ99MzNr(B</a>
+<li><a href="usage.html">Racc ¤Î»È¤¤Êý</a>
+<li><a href="command.html">racc ¥³¥Þ¥ó¥É¥ê¥Õ¥¡¥ì¥ó¥¹</a>
+<li><a href="grammer.html">µ¬Â§¥Õ¥¡¥¤¥ëÊ¸Ë¡¥ê¥Õ¥¡¥ì¥ó¥¹</a>
+<li><a href="parser.html">Parser ¥¯¥é¥¹¥ê¥Õ¥¡¥ì¥ó¥¹</a>
+<li><a href="debug.html">¥Ç¥Ð¥Ã¥°¾ðÊó</a>
+<li><a href="changes.html">ÊÑ¹¹ÍúÎò</a>
 </ul>
 
-. footer
+<% footer 1999 %>
 . file usage.html --------------------------------------------------------
-. header Usage
+<% header 'Usage' %>
 
-<h1>Racc $B$N;H$$J}(B</h1>
+<h1>Racc ¤Î»È¤¤Êý</h1>
 
-<h2>$B$R$H$N:n$C$?%Q!<%5$r;H$&(B</h2>
-
-<p>
-$B$b$&$9$G$KJ8K!%U%!%$%k$,$"$k>l9g$G$9!#$3$N>l9g$OC1$K(Bracc$B%3%^%s%I$,;H$($l$P$h$/!"(B
-$BJ8K!%U%!%$%k$N=q$-$+$?$r3P$($?$j$9$kI,MW$O$"$j$^$;$s!#(B
+<h2>¤Ò¤È¤Îºî¤Ã¤¿¥Ñ¡¼¥µ¤ò»È¤¦</h2>
 
 <p>
-$BJ8K!%U%!%$%k$NL>A0$,(B parse.y $B$H2>Dj$9$k$H!"%3%^%s%I%i%$%s$+$i0J2<$N$h$&$K(B
-$BBG$A$3$`$3$H$G!"%Q!<%5$r4^$s$@%U%!%$%k$,F@$i$l$^$9!#(B
+¤â¤¦¤¹¤Ç¤ËÊ¸Ë¡¥Õ¥¡¥¤¥ë¤¬¤¢¤ë¾ì¹ç¤Ç¤¹¡£¤³¤Î¾ì¹ç¤ÏÃ±¤Ë racc ¥³¥Þ¥ó¥É¤¬»È¤¨¤ì¤Ð¤è¤¯¡¢
+Ê¸Ë¡¥Õ¥¡¥¤¥ë¤Î½ñ¤­¤«¤¿¤ò³Ð¤¨¤¿¤ê¤¹¤ëÉ¬Í×¤Ï¤¢¤ê¤Þ¤»¤ó¡£
+
+<p>
+Ê¸Ë¡¥Õ¥¡¥¤¥ë¤ÎÌ¾Á°¤¬ parse.y ¤È²¾Äê¤¹¤ë¤È¡¢¥³¥Þ¥ó¥É¥é¥¤¥ó¤«¤é°Ê²¼¤Î¤è¤¦¤Ë
+ÂÇ¤Á¤³¤à¤³¤È¤Ç¡¢¥Ñ¡¼¥µ¤ò´Þ¤ó¤À¥Õ¥¡¥¤¥ë¤¬ÆÀ¤é¤ì¤Þ¤¹¡£
 <pre>
 
 $ racc parse.y
 
 </pre>
-$B@8@.$5$l$k%U%!%$%k$O%G%U%)%k%H$G$O(B "$B%U%!%$%kL>(B.tab.rb" $B$K$J$j$^$9!#(B
-$B$3$l$O(B -o $B%*%W%7%g%s$GJQ99$G$-$^$9!#(B
+À¸À®¤µ¤ì¤ë¥Õ¥¡¥¤¥ë¤Ï¥Ç¥Õ¥©¥ë¥È¤Ç¤Ï "¥Õ¥¡¥¤¥ëÌ¾.tab.rb" ¤Ë¤Ê¤ê¤Þ¤¹¡£
+¤³¤ì¤Ï -o ¥ª¥×¥·¥ç¥ó¤ÇÊÑ¹¹¤Ç¤­¤Þ¤¹¡£
 
 
-<h2>$B<+J,$G%Q!<%5$r:n$k(B</h2>
+<h2>¼«Ê¬¤Ç¥Ñ¡¼¥µ¤òºî¤ë</h2>
 
 <p>
-$B<+J,$G(Bracc$B$NJ8K!%U%!%$%k$r5-=R$9$k>l9g$G$9!#(B
-racc $B$O(B yacc $B$rCN$C$F$$$k$3$H$rA0Ds$K$7$F$$$^$9$N$G!"$b$7CN$i$J$$$N$J$i(B
-$B@h$K(B yacc $B$rJY6/$7$^$7$g$&!#$$$-$J$j(B racc $B$r;H$&$N$OIT2DG=$G$9!#(B($B$3$l$OCG8@$G$-$^$9(B)
+¼«Ê¬¤Ç racc ¤ÎÊ¸Ë¡¥Õ¥¡¥¤¥ë¤òµ­½Ò¤¹¤ë¾ì¹ç¤Ç¤¹¡£
+racc ¤Ï yacc ¤òÃÎ¤Ã¤Æ¤¤¤ë¤³¤È¤òÁ°Äó¤Ë¤·¤Æ¤¤¤Þ¤¹¤Î¤Ç¡¢¤â¤·ÃÎ¤é¤Ê¤¤¤Î¤Ê¤é
+Àè¤Ë yacc ¤òÊÙ¶¯¤·¤Þ¤·¤ç¤¦¡£¤¤¤­¤Ê¤ê racc ¤ò»È¤¦¤Î¤ÏÉÔ²ÄÇ½¤Ç¤¹¡£(¤³¤ì¤ÏÃÇ¸À¤Ç¤­¤Þ¤¹)
 
-<h3>$B354Q(B</h3>
+<h3>³µ´Ñ</h3>
 <p>
-yacc $B$O(B yyparse($B4X?t(B)$B$r@8@.$7$^$9$,!"(Bracc $B$O(B yyparse $B$KAjEv$9$k(B do_parse
-$B%a%=%C%I$r;}$C$?%Q!<%5%/%i%9$r@8@.$7$^$9!#(B
-$B@8@.$5$l$k%/%i%9$OA4$F(B Racc::Parser $B$N2<0L%/%i%9$G!"5,B'%U%!%$%kCf$G;XDj$7$^$9!#(B
-$B5,B'%U%!%$%k$NJ8K!$N>\:Y$O!"(B<a href="grammer.html">$BJ8K!%j%U%!%l%s%9(B</a>$B$r(B
-$B;2>H$7$F$/$@$5$$!#(B
+yacc ¤Ï yyparse (´Ø¿ô)¤òÀ¸À®¤·¤Þ¤¹¤¬¡¢racc ¤Ï yyparse ¤ËÁêÅö¤¹¤ë do_parse
+¥á¥½¥Ã¥É¤ò»ý¤Ã¤¿¥Ñ¡¼¥µ¥¯¥é¥¹¤òÀ¸À®¤·¤Þ¤¹¡£
+À¸À®¤µ¤ì¤ë¥¯¥é¥¹¤ÏÁ´¤Æ Racc::Parser ¤Î²¼°Ì¥¯¥é¥¹¤Ç¡¢µ¬Â§¥Õ¥¡¥¤¥ëÃæ¤Ç»ØÄê¤·¤Þ¤¹¡£
+µ¬Â§¥Õ¥¡¥¤¥ë¤ÎÊ¸Ë¡¤Î¾ÜºÙ¤Ï¡¢<a href="grammer.html">Ê¸Ë¡¥ê¥Õ¥¡¥ì¥ó¥¹</a>¤ò
+»²¾È¤·¤Æ¤¯¤À¤µ¤¤¡£
 
-<h3>$B5,B'%U%!%$%k(B</h3>
+<h3>µ¬Â§¥Õ¥¡¥¤¥ë</h3>
 <p>
-$B0J2<$K$O5,B'%U%!%$%k$NJ8K!$N35N,$@$1=q$$$F$*$-$^$9!#(B<br>
-$B$^$:$O!"A4BN$N357A$G$9!#(B
+°Ê²¼¤Ë¤Ïµ¬Â§¥Õ¥¡¥¤¥ë¤ÎÊ¸Ë¡¤Î³µÎ¬¤À¤±½ñ¤¤¤Æ¤ª¤­¤Þ¤¹¡£<br>
+¤Þ¤º¤Ï¡¢Á´ÂÎ¤Î³µ·Á¤Ç¤¹¡£
 <pre>
 
 class MyParser
 
 rule
-  target: exp ;
-  exp: tok     { print val[0] }
-     | exp tok { print val[1] };  # $B%3%a%s%H(B
-  tok: A | '+' | '-';             /* $B$3$l$b%3%a%s%H(B */
+  target : exp
+         ;
+  exp    : tok { print val[0] }
+         | exp tok    # ¤³¤ì¤Ï¥³¥á¥ó¥È
+               { print val[1] }
+         ;
+  tok    : A
+         | '+'
+         | '-'       /* ¤³¤ì¤â¥³¥á¥ó¥È */
+         ;
 end
 
 </pre>
-Ruby$B%9%/%j%W%H$N$h$&$K(B class $B$G%/%i%9L>$r;XDj$7!"(Brule ... end $B$N4V$KJ8K!$r5-=R$7$^$9!#(B
-$B%H!<%/%s$O(B Ruby $B$N%m!<%+%kJQ?t(B/$BDj?t$H$7$FM-8z$J$b$N$,;H$($^$9!#(B
-yacc $B$@$H=*C<5-9f$r(B %token $B$G;XDj$9$kI,MW$,$"$j$^$9$,!"(Bracc $B$G$O$=$N$h$&$J(B
-$B;XDj$OI,MW$"$j$^$;$s!#:8JU$KMh$J$$%H!<%/%s$O$9$Y$F=*C<5-9f$H$_$J$5$l$^$9!#(B
+Ruby¥¹¥¯¥ê¥×¥È¤Î¤è¤¦¤Ë class ¤Ç¥¯¥é¥¹Ì¾¤ò»ØÄê¤·¡¢rule ... end ¤Î´Ö¤ËÊ¸Ë¡¤òµ­½Ò¤·¤Þ¤¹¡£
+¥È¡¼¥¯¥ó¤Ï Ruby ¤Î¥í¡¼¥«¥ëÊÑ¿ô/Äê¿ô¤È¤·¤ÆÍ­¸ú¤Ê¤â¤Î¤¬»È¤¨¤Þ¤¹¡£
+yacc ¤À¤È½ªÃ¼µ­¹æ¤ò %token ¤Ç»ØÄê¤¹¤ëÉ¬Í×¤¬¤¢¤ê¤Þ¤¹¤¬¡¢racc ¤Ç¤Ï¤½¤Î¤è¤¦¤Ê
+»ØÄê¤ÏÉ¬Í×¤¢¤ê¤Þ¤»¤ó¡£º¸ÊÕ¤ËÍè¤Ê¤¤¥È¡¼¥¯¥ó¤Ï¤¹¤Ù¤Æ½ªÃ¼µ­¹æ¤È¤ß¤Ê¤µ¤ì¤Þ¤¹¡£
 
 <p>
-$B%"%/%7%g%s$O!"(Byacc $B$HF1$8$h$&$K5,B'$N$"$H$K(B { $B$H(B } $B$G0O$s$G;XDj$7$^$9!#(B
-$BEvA3$J$,$i!"%"%/%7%g%s$O(BRuby$B$NJ8$G5-=R$7$^$9!#(B<br>
-yacc $B$G$N(B $$ $B$O(B Racc $B$G$O%m!<%+%kJQ?t(B result $B$G!"(B$1,$2... $B$OG[Ns(B val $B$G$9!#(B
-result $B$O(B val[0]($1) $B$NCM$K=i4|2=$5$l!"%"%/%7%g%s$rH4$1$?$H$-$N(B result $B$NCM$,(B
-$B:8JUCM$K$J$j$^$9!#(BRacc $B$G$O%"%/%7%g%sCf$N(B return $B$O%"%/%7%g%s$+$iH4$1$k$@$1$G!"(B
-$B%Q!<%:<+BN$O=*$o$j$^$;$s!#(BYYACCEPT $B$N$h$&$J$b$N$b$^$@$J$$$N$G!"(B
-$B%"%/%7%g%sCf$+$i%Q!<%:$r=*N;$9$k$K$O(B catch $B$+(B raise $B$r;H$&0J30$K$O$"$j$^$;$s!#(B
-YYACCEPT $BAjEv$N5!G=$O>-Mh$K$O<BAu$9$kM=Dj$G$9!#(B
+¥¢¥¯¥·¥ç¥ó¤Ï¡¢yacc ¤ÈÆ±¤¸¤è¤¦¤Ëµ¬Â§¤Î¤¢¤È¤Ë { ¤È } ¤Ç°Ï¤ó¤Ç»ØÄê¤·¤Þ¤¹¡£
+ÅöÁ³¤Ê¤¬¤é¡¢¥¢¥¯¥·¥ç¥ó¤Ï Ruby ¤ÎÊ¸¤Çµ­½Ò¤·¤Þ¤¹¡£<br>
+yacc ¤Ç¤Î $$ ¤Ï Racc ¤Ç¤Ï¥í¡¼¥«¥ëÊÑ¿ô result ¤Ç¡¢$1,$2... ¤ÏÇÛÎó val ¤Ç¤¹¡£
+result ¤Ï val[0]($1) ¤ÎÃÍ¤Ë½é´ü²½¤µ¤ì¡¢¥¢¥¯¥·¥ç¥ó¤òÈ´¤±¤¿¤È¤­¤Î result ¤ÎÃÍ¤¬
+º¸ÊÕÃÍ¤Ë¤Ê¤ê¤Þ¤¹¡£Racc ¤Ç¤Ï¥¢¥¯¥·¥ç¥óÃæ¤Î return ¤Ï¥¢¥¯¥·¥ç¥ó¤«¤éÈ´¤±¤ë¤À¤±¤Ç¡¢
+¥Ñ¡¼¥º¼«ÂÎ¤Ï½ª¤ï¤ê¤Þ¤»¤ó¡£
+¥¢¥¯¥·¥ç¥óÃæ¤«¤é¥Ñ¡¼¥º¤ò½ªÎ»¤¹¤ë¤Ë¤Ï¡¢¥á¥½¥Ã¥É yyaccept ¤ò»È¤Ã¤Æ¤¯¤À¤µ¤¤¡£
 
 <p>
-$B1i;;;R$NM%@h=g0L!"%9%?!<%H%k!<%k$J$I$N(B yacc $B$N0lHLE*$J5!G=$bMQ0U$5$l$F$$$^$9!#(B
-$B$?$@$7$3$A$i$b>/$7J8K!$,0c$$$^$9!#(B
+±é»»»Ò¤ÎÍ¥Àè½ç°Ì¡¢¥¹¥¿¡¼¥È¥ë¡¼¥ë¤Ê¤É¤Î yacc ¤Î°ìÈÌÅª¤Êµ¡Ç½¤âÍÑ°Õ¤µ¤ì¤Æ¤¤¤Þ¤¹¡£
+¤¿¤À¤·¤³¤Á¤é¤â¾¯¤·Ê¸Ë¡¤¬°ã¤¤¤Þ¤¹¡£
 
 <p>
-yacc $B$G$O@8@.$5$l$?%3!<%I$KD>@\E><L$5$l$k%3!<%I$,$"$j$^$7$?!#(BRacc $B$G$bF1$8$h$&$K!"(B
-$B%f!<%6;XDj$N%3!<%I$,=q$1$^$9!#(Bracc $B$G$O%/%i%9$r@8@.$9$k$N$G!"%/%i%9Dj5A$NA0(B/$BCf(B/$B8e$N(B
-$B;08D=j$,$"$j$^$9!#(BRacc $B$G$O$=$l$r>e$+$i=gHV$K(B header inner footer $B$H8F$s$G$$$^$9!#(B
-0.10.1 $B$^$G$O(B prepare inner driver $B$G$7$?$,$+$C$3$o$k$$$N$GJQ99$7$^$7$?!#(B
-$B$?$@$7!"8_49@-$N$?$aA0$N$^$^$G$b;H$($k$h$&$K$J$C$F$$$^$9!#(B
+yacc ¤Ç¤ÏÀ¸À®¤µ¤ì¤¿¥³¡¼¥É¤ËÄ¾ÀÜÅ¾¼Ì¤µ¤ì¤ë¥³¡¼¥É¤¬¤¢¤ê¤Þ¤·¤¿¡£Racc ¤Ç¤âÆ±¤¸¤è¤¦¤Ë¡¢
+¥æ¡¼¥¶»ØÄê¤Î¥³¡¼¥É¤¬½ñ¤±¤Þ¤¹¡£racc ¤Ç¤Ï¥¯¥é¥¹¤òÀ¸À®¤¹¤ë¤Î¤Ç¡¢¥¯¥é¥¹ÄêµÁ¤ÎÁ°/Ãæ/¸å¤Î
+»°¸Ä½ê¤¬¤¢¤ê¤Þ¤¹¡£Racc ¤Ç¤Ï¤½¤ì¤ò¾å¤«¤é½çÈÖ¤Ë header inner footer ¤È¸Æ¤ó¤Ç¤¤¤Þ¤¹¡£
+0.10.1 ¤Þ¤Ç¤Ï prepare inner driver ¤Ç¤·¤¿¤¬¤«¤Ã¤³¤ï¤ë¤¤¤Î¤ÇÊÑ¹¹¤·¤Þ¤·¤¿¡£
+¤¿¤À¤·¡¢¸ß´¹À­¤Î¤¿¤áÁ°¤Î¤Þ¤Þ¤Ç¤â»È¤¨¤ë¤è¤¦¤Ë¤Ê¤Ã¤Æ¤¤¤Þ¤¹¡£
 
-<h3>$B%f!<%6$,MQ0U$9$Y$-%3!<%I(B</h3>
+<h3>¥æ¡¼¥¶¤¬ÍÑ°Õ¤¹¤Ù¤­¥³¡¼¥É</h3>
 <p>
-inner $B$G$O!"(BRacc $B$N(B yylex $B$KAjEv$9$k%a%=%C%I(B next_token $B$rDj5A$9$kI,MW$,$"$j$^$9!#(B
-$B$3$N%a%=%C%I$O!"%H!<%/%s%7%s%\%k$H$=$NCM$NFsMWAG$r;}$DG[Ns$rJV$9$h$&$K$7$^$9!#(B
-$B$3$NG[Ns$r(B Racc $B$,GK2u$9$k$3$H$O$"$j$^$;$s!#$^$?!"$I$3$+B>$N$H$3$m$G;H$&$3$H$b(B
-$B$"$j$^$;$s!#(B<br>
-$B%9%-%c%s$,=*N;$7$F!"$b$&Aw$k$b$N$,$J$$>l9g$O(B [false,false] $B$rJV$7$F$/$@$5$$!#(B
-[false, false] $B$r<u$1$H$C$?$i$=$l0J>e(B next_token $B$O8F$S$@$5$l$^$;$s!#(B
-
-<p>
-LALR $B%Q!<%6$OJL$KJ8;zNs=hM}$K$@$1;H$o$l$k$b$N$G$O$"$j$^$;$s$,!"<B:]LdBj$H$7$F(B
-$B%Q!<%6$r:n$k>lLL$G$O$?$$$F$$J8;zNs$N%9%-%c%J$H%;%C%H$G;H$&$3$H$,B?$$$G$7$g$&!#(B
-Ruby $B$J$i%9%-%c%J$/$i$$3Z>!$G:n$l$^$9$,!"9bB.$J%9%-%c%J$H$J$k$H<B$OFq$7$+$C$?$j(B
-$B$7$^$9!#$=$3$G!"9bB.$J(B<a href="scan.html">$B%9%-%c%J$r:n@.$9$k$?$a$N%i%$%V%i%j(B</a>
-$B$,F1:-$5$l$F$$$^$9!#$b$7;H$($k$h$&$G$"$l$P$I$s$I$s;H$C$F$/$@$5$$!#(B
+inner ¤Ç¤Ï¡¢Racc ¤Î yylex ¤ËÁêÅö¤¹¤ë¥á¥½¥Ã¥É next_token ¤òÄêµÁ¤¹¤ëÉ¬Í×¤¬¤¢¤ê¤Þ¤¹¡£
+¤³¤Î¥á¥½¥Ã¥É¤Ï¡¢¥È¡¼¥¯¥ó¥·¥ó¥Ü¥ë¤È¤½¤ÎÃÍ¤ÎÆóÍ×ÁÇ¤ò»ý¤ÄÇÛÎó¤òÊÖ¤¹¤è¤¦¤Ë¤·¤Þ¤¹¡£
+¤³¤ÎÇÛÎó¤ò Racc ¤¬ÇË²õ¤¹¤ë¤³¤È¤Ï¤¢¤ê¤Þ¤»¤ó¡£¤Þ¤¿¡¢¤É¤³¤«Â¾¤Î¤È¤³¤í¤Ç»È¤¦¤³¤È¤â
+¤¢¤ê¤Þ¤»¤ó¡£<br>
+¥¹¥­¥ã¥ó¤¬½ªÎ»¤·¤Æ¡¢¤â¤¦Á÷¤ë¤â¤Î¤¬¤Ê¤¤¾ì¹ç¤Ï [false,¤Ê¤Ë¤«] ¤òÊÖ¤·¤Æ¤¯¤À¤µ¤¤¡£
+[false,¤Ê¤Ë¤«] ¤ò°ì²ó¼õ¤±¤È¤Ã¤¿¤é¤½¤ì°Ê¾å next_token ¤Ï¸Æ¤Ó¤À¤µ¤ì¤Þ¤»¤ó¡£
 
 <p>
-Racc $B$K$O!"(Berror $B%H!<%/%s$r;H$C$?%(%i!<2sI|5!G=$b$"$j$^$9!#(B<br>
-yyerror() $B$O(B Racc $B$G$O(B <a href="parser.html">Parser#on_error</a>$B$G!"(B
-$B%(%i!<$,$*$-$?%H!<%/%s$H$=$NCM!"CM%9%?%C%/$N(B 3 $B0z?t$r$H$j$^$9!#(B
-on_error $B$O%G%U%)%k%H$G$ONc30(B ParseError $B$rH/@8$7$^$9!#(B
+¥Ñ¡¼¥¶¤ÏÊÌ¤ËÊ¸»úÎó½èÍý¤Ë¤À¤±»È¤ï¤ì¤ë¤â¤Î¤Ç¤Ï¤¢¤ê¤Þ¤»¤ó¤¬¡¢¼ÂºÝÌäÂê¤È¤·¤Æ¡¢
+¥Ñ¡¼¥¶¤òºî¤ë¾ìÌÌ¤Ç¤Ï¤¿¤¤¤Æ¤¤Ê¸»úÎó¤Î¥¹¥­¥ã¥Ê¤È¥»¥Ã¥È¤Ç»È¤¦¤³¤È¤¬Â¿¤¤¤Ç¤·¤ç¤¦¡£
+Ruby ¤Ê¤é¥¹¥­¥ã¥Ê¤¯¤é¤¤³Ú¾¡¤Çºî¤ì¤Þ¤¹¤¬¡¢¹âÂ®¤Ê¥¹¥­¥ã¥Ê¤È¤Ê¤ë¤È¼Â¤ÏÆñ¤·¤«¤Ã¤¿¤ê
+¤·¤Þ¤¹¡£¤½¤³¤Ç¡¢¹âÂ®¤Ê¥¹¥­¥ã¥Ê¤òºîÀ®¤¹¤ë¤¿¤á¤Î¥é¥¤¥Ö¥é¥ê¤¬Æ±º­¤µ¤ì¤Æ¤¤¤Þ¤¹¡£
+¾Ü¤·¤¯¤Ï<a href="#scanner">¡Ö¥¹¥­¥ã¥Ê¤òºî¤ë¡×¤Î¹à</a>¤ò¸«¤Æ¤¯¤À¤µ¤¤¡£
 
-<h3>$B%Q!<%6$r@8@.$9$k(B</h3>
 <p>
-$B$3$l$@$1$"$l$P$@$$$?$$=q$1$k$H;W$$$^$9!#$"$H$O!":G=i$K<($7$?J}K!$G%3%s%Q%$%k$7!"(B
-Ruby$B%9%/%j%W%H$rF@$^$9!#(B<br>
-$B$&$^$/$$$1$PLdBj$J$$$G$9$,!"Bg$-$$$b$N$@$H:G=i$+$i$O$&$^$/$$$+$J$$$G$7$g$&!#(B
-racc $B$K(B -g $B%*%W%7%g%s$r$D$1$F%3%s%Q%$%k$7!"(B@yydebug $B$r(B true $B$K$9$k$H(B
-$B%G%P%C%0MQ$N=PNO$,F@$i$l$^$9!#$^$?!"(B-v $B%*%W%7%g%s$r$D$1$k$H!"(B
-$B>uBVA+0\I=$rFI$_$d$9$$7A$G=PNO$7$?%U%!%$%k(B(.output)$B$,F@$i$l$^$9!#(B
-$B$I$A$i$b%G%P%C%0$N;29M$K$J$k$H;W$$$^$9!#(B
+Racc ¤Ë¤Ï¡¢error ¥È¡¼¥¯¥ó¤ò»È¤Ã¤¿¥¨¥é¡¼²óÉüµ¡Ç½¤â¤¢¤ê¤Þ¤¹¡£<br>
+yacc ¤Î yyerror() ¤Ï Racc ¤Ç¤Ï <a href="parser.html">Parser#on_error</a>¤Ç¡¢
+¥¨¥é¡¼¤¬¤ª¤­¤¿¥È¡¼¥¯¥ó¤È¤½¤ÎÃÍ¡¢ÃÍ¥¹¥¿¥Ã¥¯¤Î 3 °ú¿ô¤ò¤È¤ê¤Þ¤¹¡£
+on_error ¤Ï¥Ç¥Õ¥©¥ë¥È¤Ç¤ÏÎã³° ParseError ¤òÈ¯À¸¤·¤Þ¤¹¡£<br>
+¥æ¡¼¥¶¤¬¥¢¥¯¥·¥ç¥óÃæ¤Ç¥Ñ¡¼¥¹¥¨¥é¡¼¤òÈ¯¸«¤·¤¿¾ì¹ç¤Ï¡¢
+¥á¥½¥Ã¥É yyerror ¤ò¸Æ¤Ù¤Ð¥Ñ¡¼¥µ¤¬¥¨¥é¡¼²óÉü¥â¡¼¥É¤ËÆþ¤ê¤Þ¤¹¡£
+¤³¤Î¤È¤­¤Ï on_error ¤Ï¸Æ¤Ð¤ì¤Ê¤¤¤Î¤Ç¡¢¤Ê¤Ë¤«Êó¹ð¤ò¤·¤¿¤¤»þ¤Ï¥æ¡¼¥¶¤¬ÌÀ¼¨Åª¤Ë
+on_error ¤ò¸Æ¤ó¤À¤ê¤¹¤ëÉ¬Í×¤¬¤¢¤ê¤Þ¤¹¡£
 
-
-<h2>$B:n$C$?%Q!<%6$rG[I[$9$k(B</h2>
+<h3>¥Ñ¡¼¥¶¤òÀ¸À®¤¹¤ë</h3>
 <p>
-Racc $B$N@8@.$7$?%Q!<%6$OF0:n;~$K%i%s%?%$%`%k!<%A%s$,I,MW$K$J$j$^$9!#(B
-$B6qBNE*$K$O(B parser.rb $B$H(B cparse.so $B$=$l$H(B amstd/ $B$N%9%/%j%W%H$,>/$7$G$9!#(B
-cparse.so $B$O9bB.$K%Q!<%:$9$k$?$a$N3HD%%b%8%e!<%k$G!"(Bamstd/ $B$O%f!<%F%#%j%F%#!"(B
-parser.rb $B$O$=$l$i$9$Y$F$N%U%m%s%H%(%s%I$G$9!#(B<br>
-$B$3$l$i$N%U%!%$%k$r<+J,$G%;%C%H%"%C%W$9$k$N$O$J$+$J$+LLE]$G$9!#(B
-Racc $B$r%f!<%6$_$s$J$K%$%s%9%H!<%k$7$F$b$i$&$N$b0l$D$N<j$G$9$,!"(B
-$B$3$l$G$O%f!<%6$K$H$C$FIT?F@Z$G$9!#(B
-$B$=$3$G!"(BRacc $B$G$O2sHr:v$r$U$?$DMQ0U$7$^$7$?!#(B
+¤³¤ì¤À¤±¤¢¤ì¤Ð¤À¤¤¤¿¤¤½ñ¤±¤ë¤È»×¤¤¤Þ¤¹¡£¤¢¤È¤Ï¡¢ºÇ½é¤Ë¼¨¤·¤¿ÊýË¡¤Ç¥³¥ó¥Ñ¥¤¥ë¤·¡¢
+Ruby¥¹¥¯¥ê¥×¥È¤òÆÀ¤Þ¤¹¡£<br>
+¤¦¤Þ¤¯¤¤¤±¤Ð¤¤¤¤¤Î¤Ç¤¹¤¬¡¢Âç¤­¤¤¤â¤Î¤À¤ÈºÇ½é¤«¤é¤Ï¤¦¤Þ¤¯¤¤¤«¤Ê¤¤¤Ç¤·¤ç¤¦¡£
+racc ¤Ë -g ¥ª¥×¥·¥ç¥ó¤ò¤Ä¤±¤Æ¥³¥ó¥Ñ¥¤¥ë¤·¡¢@yydebug ¤ò true ¤Ë¤¹¤ë¤È
+¥Ç¥Ð¥Ã¥°ÍÑ¤Î½ÐÎÏ¤¬ÆÀ¤é¤ì¤Þ¤¹¡£¤Þ¤¿¡¢-v ¥ª¥×¥·¥ç¥ó¤ò¤Ä¤±¤ë¤È¡¢
+¾õÂÖÁ«°ÜÉ½¤òÆÉ¤ß¤ä¤¹¤¤·Á¤Ç½ÐÎÏ¤·¤¿¥Õ¥¡¥¤¥ë(.output)¤¬ÆÀ¤é¤ì¤Þ¤¹¡£
+¤É¤Á¤é¤â¥Ç¥Ð¥Ã¥°¤Î»²¹Í¤Ë¤Ê¤ë¤È»×¤¤¤Þ¤¹¡£
 
-<h3>$B%i%s%?%$%`G[I[$N<+F02=(B</h3>
+
+<h2>ºî¤Ã¤¿¥Ñ¡¼¥¶¤òÇÛÉÛ¤¹¤ë</h2>
 <p>
-$B$R$H$D$a$O!"%i%s%?%$%`$H$=$N%$%s%9%H!<%i$r$^$k$4$H<+J,$N%=%U%H$N%Q%C%1!<%8$K(B
-$B4^$a$F$7$^$&$3$H$G$9!#J}K!$O4JC1$G!"(BRacc $B%Q%C%1!<%8$N%H%C%W%G%#%l%/%H%j$K(B
-$BF~$C$F<!$N$h$&$K5/F0$7$^$9!#(B
+Racc ¤ÎÀ¸À®¤·¤¿¥Ñ¡¼¥¶¤ÏÆ°ºî»þ¤Ë¥é¥ó¥¿¥¤¥à¥ë¡¼¥Á¥ó¤¬É¬Í×¤Ë¤Ê¤ê¤Þ¤¹¡£
+¶ñÂÎÅª¤Ë¤Ï parser.rb ¤È cparse.so ¤½¤ì¤È amstd/ ¤Î¥¹¥¯¥ê¥×¥È¤¬¾¯¤·¤Ç¤¹¡£
+cparse.so ¤Ï¹âÂ®¤Ë¥Ñ¡¼¥º¤¹¤ë¤¿¤á¤Î³ÈÄ¥¥â¥¸¥å¡¼¥ë¤Ç¡¢amstd/ ¤Ï¥æ¡¼¥Æ¥£¥ê¥Æ¥£¡¢
+parser.rb ¤Ï¤½¤ì¤é¤¹¤Ù¤Æ¤Î¥Õ¥í¥ó¥È¥¨¥ó¥É¤Ç¤¹¡£<br>
+¤³¤ì¤é¤Î¥Õ¥¡¥¤¥ë¤ò¼«Ê¬¤Ç¥»¥Ã¥È¥¢¥Ã¥×¤¹¤ë¤Î¤Ï¤Ê¤«¤Ê¤«ÌÌÅÝ¤Ç¤¹¡£
+Racc ¤ò¥æ¡¼¥¶¤ß¤ó¤Ê¤Ë¥¤¥ó¥¹¥È¡¼¥ë¤·¤Æ¤â¤é¤¦¤Î¤â°ì¤Ä¤Î¼ê¤Ç¤¹¤¬¡¢
+¤³¤ì¤Ç¤Ï¥æ¡¼¥¶¤Ë¤È¤Ã¤ÆÉÔ¿ÆÀÚ¤Ç¤¹¡£
+¤½¤³¤Ç¡¢Racc ¤Ç¤Ï²óÈòºö¤ò¤Õ¤¿¤ÄÍÑ°Õ¤·¤Þ¤·¤¿¡£
+
+<h3>¥é¥ó¥¿¥¤¥àÇÛÉÛ¤Î¼«Æ°²½</h3>
+<p>
+¤Ò¤È¤Ä¤á¤Ï¡¢¥é¥ó¥¿¥¤¥à¤È¤½¤Î¥¤¥ó¥¹¥È¡¼¥é¤ò¤Þ¤ë¤´¤È¼«Ê¬¤Î¥½¥Õ¥È¤Î¥Ñ¥Ã¥±¡¼¥¸¤Ë
+´Þ¤á¤Æ¤·¤Þ¤¦¤³¤È¤Ç¤¹¡£ÊýË¡¤Ï´ÊÃ±¤Ç¡¢Racc ¥Ñ¥Ã¥±¡¼¥¸¤Î¥È¥Ã¥×¥Ç¥£¥ì¥¯¥È¥ê¤Ë
+Æþ¤Ã¤Æ¼¡¤Î¤è¤¦¤Ëµ¯Æ°¤·¤Þ¤¹¡£
 <pre>
 
 ruby rtpack.rb TARGET/
 
 </pre>
-$B$3$l$G!"%G%#%l%/%H%j(B TARGET/ $B0J2<$KI,MW$J%U%!%$%k$,%$%s%9%H!<%k$5$l$^$9!#(B
-$B$3$N$H$-!"0lEY(B TARGET/ $B0J2<$r%/%j%"$9$k$N$G5$$r$D$1$F$/$@$5$$!#(B
+¤³¤ì¤Ç¡¢¥Ç¥£¥ì¥¯¥È¥ê TARGET/ °Ê²¼¤ËÉ¬Í×¤Ê¥Õ¥¡¥¤¥ë¤¬¥¤¥ó¥¹¥È¡¼¥ë¤µ¤ì¤Þ¤¹¡£
+¤³¤Î¤È¤­¡¢°ìÅÙ TARGET/ °Ê²¼¤ò¥¯¥ê¥¢¤¹¤ë¤Î¤Çµ¤¤ò¤Ä¤±¤Æ¤¯¤À¤µ¤¤¡£
 
 <p>
-$B$^$?!"%$%s%9%H!<%k;~$K$O!"(BTARGET/ $B$K0\F0$7$F(B ruby setup.rb $B$r<B9T$9$l$P(B
-$B%i%s%?%$%`$r%$%s%9%H!<%k$G$-$^$9!#(B
+¤Þ¤¿¡¢¥¤¥ó¥¹¥È¡¼¥ë»þ¤Ë¤Ï¡¢TARGET/ ¤Ë°ÜÆ°¤·¤Æ ruby setup.rb ¤ò¼Â¹Ô¤¹¤ì¤Ð
+¥é¥ó¥¿¥¤¥à¤ò¥¤¥ó¥¹¥È¡¼¥ë¤Ç¤­¤Þ¤¹¡£
 
 <p>
-$B$3$NJ}K!$@$H!"B.EY$rJ]$C$?$^$^!"%Q!<%6$rG[I[$G$-$k$N$,MxE@$G$9!#(B
+¤³¤ÎÊýË¡¤À¤È¡¢Â®ÅÙ¤òÊÝ¤Ã¤¿¤Þ¤Þ¡¢¥Ñ¡¼¥¶¤òÇÛÉÛ¤Ç¤­¤ë¤Î¤¬ÍøÅÀ¤Ç¤¹¡£
 
-<h3>-E $B%*%V%7%g%s$r;H$&(B</h3>
+<h3>-E ¥ª¥Ö¥·¥ç¥ó¤ò»È¤¦</h3>
 <p>
-racc $B$K(B -E $B%*%W%7%g%s$r$D$1$F%3%s%Q%$%k$9$k$H!"I,MW$J$b$N$rA4It7k9g$7$?(B
-$B%U%!%$%k$,F@$i$l$^$9!#$3$l$@$H%U%!%$%k$O$R$H$D$@$1$J$N$G07$$$,3Z$G$9(B
-($B$3$N7A<0$N%Q!<%6$,J#?t$"$C$?$H$7$F$b%/%i%9$d%a%=%C%I$,>WFM$9$k$3$H$O(B
-$B$"$j$^$;$s(B)$B!#(B
-
-<p>
-$B$3$NJ}K!$@$H!"FCJL$J$3$H$O$J$K$b$9$kI,MW$,$J$$$N$G!"Hs>o$K07$$$,3Z$G$9!#(B
-$B$?$@$7!"(Bcparse.so $B$,;H$($^$;$s$N$G!"I,A3E*$KF0:n$O(B Ruby $B%9%/%j%W%H$N$_$K$J$j(B
-$BB.EY$ODc2<$7$^$9!#(B<br>
-$B$?$@$7!"$3$l$bNc30$,$"$C$F!"G[I[@h$K4{$K(B Racc $B%i%s%?%$%`$,$"$k$H$-$O(B
-$B<+F0E*$K$=$A$i$,;H$o$l$^$9!#(B
-
-
-. footer
-. file command.html -----------------------------------------------------------
-. header racc command
-
-<h1>Racc$B%3%^%s%I%j%U%!%l%s%9(B</h1>
-
-<hr>
-
-<p align=justify>
-  racc.rb [-vgE] [--version] [--help] [-o<var>outfile</var>] [-e<var>path</var>]
-    [-n<var>classname</var>] [-h<var>header</var>] [-i<var>inner</var>]
-    [-f<var>footer</var>] <var>filename</var>
-</p>
-
-<dl>
-<dt><var>filename</var>
-<dd>
-Racc$B$NJ8K!%U%!%$%k$r;XDj$7$^$9!#3HD%;R$O9%$-$J$b$N$K$7$F$/$@$5$$!#(B
-
-<dt>-o<var>outfile</var>
-<dd>
-$B:n@.$9$k%/%i%9$r$+$-$3$`%U%!%$%kL>$r;XDj$7$^$9!#%G%U%)%k%H$O(B<filename>.tab.rb$B$G$9!#(B
-
-<dt>-e<var>path</var>
-<dd>
-$B<B9T2DG=%U%!%$%k$r@8@.$7$^$9!#(B<var>path</var>$B$O(BRuby$BK\BN$N%Q%9$G$9!#(B
-<var>path</var>$B$r(B 'ruby' $B$K$9$k$H(B Racc $B$,F0:n$7$F$$$k(B Ruby $B$N%Q%9$r;HMQ$7$^$9!#(B
-
-<dt>-v
-<dd>
-verbose mode$B!#(B"filename".output$B%U%!%$%k$K>\:Y$J2r@O>pJs$r=PNO$7$^$9!#(B
-
-<dt>-g
-<dd>
-$B=PNO$9$k%3!<%I$K%G%P%C%0MQ%3!<%I$r2C$($^$9!#(B-g $B$r$D$1$F@8@.$7$?%Q!<%5$G(B
-@yydebug $B$r(B true $B$K%;%C%H$9$k$H!"%G%P%C%0MQ$N%3!<%I$,=PNO$5$l$^$9!#(B<br>
--g $B$r$D$1$k$@$1$G$O2?$b$*$3$j$^$;$s$N$GCm0U$7$F$/$@$5$$!#(B
-
-<dt>-E
-<dd>
-$B%i%s%?%$%`%k!<%A%s$r$9$Y$F4^$s$@%3!<%I$r@8@.$7$^$9!#(B
-$B$D$^$j!"$3$N%*%W%7%g%s$r$D$1$F@8@.$7$?%3!<%I$O(B Ruby $B$5$($"$l$PF0$-$^$9!#(B
-
-<dt>-n<var>classname</var>
-<dd>
-$B:n@.$9$k%/%i%9$NL>A0$r;XDj$7$^$9!#J8K!Cf$N;XDj$r>e=q$-$7$^$9!#(B
-
-<dt>-h<var>header</var>
-<dd>
-$BJ8K!%U%!%$%kCf$N!V(Bheader$B!W%3!<%I$N$+$o$j$K!";XDj$7$?%U%!%$%k$NFbMF$r(B
-$B;H$C$?%=!<%9%3!<%I$r=PNO$7$^$9!#(B
-
-<dt>-i<var>inner</var>
-<dd>
-$BJ8K!%U%!%$%kCf$N!V(Binner$B!W%3!<%I$N$+$o$j$K!";XDj$7$?%U%!%$%k$NFbMF$r;H$C$?(B
-$B%=!<%9%3!<%I$r=PNO$7$^$9!#(B
-
-<dt>-f<var>footer</var>
-<dd>
-$BJ8K!%U%!%$%kCf$N!V(Bdriver$B!W%3!<%I$N$+$o$j$K!";XDj$7$?%U%!%$%k$NFbMF$r;H$$$^$9!#(B
-
-<dt>-P
-<dd>
-$B<B9TCJ3,$4$H$N=jMW;~4V$r=PNO$7$^$9!#(B
-
-<dt>--version
-<dd>
-Racc$B$N%P!<%8%g%s$r=PNO$7$F=*N;$7$^$9!#(B
-
-<dt>--help
-<dd>
-$B%*%W%7%g%s$N4JC1$J@bL@$r=PNO$7$F=*N;$7$^$9!#(B
-
-</dl>
-
-. footer
-. file grammer.html -----------------------------------------------------
-. header grammer
-
-<h1>$B5,B'%U%!%$%kJ8K!%j%U%!%l%s%9(B</h1>
-
-<hr>
+racc ¤Ë -E ¥ª¥×¥·¥ç¥ó¤ò¤Ä¤±¤Æ¥³¥ó¥Ñ¥¤¥ë¤¹¤ë¤È¡¢É¬Í×¤Ê¤â¤Î¤òÁ´Éô·ë¹ç¤·¤¿
+¥Õ¥¡¥¤¥ë¤¬ÆÀ¤é¤ì¤Þ¤¹¡£¤³¤ì¤À¤È¥Õ¥¡¥¤¥ë¤Ï¤Ò¤È¤Ä¤À¤±¤Ê¤Î¤Ç°·¤¤¤¬³Ú¤Ç¤¹
+(¤³¤Î·Á¼°¤Î¥Ñ¡¼¥¶¤¬Ê£¿ô¤¢¤Ã¤¿¤È¤·¤Æ¤â¥¯¥é¥¹¤ä¥á¥½¥Ã¥É¤¬¾×ÆÍ¤¹¤ë¤³¤È¤Ï
+¤¢¤ê¤Þ¤»¤ó)¡£
 
 <p>
-$B$3$l$O;CDj;EMM$G$9!#L$Mh$K$O3N<B$KJQ99$5$l$k$N$G5$$r$D$1$F$/$@$5$$!#(B<br>
-$B%P!<%8%g%s(B 0.10.3 $B$G$OKd$a$3$_%"%/%7%g%s$r%5%]!<%H$7$^$7$?!#(B<br>
-$B%P!<%8%g%s(B 0.10.2 $B$G$O(B prepare $B$,(B header $B$K(B driver $B$,(B footer $B$K$J$j$^$7$?!#(B
-$BA0$N$^$^$G$b;H$($^$9$,>-Mh$O>C$($k$+$b$7$l$^$;$s!#(B<br>
-$B%P!<%8%g%s(B 0.10 $B$G$O(B class $B$KBP1~$9$k(B end $B$,$J$/$J$j!"(B
-class...rule...end $B$N7A$K$J$j$^$7$?!#(B<br>
-0.9 $B$G$O%@%5%@%5$N%T%j%*%IJ}<0$r$d$a$F(B { $B$H(B } $B$G0O$`$h$&$K$7$^$7$?!#(B
+¤³¤ÎÊýË¡¤À¤È¡¢ÆÃÊÌ¤Ê¤³¤È¤Ï¤Ê¤Ë¤â¤¹¤ëÉ¬Í×¤¬¤Ê¤¤¤Î¤Ç¡¢Èó¾ï¤Ë°·¤¤¤¬³Ú¤Ç¤¹¡£
+¤¿¤À¤·¡¢cparse.so ¤¬»È¤¨¤Þ¤»¤ó¤Î¤Ç¡¢É¬Á³Åª¤ËÆ°ºî¤Ï Ruby ¥¹¥¯¥ê¥×¥È¤Î¤ß¤Ë¤Ê¤ê
+Â®ÅÙ¤ÏÄã²¼¤·¤Þ¤¹¡£<br>
+¤¿¤À¤·¡¢¤³¤ì¤âÎã³°¤¬¤¢¤Ã¤Æ¡¢ÇÛÉÛÀè¤Ë´û¤Ë Racc ¥é¥ó¥¿¥¤¥à¤¬¤¢¤ë¤È¤­¤Ï
+¼«Æ°Åª¤Ë¤½¤Á¤é¤¬»È¤ï¤ì¤Þ¤¹¡£
 
 
-<h2><a name="whole">$BA4BN$N9=B$(B</a></h2>
-
+<h2><a name="scanner">¤ª¤Þ¤±¡§¥¹¥­¥ã¥Ê¤òºî¤ë</a></h2>
 <p>
-$B%H%C%W%l%Y%k$O!"5,B'It$H%f!<%6!<%3!<%IIt$KJ,$1$i$l$^$9!#%f!<%6!<%3!<%IIt$O(B
-$B%/%i%9Dj5A$N8e$KMh$J$1$l$P$$$1$^$;$s!#(B
+¥Ñ¡¼¥µ¤ò»È¤¦¤È¤­¤Ï¡¢¤¿¤¤¤Æ¤¤Ê¸»úÎó¤ò¥È¡¼¥¯¥ó¤ËÀÚ¤ê¤ï¤±¤Æ¤¯¤ì¤ë
+¥¹¥­¥ã¥Ê¤¬É¬Í×¤Ë¤Ê¤ê¤Þ¤¹¡£¤·¤«¤·¼Â¤Ï Ruby ¤ÏÊ¸»úÎó¤ÎºÇ½é¤«¤é¥È¡¼¥¯¥ó¤Ë
+ÀÚ¤ê¤ï¤±¤Æ¤¤¤¯¤È¤¤¤¦ºî¶È¤¬¤¢¤Þ¤êÆÀ°Õ¤Ç¤Ï¤¢¤ê¤Þ¤»¤ó¡£Àµ³Î¤Ë¸À¤¦¤È¡¢
+´ÊÃ±¤Ë¤Ç¤­¤ë¤Î¤Ç¤¹¤¬¡¢Èó¾ï¤ËÂç¤­¤¤¥ª¡¼¥Ð¡¼¥Ø¥Ã¥É¤¬¤«¤«¤ê¤Þ¤¹¡£<br>
+racc ¤ËÅºÉÕ¤µ¤ì¤Æ¤¤¤ë scanner.rb ¤È strscan ¤Ï¤³¤Î¥ª¡¼¥Ð¡¼¥Ø¥Ã¥É¤ò
+²óÈò¤·¤Ä¤Ä¡¢¼ê·Ú¤Ë¥¹¥­¥ã¥Ê¤ò¤Ä¤¯¤ë¤¿¤á¤Î¥é¥¤¥Ö¥é¥ê¤Ç¤¹¡£<br>
+¤¿¤À¤·ËÜÅö¤Ë¤Á¤ç¤Ã¤È¤·¤«¼ê·Ú¤Ë¤Ê¤ê¤Þ¤»¤ó¡£
 
-
-<h3><a name="comment">$B%3%a%s%H(B</a></h3>
-
+<h3>»È¤¤Êý</h3>
 <p>
-$BJ8K!%U%!%$%k$K$O!"0lItNc30$r=|$$$F!"$[$H$s$I$I$3$K$G$b%3%a%s%H$r(B
-$B=q$/$3$H$,$G$-$^$9!#%3%a%s%H$O!"(BRuby$B$N(B #.....($B9TKv(B) $B%9%?%$%k$H!"(B
-C$B$N(B /*......*/ $B%9%?%$%k$r;H$&$3$H$,$G$-$^$9!#(B
-
-
-<h3><a name="class">$B5,B'It(B</a></h3>
-
-<p>
-$B5,B'It$O0J2<$N$h$&$J7A$r$7$F$$$^$9!#(B
-<pre>
-
-    class $B%/%i%9L>(B
-      [$B1i;;;R=g0L(B]
-      [$B%9%?!<%H5,B'(B]
-      [$B%H!<%/%s%7%s%\%kCMDj5A(B]
-    rule
-      $BJ8K!5-=R(B
-    end
-
-</pre>
-"$B%/%i%9L>(B"$B$O$3$3$GDj5A$9$k%Q!<%5%/%i%9$NL>A0$G$9!#(B
-$B$3$l$O$=$N$^$^(BRuby$B$N%/%i%9L>$K$J$j$^$9!#(B
-
-
-<h4><a name="grammer">$BJ8K!$N5-=R(B</a></h4>
-
-<p>
-racc $B$G@8@.$9$k%Q!<%5$,M}2r$G$-$kJ8K!$r5-=R$7$^$9!#(B
-$BJ8K!$O!"M=Ls8l(B rule $B$H(B end $B$N4V$K!"0J2<$N$h$&$J=q<0$G=q$-$^$9!#(B
-<pre>
-
-      $B%H!<%/%s(B: $B%H!<%/%s$NJB$S(B $B%"%/%7%g%s(B ;
-
-      $B%H!<%/%s(B: $B%H!<%/%s$NJB$S(B $B%"%/%7%g%s(B
-              | $B%H!<%/%s$NJB$S(B $B%"%/%7%g%s(B
-              | $B%H!<%/%s$NJB$S(B $B%"%/%7%g%s(B
-              ;
-                  ($BI,MW$J$@$1F1$8$h$&$K$D$E$1$k(B)
-
-</pre>
-$B=q<0$O(B yacc $B$H$[$\F1$8$G$9!#$?$@$7!"%;%_%3%m%s$OI,?\$G$9!#%"%/%7%g%s$,$"$C$F$b(B
-$B>JN,$7$F$O$$$1$^$;$s!#(B
-
-<p>
-$B%"%/%7%g%s$O(B { } $B$G0O$_$^$9!#$?$@$7$^$@BP1~$,IT==J,$J$N$G!"(B
-$BCf$G$O(B % $BJ8;zNs$d%R%"%I%-%e%a%s%H$O;H$($^$;$s!#%3%a%s%H$O(B # $B%?%$%W$N$_!#(B
-$B@55,I=8=$O(B // $B%?%$%W$N$_$G$9(B
-($BK\Ev$O(B'}'$B$,$O$$$C$F$J$1$l$P$I$l$bBg>fIW$G$9$,!"$d$i$J$$$[$&$,L5Fq$G$9(B)$B!#(B<br>
-$B$^$?!"%"%/%7%g%s$O>JN,$7$F$b$+$^$$$^$;$s!#(B
-
-<p>
-$B1&JU$NJV$jCM(B($$)$B$O!"%"%/%7%g%s$+$i=P$?$H$-$N%m!<%+%kJQ?t(B result $B$NCM$+!"(B
-$B$b$7$/$OL@<(E*$K(B return $B$GJV$7$?CM$K$J$j$^$9!#$^$?!"(Bresult $B$O%"%/%7%g%s<B9T$NA0$K(B
-val[0]($1)$B$K=i4|2=$5$l$^$9!#(B<br>
-$B0J2<$KJ8K!5-=R$NA4BN$NNc$r$7$a$7$^$9!#(B
-<pre>
-
-rule
-
-  goal: def ruls source
-        {
-          result = val
-        }
-      ;
-
-  def : /* none */
-        {
-          result = []
-        }
-      | def startdesig
-        {
-          result[0] = val[1]
-        }
-      | def
-          precrule   # $B$3$l$O>e$N9T$NB3$-$G$9!#(B
-        {
-          result[1] = val[1]
-        }
-      ;
-($BN,(B)
-end  # end$B$G5,B'It=*N;(B
-
-</pre>
-$B%"%/%7%g%sFb$G$O!"$$$/$D$+FCJL$J0UL#$r$b$C$?JQ?t$,;H$($^$9!#$=$N$h$&$JJQ?t$K$O!"(B
-$B0J2<$N$b$N$,$"$j$^$9(B($B>-Mh$3$NL>A0$OJQ$($i$l$k$h$&$K$J$kM=Dj$G$9(B)$B!#$+$C$3$NCf$O!"(B
-yacc $B$G$NI=5-$G$9!#(B
-
-<dl>
-<dt>result ($$)
-<dd>
-$B:8JU$NCM!#=i4|CM$O(B val[0] $B$G$9!#(B
-
-<dt>val ($1,$2,$3$B!D(B)
-<dd>
-$B1&JU$NCM$NG[Ns!#(BRuby$B$NG[Ns$J$N$GEvA3%$%s%G%C%/%9$O%<%m$+$i;O$^$j$^$9!#(B
-$B$3$NG[Ns$O%f!<%6!<$N9%$-$J$h$&$K;H$($^$9!#(B
-
-<dt>_values (...,$-2,$-1,$0)
-<dd>
-$BCM%9%?%C%/!#%5%$%:$rJQ99$7$F$O$$$1$^$;$s!#(B
-
-</dl>
-
-<p>
-$B$5$i$K!"%P!<%8%g%s(B 0.10.3 $B$+$i$OKd$a$3$_%"%/%7%g%s$r%5%]!<%H$7$^$7$?!#(B
-$BKd$a$3$_%"%/%7%g%s$O%H!<%/%sNs$NESCf$N9%$-$J$H$3$m$K5-=R$9$k$3$H$,$G$-$^$9!#(B
-$B0J2<$OKd$a$3$_%"%/%7%g%s$NNc$G$9!#(B
-<pre>
-
-target: A B { puts 'test test' } C D { normal action };
-
-</pre>
-$B$3$N$h$&$K5-=R$9$k$H(B A B $B$r8!=P$7$?D>8e(B($BK\Ev$O0c$&$,!#(B) puts $B$,<B9T$5$l$^$9!#(B
-$B$^$?!"Kd$a$3$_%"%/%7%g%s$O$=$l<+BN$,CM$r;}$A$^$9!#$D$^$j!"0J2<$NNc$K$*$$$F(B
-<pre>
-
-target: A { result = 1 } B { p val[1] };
-
-</pre>
-p val[1] $B$OKd$a$3$_%"%/%7%g%s$NCM(B 1 $B$rI=<($7$^$9!#(BB $B$NCM$G$O$"$j$^$;$s!#(B
-
-<p>
-$B$5$i$K!"0UL#E*$K$OKd$a$3$_%"%/%7%g%s$O(B
-$B6u$N5,B'$r;}$DHs=*C<5-9f$rDI2C$9$k$3$H$HA4$/F1$8F/$-$r$7$^$9!#(B
-$B$D$^$j!">e5-$NNc$O0J2<$HA4$/F1$80UL#$G$9!#(B
-<pre>
-
-target: A nonterm B { p val[1] };
-nonterm: /* void */ { result = 1 };
-
-</pre>
-
-
-<h4><a name="prec">$B1i;;;RM%@h=g0L(B</a></h4>
-
-<p>
-$B$"$k%H!<%/%s>e$G%7%U%H!&4T85>WFM$,$*$3$C$?$H$-!"$=$N%H!<%/%s$K1i;;;RM%@h=g0L$,@_Dj$7$F(B
-$B$"$k$H!">WFM$r2r>C$G$-$k>l9g$,$"$j$^$9!#$=$N$h$&$J$b$N$H$7$FFC$KM-L>$J$N$O?t<0$N(B
-$B1i;;;R$H(B ($B$@$+$i1i;;;RM%@h=g0L$C$F$$$&$N$+(B (^^;; ) if...else$B9=J8$G$9!#(B
-
-<p>
-$BM%@h=g0L$G2r7h$G$-$kJ8K!$O!"$&$^$/J8K!$r$/$_$+$($F$d$l$P!"I,$:M%@h=g0L$J$7$G$bF1$8(B
-$B8z2L$rF@$i$l$^$9!#$7$+$7$?$$$F$$$N>l9g!"M%@h=g0L$r@_Dj$9$k$[$&$,!"J8K!$,4JC1$K$J$j$^$9!#(B
-
-<p>
-$B%7%U%H!&4T85>WFM$,$*$3$C$?$H$-!"(BRacc$B$O$^$:$=$N5,B'$K=g0L$,@_Dj$5$l$F$$$k$+D4$Y$^$9!#(B
-$B5,B'$N=g0L$O!"$=$N5,B'$G0lHV$&$7$m$K$"$k=*C<%H!<%/%s$NM%@h=g0L$G$9!#$?$H$($P!"(B
-<pre>
-      target: TERM_A nonterm_a TERM_B nonterm_b ;
-</pre>
-$B$N$h$&$J5,B'$N=g0L$O(BTERM_B$B$NM%@h=g0L$K$J$j$^$9!#$b$7(BTERM_B$B$KM%@h=g0L$,@_Dj$5$l$F(B
-$B$$$J$+$C$?$i!"M%@h=g0L$G>WFM$r2r7h$9$k$3$H$O$G$-$J$$$HH=CG$7!"(B
-$B!V(BShift/Reduce conflict$B!W$rJs9p$7$^$9!#(B
-
-<p>
-$B1i;;;RM%@h=g0L$O!"$D$.$N$h$&$K=q$-$^$9!#(B<br>
-prechigh $B$K6a$$$[$&$,!"=g0L$N!V9b$$!W%H!<%/%s$G$9!#>e2<$r$^$k$4$H$5$+$5$^$K$7$F!"(B
-preclow...prechigh $B$N=gHV$K=q$/$3$H$b$G$-$^$9!#(B
-<pre>
-
-    prechigh
-      nonassoc PLUSPLUS
-      left     MULTI DEVIDE
-      left     PLUS MINUS
-      right    '='
-    preclow
-
-</pre>
-left right nonassoc $B$O$=$l$>$l!V1&7k9g!W!V:87k9g!W!V7k9g$7$J$$!W$r$"$i$o$7$^$9!#(B
-
-<p>
-$B$^$?!"DL>o$O4T85$9$k5,B'$N!":G8e$N%H!<%/%s$,=g0L$r7h$a$^$9$,!"$"$k5,B'$K8B$C$F(B
-$B=g0L$r$"$2$?$$$H$-$,$"$j$^$9!#(Byacc$B$G8@$($P(B%prec$B$G$9!#$?$H$($P!"Id9fH?E>$N%^%$%J%9$O(B
-$B0z$-;;$N%^%$%J%9$h$j=g0L$r9b$/$7$J$$$H$$$1$^$;$s!#(B
-<pre>
-
-    prechigh
-      nonassoc UMINUS
-      left '*' '/'
-      left '+' '-'
-    preclow
-($BN,(B)
-    exp: exp '*' exp
-       | exp '-' exp
-       | '-' exp   =   UMINUS    # $B=g0L$r>e$2$k(B
-
-</pre>
-$B$3$N$h$&$K5-=R$9$k$H!"(B'-' exp $B$N5,B'$N=g0L$,(BUMINUS$B$N=g0L$K$J$j$^$9!#$3$&$9$k$3$H$G!"(B
-$BId9fH?E>$N(B'-'$B$O(B'*'$B$h$j$b=g0L$,9b$/$J$k$N$G!"@5>o$K=hM}$5$l$^$9!#(B
-
-
-<h4><a name="start">$B%9%?!<%H5,B'(B</a></h4>
-
-<p>
-$B%Q!<%5$r$D$/$k$?$a$K$O!"$I$N5,B'$,!V:G=i$N!W5,B'$+!"$H$$$&$3$H$r(BRacc$B$K$*$7$($F(B
-$B$d$i$J$1$l$P$$$1$^$;$s!#$=$l$rL@<(E*$K=q$/$N$,%9%?!<%H5,B'$G$9!#%9%?!<%H5,B'$O(B
-$B<!$N$h$&$K=q$-$^$9!#(B
-<pre>
-
-      start real_target
-
-</pre>
-$B$3$N$h$&$K=q$/$H!"(Breal_target$B$N5,B'$r%9%?!<%H5,B'$H$7$F;H$$$^$9!#>JN,$9$k$H!"(B
-$B0lHV>e$K$"$k5,B'$,%9%?!<%H5,B'$K$J$j$^$9!#IaDL$O!":G=i$N5,B'$r0lHV>e$K$+$/$[$&$,(B
-$B=q$-$d$9$/!"$o$+$j$d$9$/$J$j$^$9$+$i!"(Bstart $B$O$"$^$j$D$+$&I,MW$O$J$$$G$7$g$&!#(B
-
-
-<h4><a name="token">$B%H!<%/%s%7%s%\%kCM$NJQ99(B</a></h4>
-
-<p>
-$B%H!<%/%s%7%s%\%k$rI=$9CM$O!"%G%U%)%k%H$G$O(B
-<ul>
-<li>$BJ8K!Cf!"0zMQId$G$+$3$^$l$F$$$J$$$b$N(B(RULE$B$H$+(BXEND$B$H$+(B)<br>
-    $B"*$=$NL>A0$NJ8;zNs$r(Bintern$B$7$FF@$i$l$k@0?t(B
-<li>$B0zMQId$G$+$3$^$l$F$$$k$b$N(B(':'$B$H$+(B'.'$B$H$+(B)<br>
-    $B"*$=$NJ8;zNs$=$N$^$^(B
-</ul>
-
-<p>
-$B$H$J$C$F$$$^$9$,!"$?$H$($PB>$N7A<0$N%9%-%c%J$,$9$G$KB8:_$9$k>l9g$J$I$O!"(B
-$B$3$l$K$"$o$;$J$1$l$P$J$i$:!"$3$N$^$^$G$OITJX$G$9!#$3$N$h$&$J>l9g$K$O!"(B
-token$B@a$r2C$($k$3$H$G!"%H!<%/%s%7%s%\%k$rI=$9CM$rJQ$($k$3$H$,$G$-$^$9!#(B
-$B0J2<$,$=$NNc$G$9!#(B
-<pre>
-
-    token
-      PLUS 'PlusClass'      # --> PlusClass
-      MIN  'MinusClass'     # --> MinusClass
-    end
-
-</pre>
-$B%G%U%)%k%H$G$O!"%H!<%/%s%7%s%\%k(BPLUS$B$KBP$7$F$O%H!<%/%s%7%s%\%kCM$O(B:PLUS$B$G$9$,!"(B
-$B>e$N$h$&$J5-=R$,$"$k>l9g$O!"(BPlusClass$B$K$J$j$^$9!#(B
-$BJQ498e$NCM$O(B false$B!"(Bnil $B0J30$J$i$J$s$G$b;H$($^$9!#(B
-
-<p>
-$BJQ498e$NCM$H$7$FJ8;zNs$r;H$&$H$-$O!"<!$N$h$&$K0zMQId$r=E$M$kI,MW$,$"$j$^$9!#(B
-<pre>
-
-    token
-      PLUS '"plus"'       # --> "plus"
-    end
-
-</pre>
-
-<p>
-$B$^$?!"!V(B'$B!W$r;H$C$F$b@8@.$5$l$?(B Ruby $B$N%3!<%I>e$G$O!V(B"$B!W$K$J$k$N$GCm0U$7$F$/$@$5$$!#(B
-$B%P%C%/%9%i%C%7%e$K$h$k%/%*!<%H$OM-8z$G$9$,!"%P%C%/%9%i%C%7%e$O>C$($:$K$=$N$^$^(B
-$B;D$j$^$9!#(B<em>$B$3$l$O;EMM$G$9!#%P%0$G$O$"$j$^$;$s!#(B</em>
-<pre>
-
-      PLUS '"plus\n"'          # --> "plus\n"
-      MIN  "\"minus#{val}\""   # --> \"minus#{val}\"
-
-</pre>
-
-
-<h3><a name="usercode">$B%f!<%6!<%3!<%IIt(B</a></h3>
-
-<p>
-$B%f!<%6!<%3!<%IIt$K$O!"%Q!<%5%/%i%9$NFbIt$^$?$O30It$G;HMQ$9$k(BRuby$B$N%3!<%I$r=q$-$^$9!#(B
-<a href="command.html">racc$B%3%^%s%I(B</a>$B$G$O!"(Bheader inner footer $B$N(B
-3$B$D$r%3!<%I$NL>A0$H$7$F;H$$!"$=$l$>$l$r@8@.$9$k%U%!%$%k$NFCDj$N>l=j$KE><L$7$F$$$^$9!#(B
-
-<p>
-$B%f!<%6!<%3!<%IIt$N=q<0$O0J2<$NDL$j$G$9!#(B
-<pre>
-
----- $B%f!<%6!<%3!<%I$N<1JL;R(B
-  ruby$B$NJ8(B
-  ruby$B$NJ8(B
-  ruby$B$NJ8(B
-
----- $B<!$N%f!<%6!<%3!<%I$N<1JL;R(B
-  ruby$B$NJ8(B
-     :
-
-</pre>
-$B9T$N@hF,$+$i(B4$B$D0J>eO"B3$7$?!V(B-$B!W$,$"$k$H%f!<%6!<%3!<%I$H$_$J$5$l$^$9!#(B
-$B<1JL;R$O0l$D$NC18l$G!"$=$N$"$H$K$O!V(B=$B!W0J30$J$K$r=q$$$F$b$+$^$$$^$;$s!#(B
-
-<p>
-$B$^$?!"<!$N$h$&$JJ8$G30It%U%!%$%k$r%f!<%6!<%3!<%I$H$7$F%$%s%/%k!<%I$9$k$3$H$b$G$-$^$9!#(B
-<pre>
-
----- $B<1JL;R(B = $B%U%!%$%kL>(B $B%U%!%$%kL>(B $B%U%!%$%kL>(B .....
-
-</pre>
-$B$3$N$h$&$K=q$/$H!"$9$Y$F$N%U%!%$%k$NFbMF$r$=$N=gHV$K$D$J$2$?$b$N$,(B
-$B$=$N%f!<%6!<%3!<%I$K$J$j$^$9!#<!$O$=$NNc$G$9!#(B
-<pre>
-
----- footer = init.rb err.rb run.rb
-
-print "this line is added, too\n"
-
-</pre>
-$B$3$3$G$O(B init.rb $B$H(B run.rb $B$r(B footer $B%3!<%I$H$7$F;XDj$7$F$$$^$9!#(B
-----$B$N$"$k9T$N2<$K=q$$$?$b$N(B(print$B$N$"$k9T$J$I(B)$B$b$D$E$1$F2C$($i$l$^$9!#(B
-$B$5$-$[$I(B ---- $B$N$"$k9T$N<1JL;R$N$"$H$O$J$K$r=q$$$F$b$$$$$H8@$$$^$7$?$,!"(B
-$B%U%!%$%k$r5-=R$9$k>l9g$K8B$C$F$O$J$K$b=q$/$3$H$,$G$-$^$;$s!#(B
-$B%3%a%s%H$J$I$b$@$a$G$9!#@53N$K%U%!%$%kL>$@$1$r$J$i$Y$F=q$$$F$/$@$5$$!#(B
-$B$3$N@)8B$O$b$A$m$s!VBP1~$9$k$N$,$a$s$I$/$5$+$C$?$+$i!W$G$9(B ^^;;;
-
-
-. footer
-. file parser.html ------------------------------------------------
-. header Parser
-
-<h1>parser.rb</h1>
-
-<hr>
-
-<h2><a name="parser">Parser$B%/%i%9(B</a></h2>
-
-<p>
-Racc$B$N@8@.$9$k%Q!<%5$O$9$Y$F(BParser$B%/%i%9$r7Q>5$7$F$$$^$9!#(B
-Parser$B%/%i%9$K$O%Q!<%9Cf$K;HMQ$9$k%a%=%C%I$,$$$/$D$+$"$j!"(B
-$B$=$N$h$&$J%a%=%C%I$r%*!<%P!<%m!<%I$9$k$H!"%Q!<%5$N=i4|2=$J$I$,$G$-$^$9!#(B
-
-<p>
-$B5U$K8@$($P!"$3$l$i$N%a%=%C%I$rJQ$K:FDj5A$9$k$H5sF0$,$*$+$7$/(B
-$B$J$j$^$9$N$GCm0U$7$F$/$@$5$$!#(B
-
-
-<h3>$B%U%!%$%k(B</h3>
-  racc/parser.rb
-
-<h3>$B%9!<%Q!<%/%i%9(B</h3>
-  Object
-
-
-<h3>$B%a%=%C%I(B</h3>
-
-<dl>
-<dt>next_token (abstract)
-<dd>
-$B%Q!<%5$,<!$N%H!<%/%s$rFI$_$3$`;~$K;H$$$^$9!#(B[$B%H!<%/%s%7%s%\%k(B,$B$=$NCM(B]
-$B$N7A<0$NG[Ns$rJV$7$F$/$@$5$$!#%H!<%/%s%7%s%\%k$NCM$O!"%G%U%)%k%H$G$O(B
-<ul>
-<li>$BJ8K!Cf!"0zMQId$G$+$3$^$l$F$$$J$$$b$N(B<br>
-    $B"*$=$NL>A0$NJ8;zNs$r(Bintern$B$7$FF@$i$l$k@0?t(B($B$?$H$($P(B:ATOM)
-<li>$B0zMQId$G$+$3$^$l$F$$$k$b$N(B<br>
-    $B"*$=$NJ8;zNs$=$N$^$^(B($B$?$H$($P!"(B'=')
-</ul>
-$B$G$9!#$3$l$rJQ99$9$kJ}K!$K$D$$$F$O!"(B
-<a href="grammer.html#token">$BJ8K!%j%U%!%l%s%9(B</a>$B$r;2>H$7$F$/$@$5$$!#(B
-
-<p>
-$B$^$?!"$b$&Aw$k%7%s%\%k$,$J$/$J$C$?$H$-$K$O!"(B[false,false] $B$rJV$7$F$/$@$5$$!#(B
-$B$3$l$rK:$l$k$H$o$1$N$o$+$i$J$$%Q!<%9%(%i!<$K$J$j$^$9!#(B($B0l2sAw$l$P==J,$G$9(B)
-
-<p>
-$B$^$?!"$3$N%a%=%C%I$OCj>]%a%=%C%I$J$N$G!"(B<em>$BI,$:(B</em>$B2<0L%/%i%9$G:FDj5A$9$k(B
-$BI,MW$,$"$j$^$9!#Dj5A$7$J$$$^$^%Q!<%9$r;O$a$k$HNc30$,H/@8$7$^$9!#(B
-
-
-<dt>on_error( err_tok, err_val, _values )
-<dd>
-$B%Q!<%9%(%i!<$r8!=P$7$?$H$-!"$h$S$@$5$l$^$9(B(yyerror)$B!#(B
-$B%a%C%;!<%8$r=P$9$J$j!"Nc30$rH/@8$9$k$J$j$7$F$/$@$5$$!#(B
-$B$3$N%a%=%C%I$+$i$b$I$C$?$"$H$O!"%Q!<%5$O%(%i!<2sI|%b!<%I$K0\9T$7$^$9!#(B<br>
-$B0z?t$O!"(Berr_tok $B$,%Q!<%9%(%i!<$r$*$3$7$?%7%s%\%k%H!<%/%s(B($BFbItI=8=(B)$B!"(B
-err_val $B$,$=$NCM!";D$j$O%"%/%7%g%s$GEO$5$l$k$b$N$HF1$8$G$9!#(B
-
-<p>
-$B%G%U%)%k%H$G$O!"Nc30(BParseError$B$rH/@8$7$^$9!#(B
-
-</dl>
-
-<h3>$BDj?t(B</h3>
-
-$B%W%j%U%#%C%/%9(B "LR_" $B$,$D$$$?Dj?t(B($B6&M-JQ?t(B)$B$O%Q!<%5$NM=LsDj?t$G$9!#(B
-$B$=$N$h$&$JDj?t$O;H$o$J$$$G$/$@$5$$!#%Q!<%9IT2DG=$K$J$j$^$9!#(B
-
-
-. footer
-. file debug.html
-. header debug info
-
-<h1>$B%G%P%C%0>pJs(B</h1>
-
-<hr>
-<p>
-$B$3$3$G$O!"(BRacc $B$r;H$C$F$$$/$&$($GAx6x$7$=$&$J%P%0$K$D$$$F=q$-$^$9!#(B
-$B$?$@!"=y!9$K8:$C$F$O$$$^$9$,!"8=;~E@$G$O$^$@$^$@(Bracc$B<+?H$N%P%0$N2DG=@-$b9b$$$G$9!#(B
-$B$b$7!V$3$l$O%P%0$K0c$$$J$$!*!W$H$$$&%(%i!<$KAx6x$7$?$i%a!<%k$r$/$@$5$$!#(B
-$B$=$N$H$-$O!"5,B'%U%!%$%k$J$I$b$D$1$F$/$@$5$k$h$&$*4j$$$7$^$9!#(B
-
-<p>
-$B$^$?!"(Bracc $B%3%^%s%I$K(B -v $B%*%W%7%g%s$r$D$1$F%3%s%Q%$%k$9$k$H!"FbIt>pJs$,(B
-"$B%U%!%$%kL>(B.output" $B$K=PNO$5$l$^$9!#$3$N%U%!%$%k$N>pJs$O%G%P%C%0$K$O(B
-$BI,?\$G$9$+$i!"%G%P%C%0Cf$O>o$K(B-vg$B$r$D$1$F%3%s%Q%$%k$9$k$3$H$r$*$9$9$a$7$^$9!#(B
-
-
-<h2>$B%$%s%9%H!<%k$G$-$J$$$s$@$1$I!#(B</h2>
-<p>
-$B$I$&$7$?$i$$$$$s$G$7$g$&$M$(!#(B
-
-<h2>$B5,B'%U%!%$%k$,%Q!<%9%(%i!<$K$J$k$h$&!#(B</h2>
-<p>
-$B%(%i!<%a%C%;!<%8$K=P$F$k9T$KJ8K!$N4V0c$$$,$"$j$^$9!#(B
-$B$I$3$,4V0c$C$F$k$+$O(B $B$8$C$H8+$F9M$($^$7$g$&!#(B
-
-<h2>$B>WFM(B</h2>
-<p>
-$B0lHV$"$j$,$A$JLdBj$O!">WFM$G$7$g$&$+!#(B
-$B>WFM$,$"$k$H!"(Bracc $B$,%3%s%Q%$%k8e$K!V>WFM$,$"$k!W$H%a%C%;!<%8$r(B
-$B=P$9$N$G$9$0$o$+$j$^$9!#(B.output$B%U%!%$%k$K$O$5$i$K>\$7$$>pJs$,=PNO$5$l$^$9!#(B
-$B$=$l$r$I$&$d$C$F2r7h$9$k$+!"$H$+$=$&$$$&$3$H$K4X$7$F$O!"$=$l$J$j$NK\$rFI$s$G$/$@$5$$!#(B
-$B$H$F$b$3$3$K=q$1$k$h$&$JC1=c$JOC$G$O$"$j$^$;$s!#Nc$($P(B O'Reilly $B$N!V(Blex & yacc$B!W!#(B
-
-<h2>next_token $B$K4X$7$F(B</h2>
-<p>
-$B$$$^$@<+J,$G$bK:$l$k$3$H$,B?$$$N$,!"!V%9%-%c%s$,=*N;$7$?$i(B[false, false]$B$rAw$k!W(B
-$B$H$$$&$3$H$G$9!#(B0.10.2 $B$+$i$O0l2sAw$C$?$i$b$&$=$l0J>e$O(B next_token $B$r8F$S$^$;$s!#(B
-
-<h2>$B%G%P%C%0=PNO(B</h2>
-<p>
-racc$B$K(B-g$B%*%W%7%g%s$r$D$1$F%3%s%Q%$%k$9$k$H!"%G%P%C%0MQ$N%3!<%I$,IU2C$5$l$^$9!#(B
-$B$3$3$G!"%Q!<%5%/%i%9$N%$%s%9%?%s%9JQ?t(B @yydebug $B$r(B true $B$K$7$F$*$$$F$+$i(B
-do_parse $B$r8F$V$H!"%G%P%C%0MQ%a%C%;!<%8$r=PNO$7$^$9!#%Q!<%5$,%7%U%H(B/$B4T85$7$F$$$/(B
-$BMM;R$,D>@\8+$($^$9$N$G!"40A4$K8=:_$N>uBV$rGD0.$G$-$^$9!#(B
-$B$I$3$G;_$^$C$F$$$k$N$+$,$o$+$l$P$"$H$OD>$9$@$1!#(B
-
-<hr>
-<h2>yacc$B$H$NJ8K!$N0c$$(B</h2>
-
-
-<h3>$BDj5AIt(B</h3>
-<p>
-yacc$B$G$O(B%$B$,$$$C$Q$$$G$F$-$^$9$,!"(Bracc$B$G$O(B%$B$O=P$F$-$^$;$s!#$=$l$+$i!"(B
-C$B$OJQ?t$K7?$,$"$k$?$a$K$=$l$r;XDj$9$kJ8K!$,$?$/$5$s$"$j$^$9$,!"(BRuby$B$O(B
-$B7?L5$7$G$9$+$i$=$C$A4X78$N$b$N$O$J$/$J$C$F$$$^$9!#(B
-<p>
-yacc$B$G$O=*C<5-9f(B($B%H!<%/%s(B)$B$r;vA0$K;XDj$7$^$9$,!"(Bracc$B$G$O:8JU$K$3$J$$$b$N$r<+F0E*$K(B
-$B=*C<5-9f$H$_$J$7$^$9!#$H$$$&$3$H$O$D$^$j!"Hs=*C<5-9f(Bnonterm$B$r(Bnoterm$B$H=q$-$^$A$,$C$?$,(B
-$B$?$a$K!"$=$l$,=*C<5-9f$H$_$J$5$l$F!"L/$J$3$H$K$J$k2DG=@-$,$"$k$H$$$&$3$H$G$9!#(B
-$B$3$l$rKI;_$9$k$?$a$K$O!"(B.output$B%U%!%$%k$r=PNO$5$;$F!"JQ$J$b$N$,=*C<5-9f$K$J$C$F(B
-$B$$$J$$$+(B($B$b$A$m$s$=$N5U$b(B)$B%A%'%C%/$9$k$H$h$$$G$7$g$&!#(B
-<p>
-$B%P!<%8%g%s(B 0.10 $B$+$i$OA4BN$N9=B$$,(B class ... rule ... end $B$N$h$&$K$J$j$^$7$?!#(B
-
-
-<h3>$B5,B'It(B</h3>
-<p>
-$B5,B'ItJ,$O(B yacc $B$H$[$\F1$8$G$9$,!"5,B'$N:G8e$N%;%_%3%m%s$OI,?\$G$9!#(B
-<p>
-%prec $B$O(B = $B$r$D$+$$$^$9!#(B
-<p>
-yacc $B$G$O%3%a%s%H$O(B /* ... */ $B$@$1$G$9$,(B racc $B$G$O(B #...($B9TKv(B) $B$b$"$j$^$9!#(B
-
-
-<h3>$B%f!<%6!<%3!<%IIt(B</h3>
-<p>
-yacc $B$G$O%f!<%6!<%3!<%I$rJ,N`$9$kI,MW$O$"$j$^$;$s$,!"(Bracc $B$G$O%Q!<%5$,%/%i%9$J$N$G!"(B
-$BG[CV$9$k>l=j$K$h$C$F%f!<%6!<%3!<%I$rJ,N`$7$F$$$^$9!#%f!<%6!<%3!<%I$N;XDjJ}K!$b(B
-0.9 $B$G(B ---- $B$r;H$&$h$&$KBg$-$/JQ$o$C$?$N$G5$$r$D$1$F$/$@$5$$!#(B
-
-. footer
-. file scan.html
-. header scan
-
-<h1>$B%9%-%c%J:n@.%-%C%H$N;H$$$+$?(B</h1>
-
-<hr>
-
-<p>
-$B%Q!<%5$r;H$&$H$-$O!"$?$$$F$$J8;zNs$r%H!<%/%s$K@Z$j$o$1$F$/$l$k(B
-$B%9%-%c%J$,I,MW$K$J$j$^$9!#$7$+$7<B$O(B Ruby $B$OJ8;zNs$N:G=i$+$i%H!<%/%s$K(B
-$B@Z$j$o$1$F$$$/$H$$$&:n6H$,$"$^$jF@0U$G$O$"$j$^$;$s!#@53N$K8@$&$H!"(B
-$B4JC1$K$G$-$k$N$G$9$,!"Hs>o$KBg$-$$%*!<%P!<%X%C%I$,$+$+$j$^$9!#(B<br>
-racc $B$KE:IU$5$l$F$$$k(B scanner.rb $B$H(B strscan $B$O$3$N%*!<%P!<%X%C%I$r(B
-$B2sHr$7$D$D!"<j7Z$K%9%-%c%J$r$D$/$k$?$a$N%i%$%V%i%j$G$9!#(B<br>
-$B$^$"!"$A$g$C$H$7$+<j7Z$K$J$i$J$$$s$G$9$1$I!D(B
-
-
-<h2>$B;H$$J}(B</h2>
-
-<p>
-$B0J2<$K!"(Bscanner.rb $B$rMxMQ$9$k4JC1$JNc$r<($7$^$9!#(B
+°Ê²¼¤Ë¡¢scanner.rb ¤òÍøÍÑ¤¹¤ë´ÊÃ±¤ÊÎã¤ò¼¨¤·¤Þ¤¹¡£
 <pre>
 
 require 'racc/scanner'
@@ -782,240 +219,784 @@ class MyScanner < Racc::Scanner
 end
 
 </pre>
-$B$3$N%/%i%9$O!"J8;zNs$+$iC18l$r@Z$j$@$9%9%-%c%J$G$9!#(B
-$B>.$5$$%/%i%9$G$9$,!"I,MW$JMWAG$O$D$^$C$F$$$^$9!#(B
-$B$^$:!"MxMQ$9$k$H$-$K$O(B require 'racc/scanner' $B$9$k$3$H!#(B
-$B<+J,$N%9%-%c%J%/%i%9$O(B Racc::Scanner $B%/%i%9$+$i7Q>5$9$k$3$H!#(B
-@scan $B$,$J$K$d$i%+%.$i$7$$$3$H!#$J$I$G$9!#(B
+¤³¤Î¥¯¥é¥¹¤Ï¡¢Ê¸»úÎó¤«¤éÃ±¸ì¤òÀÚ¤ê¤À¤¹¥¹¥­¥ã¥Ê¤Ç¤¹¡£
+¾®¤µ¤¤¥¯¥é¥¹¤Ç¤¹¤¬¡¢É¬Í×¤ÊÍ×ÁÇ¤Ï¤Ä¤Þ¤Ã¤Æ¤¤¤Þ¤¹¡£
+¤Þ¤º¡¢ÍøÍÑ¤¹¤ë¤È¤­¤Ë¤Ï require 'racc/scanner' ¤¹¤ë¤³¤È¡£
+¼«Ê¬¤Î¥¹¥­¥ã¥Ê¥¯¥é¥¹¤Ï Racc::Scanner ¥¯¥é¥¹¤«¤é·Ñ¾µ¤¹¤ë¤³¤È¡£
+@scan ¤¬¤Ê¤Ë¤ä¤é¥«¥®¤é¤·¤¤¤³¤È¡£¤Ê¤É¤Ç¤¹¡£
 
 <p>
-@scan $B$KF~$C$F$$$k$N$O(B StringScanner $B$N%$%s%9%?%s%9$G!"3HD%%b%8%e!<%k$G$9!#(B
-$B<B$O$3$N%/%i%9$,$3$N%i%$%V%i%j$N3K$G!"%9%-%c%s$O$3$N%i%$%V%i%j$rCf?4$K$7$F(B
-$B9T$o$l$^$9!#(B<br>
-Racc::Scanner $B$OJ8;zNs$r0z?t$K$7$F@8@.$7$^$9!#(BRacc::Scanner $B$O$=$l$r;H$C$F(B
-StringScanner $B$r=`Hw$7!"(B@scan $B$K%;%C%H$7$F$/$l$^$9!#(B
-StringScanner $B$OJ8;zNs$H!V$I$3$^$G%9%-%c%s$7$?$+!W$r<($9%]%$%s%?$,%;%C%H$K(B
-$B$J$C$?$h$&$J%*%V%8%'%/%H$G!"@55,I=8=$H$N%^%C%A$r$*$3$J$C$F$=$N%]%$%s%?$r(B
-$B?J$a$F$$$/$3$H$G%9%-%c%s$r9T$$$^$9!#(B
+@scan ¤ËÆþ¤Ã¤Æ¤¤¤ë¤Î¤Ï StringScanner ¤Î¥¤¥ó¥¹¥¿¥ó¥¹¤Ç¡¢³ÈÄ¥¥â¥¸¥å¡¼¥ë¤Ç¤¹¡£
+¤³¤Î¥¯¥é¥¹¤¬¤³¤Î¥é¥¤¥Ö¥é¥ê¤Î³Ë¤Ç¡¢¥¹¥­¥ã¥ó¤Ï¤³¤Î¥é¥¤¥Ö¥é¥ê¤òÃæ¿´¤Ë¤·¤Æ
+¹Ô¤ï¤ì¤Þ¤¹¡£<br>
+Racc::Scanner ¤ÏÊ¸»úÎó¤ò°ú¿ô¤Ë¤·¤ÆÀ¸À®¤·¤Þ¤¹¡£Racc::Scanner ¤Ï¤½¤ì¤ò»È¤Ã¤Æ
+StringScanner ¤ò½àÈ÷¤·¡¢@scan ¤Ë¥»¥Ã¥È¤·¤Æ¤¯¤ì¤Þ¤¹¡£
+StringScanner ¤ÏÊ¸»úÎó¤È¡Ö¤É¤³¤Þ¤Ç¥¹¥­¥ã¥ó¤·¤¿¤«¡×¤ò¼¨¤¹¥Ý¥¤¥ó¥¿¤¬¥»¥Ã¥È¤Ë
+¤Ê¤Ã¤¿¤è¤¦¤Ê¥ª¥Ö¥¸¥§¥¯¥È¤Ç¡¢Àµµ¬É½¸½¤È¤Î¥Þ¥Ã¥Á¤ò¤ª¤³¤Ê¤Ã¤Æ¤½¤Î¥Ý¥¤¥ó¥¿¤ò
+¿Ê¤á¤Æ¤¤¤¯¤³¤È¤Ç¥¹¥­¥ã¥ó¤ò¹Ô¤¤¤Þ¤¹¡£
 
 <p>
-StringScanner $B$N=EMW$J%a%=%C%I$O(B 3 $B$D$G$9!#(B<br>
-scan $B$O:G$b=EMW$J%a%=%C%I$G!"M?$($i$l$?@55,I=8=$,%^%C%A$9$kItJ,$r@Z$j=P$7$F(B
-$BJV$7$^$9!#(Bskip $B$O%^%C%A$7$?ItJ,$N@h$K%]%$%s%?$r?J$a$k$@$1$G!"??56CM$rJV$7$^$9!#(B
-empty? $B$O%]%$%s%?$,:G8e$^$G$$$C$?$+$I$&$+$r??56CM$GJV$9%a%=%C%I$G$9!#(B
+StringScanner ¤Î½ÅÍ×¤Ê¥á¥½¥Ã¥É¤Ï 3 ¤Ä¤Ç¤¹¡£<br>
+scan ¤ÏºÇ¤â½ÅÍ×¤Ê¥á¥½¥Ã¥É¤Ç¡¢Í¿¤¨¤é¤ì¤¿Àµµ¬É½¸½¤¬¥Þ¥Ã¥Á¤¹¤ëÉôÊ¬¤òÀÚ¤ê½Ð¤·¤Æ
+ÊÖ¤·¤Þ¤¹¡£skip ¤Ï¥Þ¥Ã¥Á¤·¤¿ÉôÊ¬¤ÎÀè¤Ë¥Ý¥¤¥ó¥¿¤ò¿Ê¤á¤ë¤À¤±¤Ç¡¢¿¿µ¶ÃÍ¤òÊÖ¤·¤Þ¤¹¡£
+empty? ¤Ï¥Ý¥¤¥ó¥¿¤¬ºÇ¸å¤Þ¤Ç¤¤¤Ã¤¿¤«¤É¤¦¤«¤ò¿¿µ¶ÃÍ¤ÇÊÖ¤¹¥á¥½¥Ã¥É¤Ç¤¹¡£<br>
+Â¾¤Ë¤â¤¤¤í¤¤¤í¥á¥½¥Ã¥É¤¬¤¢¤ë¤Î¤Ç¤¹¤¬¡¢¤³¤³¤Ç¤Ï¾Ò²ð¤·¤Þ¤»¤ó¡£
+StringScanner ¤Î¾ÜºÙ¤Ï¡¢strscan ËÜÂÎ¤Î¥Ñ¥Ã¥±¡¼¥¸¤Ë¤Ä¤¤¤Æ¤¤¤ë¥É¥­¥å¥á¥ó¥È¤ò
+»²¾È¤·¤Æ¤¯¤À¤µ¤¤¡£
 
-<p>
-$B$A$J$_$K!"%^%C%A$K;H$&@55,I=8=$OI,$:J8;zNs$N@hF,$+$i%^%C%A$7$J$1$l$P$$$1$^$;$s(B
-($B$h$&$O!"(B /\A$B!D(B/ $B$8$c$J$$$H$@$a$C$F$3$H$G$9(B)$B!#$b$7@hF,$h$j8e$G%^%C%A$7$?>l9g$O!"(B
-$B%^%C%A$7$?$H$3$m$^$GA4It$,%^%C%A$7$?$b$N$H$_$J$5$l$F$7$^$$$^$9!#Nc$($P<!$N$h$&$J>l9g$O(B
-<pre>
+<% footer 1999 %>
+. file command.html -----------------------------------------------------------
+<% header 'Racc Command' %>
 
-s = StringScanner.new( "word   word" )
-ret = s.scan( /\s+/ )
-
-</pre>
-$B2?;v$b$J$+$C$?$+$N$h$&$K(B ret $B$K$O(B "word  " $B$,JV$j!"%]%$%s%?$O$=$N@h$N(B w $B$K(B
-$B%;%C%H$5$l$^$9!#@hF,$+$i%^%C%A$7$J$+$C$?>l9g!"$=$l$rCN$k<jCJ$O$"$j$^$;$s!#(B
-
-<p>
-$B$"$H$O!"0J2<$N%j%U%!%l%s%9$J$I$r8+$F9M$($F$/$@$5$$(B($B$$$$$+$2$s$@$J(B)$B!#(B
+<h1>Racc¥³¥Þ¥ó¥É¥ê¥Õ¥¡¥ì¥ó¥¹</h1>
 
 <hr>
 
-<h2>StringScanner$B%/%i%9%j%U%!%l%s%9(B</h2>
-
-
-<h3>$B%/%i%9%a%=%C%I(B</h3>
+<p align=justify>
+  racc.rb [-vgE] [--version] [--help] [-o<var>outfile</var>] [-e<var>path</var>]
+    [-n<var>classname</var>] [-h<var>header</var>] [-i<var>inner</var>]
+    [-f<var>footer</var>] <var>filename</var>
+</p>
 
 <dl>
-<dt>new( str, dup_p = true )
+<dt><var>filename</var>
 <dd>
-$B?7$7$$(BStrScanner$B%*%V%8%'%/%H$r@8@.$7$^$9!#(Bstr$B$O%9%-%c%s$9$kJ8;zNs!"(Bdup_p$B$O(B
-$BJ8;zNs$rJ#@=$7$F;H$&$+$I$&$+$r??56CM$G;XDj$7$^$9!#(B
+Racc¤ÎÊ¸Ë¡¥Õ¥¡¥¤¥ë¤ò»ØÄê¤·¤Þ¤¹¡£³ÈÄ¥»Ò¤Ï¹¥¤­¤Ê¤â¤Î¤Ë¤·¤Æ¤¯¤À¤µ¤¤¡£
+
+<dt>-o<var>outfile</var>
+<dd>
+ºîÀ®¤¹¤ë¥¯¥é¥¹¤ò¤«¤­¤³¤à¥Õ¥¡¥¤¥ëÌ¾¤ò»ØÄê¤·¤Þ¤¹¡£¥Ç¥Õ¥©¥ë¥È¤Ï<filename>.tab.rb¤Ç¤¹¡£
+
+<dt>-e<var>path</var>
+<dd>
+¼Â¹Ô²ÄÇ½¥Õ¥¡¥¤¥ë¤òÀ¸À®¤·¤Þ¤¹¡£<var>path</var>¤ÏRubyËÜÂÎ¤Î¥Ñ¥¹¤Ç¤¹¡£
+<var>path</var>¤ò 'ruby' ¤Ë¤¹¤ë¤È Racc ¤¬Æ°ºî¤·¤Æ¤¤¤ë Ruby ¤Î¥Ñ¥¹¤ò»ÈÍÑ¤·¤Þ¤¹¡£
+
+<dt>-v
+<dd>
+verbose mode¡£"filename".output¥Õ¥¡¥¤¥ë¤Ë¾ÜºÙ¤Ê²òÀÏ¾ðÊó¤ò½ÐÎÏ¤·¤Þ¤¹¡£
+
+<dt>-g
+<dd>
+½ÐÎÏ¤¹¤ë¥³¡¼¥É¤Ë¥Ç¥Ð¥Ã¥°ÍÑ¥³¡¼¥É¤ò²Ã¤¨¤Þ¤¹¡£-g ¤ò¤Ä¤±¤ÆÀ¸À®¤·¤¿¥Ñ¡¼¥µ¤Ç
+@yydebug ¤ò true ¤Ë¥»¥Ã¥È¤¹¤ë¤È¡¢¥Ç¥Ð¥Ã¥°ÍÑ¤Î¥³¡¼¥É¤¬½ÐÎÏ¤µ¤ì¤Þ¤¹¡£<br>
+-g ¤ò¤Ä¤±¤ë¤À¤±¤Ç¤Ï²¿¤â¤ª¤³¤ê¤Þ¤»¤ó¤Î¤ÇÃí°Õ¤·¤Æ¤¯¤À¤µ¤¤¡£
+
+<dt>-E
+<dd>
+¥é¥ó¥¿¥¤¥à¥ë¡¼¥Á¥ó¤ò¤¹¤Ù¤Æ´Þ¤ó¤À¥³¡¼¥É¤òÀ¸À®¤·¤Þ¤¹¡£
+¤Ä¤Þ¤ê¡¢¤³¤Î¥ª¥×¥·¥ç¥ó¤ò¤Ä¤±¤ÆÀ¸À®¤·¤¿¥³¡¼¥É¤Ï Ruby ¤µ¤¨¤¢¤ì¤ÐÆ°¤­¤Þ¤¹¡£
+
+<dt>-n<var>classname</var>
+<dd>
+ºîÀ®¤¹¤ë¥¯¥é¥¹¤ÎÌ¾Á°¤ò»ØÄê¤·¤Þ¤¹¡£Ê¸Ë¡Ãæ¤Î»ØÄê¤ò¾å½ñ¤­¤·¤Þ¤¹¡£
+
+<dt>-h<var>header</var>
+<dd>
+Ê¸Ë¡¥Õ¥¡¥¤¥ëÃæ¤Î¡Öheader¡×¥³¡¼¥É¤Î¤«¤ï¤ê¤Ë¡¢»ØÄê¤·¤¿¥Õ¥¡¥¤¥ë¤ÎÆâÍÆ¤ò
+»È¤Ã¤¿¥½¡¼¥¹¥³¡¼¥É¤ò½ÐÎÏ¤·¤Þ¤¹¡£
+
+<dt>-i<var>inner</var>
+<dd>
+Ê¸Ë¡¥Õ¥¡¥¤¥ëÃæ¤Î¡Öinner¡×¥³¡¼¥É¤Î¤«¤ï¤ê¤Ë¡¢»ØÄê¤·¤¿¥Õ¥¡¥¤¥ë¤ÎÆâÍÆ¤ò»È¤Ã¤¿
+¥½¡¼¥¹¥³¡¼¥É¤ò½ÐÎÏ¤·¤Þ¤¹¡£
+
+<dt>-f<var>footer</var>
+<dd>
+Ê¸Ë¡¥Õ¥¡¥¤¥ëÃæ¤Î¡Ödriver¡×¥³¡¼¥É¤Î¤«¤ï¤ê¤Ë¡¢»ØÄê¤·¤¿¥Õ¥¡¥¤¥ë¤ÎÆâÍÆ¤ò»È¤¤¤Þ¤¹¡£
+
+<dt>-P
+<dd>
+¼Â¹ÔÃÊ³¬¤´¤È¤Î½êÍ×»þ´Ö¤ò½ÐÎÏ¤·¤Þ¤¹¡£
+
+<dt>-V
+<dd>
+¾×ÆÍ²ò·è¤Î¿Ê¹Ô¾õ¶·¤òÃà°ìÊó¹ð¤·¤Þ¤¹¡£
+
+<dt>--version
+<dd>
+Racc¤Î¥Ð¡¼¥¸¥ç¥ó¤ò½ÐÎÏ¤·¤Æ½ªÎ»¤·¤Þ¤¹¡£
+
+<dt>--help
+<dd>
+¥ª¥×¥·¥ç¥ó¤Î´ÊÃ±¤ÊÀâÌÀ¤ò½ÐÎÏ¤·¤Æ½ªÎ»¤·¤Þ¤¹¡£
+
+</dl>
+
+<% footer 1999 %>
+. file grammer.html -----------------------------------------------------
+<% header 'Grammer Reference' %>
+
+<h1>µ¬Â§¥Õ¥¡¥¤¥ëÊ¸Ë¡¥ê¥Õ¥¡¥ì¥ó¥¹</h1>
+
+<hr>
 
 <p>
-dup$B$7$J$$$H@8@.$,9bB.$K$J$j$^$9$,!"$=$N>l9g$b$H$NJ8;zNs$+$i$H$j$@$7$?%]%$%s%?$r(B
-$B$=$N$^$^;H$&$N$G!"$b$7%9%-%c%sCf$K$=$NJ8;zNs$,%,!<%Y!<%8%3%l%/%H$5$l$k$HMn$A$^$9!#(B
-$B$^$?!"B>$N%9%l%C%I$,$=$NJ8;zNs$r?($l$k$H$-$b4m81$G$9!#(BStrScanner$B$G$O:G=i$K<hF@$7$?(B
-$B%]%$%s%?$HD9$5$r:G8e$^$G;H$&$N$G!"$b$7J8;zNs$,C;$+$/JQ99$5$l$?$j!"(Brealloc $B$,$*$3$C$?$j(B
-$B$9$k$HMn$A$^$9!#(B
+¥Ð¡¼¥¸¥ç¥ó 0.10.3 ¤Ç¤ÏËä¤á¤³¤ß¥¢¥¯¥·¥ç¥ó¤ò¥µ¥Ý¡¼¥È¤·¤Þ¤·¤¿¡£<br>
+¥Ð¡¼¥¸¥ç¥ó 0.10.2 ¤Ç¤Ï prepare ¤¬ header ¤Ë driver ¤¬ footer ¤Ë¤Ê¤ê¤Þ¤·¤¿¡£
+Á°¤Î¤Þ¤Þ¤Ç¤â»È¤¨¤Þ¤¹¤¬¾­Íè¤Ï¾Ã¤¨¤ë¤«¤â¤·¤ì¤Þ¤»¤ó¡£<br>
+¥Ð¡¼¥¸¥ç¥ó 0.10 ¤Ç¤Ï class ¤ËÂÐ±þ¤¹¤ë end ¤¬¤Ê¤¯¤Ê¤ê¡¢
+class...rule...end ¤Î·Á¤Ë¤Ê¤ê¤Þ¤·¤¿¡£<br>
+0.9 ¤Ç¤Ï¥À¥µ¥À¥µ¤Î¥Ô¥ê¥ª¥ÉÊý¼°¤ò¤ä¤á¤Æ { ¤È } ¤Ç°Ï¤à¤è¤¦¤Ë¤·¤Þ¤·¤¿¡£
 
-</dl>
+
+<h2><a name="whole">Á´ÂÎ¤Î¹½Â¤</a></h2>
+
+<p>
+¥È¥Ã¥×¥ì¥Ù¥ë¤Ï¡¢µ¬Â§Éô¤È¥æ¡¼¥¶¡¼¥³¡¼¥ÉÉô¤ËÊ¬¤±¤é¤ì¤Þ¤¹¡£
+¥æ¡¼¥¶¡¼¥³¡¼¥ÉÉô¤Ï¥¯¥é¥¹ÄêµÁ¤Î¸å¤ËÍè¤Ê¤±¤ì¤Ð¤¤¤±¤Þ¤»¤ó¡£
 
 
-<h3>$B%a%=%C%I(B</h3>
+<h3><a name="comment">¥³¥á¥ó¥È</a></h3>
+
+<p>
+Ê¸Ë¡¥Õ¥¡¥¤¥ë¤Ë¤Ï¡¢°ìÉôÎã³°¤ò½ü¤¤¤Æ¡¢¤Û¤È¤ó¤É¤É¤³¤Ë¤Ç¤â¥³¥á¥ó¥È¤ò
+½ñ¤¯¤³¤È¤¬¤Ç¤­¤Þ¤¹¡£¥³¥á¥ó¥È¤Ï¡¢Ruby¤Î #.....(¹ÔËö) ¥¹¥¿¥¤¥ë¤È¡¢
+C¤Î /*......*/ ¥¹¥¿¥¤¥ë¤ò»È¤¦¤³¤È¤¬¤Ç¤­¤Þ¤¹¡£
+
+
+<h3><a name="class">µ¬Â§Éô</a></h3>
+
+<p>
+µ¬Â§Éô¤Ï°Ê²¼¤Î¤è¤¦¤Ê·Á¤ò¤·¤Æ¤¤¤Þ¤¹¡£
+<pre>
+
+    class ¥¯¥é¥¹Ì¾
+      [±é»»»Ò½ç°Ì]
+      [¥¹¥¿¡¼¥Èµ¬Â§]
+      [¥È¡¼¥¯¥ó¥·¥ó¥Ü¥ëÃÍÄêµÁ]
+    rule
+      Ê¸Ë¡µ­½Ò
+    end
+
+</pre>
+"¥¯¥é¥¹Ì¾"¤Ï¤³¤³¤ÇÄêµÁ¤¹¤ë¥Ñ¡¼¥µ¥¯¥é¥¹¤ÎÌ¾Á°¤Ç¤¹¡£
+¤³¤ì¤Ï¤½¤Î¤Þ¤ÞRuby¤Î¥¯¥é¥¹Ì¾¤Ë¤Ê¤ê¤Þ¤¹¡£
+
+
+<h4><a name="grammer">Ê¸Ë¡¤Îµ­½Ò</a></h4>
+
+<p>
+racc ¤ÇÀ¸À®¤¹¤ë¥Ñ¡¼¥µ¤¬Íý²ò¤Ç¤­¤ëÊ¸Ë¡¤òµ­½Ò¤·¤Þ¤¹¡£
+Ê¸Ë¡¤Ï¡¢Í½Ìó¸ì rule ¤È end ¤Î´Ö¤Ë¡¢°Ê²¼¤Î¤è¤¦¤Ê½ñ¼°¤Ç½ñ¤­¤Þ¤¹¡£
+<pre>
+
+      ¥È¡¼¥¯¥ó: ¥È¡¼¥¯¥ó¤ÎÊÂ¤Ó ¥¢¥¯¥·¥ç¥ó ;
+
+      ¥È¡¼¥¯¥ó: ¥È¡¼¥¯¥ó¤ÎÊÂ¤Ó ¥¢¥¯¥·¥ç¥ó
+              | ¥È¡¼¥¯¥ó¤ÎÊÂ¤Ó ¥¢¥¯¥·¥ç¥ó
+              | ¥È¡¼¥¯¥ó¤ÎÊÂ¤Ó ¥¢¥¯¥·¥ç¥ó
+              ;
+                  (É¬Í×¤Ê¤À¤±Æ±¤¸¤è¤¦¤Ë¤Ä¤Å¤±¤ë)
+
+</pre>
+½ñ¼°¤Ï yacc ¤È¤Û¤ÜÆ±¤¸¤Ç¤¹¡£¤¿¤À¤·¡¢¥»¥ß¥³¥í¥ó¤ÏÉ¬¿Ü¤Ç¤¹¡£¥¢¥¯¥·¥ç¥ó¤¬¤¢¤Ã¤Æ¤â
+¾ÊÎ¬¤·¤Æ¤Ï¤¤¤±¤Þ¤»¤ó¡£
+
+<p>
+¥¢¥¯¥·¥ç¥ó¤Ï { } ¤Ç°Ï¤ß¤Þ¤¹¡£¤¿¤À¤·¤Þ¤ÀÂÐ±þ¤¬ÉÔ½½Ê¬¤Ê¤Î¤Ç¡¢
+Ãæ¤Ç¤Ï % Ê¸»úÎó¤ä¥Ò¥¢¥É¥­¥å¥á¥ó¥È¤Ï»È¤¨¤Þ¤»¤ó¡£¥³¥á¥ó¥È¤Ï # ¥¿¥¤¥×¤Î¤ß¡£
+Àµµ¬É½¸½¤Ï // ¥¿¥¤¥×¤Î¤ß¤Ç¤¹
+(ËÜÅö¤Ï'}'¤¬¤Ï¤¤¤Ã¤Æ¤Ê¤±¤ì¤Ð¤É¤ì¤âÂç¾æÉ×¤Ç¤¹¤¬¡¢¤ä¤é¤Ê¤¤¤Û¤¦¤¬ÌµÆñ¤Ç¤¹)¡£<br>
+¤Þ¤¿¡¢¥¢¥¯¥·¥ç¥ó¤Ï¾ÊÎ¬¤Ç¤­¤Þ¤¹¡£¾ÊÎ¬¤¹¤ë¤È¡¢¥Ç¥Õ¥©¥ë¥È¤Î val[0] ¤¬ÊÖ¤êÃÍ¤Ë¤Ê¤ê¤Þ¤¹¡£
+
+<p>
+±¦ÊÕ¤ÎÊÖ¤êÃÍ($$)¤Ï¡¢¥¢¥¯¥·¥ç¥ó¤«¤é½Ð¤¿¤È¤­¤Î¥í¡¼¥«¥ëÊÑ¿ô result ¤ÎÃÍ¤«¡¢
+¤â¤·¤¯¤ÏÌÀ¼¨Åª¤Ë return ¤ÇÊÖ¤·¤¿ÃÍ¤Ë¤Ê¤ê¤Þ¤¹¡£¤Þ¤¿¡¢result ¤Ï¥¢¥¯¥·¥ç¥ó¼Â¹Ô¤ÎÁ°¤Ë
+val[0]($1)¤Ë½é´ü²½¤µ¤ì¤Þ¤¹¡£<br>
+°Ê²¼¤ËÊ¸Ë¡µ­½Ò¤ÎÁ´ÂÎ¤ÎÎã¤ò¤·¤á¤·¤Þ¤¹¡£
+<pre>
+
+rule
+
+  goal: def ruls source
+        {
+          result = val
+        }
+      ;
+
+  def : /* none */
+        {
+          result = []
+        }
+      | def startdesig
+        {
+          result[0] = val[1]
+        }
+      | def
+          precrule   # ¤³¤ì¤Ï¾å¤Î¹Ô¤ÎÂ³¤­¤Ç¤¹¡£
+        {
+          result[1] = val[1]
+        }
+      ;
+(Î¬)
+end  # end¤Çµ¬Â§Éô½ªÎ»
+
+</pre>
+¥¢¥¯¥·¥ç¥óÆâ¤Ç¤Ï¡¢¤¤¤¯¤Ä¤«ÆÃÊÌ¤Ê°ÕÌ£¤ò¤â¤Ã¤¿ÊÑ¿ô¤¬»È¤¨¤Þ¤¹¡£¤½¤Î¤è¤¦¤ÊÊÑ¿ô¤Ë¤Ï¡¢
+°Ê²¼¤Î¤â¤Î¤¬¤¢¤ê¤Þ¤¹(¾­Íè¤³¤ÎÌ¾Á°¤ÏÊÑ¤¨¤é¤ì¤ë¤è¤¦¤Ë¤Ê¤ëÍ½Äê¤Ç¤¹)¡£¤«¤Ã¤³¤ÎÃæ¤Ï¡¢
+yacc ¤Ç¤ÎÉ½µ­¤Ç¤¹¡£
+
 <dl>
-<dt>scan( regex )
+<dt>result ($$)
 <dd>
-$B@55,I=8=(Bregex$B$H%^%C%A$r9T$C$F!"%^%C%A$7$?$i%9%-%c%s%]%$%s%?$r?J$a$?$&$($G(B
-$B$=$NItJ,$NJ8;zNs$rJV$7!"%^%C%A$7$J$+$C$?$i(Bnil$B$rJV$7$^$9!#(B
+º¸ÊÕ¤ÎÃÍ¡£½é´üÃÍ¤Ï val[0] ¤Ç¤¹¡£
 
-<dt>skip( regex )
+<dt>val ($1,$2,$3¡Ä)
 <dd>
-$B@55,I=8=(Bregex$B$H%^%C%A$r9T$C$F!"%^%C%A$7$?$i%9%-%c%s%]%$%s%?$r?J$a$?$&$($G(B
-$B%^%C%A$7$?J8;zNs$ND9$5$rJV$7!"%^%C%A$7$J$+$C$?$i(Bnil$B$rJV$7$^$9!#(B
+±¦ÊÕ¤ÎÃÍ¤ÎÇÛÎó¡£Ruby¤ÎÇÛÎó¤Ê¤Î¤ÇÅöÁ³¥¤¥ó¥Ç¥Ã¥¯¥¹¤Ï¥¼¥í¤«¤é»Ï¤Þ¤ê¤Þ¤¹¡£
+¤³¤ÎÇÛÎó¤Ï¥æ¡¼¥¶¡¼¤Î¹¥¤­¤Ê¤è¤¦¤Ë»È¤¨¤Þ¤¹¡£
 
-<dt>match?( regex )
+<dt>_values (...,$-2,$-1,$0)
 <dd>
-$B@55,I=8=(Bregex$B$H%^%C%A$r9T$C$F!"%^%C%A$7$?$i%9%-%c%s%]%$%s%?$O?J$a$:$K(B
-$B%^%C%A$7$?J8;zNs$ND9$5$rJV$7!"%^%C%A$7$J$+$C$?$i(Bnil$B$rJV$7$^$9!#(B
-
-<dt>getch
-<dd>
-$B%9%-%c%s%]%$%s%?$+$i0lJ8;z$rJ8;zNs$H$7$FJV$7!"%]%$%s%?$r?J$a$^$9!#(B
-
-<dt>empty?
-<dd>
-$B%]%$%s%?$N8e$m$K$b$&J8;zNs$,$J$$$H$-??!#(B
-
-<dt>rest?
-<dd>
-$B%]%$%s%?$N8e$m$K$^$@J8;zNs$,$"$k$H$-??!#(B
-
-<dt>rest
-<dd>
-$B%]%$%s%?0J9_$NJ8;zNs$rJV$7$^$9!#(B
-
-<dt>restsize
-<dd>
-$B%]%$%s%?0J9_$NJ8;zNs$ND9$5$rJV$7$^$9!#(B
-
-<dt>matched?
-<dd>
-$BA02s$N%^%C%A$,@.8y$7$?$+$I$&$+$r??56CM$GJV$7$^$9!#(B
-
-<dt>matched
-<dd>
-$BA02s%^%C%A$7$?ItJ,$NJ8;zNs$rJV$7$^$9!#(B
-
-<dt>matchedsize
-<dd>
-$BA02s%^%C%A$7$?ItJ,$NJ8;zNs$ND9$5$rJV$7$^$9!#(B
-
-<dt>self[n]
-<dd>
-$BA02s%^%C%A$7$?@55,I=8=$N(B n $BHVL\$N$+$C$3$KBP1~$9$kItJ,J8;zNs$rJV$7$^$9!#(B
-0 $B$O%^%C%A$7$?ItJ,A4BN$G$9!#(B
-
-<dt>string
-<dd>
-$B%9%-%c%sBP>]$K$7$F$$$kJ8;zNs$rJV$7$^$9!#(B
-
-<dt>reset
-<dd>
-$B%]%$%s%?$r:G=i$KLa$7!"%^%C%A5-O?$r<N$F$^$9!#(B
-
-<dt>clear
-<dd>
-$B%]%$%s%?$r:G8e$^$G?J$a!"%^%C%A5-O?$r<N$F$^$9!#(B
-
-<dt>unscan
-<dd>
-$B%]%$%s%?$r%9%-%c%s0l2sJ,$b$H$KLa$7$^$9!#0l2sJ,0J>e$OLa$;$^$;$s!#(B
+ÃÍ¥¹¥¿¥Ã¥¯¡£<em>ÀäÂÐ¤Ë</em>¥µ¥¤¥º¤òÊÑ¹¹¤·¤Æ¤Ï¤¤¤±¤Þ¤»¤ó¡£
 
 </dl>
 
-. footer
-. file changes.html ----------------------------------------------------------
-. header Changes
+<p>
+¤µ¤é¤Ë¡¢¥Ð¡¼¥¸¥ç¥ó 0.10.3 ¤«¤é¤ÏËä¤á¤³¤ß¥¢¥¯¥·¥ç¥ó¤ò¥µ¥Ý¡¼¥È¤·¤Þ¤·¤¿¡£
+Ëä¤á¤³¤ß¥¢¥¯¥·¥ç¥ó¤Ï¥È¡¼¥¯¥óÎó¤ÎÅÓÃæ¤Î¹¥¤­¤Ê¤È¤³¤í¤Ëµ­½Ò¤¹¤ë¤³¤È¤¬¤Ç¤­¤Þ¤¹¡£
+°Ê²¼¤ÏËä¤á¤³¤ß¥¢¥¯¥·¥ç¥ó¤ÎÎã¤Ç¤¹¡£
+<pre>
 
-<h1>$BJQ99MzNr(B</h1>
+target: A B { puts 'test test' } C D { normal action };
+
+</pre>
+¤³¤Î¤è¤¦¤Ëµ­½Ò¤¹¤ë¤È A B ¤ò¸¡½Ð¤·¤¿»þÅÀ¤Ç puts ¤¬¼Â¹Ô¤µ¤ì¤Þ¤¹¡£
+¤Þ¤¿¡¢Ëä¤á¤³¤ß¥¢¥¯¥·¥ç¥ó¤Ï¤½¤ì¼«ÂÎ¤¬ÃÍ¤ò»ý¤Á¤Þ¤¹¡£¤Ä¤Þ¤ê¡¢°Ê²¼¤ÎÎã¤Ë¤ª¤¤¤Æ
+<pre>
+
+target: A { result = 1 } B { p val[1] };
+
+</pre>
+p val[1] ¤ÏËä¤á¤³¤ß¥¢¥¯¥·¥ç¥ó¤ÎÃÍ 1 ¤òÉ½¼¨¤·¤Þ¤¹¡£B ¤ÎÃÍ¤Ç¤Ï¤¢¤ê¤Þ¤»¤ó¡£
+
+<p>
+°ÕÌ£Åª¤Ë¤Ï¡¢Ëä¤á¤³¤ß¥¢¥¯¥·¥ç¥ó¤Ï¶õ¤Îµ¬Â§¤ò»ý¤ÄÈó½ªÃ¼µ­¹æ¤òÄÉ²Ã¤¹¤ë¤³¤È¤È
+Á´¤¯Æ±¤¸Æ¯¤­¤ò¤·¤Þ¤¹¡£¤Ä¤Þ¤ê¡¢¾å¤ÎÎã¤Ï¼¡¤Î¥³¡¼¥É¤ÈÁ´¤¯Æ±¤¸°ÕÌ£¤Ç¤¹¡£
+<pre>
+
+target  : A nonterm B { p val[1] };
+nonterm : /* ¶õ¤Îµ¬Â§ */ { result = 1 };
+
+</pre>
+
+
+<h4><a name="prec">±é»»»ÒÍ¥Àè½ç°Ì</a></h4>
+
+<p>
+¤¢¤ë¥È¡¼¥¯¥ó¾å¤Ç¥·¥Õ¥È¡¦´Ô¸µ¾×ÆÍ¤¬¤ª¤³¤Ã¤¿¤È¤­¡¢¤½¤Î¥È¡¼¥¯¥ó¤Ë
+±é»»»ÒÍ¥Àè½ç°Ì¤¬ÀßÄê¤·¤Æ¤¢¤ë¤È¡¢¾×ÆÍ¤ò²ò¾Ã¤Ç¤­¤ë¾ì¹ç¤¬¤¢¤ê¤Þ¤¹¡£
+¤½¤Î¤è¤¦¤Ê¤â¤Î¤È¤·¤ÆÆÃ¤ËÍ­Ì¾¤Ê¤Î¤Ï¿ô¼°¤Î±é»»»Ò¤È
+(¤À¤«¤é±é»»»ÒÍ¥Àè½ç°Ì¤Ã¤Æ¤¤¤¦¤Î¤« (^^;; ) if...else ¹½Ê¸¤Ç¤¹¡£
+
+<p>
+Í¥Àè½ç°Ì¤Ç²ò·è¤Ç¤­¤ëÊ¸Ë¡¤Ï¡¢¤¦¤Þ¤¯Ê¸Ë¡¤ò¤¯¤ß¤«¤¨¤Æ¤ä¤ì¤Ð¡¢É¬¤ºÍ¥Àè½ç°Ì¤Ê¤·¤Ç¤âÆ±¤¸
+¸ú²Ì¤òÆÀ¤é¤ì¤Þ¤¹¡£¤·¤«¤·¤¿¤¤¤Æ¤¤¤Î¾ì¹ç¡¢Í¥Àè½ç°Ì¤òÀßÄê¤¹¤ë¤Û¤¦¤¬¡¢Ê¸Ë¡¤¬´ÊÃ±¤Ë¤Ê¤ê¤Þ¤¹¡£
+
+<p>
+¥·¥Õ¥È¡¦´Ô¸µ¾×ÆÍ¤¬¤ª¤³¤Ã¤¿¤È¤­¡¢Racc ¤Ï¤Þ¤º¤½¤Îµ¬Â§¤Ë½ç°Ì¤¬ÀßÄê¤µ¤ì¤Æ¤¤¤ë¤«Ä´¤Ù¤Þ¤¹¡£
+µ¬Â§¤Î½ç°Ì¤Ï¡¢¤½¤Îµ¬Â§¤Ç°ìÈÖ¤¦¤·¤í¤Ë¤¢¤ë½ªÃ¼¥È¡¼¥¯¥ó¤ÎÍ¥Àè½ç°Ì¤Ç¤¹¡£¤¿¤È¤¨¤Ð¡¢
+<pre>
+      target: TERM_A nonterm_a TERM_B nonterm_b ;
+</pre>
+¤Î¤è¤¦¤Êµ¬Â§¤Î½ç°Ì¤ÏTERM_B¤ÎÍ¥Àè½ç°Ì¤Ë¤Ê¤ê¤Þ¤¹¡£¤â¤·TERM_B¤ËÍ¥Àè½ç°Ì¤¬ÀßÄê¤µ¤ì¤Æ
+¤¤¤Ê¤«¤Ã¤¿¤é¡¢Í¥Àè½ç°Ì¤Ç¾×ÆÍ¤ò²ò·è¤¹¤ë¤³¤È¤Ï¤Ç¤­¤Ê¤¤¤ÈÈ½ÃÇ¤·¡¢
+¡ÖShift/Reduce conflict¡×¤òÊó¹ð¤·¤Þ¤¹¡£
+
+<p>
+±é»»»ÒÍ¥Àè½ç°Ì¤Ï¡¢¤Ä¤®¤Î¤è¤¦¤Ë½ñ¤­¤Þ¤¹¡£<br>
+prechigh ¤Ë¶á¤¤¤Û¤¦¤¬¡¢½ç°Ì¤Î¡Ö¹â¤¤¡×¥È¡¼¥¯¥ó¤Ç¤¹¡£¾å²¼¤ò¤Þ¤ë¤´¤È¤µ¤«¤µ¤Þ¤Ë¤·¤Æ¡¢
+preclow...prechigh ¤Î½çÈÖ¤Ë½ñ¤¯¤³¤È¤â¤Ç¤­¤Þ¤¹¡£
+<pre>
+
+    prechigh
+      nonassoc PLUSPLUS
+      left     MULTI DEVIDE
+      left     PLUS MINUS
+      right    '='
+    preclow
+
+</pre>
+left ¤Ê¤É¤ÏÉ¬¤º¹Ô¤ÎºÇ½é¤ÎÃ±¸ì¤Ç¤Ê¤±¤ì¤Ð¤¤¤±¤Þ¤»¤ó¡£<br>
+left right nonassoc ¤Ï¤½¤ì¤¾¤ì¡Ö±¦·ë¹ç¡×¡Öº¸·ë¹ç¡×¡Ö·ë¹ç¤·¤Ê¤¤¡×¤ò¤¢¤é¤ï¤·¤Þ¤¹¡£
+
+<p>
+ÄÌ¾ï¤Ï¡¢´Ô¸µ¤¹¤ëµ¬Â§¤ÎºÇ¸å¤Î¥È¡¼¥¯¥ó¤¬½ç°Ì¤ò·è¤á¤Þ¤¹¤¬¡¢
+¤¢¤ëµ¬Â§¤Ë¸Â¤Ã¤Æ½ç°Ì¤ò¤¢¤²¤¿¤¤¤È¤­¤¬¤¢¤ê¤Þ¤¹¡£yacc ¤Ç¸À¤¨¤Ð %prec ¤Ç¤¹¡£
+¤¿¤È¤¨¤Ð¡¢Éä¹æÈ¿Å¾¤Î¥Þ¥¤¥Ê¥¹¤Ï°ú¤­»»¤Î¥Þ¥¤¥Ê¥¹¤è¤ê½ç°Ì¤ò¹â¤¯¤·¤Ê¤¤¤È¤¤¤±¤Þ¤»¤ó¡£
+<pre>
+
+    prechigh
+      nonassoc UMINUS
+      left '*' '/'
+      left '+' '-'
+    preclow
+(Î¬)
+    exp: exp '*' exp
+       | exp '-' exp
+       | '-' exp     = UMINUS    # ½ç°Ì¤ò¾å¤²¤ë
+
+</pre>
+¤³¤Î¤è¤¦¤Ëµ­½Ò¤¹¤ë¤È¡¢'-' exp ¤Îµ¬Â§¤Î½ç°Ì¤¬ UMINUS ¤Î½ç°Ì¤Ë¤Ê¤ê¤Þ¤¹¡£¤³¤¦¤¹¤ë¤³¤È¤Ç¡¢
+Éä¹æÈ¿Å¾¤Î '-' ¤Ï '*' ¤è¤ê¤â½ç°Ì¤¬¹â¤¯¤Ê¤ë¤Î¤Ç¡¢°Õ¿Þ¤É¤ª¤ê¤Ë¤Ê¤ê¤Þ¤¹¡£
+
+
+<h4><a name="start">¥¹¥¿¡¼¥Èµ¬Â§</a></h4>
+
+<p>
+¥Ñ¡¼¥µ¤ò¤Ä¤¯¤ë¤¿¤á¤Ë¤Ï¡¢¤É¤Îµ¬Â§¤¬¡ÖºÇ½é¤Î¡×µ¬Â§¤«¡¢¤È¤¤¤¦¤³¤È¤ò Racc ¤Ë¤ª¤·¤¨¤Æ
+¤ä¤é¤Ê¤±¤ì¤Ð¤¤¤±¤Þ¤»¤ó¡£¤½¤ì¤òÌÀ¼¨Åª¤Ë½ñ¤¯¤Î¤¬¥¹¥¿¡¼¥Èµ¬Â§¤Ç¤¹¡£¥¹¥¿¡¼¥Èµ¬Â§¤Ï
+¼¡¤Î¤è¤¦¤Ë½ñ¤­¤Þ¤¹¡£
+<pre>
+
+      start real_target
+
+</pre>
+start ¤Ï¹Ô¤ÎºÇ½é¤Ë¤³¤Ê¤±¤ì¤Ð¤¤¤±¤Þ¤»¤ó¡£<br>
+¤³¤Î¤è¤¦¤Ë½ñ¤¯¤È¡¢real_target ¤Îµ¬Â§¤ò¥¹¥¿¡¼¥Èµ¬Â§¤È¤·¤Æ»È¤¤¤Þ¤¹¡£
+¾ÊÎ¬¤·¤¿¾ì¹ç¤Ï¡¢°ìÈÖ¾å¤Ë¤¢¤ëµ¬Â§¤¬¥¹¥¿¡¼¥Èµ¬Â§¤Ë¤Ê¤ê¤Þ¤¹¡£
+ÉáÄÌ¤Ï¡¢ºÇ½é¤Îµ¬Â§¤ò°ìÈÖ¾å¤Ë¤«¤¯¤Û¤¦¤¬½ñ¤­¤ä¤¹¤¯¡¢¤ï¤«¤ê¤ä¤¹¤¯¤Ê¤ê¤Þ¤¹¤«¤é¡¢
+start ¤Ï¤¢¤Þ¤ê¤Ä¤«¤¦É¬Í×¤Ï¤Ê¤¤¤Ç¤·¤ç¤¦¡£
+
+
+<h4><a name="token">¥È¡¼¥¯¥ó¥·¥ó¥Ü¥ëÃÍ¤ÎÊÑ¹¹</a></h4>
+
+<p>
+¥È¡¼¥¯¥ó¥·¥ó¥Ü¥ë¤òÉ½¤¹ÃÍ¤Ï¡¢¥Ç¥Õ¥©¥ë¥È¤Ç¤Ï
+<ul>
+<li>Ê¸Ë¡Ãæ¡¢°úÍÑÉä¤Ç¤«¤³¤Þ¤ì¤Æ¤¤¤Ê¤¤¤â¤Î(RULE¤È¤«XEND¤È¤«)<br>
+    ¢ª¤½¤ÎÌ¾Á°¤ÎÊ¸»úÎó¤ò intern ¤·¤ÆÆÀ¤é¤ì¤ë¥·¥ó¥Ü¥ë(1.4 ¤Ç¤Ï Fixnum)
+<li>°úÍÑÉä¤Ç¤«¤³¤Þ¤ì¤Æ¤¤¤ë¤â¤Î(':'¤È¤«'.'¤È¤«)<br>
+    ¢ª¤½¤ÎÊ¸»úÎó¤½¤Î¤Þ¤Þ
+</ul>
+
+<p>
+¤È¤Ê¤Ã¤Æ¤¤¤Þ¤¹¤¬¡¢¤¿¤È¤¨¤ÐÂ¾¤Î·Á¼°¤Î¥¹¥­¥ã¥Ê¤¬¤¹¤Ç¤ËÂ¸ºß¤¹¤ë¾ì¹ç¤Ê¤É¤Ï¡¢
+¤³¤ì¤Ë¤¢¤ï¤»¤Ê¤±¤ì¤Ð¤Ê¤é¤º¡¢¤³¤Î¤Þ¤Þ¤Ç¤ÏÉÔÊØ¤Ç¤¹¡£¤³¤Î¤è¤¦¤Ê¾ì¹ç¤Ë¤Ï¡¢
+token Àá¤ò²Ã¤¨¤ë¤³¤È¤Ç¡¢¥È¡¼¥¯¥ó¥·¥ó¥Ü¥ë¤òÉ½¤¹ÃÍ¤òÊÑ¤¨¤ë¤³¤È¤¬¤Ç¤­¤Þ¤¹¡£
+°Ê²¼¤¬¤½¤ÎÎã¤Ç¤¹¡£
+<pre>
+
+    token
+      PLUS 'PlusClass'      # --> PlusClass
+      MIN  'MinusClass'     # --> MinusClass
+    end
+
+</pre>
+¥Ç¥Õ¥©¥ë¥È¤Ç¤Ï¡¢¥È¡¼¥¯¥ó¥·¥ó¥Ü¥ëPLUS¤ËÂÐ¤·¤Æ¤Ï¥È¡¼¥¯¥ó¥·¥ó¥Ü¥ëÃÍ¤Ï:PLUS¤Ç¤¹¤¬¡¢
+¾å¤Î¤è¤¦¤Êµ­½Ò¤¬¤¢¤ë¾ì¹ç¤Ï¡¢PlusClass¤Ë¤Ê¤ê¤Þ¤¹¡£
+ÊÑ´¹¸å¤ÎÃÍ¤Ï false¡¢nil °Ê³°¤Ê¤é¤Ê¤ó¤Ç¤â»È¤¨¤Þ¤¹¡£
+
+<p>
+ÊÑ´¹¸å¤ÎÃÍ¤È¤·¤ÆÊ¸»úÎó¤ò»È¤¦¤È¤­¤Ï¡¢¼¡¤Î¤è¤¦¤Ë°úÍÑÉä¤ò½Å¤Í¤ëÉ¬Í×¤¬¤¢¤ê¤Þ¤¹¡£
+<pre>
+
+    token
+      PLUS '"plus"'       # --> "plus"
+    end
+
+</pre>
+
+<p>
+¤Þ¤¿¡¢¡Ö'¡×¤ò»È¤Ã¤Æ¤âÀ¸À®¤µ¤ì¤¿ Ruby ¤Î¥³¡¼¥É¾å¤Ç¤Ï¡Ö"¡×¤Ë¤Ê¤ë¤Î¤ÇÃí°Õ¤·¤Æ¤¯¤À¤µ¤¤¡£
+¥Ð¥Ã¥¯¥¹¥é¥Ã¥·¥å¤Ë¤è¤ë¥¯¥ª¡¼¥È¤ÏÍ­¸ú¤Ç¤¹¤¬¡¢¥Ð¥Ã¥¯¥¹¥é¥Ã¥·¥å¤Ï¾Ã¤¨¤º¤Ë¤½¤Î¤Þ¤Þ
+»Ä¤ê¤Þ¤¹¡£<em>¤³¤ì¤Ï»ÅÍÍ¤Ç¤¹¡£¥Ð¥°¤Ç¤Ï¤¢¤ê¤Þ¤»¤ó¡£</em>
+<pre>
+
+      PLUS '"plus\n"'          # --> "plus\n"
+      MIN  "\"minus#{val}\""   # --> \"minus#{val}\"
+
+</pre>
+
+
+<h3><a name="usercode">¥æ¡¼¥¶¡¼¥³¡¼¥ÉÉô</a></h3>
+
+<p>
+¥æ¡¼¥¶¡¼¥³¡¼¥ÉÉô¤Ë¤Ï¡¢¥Ñ¡¼¥µ¥¯¥é¥¹¤ÎÆâÉô¤Þ¤¿¤Ï³°Éô¤Ç»ÈÍÑ¤¹¤ëRuby¤Î¥³¡¼¥É¤ò½ñ¤­¤Þ¤¹¡£
+<a href="command.html">racc ¥³¥Þ¥ó¥É</a>¤Ç¤Ï¡¢header inner footer ¤Î
+3¤Ä¤ò¥³¡¼¥É¤ÎÌ¾Á°¤È¤·¤Æ»È¤¤¡¢¤½¤ì¤¾¤ì¤òÀ¸À®¤¹¤ë¥Õ¥¡¥¤¥ë¤ÎÆÃÄê¤Î¾ì½ê¤ËÅ¾¼Ì¤·¤Æ¤¤¤Þ¤¹¡£
+
+<p>
+¥æ¡¼¥¶¡¼¥³¡¼¥ÉÉô¤Î½ñ¼°¤Ï°Ê²¼¤ÎÄÌ¤ê¤Ç¤¹¡£
+<pre>
+
+---- ¥æ¡¼¥¶¡¼¥³¡¼¥É¤Î¼±ÊÌ»Ò
+  ruby¤ÎÊ¸
+  ruby¤ÎÊ¸
+  ruby¤ÎÊ¸
+
+---- ¼¡¤Î¥æ¡¼¥¶¡¼¥³¡¼¥É¤Î¼±ÊÌ»Ò
+  ruby¤ÎÊ¸
+     :
+
+</pre>
+¹Ô¤ÎÀèÆ¬¤«¤é4¤Ä°Ê¾åÏ¢Â³¤·¤¿¡Ö-¡×¤¬¤¢¤ë¤È¥æ¡¼¥¶¡¼¥³¡¼¥É¤È¤ß¤Ê¤µ¤ì¤Þ¤¹¡£
+¼±ÊÌ»Ò¤Ï°ì¤Ä¤ÎÃ±¸ì¤Ç¡¢¤½¤Î¤¢¤È¤Ë¤Ï¡Ö=¡×°Ê³°¤Ê¤Ë¤ò½ñ¤¤¤Æ¤â¤«¤Þ¤¤¤Þ¤»¤ó¡£
+
+<p>
+¤Þ¤¿¡¢¼¡¤Î¤è¤¦¤ÊÊ¸¤Ç³°Éô¥Õ¥¡¥¤¥ë¤ò¥æ¡¼¥¶¡¼¥³¡¼¥É¤È¤·¤Æ¥¤¥ó¥¯¥ë¡¼¥É¤¹¤ë¤³¤È¤â¤Ç¤­¤Þ¤¹¡£
+<pre>
+
+---- ¼±ÊÌ»Ò = ¥Õ¥¡¥¤¥ëÌ¾ ¥Õ¥¡¥¤¥ëÌ¾ ¥Õ¥¡¥¤¥ëÌ¾ .....
+
+</pre>
+¤³¤Î¤è¤¦¤Ë½ñ¤¯¤È¡¢¤¹¤Ù¤Æ¤Î¥Õ¥¡¥¤¥ë¤ÎÆâÍÆ¤ò¤½¤Î½çÈÖ¤Ë¤Ä¤Ê¤²¤¿¤â¤Î¤¬
+¤½¤Î¥æ¡¼¥¶¡¼¥³¡¼¥É¤Ë¤Ê¤ê¤Þ¤¹¡£¼¡¤Ï¤½¤ÎÎã¤Ç¤¹¡£
+<pre>
+
+---- footer = init.rb err.rb run.rb
+
+print "this line is added, too\n"
+
+</pre>
+¤³¤³¤Ç¤Ï init.rb err.rb run.rb ¤Î¤ß¤Ã¤Ä¤ò footer ¥³¡¼¥É¤È¤·¤Æ»ØÄê¤·¤Æ¤¤¤Þ¤¹¡£
+¤µ¤é¤Ë¡¢---- ¤Î¤¢¤ë¹Ô¤Î²¼¤Ë½ñ¤¤¤¿¤â¤Î(print¤Î¤¢¤ë¹Ô¤Ê¤É)¤¬¤Ä¤Å¤±¤Æ²Ã¤¨¤é¤ì¤Þ¤¹¡£
+¤µ¤­¤Û¤É ---- ¤Î¤¢¤ë¹Ô¤Î¼±ÊÌ»Ò¤Î¤¢¤È¤Ï¤Ê¤Ë¤ò½ñ¤¤¤Æ¤â¤¤¤¤¤È¸À¤¤¤Þ¤·¤¿¤¬¡¢
+¥Õ¥¡¥¤¥ë¤òµ­½Ò¤¹¤ë¾ì¹ç¤Ï¤Ê¤Ë¤â½ñ¤¯¤³¤È¤¬¤Ç¤­¤Þ¤»¤ó¡£¥³¥á¥ó¥È¤Ê¤É¤â¤À¤á¤Ç¤¹¡£
+Àµ³Î¤Ë¥Õ¥¡¥¤¥ëÌ¾¤À¤±¤ò¤Ê¤é¤Ù¤Æ½ñ¤¤¤Æ¤¯¤À¤µ¤¤¡£
+¤³¤ÎÀ©¸Â¤Ï¤â¤Á¤í¤ó¡ÖÂÐ±þ¤¹¤ë¤Î¤¬¤á¤ó¤É¤¯¤µ¤«¤Ã¤¿¤«¤é¡×¤Ç¤¹ ^^;;;
+
+
+<% footer 1999 %>
+. file parser.html ------------------------------------------------
+<% header 'Parser' %>
+
+<h1>parser.rb</h1>
+
+<hr>
+
+<h2><a name="parser">Parser¥¯¥é¥¹</a></h2>
+
+<p>
+Racc¤ÎÀ¸À®¤¹¤ë¥Ñ¡¼¥µ¤Ï¤¹¤Ù¤ÆParser¥¯¥é¥¹¤ò·Ñ¾µ¤·¤Æ¤¤¤Þ¤¹¡£
+Parser¥¯¥é¥¹¤Ë¤Ï¥Ñ¡¼¥¹Ãæ¤Ë»ÈÍÑ¤¹¤ë¥á¥½¥Ã¥É¤¬¤¤¤¯¤Ä¤«¤¢¤ê¡¢
+¤½¤Î¤è¤¦¤Ê¥á¥½¥Ã¥É¤ò¥ª¡¼¥Ð¡¼¥í¡¼¥É¤¹¤ë¤È¡¢¥Ñ¡¼¥µ¤Î½é´ü²½¤Ê¤É¤¬¤Ç¤­¤Þ¤¹¡£
+
+<p>
+µÕ¤Ë¸À¤¨¤Ð¡¢¤³¤ì¤é¤Î¥á¥½¥Ã¥É¤òÊÑ¤ËºÆÄêµÁ¤¹¤ë¤ÈµóÆ°¤¬¤ª¤«¤·¤¯
+¤Ê¤ê¤Þ¤¹¤Î¤ÇÃí°Õ¤·¤Æ¤¯¤À¤µ¤¤¡£
+
+
+<h3>¥Õ¥¡¥¤¥ë</h3>
+<p>
+racc/parser.rb
+
+<h3>¥¹¡¼¥Ñ¡¼¥¯¥é¥¹</h3>
+<p>
+Object
+
+
+<h3>Äê¿ô</h3>
+<p>
+¥×¥ê¥Õ¥£¥Ã¥¯¥¹ "Racc_" ¤¬¤Ä¤¤¤¿Äê¿ô¤Ï¥Ñ¡¼¥µ¤ÎÍ½ÌóÄê¿ô¤Ç¤¹¡£
+¤½¤Î¤è¤¦¤ÊÄê¿ô¤Ï»È¤ï¤Ê¤¤¤Ç¤¯¤À¤µ¤¤¡£¥Ñ¡¼¥¹ÉÔ²ÄÇ½¤Ë¤Ê¤ê¤Þ¤¹¡£
+
+<h3>¥á¥½¥Ã¥É</h3>
+<dl>
+<dt>next_token (abstract)
+<dd>
+¥Ñ¡¼¥µ¤¬¼¡¤Î¥È¡¼¥¯¥ó¤òÆÉ¤ß¤³¤à»þ¤Ë»È¤¤¤Þ¤¹¡£[¥È¡¼¥¯¥ó¥·¥ó¥Ü¥ë,¤½¤ÎÃÍ]
+¤Î·Á¼°¤ÎÇÛÎó¤òÊÖ¤·¤Æ¤¯¤À¤µ¤¤¡£¥È¡¼¥¯¥ó¥·¥ó¥Ü¥ë¤ÎÃÍ¤Ï¡¢¥Ç¥Õ¥©¥ë¥È¤Ç¤Ï
+<ul>
+<li>Ê¸Ë¡Ãæ¡¢°úÍÑÉä¤Ç¤«¤³¤Þ¤ì¤Æ¤¤¤Ê¤¤¤â¤Î<br>
+    ¢ª¤½¤ÎÌ¾Á°¤ÎÊ¸»úÎó¤ò intern ¤·¤ÆÆÀ¤é¤ì¤ë¥·¥ó¥Ü¥ë(¤¿¤È¤¨¤Ð:ATOM)
+<li>°úÍÑÉä¤Ç¤«¤³¤Þ¤ì¤Æ¤¤¤ë¤â¤Î<br>
+    ¢ª¤½¤ÎÊ¸»úÎó¤½¤Î¤Þ¤Þ(¤¿¤È¤¨¤Ð¡¢'=')
+</ul>
+¤Ç¤¹¡£¤³¤ì¤òÊÑ¹¹¤¹¤ëÊýË¡¤Ë¤Ä¤¤¤Æ¤Ï¡¢
+<a href="grammer.html#token">Ê¸Ë¡¥ê¥Õ¥¡¥ì¥ó¥¹</a>¤ò»²¾È¤·¤Æ¤¯¤À¤µ¤¤¡£
+
+<p>
+¤Þ¤¿¡¢¤â¤¦Á÷¤ë¥·¥ó¥Ü¥ë¤¬¤Ê¤¯¤Ê¤Ã¤¿¤È¤­¤Ë¤Ï¡¢[false,¤Ê¤Ë¤«] ¤òÊÖ¤·¤Æ¤¯¤À¤µ¤¤¡£
+¤³¤ì¤òËº¤ì¤ë¤È¤ï¤±¤Î¤ï¤«¤é¤Ê¤¤¥Ñ¡¼¥¹¥¨¥é¡¼¤Ë¤Ê¤ê¤Þ¤¹¡£(°ì²óÁ÷¤ì¤Ð½½Ê¬¤Ç¤¹)
+
+<p>
+¤Þ¤¿¡¢¤³¤Î¥á¥½¥Ã¥É¤ÏÃê¾Ý¥á¥½¥Ã¥É¤Ê¤Î¤Ç¡¢<em>É¬¤º</em>²¼°Ì¥¯¥é¥¹¤ÇºÆÄêµÁ¤¹¤ë
+É¬Í×¤¬¤¢¤ê¤Þ¤¹¡£ÄêµÁ¤·¤Ê¤¤¤Þ¤Þ¥Ñ¡¼¥¹¤ò»Ï¤á¤ë¤ÈÎã³°¤¬È¯À¸¤·¤Þ¤¹¡£
+
+
+<dt>on_error( err_tok, err_val, _values )
+<dd>
+¥Ñ¡¼¥¹¥¨¥é¡¼¤ò¸¡½Ð¤·¤¿¤È¤­¡¢¤è¤Ó¤À¤µ¤ì¤Þ¤¹(yyerror)¡£
+¥á¥Ã¥»¡¼¥¸¤ò½Ð¤¹¤Ê¤ê¡¢Îã³°¤òÈ¯À¸¤¹¤ë¤Ê¤ê¤·¤Æ¤¯¤À¤µ¤¤¡£
+¤³¤Î¥á¥½¥Ã¥É¤«¤é¤â¤É¤Ã¤¿¤¢¤È¤Ï¡¢¥Ñ¡¼¥µ¤Ï¥¨¥é¡¼²óÉü¥â¡¼¥É¤Ë°Ü¹Ô¤·¤Þ¤¹¡£<br>
+°ú¿ô¤Ï¡¢err_tok ¤¬¥Ñ¡¼¥¹¥¨¥é¡¼¤ò¤ª¤³¤·¤¿¥·¥ó¥Ü¥ë¥È¡¼¥¯¥ó(ÆâÉôÉ½¸½¤ÎÀ°¿ô)¡¢
+err_val ¤¬¤½¤ÎÃÍ¡¢_values ¤Ï¤½¤Î»þÅÀ¤ÎÃÍ¥¹¥¿¥Ã¥¯¤Ç¤¹¡£
+
+<p>
+¥Ç¥Õ¥©¥ë¥È¤Ç¤Ï¡¢Îã³° ParseError ¤òÈ¯À¸¤·¤Þ¤¹¡£
+
+<dt>yyerror
+<dd>
+¥¢¥¯¥·¥ç¥óÃæ¤Ç¸Æ¤Ó¤À¤¹¤È¥¨¥é¡¼²óÉü¥â¡¼¥É¤ËÆþ¤ê¤Þ¤¹¡£
+¤³¤Î¤È¤­ on_error ¤Ï¸Æ¤Ð¤ì¤Þ¤»¤ó¡£
+
+<dt>yyerrok
+<dd>
+¥¢¥¯¥·¥ç¥óÃæ¤Ç¸Æ¤Ó¤À¤¹¤È¥¨¥é¡¼²óÉü¥â¡¼¥É¤«¤éÉüµ¢¤·¤Þ¤¹¡£
+
+<dt>yyaccept
+<dd>
+¤³¤Î¥á¥½¥Ã¥É¤ò¸Æ¤Ó¤À¤¹¤È¤¹¤°¤ËÃÍ¥¹¥¿¥Ã¥¯¤ÎÀèÆ¬¤ÎÃÍ¤òÊÖ¤·¤Æ
+do_parse ¤òÈ´¤±¤Þ¤¹¡£
+
+</dl>
+
+
+<% footer 1999 %>
+. file debug.html ----------------------------------------------------------
+<% header 'Debug' %>
+
+<h1>¥Ç¥Ð¥Ã¥°¾ðÊó</h1>
+
+<hr>
+<p>
+¤³¤³¤Ç¤Ï¡¢Racc ¤ò»È¤Ã¤Æ¤¤¤¯¤¦¤¨¤ÇÁø¶ø¤·¤½¤¦¤Ê¥Ð¥°¤Ë¤Ä¤¤¤Æ½ñ¤­¤Þ¤¹¡£
+¤¿¤À¡¢½ù¡¹¤Ë¸º¤Ã¤Æ¤Ï¤¤¤Þ¤¹¤¬¡¢¸½»þÅÀ¤Ç¤Ï¤Þ¤À¤Þ¤À racc ¼«¿È¤Î¥Ð¥°¤Î²ÄÇ½À­¤â¹â¤¤¤Ç¤¹¡£
+¤â¤·¡Ö¤³¤ì¤Ï¥Ð¥°¤Ë°ã¤¤¤Ê¤¤¡ª¡×¤È¤¤¤¦¥¨¥é¡¼¤ËÁø¶ø¤·¤¿¤é¥á¡¼¥ë¤ò¤¯¤À¤µ¤¤¡£
+¤½¤Î¤È¤­¤Ï¡¢µ¬Â§¥Õ¥¡¥¤¥ë¤Ê¤É¤â¤Ä¤±¤Æ¤¯¤À¤µ¤ë¤è¤¦¤ª´ê¤¤¤·¤Þ¤¹¡£
+
+<p>
+¤Þ¤¿¡¢racc ¥³¥Þ¥ó¥É¤Ë -v ¥ª¥×¥·¥ç¥ó¤ò¤Ä¤±¤Æ¥³¥ó¥Ñ¥¤¥ë¤¹¤ë¤È¡¢ÆâÉô¾ðÊó¤¬
+"¥Õ¥¡¥¤¥ëÌ¾.output" ¤Ë½ÐÎÏ¤µ¤ì¤Þ¤¹¡£¤³¤Î¥Õ¥¡¥¤¥ë¤Î¾ðÊó¤Ï¥Ç¥Ð¥Ã¥°¤Ë¤Ï
+É¬¿Ü¤Ç¤¹¤«¤é¡¢¥Ç¥Ð¥Ã¥°Ãæ¤Ï¾ï¤Ë -vg ¤ò¤Ä¤±¤Æ¥³¥ó¥Ñ¥¤¥ë¤¹¤ë¤³¤È¤ò¤ª¤¹¤¹¤á¤·¤Þ¤¹¡£
+
+
+<h2>¥¤¥ó¥¹¥È¡¼¥ë¤Ç¤­¤Ê¤¤¤ó¤À¤±¤É¡£</h2>
+<p>
+¤É¤¦¤·¤¿¤é¤¤¤¤¤ó¤Ç¤·¤ç¤¦¤Í¤¨¡£
+
+<h2>µ¬Â§¥Õ¥¡¥¤¥ë¤¬¥Ñ¡¼¥¹¥¨¥é¡¼¤Ë¤Ê¤ë¤è¤¦¡£</h2>
+<p>
+¥¨¥é¡¼¥á¥Ã¥»¡¼¥¸¤Ë½Ð¤Æ¤ë¹Ô¤ËÊ¸Ë¡¤Î´Ö°ã¤¤¤¬¤¢¤ê¤Þ¤¹¡£
+¤É¤³¤¬´Ö°ã¤Ã¤Æ¤ë¤«¤Ï ¤¸¤Ã¤È¸«¤Æ¹Í¤¨¤Þ¤·¤ç¤¦¡£
+
+<h2>¾×ÆÍ</h2>
+<p>
+°ìÈÖ¤¢¤ê¤¬¤Á¤ÊÌäÂê¤Ï¡¢¾×ÆÍ¤Ç¤·¤ç¤¦¤«¡£
+¾×ÆÍ¤¬¤¢¤ë¤È¡¢racc ¤¬¥³¥ó¥Ñ¥¤¥ë¸å¤Ë¡Ö¾×ÆÍ¤¬¤¢¤ë¡×¤È¥á¥Ã¥»¡¼¥¸¤ò
+½Ð¤¹¤Î¤Ç¤¹¤°¤ï¤«¤ê¤Þ¤¹¡£.output ¥Õ¥¡¥¤¥ë¤Ë¤Ï¤µ¤é¤Ë¾Ü¤·¤¤¾ðÊó¤¬½ÐÎÏ¤µ¤ì¤Þ¤¹¡£
+¤½¤ì¤ò¤É¤¦¤ä¤Ã¤Æ²ò·è¤¹¤ë¤«¡¢¤È¤«¤½¤¦¤¤¤¦¤³¤È¤Ë´Ø¤·¤Æ¤Ï¡¢¤½¤ì¤Ê¤ê¤ÎËÜ¤òÆÉ¤ó¤Ç¤¯¤À¤µ¤¤¡£
+¤È¤Æ¤â¤³¤³¤Ë½ñ¤±¤ë¤è¤¦¤ÊÃ±½ã¤ÊÏÃ¤Ç¤Ï¤¢¤ê¤Þ¤»¤ó¡£Îã¤¨¤Ð O'Reilly ¤Î¡Ölex & yacc¡×¡£
+
+<h2>next_token ¤Ë´Ø¤·¤Æ</h2>
+<p>
+¤¤¤Þ¤À¼«Ê¬¤Ç¤âËº¤ì¤ë¤³¤È¤¬Â¿¤¤¤Î¤¬¡¢¡Ö¥¹¥­¥ã¥ó¤¬½ªÎ»¤·¤¿¤é[false,¤Ê¤Ë¤«]¤òÁ÷¤ë¡×
+¤È¤¤¤¦¤³¤È¤Ç¤¹¡£0.10.2 ¤«¤é¤Ï°ì²óÁ÷¤Ã¤¿¤é¤â¤¦¤½¤ì°Ê¾å¤Ï next_token ¤ò¸Æ¤Ó¤Þ¤»¤ó¡£
+
+<h2>¥Ç¥Ð¥Ã¥°½ÐÎÏ</h2>
+<p>
+racc ¤Ë -g ¥ª¥×¥·¥ç¥ó¤ò¤Ä¤±¤Æ¥³¥ó¥Ñ¥¤¥ë¤¹¤ë¤È¡¢¥Ç¥Ð¥Ã¥°ÍÑ¤Î¥³¡¼¥É¤¬ÉÕ²Ã¤µ¤ì¤Þ¤¹¡£
+¤³¤³¤Ç¡¢¥Ñ¡¼¥µ¥¯¥é¥¹¤Î¥¤¥ó¥¹¥¿¥ó¥¹ÊÑ¿ô @yydebug ¤ò true ¤Ë¤·¤Æ¤ª¤¤¤Æ¤«¤é
+do_parse ¤ò¸Æ¤Ö¤È¡¢¥Ç¥Ð¥Ã¥°ÍÑ¥á¥Ã¥»¡¼¥¸¤ò½ÐÎÏ¤·¤Þ¤¹¡£¥Ñ¡¼¥µ¤¬¥·¥Õ¥È/´Ô¸µ¤·¤Æ¤¤¤¯
+ÍÍ»Ò¤¬Ä¾ÀÜ¸«¤¨¤Þ¤¹¤Î¤Ç¡¢´°Á´¤Ë¸½ºß¤Î¾õÂÖ¤òÇÄ°®¤Ç¤­¤Þ¤¹¡£
+¤É¤³¤Ç»ß¤Þ¤Ã¤Æ¤¤¤ë¤Î¤«¤¬¤ï¤«¤ì¤Ð¤¢¤È¤ÏÄ¾¤¹¤À¤±¡£
+
+<hr>
+<h2>yacc¤È¤ÎÊ¸Ë¡¤Î°ã¤¤</h2>
+
+
+<h3>ÄêµÁÉô</h3>
+<p>
+yacc ¤Ç¤Ï % ¤¬¤¤¤Ã¤Ñ¤¤¤Ç¤Æ¤­¤Þ¤¹¤¬¡¢racc ¤Ç¤Ï % ¤Ï½Ð¤Æ¤­¤Þ¤»¤ó¡£
+¤½¤ì¤«¤é¡¢C ¤Ç¤ÏÊÑ¿ô¤Ë·¿¤¬¤¢¤ë¤¿¤á¤Ë¤½¤ì¤ò»ØÄê¤¹¤ëÊ¸Ë¡¤¬¤¿¤¯¤µ¤ó¤¢¤ê¤Þ¤¹¤¬¡¢
+Ruby ¤Ï·¿Ìµ¤·¤Ç¤¹¤«¤é¤½¤Ã¤Á´Ø·¸¤Î¤â¤Î¤Ï¤Ê¤¯¤Ê¤Ã¤Æ¤¤¤Þ¤¹¡£
+<p>
+yacc ¤Ç¤Ï½ªÃ¼µ­¹æ(¥È¡¼¥¯¥ó)¤ò»öÁ°¤Ë»ØÄê¤·¤Þ¤¹¤¬¡¢
+Racc ¤Ç¤Ïº¸ÊÕ¤Ë¤³¤Ê¤¤¤â¤Î¤ò¼«Æ°Åª¤Ë½ªÃ¼µ­¹æ¤È¤ß¤Ê¤·¤Þ¤¹¡£
+¤È¤¤¤¦¤³¤È¤Ï¤Ä¤Þ¤ê¡¢Èó½ªÃ¼µ­¹æ nonterm ¤ò noterm ¤È½ñ¤­¤Þ¤Á¤¬¤Ã¤¿¤¬¤¿¤á¤Ë¡¢
+¤½¤ì¤¬½ªÃ¼µ­¹æ¤È¤ß¤Ê¤µ¤ì¤Æ¡¢Ì¯¤Ê¤³¤È¤Ë¤Ê¤ë²ÄÇ½À­¤¬¤¢¤ë¤È¤¤¤¦¤³¤È¤Ç¤¹¡£
+¤³¤ì¤òËÉ»ß¤¹¤ë¤¿¤á¤Ë¤Ï¡¢.output ¥Õ¥¡¥¤¥ë¤ò½ÐÎÏ¤µ¤»¤Æ¡¢ÊÑ¤Ê¤â¤Î¤¬½ªÃ¼µ­¹æ¤Ë¤Ê¤Ã¤Æ
+¤¤¤Ê¤¤¤«(¤â¤Á¤í¤ó¤½¤ÎµÕ¤â)¥Á¥§¥Ã¥¯¤¹¤ë¤È¤è¤¤¤Ç¤·¤ç¤¦¡£
+<p>
+¥Ð¡¼¥¸¥ç¥ó 0.10 ¤«¤é¤ÏÁ´ÂÎ¤Î¹½Â¤¤¬ class ... rule ... end ¤Î¤è¤¦¤Ë¤Ê¤ê¤Þ¤·¤¿¡£
+
+
+<h3>µ¬Â§Éô</h3>
+<p>
+µ¬Â§ÉôÊ¬¤Ï yacc ¤È¤Û¤ÜÆ±¤¸¤Ç¤¹¤¬¡¢µ¬Â§¤ÎºÇ¸å¤Î¥»¥ß¥³¥í¥ó¤ÏÉ¬¿Ü¤Ç¤¹¡£
+<p>
+%prec ¤Ï = ¤ò¤Ä¤«¤¤¤Þ¤¹¡£
+<p>
+yacc ¤Ç¤Ï¥³¥á¥ó¥È¤Ï /* ... */ ¤À¤±¤Ç¤¹¤¬ racc ¤Ç¤Ï #...(¹ÔËö) ¤â¤¢¤ê¤Þ¤¹¡£
+
+
+<h3>¥æ¡¼¥¶¡¼¥³¡¼¥ÉÉô</h3>
+<p>
+yacc ¤Ç¤Ï¥æ¡¼¥¶¡¼¥³¡¼¥É¤òÊ¬Îà¤¹¤ëÉ¬Í×¤Ï¤¢¤ê¤Þ¤»¤ó¤¬¡¢racc ¤Ç¤Ï¥Ñ¡¼¥µ¤¬¥¯¥é¥¹¤Ê¤Î¤Ç¡¢
+ÇÛÃÖ¤¹¤ë¾ì½ê¤Ë¤è¤Ã¤Æ¥æ¡¼¥¶¡¼¥³¡¼¥É¤òÊ¬Îà¤·¤Æ¤¤¤Þ¤¹¡£¥æ¡¼¥¶¡¼¥³¡¼¥É¤Î»ØÄêÊýË¡¤â
+0.9 ¤Ç ---- ¤ò»È¤¦¤è¤¦¤ËÂç¤­¤¯ÊÑ¤ï¤Ã¤¿¤Î¤Çµ¤¤ò¤Ä¤±¤Æ¤¯¤À¤µ¤¤¡£
+
+<% footer 1999 %>
+. file changes.html ----------------------------------------------------------
+<% header 'Change Log' %>
+
+<h1>ÊÑ¹¹ÍúÎò</h1>
+<hr>
+<h2>0.14.0(2000/03/21)</h2>
+<p>
+<ul>
+<li>¹âÂ®¥Æ¡¼¥Ö¥ë¤ò¼ÂÁõ
+</ul>
+
+<hr>
+<h2>0.13.1(2000/03/21)</h2>
+<p>
+<ul>
+<li>--version --copyright ¤Ê¤É¤¬¤¦¤Þ¤¯Æ¯¤¤¤Æ¤Ê¤«¤Ã¤¿ (thanks ¤Õ¤Ê¤Ð¤µ¤ó)
+</ul>
+
+<h2>0.13.0(2000/03/20)</h2>
+<p>
+<ul>
+<li>yyerror/yyerrok/yyaccept ¤ò¼ÂÁõ
+</ul>
+
+<hr>
+<h2>0.12.2(2000/03/19)</h2>
+<p>
+<ul>
+<li>-E ¥Õ¥é¥°¤¬¥Ð¥°¤Ã¤Æ¤¿ (thanks ¤Õ¤Ê¤Ð¤µ¤ó)
+</ul>
+
+<h2>0.12.1(2000/03/16)</h2>
+<p>
+<ul>
+<li>¥Ç¥Õ¥©¥ë¥È¥¢¥¯¥·¥ç¥ó¤Î·è¤áÊý¤ò¤Á¤ç¤Ã¤È½¤Àµ(¸µ¤ËÌá¤·¤¿¤À¤±)
+</ul>
+
+<h2>0.12.0(2000/03/15)</h2>
+<p>
+<ul>
+<li>ÊÌ¤Î¥Ð¥°¤É¤³¤í¤Ç¤Ï¤Ê¤«¤Ã¤¿¡£ÀèÆÉ¤ß¥ë¡¼¥Á¥ó¤¬ LALR ¤Ë¤Ê¤Ã¤Æ¤¤¤Ê¤¤¡£
+    »ÍÆü¤¬¤«¤ê¤Ç¤è¤¦¤ä¤¯½¤Àµ¤·¤¿¡£
+<li>´°Á´¤Ê LALR ¤ò¼ÂÁõ¤·¤¿¤éÃÙ¤¯¤Ê¤Ã¤¿¤Î¤Ç SLR ¤âÊ»ÍÑ¤¹¤ë¤è¤¦¤Ë¤·¤¿¡£¸ú²ÌÀäÂç¡£
+</ul>
+
+<hr>
+<h2>0.11.3(2000/03/09)</h2>
+<p>
+<ul>
+<li>¾õÂÖÁ«°ÜÉ½À¸À®¤Î¥Ð¥°¤Î½¤Àµ¤¬¤Þ¤À´Å¤«¤Ã¤¿¡£¤µ¤é¤ËÊÌ¤Î¥Ð¥°¤â¤¢¤ë¤è¤¦¤À¡£
+</ul>
+
+<h2>0.11.2(2000/03/09)</h2>
+<p>
+<ul>
+<li>¾õÂÖÁ«°ÜÉ½À¸À®Éô¤Ë(ºÇ¸å(¤Ë¤Ê¤Ã¤Æ¤Û¤·¤¤)¤Î)¥Ð¥°¡£
+    ÀèÆÉ¤ß¥³¡¼¥É¤¬ºÆµ¢¤·¤¿¾ì¹ç¤Ë¥È¡¼¥¯¥ó¤¬¾¯¤Ê¤¯¤Ê¤Ã¤Æ¤·¤Þ¤Ã¤Æ¤¤¤¿
+<li>cparse ¤¬ Symbol ¤ËÂÐ±þ¤Ç¤­¤Æ¤Ê¤«¤Ã¤¿
+</ul>
+
+<h2>0.11.1(2000/03/08)</h2>
+<p>
+<ul>
+<li>ruby 1.5 ¤Î Symbol ¤ËÂÐ±þ
+<li>strscan ¤òºÇ¿·¤Ë
+</ul>
+
+<h2>0.11.0(2000/02/19)</h2>
+<p>
+<ul>
+<li>Îã³°¤Î¤È¤­¡¢¸µ¤Î¥Õ¥¡¥¤¥ë¤Î¹ÔÈÖ¹æ¤¬½Ð¤ë¤è¤¦¤Ë¤·¤¿
+</ul>
 
 <hr>
 <h2>0.10.9(2000/01/19)</h2>
 <p>
 <ul>
-<li>$B%;%C%H%"%C%WJ}K!$J$I:Y$+$JJQ99(B
+<li>¥»¥Ã¥È¥¢¥Ã¥×ÊýË¡¤Ê¤ÉºÙ¤«¤ÊÊÑ¹¹
 </ul>
 
 <h2>0.10.8(2000/01/03)</h2>
 <p>
 <ul>
-<li>$BK:$l$F$7$^$C$?$1$I$?$7$+%$%s%9%H!<%i4X78$N=$@5(B
-<li>(1/17 re-packed) $B%I%-%e%a%s%H$NDI2C$H=$@5(B
+<li>Ëº¤ì¤Æ¤·¤Þ¤Ã¤¿¤±¤É¤¿¤·¤«¥¤¥ó¥¹¥È¡¼¥é´Ø·¸¤Î½¤Àµ
+<li>(1/17 re-packed) ¥É¥­¥å¥á¥ó¥È¤ÎÄÉ²Ã¤È½¤Àµ
 </ul>
 
 <h2>0.10.7(2000/01/03)</h2>
 <p>
-Thanks $B?70f$5$s(B
+Thanks ¿·°æ¤µ¤ó
 <ul>
-<li>setup.rb compile.rb amstd/inst $B$J$I$N%P%0=$@5(B
+<li>setup.rb compile.rb amstd/inst ¤Ê¤É¤Î¥Ð¥°½¤Àµ
 </ul>
 
 <h2>0.10.6(1999/12/24)</h2>
 <p>
 <ul>
-<li>racc -e ruby $B$G%G%U%)%k%H%Q%9$r;HMQ(B
-<li>$B6u$N%"%/%7%g%s8F$S$@$7$r>JN,(B
+<li>racc -e ruby ¤Ç¥Ç¥Õ¥©¥ë¥È¥Ñ¥¹¤ò»ÈÍÑ
+<li>¶õ¤Î¥¢¥¯¥·¥ç¥ó¸Æ¤Ó¤À¤·¤ò¾ÊÎ¬
 </ul>
 
 <h2>0.10.5(1999/12/21)</h2>
 <p>
-thanks Tosh$B$5$s(B
+thanks Tosh¤µ¤ó
 <ul>
-<li>$BKd$a$3$_%"%/%7%g%s$N<BAu$,$9$5$^$8$/%P%0$C$F$?(B
-<li>setup.rb $B$,(B inst.rb $B$NJQ2=$KDI=>$7$F$J$+$C$?(B
-<li>calc.y calc2.y $B$r(B 0.10 $BMQ$K=$@5(B
+<li>Ëä¤á¤³¤ß¥¢¥¯¥·¥ç¥ó¤Î¼ÂÁõ¤¬¤¹¤µ¤Þ¤¸¤¯¥Ð¥°¤Ã¤Æ¤¿
+<li>setup.rb ¤¬ inst.rb ¤ÎÊÑ²½¤ËÄÉ½¾¤·¤Æ¤Ê¤«¤Ã¤¿
+<li>calc.y calc2.y ¤ò 0.10 ÍÑ¤Ë½¤Àµ
 </ul>
 
 <h2>0.10.4(1999/12/19)</h2>
 <p>
 <ul>
-<li>$B%(%i!<2sI|%b!<%I$r<BAu(B
-<li>racc -E $B$GC1BN$GF0:n$9$k%Q!<%6$r@8@.(B
-<li>Racc $B$O(B class $B$+$i(B module $B$K$J$C$?(B
+<li>¥¨¥é¡¼²óÉü¥â¡¼¥É¤ò¼ÂÁõ
+<li>racc -E ¤ÇÃ±ÂÎ¤ÇÆ°ºî¤¹¤ë¥Ñ¡¼¥¶¤òÀ¸À®
+<li>Racc ¤Ï class ¤«¤é module ¤Ë¤Ê¤Ã¤¿
 </ul>
 
 <h2>0.10.3(1999/12/01)</h2>
 <p>
 <ul>
-<li>$BKd$a$3$_%"%/%7%g%s$r%5%]!<%H(B
-<li>.output $B$N=PNOFbMF$K%P%0$,$"$C$?$N$r=$@5(B
+<li>Ëä¤á¤³¤ß¥¢¥¯¥·¥ç¥ó¤ò¥µ¥Ý¡¼¥È
+<li>.output ¤Î½ÐÎÏÆâÍÆ¤Ë¥Ð¥°¤¬¤¢¤Ã¤¿¤Î¤ò½¤Àµ
 </ul>
 
 <h2>0.10.2(1999/11/27)</h2>
 <p>
 <ul>
-<li>$B%I%-%e%a%s%H$ND{@5$H99?7(B
-<li>libracc.rb $B$rJ,3d(B
+<li>¥É¥­¥å¥á¥ó¥È¤ÎÄûÀµ¤È¹¹¿·
+<li>libracc.rb ¤òÊ¬³ä
 </ul>
 
 <h2>0.10.1(1999/11/19)</h2>
 <p>
 <ul>
-<li>C $B$G%i%s%?%$%`$r=q$-$J$*$7$?(B
-<li>next_token $B$,(B false $B$rJV$7$?$i$b$&FI$_$3$^$J$$(B
-<li>$B%"%/%7%g%s$,%H!<%/%s$K$h$i$:7h$^$k$H$-$O(B next_token $B$r8F$P$J$$(B
-<li>$end $BGQ;_(B
+<li>C ¤Ç¥é¥ó¥¿¥¤¥à¤ò½ñ¤­¤Ê¤ª¤·¤¿
+<li>next_token ¤¬ false ¤òÊÖ¤·¤¿¤é¤â¤¦ÆÉ¤ß¤³¤Þ¤Ê¤¤
+<li>¥¢¥¯¥·¥ç¥ó¤¬¥È¡¼¥¯¥ó¤Ë¤è¤é¤º·è¤Þ¤ë¤È¤­¤Ï next_token ¤ò¸Æ¤Ð¤Ê¤¤
+<li>$end ÇÑ»ß
 <li>LALRactionTable
 </ul>
 
 <h2>0.10.0(1999/11/06)</h2>
 <p>
 <ul>
-<li>next_* $B$r(B next_token $B$K0lK\2=!"(Bpeep_token $BGQ;_(B
-<li>@__debug__ -&lt; @yydebug $B$J$IJQ?tL>$rBgI}JQ99(B
-<li>$BJ8K!%U%!%$%k$N9=B$$,(B class...rule...end $B$KJQ$o$C$?(B
-<li>$B%3%"$N%3!<%I$r0l?7!"9bB.2=(B
-<li>strscan $B$rJ;9g(B
-<li>$B%i%$%V%i%j$r(B racc/ $B%G%#%l%/%H%j$K0\F0(B
+<li>next_* ¤ò next_token ¤Ë°ìËÜ²½¡¢peep_token ÇÑ»ß
+<li>@__debug__ -&lt; @yydebug ¤Ê¤ÉÊÑ¿ôÌ¾¤òÂçÉýÊÑ¹¹
+<li>Ê¸Ë¡¥Õ¥¡¥¤¥ë¤Î¹½Â¤¤¬ class...rule...end ¤ËÊÑ¤ï¤Ã¤¿
+<li>¥³¥¢¤Î¥³¡¼¥É¤ò°ì¿·¡¢¹âÂ®²½
+<li>strscan ¤òÊ»¹ç
+<li>¥é¥¤¥Ö¥é¥ê¤ò racc/ ¥Ç¥£¥ì¥¯¥È¥ê¤Ë°ÜÆ°
 </ul>
 
 <hr>
 <h2>0.9.5(1999/10/03)</h2>
 <p>
-thanks > Tosh$B$5$s(B
+thanks > Tosh¤µ¤ó
 <ul>
-<li>0.9.4 $B$NJQ99$,$9$4$/%P%0$C$F$?(B
-<li>$end $B$,DL$i$J$+$C$?$N$r=$@5(B
-<li>__show_stack__ $B$N0z?t$,0c$C$F$?(B
+<li>0.9.4 ¤ÎÊÑ¹¹¤¬¤¹¤´¤¯¥Ð¥°¤Ã¤Æ¤¿
+<li>$end ¤¬ÄÌ¤é¤Ê¤«¤Ã¤¿¤Î¤ò½¤Àµ
+<li>__show_stack__ ¤Î°ú¿ô¤¬°ã¤Ã¤Æ¤¿
 </ul>
 
 <h2>0.9.4(1999/09/??)</h2>
 <p>
 <ul>
-<li>Parser::Reporter $B$r$J$/$7$F%a%=%C%I$KLa$7$?(B
-<li>d.format.rb $B$r:FJT@.(B
+<li>Parser::Reporter ¤ò¤Ê¤¯¤·¤Æ¥á¥½¥Ã¥É¤ËÌá¤·¤¿
+<li>d.format.rb ¤òºÆÊÔÀ®
 </ul>
 
 <h2>0.9.3(1999/09/03)</h2>
@@ -1027,21 +1008,21 @@ thanks > Tosh$B$5$s(B
 <h2>0.9.2(1999/06/26)</h2>
 <p>
 <ul>
-<li>strscan$B;HMQ(B
+<li>strscan»ÈÍÑ
 </ul>
 
 <h2>0.9.1(1999/06/08)</h2>
 <p>
 <ul>
-<li>$B%"%/%7%g%sCf$N@55,I=8=$KBP1~(B ( /= $B$K$bCm0U$@(B)
-<li>$B%"%/%7%g%sCf$N(B # $B%3%a%s%H$KBP1~(B
+<li>¥¢¥¯¥·¥ç¥óÃæ¤ÎÀµµ¬É½¸½¤ËÂÐ±þ ( /= ¤Ë¤âÃí°Õ¤À)
+<li>¥¢¥¯¥·¥ç¥óÃæ¤Î # ¥³¥á¥ó¥È¤ËÂÐ±þ
 </ul>
 
 <h2>0.9.0(1999/06/03)</h2>
 <p>
 <ul>
-<li>$B%"%/%7%g%s$r(B { } $B7A<0$K$7$?(B
-<li>$B%f!<%6!<%3!<%I$r(B '----' $B$r;H$&7A<0$K$7$?(B
+<li>¥¢¥¯¥·¥ç¥ó¤ò { } ·Á¼°¤Ë¤·¤¿
+<li>¥æ¡¼¥¶¡¼¥³¡¼¥É¤ò '----' ¤ò»È¤¦·Á¼°¤Ë¤·¤¿
 </ul>
 
 
@@ -1050,59 +1031,59 @@ thanks > Tosh$B$5$s(B
 <h2>0.8.11</h2>
 <p>
 <ul>
-<li>-g $B=PNO$r$o$+$j$d$9$/$7$?(B
+<li>-g ½ÐÎÏ¤ò¤ï¤«¤ê¤ä¤¹¤¯¤·¤¿
 </ul>
 
 <h2>0.8.10</h2>
 <p>
 <ul>
-<li>$B%"%/%7%g%s$+$i(Breturn$B$G$-$k$h$&$K$7$?(B
+<li>¥¢¥¯¥·¥ç¥ó¤«¤éreturn¤Ç¤­¤ë¤è¤¦¤Ë¤·¤¿
 </ul>
 
 <h2>0.8.9(1999/03/21)</h2>
 <p>
 <ul>
-<li>-g + @__debug__$B$r$D$+$C$?%G%P%C%0%a%C%;!<%8A`:n(B
-<li>$B%(%i!<H/@8;~$N%P%0$r=$@5(B
-<li>TOKEN_TO_S_TABLE$B$rIU2C$9$k$h$&$K$7$?(B
+<li>-g + @__debug__¤ò¤Ä¤«¤Ã¤¿¥Ç¥Ð¥Ã¥°¥á¥Ã¥»¡¼¥¸Áàºî
+<li>¥¨¥é¡¼È¯À¸»þ¤Î¥Ð¥°¤ò½¤Àµ
+<li>TOKEN_TO_S_TABLE¤òÉÕ²Ã¤¹¤ë¤è¤¦¤Ë¤·¤¿
 </ul>
 
 <h2>0.8.8(1999/03/20)</h2>
 <p>
 <ul>
-<li>100$BG\DxEY$N9bB.2=(B
-<li>default$B%H!<%/%s$r2C$($?(B
-<li>$B%G%P%C%0MQ%=!<%9$r=PNO$9$k%*%W%7%g%s(B-g$B$r$/$o$($?(B
-<li>user_initialize$B$rGQ;_$7!"IaDL$K(Binitialize$B$r;H$($k$h$&$K$7$?(B
-<li>parse_initialize/finalize,parse$B%a%=%C%I$rGQ;_(B
-<li>next_token,next_value,peep_token$B$N%G%U%)%k%H$rGQ;_(B
-<li>%prec$B$HF1Ey$N5!G=$r2C$($?(B
+<li>100ÇÜÄøÅÙ¤Î¹âÂ®²½
+<li>default¥È¡¼¥¯¥ó¤ò²Ã¤¨¤¿
+<li>¥Ç¥Ð¥Ã¥°ÍÑ¥½¡¼¥¹¤ò½ÐÎÏ¤¹¤ë¥ª¥×¥·¥ç¥ó-g¤ò¤¯¤ï¤¨¤¿
+<li>user_initialize¤òÇÑ»ß¤·¡¢ÉáÄÌ¤Ëinitialize¤ò»È¤¨¤ë¤è¤¦¤Ë¤·¤¿
+<li>parse_initialize/finalize,parse¥á¥½¥Ã¥É¤òÇÑ»ß
+<li>next_token,next_value,peep_token¤Î¥Ç¥Õ¥©¥ë¥È¤òÇÑ»ß
+<li>%prec¤ÈÆ±Åù¤Îµ¡Ç½¤ò²Ã¤¨¤¿
 </ul>
 
 <h2>0.8.7(1999/03/01)</h2>
 <p>
 <ul>
-<li>$BFbIt9=B$$,BgI}$KJQ2=(B
-<li>$B%^%K%e%"%k$,(BHTML$B$K$J$C$?(B
+<li>ÆâÉô¹½Â¤¤¬ÂçÉý¤ËÊÑ²½
+<li>¥Þ¥Ë¥å¥¢¥ë¤¬HTML¤Ë¤Ê¤Ã¤¿
 </ul>
 
 <h2>0.8.0(1999/01/16)</h2>
 <p>
-$B$J$<$$$-$J$j(B 0.8 $B!)!)!)(B
+¤Ê¤¼¤¤¤­¤Ê¤ê 0.8 ¡©¡©¡©
 <ul>
-<li>$BJ8K!$,%V%m%C%/7?$KJQ2=(B
+<li>Ê¸Ë¡¤¬¥Ö¥í¥Ã¥¯·¿¤ËÊÑ²½
 </ul>
 
 <h2>0.5.0(1999/01/07)</h2>
 <p>
 <ul>
-<li>$B1i;;;RM%@h=g0L$,<BAu$5$l$?$h$&$@(B
-<li>$B%9%?!<%H5,B'$,<BAu$5$l$?$h$&$@(B
-<li>$B%H!<%/%sCM$NCV49$,<BAu$5$l$?$h$&$@(B($B8e$KCWL?E*$J%P%0H/8+(B)
+<li>±é»»»ÒÍ¥Àè½ç°Ì¤¬¼ÂÁõ¤µ¤ì¤¿¤è¤¦¤À
+<li>¥¹¥¿¡¼¥Èµ¬Â§¤¬¼ÂÁõ¤µ¤ì¤¿¤è¤¦¤À
+<li>¥È¡¼¥¯¥óÃÍ¤ÎÃÖ´¹¤¬¼ÂÁõ¤µ¤ì¤¿¤è¤¦¤À(¸å¤ËÃ×Ì¿Åª¤Ê¥Ð¥°È¯¸«)
 </ul>
 
 <h2>0.1.0(1999/01/01)</h2>
 <p>
-$B$H$K$+$/F0$/$h$&$K$J$C$?(B
+¤È¤Ë¤«¤¯Æ°¤¯¤è¤¦¤Ë¤Ê¤Ã¤¿
 
-. footer
+<% footer 1999 %>

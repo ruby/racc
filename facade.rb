@@ -9,7 +9,7 @@ require 'amstd/must'
 
 module Racc
 
-  Version = '0.10.9'
+  Version = '0.14.0'
 
 class Compiler
 
@@ -22,74 +22,82 @@ class Compiler
   attr :formatter
   attr :interf
 
-  attr :logic
-  attr :srconf
-  attr :rrconf
-
-  attr :dsrc, true
-
+  attr :dsrc
   
-  attr :debug,    true
-  attr :d_prec,   true
-  attr :d_rule,   true
-  attr :d_token,  true
-  attr :d_state,  true
-  attr :d_reduce, true
-  attr :d_shift,  true
+  attr :debug
+  attr :d_prec
+  attr :d_rule
+  attr :d_token
+  attr :d_state
+  attr :d_reduce
+  attr :d_shift
+  attr :d_prof
 
 
-  def compile( str, fn = '' )
-    reset
-    parse( str, fn )
-    init_rule
-    init_state
-    resolve
-  end
+  def initialize( debugopt )
+    @dsrc     = debugopt[ 'debug-src' ]
 
-  def reset
+    @debug    = debugopt[ 'debug' ]
+    @d_prec   = debugopt[ 'prec' ]
+    @d_rule   = debugopt[ 'rule' ]
+    @d_token  = debugopt[ 'token' ]
+    @d_state  = debugopt[ 'state' ]
+    @d_reduce = debugopt[ 'reduce' ]
+    @d_shift  = debugopt[ 'shift' ]
+    @d_prof   = debugopt[ 'profile' ]
+
     @tokentable = TokenTable.new( self )
     @ruletable  = RuleTable.new( self )
     @interf     = BuildInterface.new( self )
     @parser     = RaccParser.new( self )
     @statetable = LALRstateTable.new( self )
-    @formatter  = RaccFormatter.new( self )
+  end
+
+  def compile( str, fn = '' )
+    parse( str, fn )
+    nfa
+    dfa
   end
 
   def parse( str, fname = '' )
-    str.must String
     @parser.parse( str, fname )
     @class_name = @parser.classname
   end
 
-  def init_rule
-    @ruletable.do_initialize( @parser.start )
+  def nfa
+    GC.disable
+    @ruletable.init
+    @tokentable.init
+    @statetable.init
+    GC.enable
+    GC.start
   end
 
-  def init_state
-    @statetable.do_initialize
-  end
-
-  def resolve
+  def dfa
+    GC.disable
     @statetable.resolve
+    GC.enable
+    GC.start
   end
 
-  def source( f = '' )
-    @formatter.source f
+  def alist_table( f = '' )
+    fmt = AListTableGenerator.new( self )
+    fmt.output( f )
     f
   end
+
+  def index_table( f = '' )
+    fmt = IndexTableGenerator.new( self )
+    fmt.output( f )
+    f
+  end
+
+  alias source index_table
 
   def output( f = '' )
-    @formatter.output_rule  f
-    @formatter.output_token f
-    @formatter.output_state f
+    fmt = VerboseOutputFormatter.new( self )
+    fmt.output f
     f
-  end
-
-
-  def initialize
-    @logic  = []
-    @rrconf = []
-    @srconf = []
   end
 
 end

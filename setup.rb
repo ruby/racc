@@ -1,4 +1,5 @@
 
+$LOAD_PATH.unshift '.'
 require 'amstd/rbparams'
 require 'amstd/inst'
 

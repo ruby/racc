@@ -6,124 +6,6 @@
 
 module Racc
 
-  class Action
-  
-    def initialize( str )
-      @val = str
-    end
-
-    attr :val
-  
-  end
-
-
-  class BuildInterface
-
-    def initialize( racc )
-      @ruletable  = racc.ruletable
-      @tokentable = racc.tokentable
-
-      @precs = []
-      @emb = 1
-      @tmpprec = nil
-
-      @end_rule = false
-      @end_conv = false
-      @end_prec = false
-    end
-
-    
-    def get_token( val )
-      @tokentable.get( val )
-    end
-    
-
-    def embed_simbol( act )
-      sim = get_token( "@#{@emb}".intern )
-      @emb += 1
-      @ruletable.register sim, [], nil, act
-
-      sim
-    end
-
-    def register_rule( simbol, list )
-      if simbol then
-        @pre = simbol
-      else
-        simbol = @pre
-      end
-
-      if Action === list[-1] then
-        act = list.pop
-      else
-        act = Action.new( '' )
-      end
-      list.filter do |t|
-        Action === t ? embed_simbol( t ) : t
-      end
-
-      @ruletable.register simbol, list, @tmpprec, act
-      @tmpprec = nil
-    end
-
-    def end_register_rule
-      @end_rule = true
-    end
-
-    def register_tmpprec( prec )
-      if @tmpprec then
-        raise ParseError, "'=<prec>' used twice in one rule"
-      end
-      @tmpprec = prec
-    end
-
-
-    def register_prec( atr, toks )
-      puts "register: atr=#{atr.id2name}, toks=#{toks.join(' ')}" if @d_prec
-
-      if @end_prec then
-        raise ParseError, "'prec' block is defined twice"
-      end
-
-      toks.push atr
-      @precs.push toks
-    end
-
-    def end_register_prec( rev )
-      @end_prec = true
-
-      top = @precs.size - 1
-      @precs.each_with_index do |toks, idx|
-        atr = toks.pop
-
-        toks.each do |tok|
-          tok.assoc = atr
-          if rev then
-            tok.prec = top - idx
-          else
-            tok.prec = idx
-          end
-        end
-      end
-    end
-
-
-    def register_conv( tok, str )
-      if @end_conv then
-        raise ParseError, "'token' block is defined twice"
-      end
-
-      tok.conv = str
-    end
-
-    def end_register_conv
-      @end_conv = true
-    end
-
-  end   # BuildInterface
-
-    
-
   class RuleTable
 
     def initialize( rac )
@@ -137,6 +19,7 @@ module Racc
       @rules    = []
       @finished = false
       @hashval  = 4
+      @start    = nil
     end
 
 
@@ -151,20 +34,27 @@ module Racc
 
       @hashval += rulearr.size + 2
     end
-   
+
+    def start=( sim )
+      unless @start then
+        @start = sim
+        true
+      else
+        false
+      end
+    end
     
     attr :start
 
-    def do_initialize( start = nil )
+
+    def init
 
       ### add dummy rule
-
-      @start = start || @rules[0].simbol
 
       temp = Rule.new(
           @tokentable.dummy,
           [ @start, @tokentable.anchor, @tokentable.anchor ],
-          Action.new(''),
+          Action.new( '', 0 ),
           0, 0, nil )
         # id hash prec
       @rules.unshift temp
@@ -177,9 +67,6 @@ module Racc
         rule.simbol.rules.push rule.ptrs(0)
       end
 
-      @tokentable.each_token do |tok|
-        tok.term = (tok.rules.size == 0)
-      end
       @tokentable.fix
 
       @rules.each do |rule|
@@ -221,25 +108,6 @@ module Racc
       "<Racc::RuleTable>"
     end
 
-
-    def closure( ptrs )
-      ptrs = orig_ptrs.uniq
-      puts "closure: start: ptrs #{ptrs.join(' ')}" if @d_state
-
-      temp = {}
-      ptrs.each do |ptr|
-        temp.store( ptr, true )
-
-        tok = ptr.unref
-        ptr.reduce? or tok.term or temp.update( tok.expand )
-      end
-      ret = temp.keys
-      ret.sort!{|a,b| a.hash <=> b.hash }
-
-      puts "closure: ret #{ret.join(' ')}" if @d_state
-      return ret
-    end
-
   end   # RuleTable
 
 
@@ -250,15 +118,10 @@ module Racc
       @simbol  = tok
       @rulearr = rlarr
       @action  = act.val
+      @lineno  = act.lineno
       @ruleid  = rid
       @hash    = hval
       @prec    = tprec
-
-      @action.sub! /\A\s*(\n|\r\n|\r)/o, ''
-      @action.sub! /\s+\z/o, ''
-      if @action.empty? then
-        @action = nil
-      end
 
       @ptrs = []
       rlarr.each_index do |idx|
@@ -272,6 +135,7 @@ module Racc
 
 
     attr :action
+    attr :lineno
     attr :simbol
     attr :ruleid
     attr :hash
@@ -366,10 +230,6 @@ module Racc
     end
     alias inspect to_s
 
-    #def inspect
-    #  bug! 'ptr.inspect call'
-    #end
-
     def eql?( ot )
       @hash == ot.hash
     end
@@ -384,17 +244,18 @@ module Racc
     end
 
     def increment
-      unless ret = @rule.ptrs( @index + 1 ) then
-        ptr_bug!
-      end
-      return ret
+      ret = @rule.ptrs( @index + 1 )
+      ret or ptr_bug!
     end
 
     def decrement
-      unless ret = @rule.ptrs( @index - 1 ) then
-        ptr_bug!
-      end
-      return ret
+      ret = @rule.ptrs( @index - 1 )
+      ret or ptr_bug!
+    end
+
+    def before( len )
+      ret = @rule.ptrs( @index - len )
+      ret or ptr_bug!
     end
 
     private
@@ -412,7 +273,8 @@ module Racc
     include Enumerable
 
     def initialize( racc )
-      @nextid = 2
+      @racc = racc
+
       @chk = {}
       @tokens = []
       
@@ -429,7 +291,7 @@ module Racc
 
     def get( val )
       unless ret = @chk[ val ] then
-        @chk[ val ] = ret = Token.new( val )
+        @chk[ val ] = ret = Token.new( val, @racc )
         @tokens.push ret
       end
 
@@ -437,27 +299,51 @@ module Racc
     end
 
     def fix
-      nt = []
-      @tokens.delete_if do |i|
-        if i.terminal? then
-          false
-        else
-          nt.push i
-          true
-        end
+      tok = nil
+      @tokens.each do |tok|
+        tok.term = (tok.rules.size == 0)
       end
-      @tokens.concat nt
+
+      term = []
+      nt = []
+      i = nil
+      @tokens.each do |i|
+        (i.terminal? ? term : nt).push i
+      end
+      @tokens = term
+      @nt_base = term.size
+      term.concat nt
+
       @tokens.each_with_index do |t, i|
         t.tokenid = i
       end
     end
 
-    def each_token( &block )
-      @chk.each_value &block
+    attr :nt_base
+
+    def nt_max
+      @tokens.size
     end
 
     def each( &block )
       @tokens.each &block
+    end
+
+    def each_terminal( &block )
+      @tokens[ 0, @nt_base ].each( &block )
+    end
+
+    def each_nonterm( &block )
+      @tokens[ @nt_base, @tokens.size - @nt_base ].each( &block )
+    end
+
+
+    def init
+      tok = nil
+      @tokens.each {|tok| tok.compute_expand   unless tok.terminal? }
+      @tokens.each {|tok| tok.compute_nullable unless tok.terminal? }
+      @tokens.each {|tok| tok.compute_first    unless tok.terminal? }
+      @tokens.each {|tok| tok.compute_follow   unless tok.terminal? }
     end
 
   end   # TokenTable
@@ -469,125 +355,228 @@ module Racc
     Anchor_token_id  = 0
     Error_token_id   = 1
 
-    def initialize( tok )
+    def initialize( tok, racc )
       @tokenid = nil
-      @value = tok
+      @value   = tok
       @tokenid = nil
 
-      @hash    = @value.hash
+      @hash   = @value.hash
+
+      @term   = nil
+      @conv   = nil
 
       @rules  = []
       @locate = []
-      @term   = nil
+      @null   = nil
+      @expand = nil
       @first  = nil
-      @conv   = nil
-      @nullp  = nil
-      @bfrom  = nil
+      @follow = nil
+
+      @d_token = racc.d_token
+
+
+      # for human
+      @to_s = case @value
+              when Symbol then @value.id2name
+              when String then @value.inspect
+              else
+                bug! "wrong token value: #{@value}(#{@value.type})"
+              end
+
+      # for ruby source
+      @uneval = case @value
+                when Symbol then ':' + @value.id2name
+                when String then @value.inspect
+                else
+                  bug! "wrong token value: #{@value}(#{@value.type})"
+                end
     end
 
     def tokenid=( tid )
-      if @tid then
-        raise ArgumentError, "token id initialized twice"
+      if @tokenid then
+        bug! "token id initialized twice"
       end
       @tokenid = tid
     end
 
+    def conv=( str )
+      @conv = @uneval = str
+    end
+
+
     attr :tokenid
 
     attr :value
-    attr :rules
-    attr :locate
-    attr :term,  true
-    attr :nullp, true
-    attr :assoc, true
-    attr :prec,  true
-    attr :conv,  true
-
-    alias terminal? term
-    alias null?     nullp
-
     attr :hash
 
+    attr :term,  true
+    attr :conv # true
+    attr :prec,  true
+    attr :assoc, true
 
-    def to_s   # for system internal
-      case @value
-      when Integer then @value.id2name
-      when String  then @value.inspect
-      else
-        bug! "wrong token value: #{@value}(#{@value.type})"
-      end
+    attr :rules
+    attr :locate
+    attr :expand
+    attr :null
+    attr :first
+    attr :follow
+
+    alias terminal? term
+    alias nullable? null
+
+
+    def to_s
+      @to_s.dup
     end
     alias inspect to_s
 
-    def uneval   # for output
-      if    @conv              then @conv
-      elsif Integer === @value then ':' + @value.id2name
-      elsif String === @value  then @value.inspect
-      else
-        bug! "wrong token value: #{@value}(#{@value.type})"
-      end
+    def uneval
+      @uneval.dup
     end
 
 
-    def first
-      puts "get_first: start: token=#{self.to_s}" if @d_token
+    # only on left
+    def useless?
+      not @terminal and @locate.empty?
+    end
 
-      return @first if @first
-      @first = {}
 
-      ret = {}
-      @nullp = false
+    def compute_expand
+      puts "expand> #{to_s}" if @d_token
+      @expand = upd_expand( {}, [] )
+      puts "expand< #{to_s}: #{@expand.keys.join(' ')}" if @d_token
+    end
 
-      if @term then
+    def upd_expand( ret, lock )
+      if @expand then
+        ret.update @expand
+        return @expand
+      end
+      lock[tokenid] = true
+
+      nterm = {}
+      tok = h = nil
+
+      @rules.each do |ptr|
+        ret[ptr] = true
+        tok = ptr.unref
+        if tok and not tok.terminal? then
+          nterm[ tok ] = true
+        end
+      end
+      nterm.each_key do |tok|
+        unless lock[tok.tokenid] then
+          tok.upd_expand( ret, lock )
+        end
+      end
+
+      ret
+    end
+
+
+    def compute_nullable
+      puts "null?> #{to_s}" if @d_token
+      @null = check_null( [] )
+      puts "null?< #{to_s}: #{@null}" if @d_token
+    end
+
+    def check_null( lock )
+      return @null unless @null.nil?
+      lock[tokenid] = true
+
+      ptr = tok = nil
+
+      @rules.each do |ptr|
+        while true do
+          if ptr.reduce? then
+            return true
+          end
+          tok = ptr.unref
+
+          break if tok.terminal?
+          break if lock[tok.tokenid]
+          break unless tok.check_null( lock )
+          ptr = ptr.increment
+        end
+      end
+
+      false
+    end
+
+
+    def compute_first
+      puts "first> #{to_s}" if @d_token
+      @first = upd_first( {}, [] )
+      puts "first< #{to_s}: #{@first.keys.join(' ')}" if @d_token
+    end
+
+    def upd_first( ret, lock )
+      if @first then
+        ret.update @first
+        return @first
+      end
+      lock[tokenid] = true
+
+      ptr = tok = nil
+
+      if terminal? then
         bug! '"first" called for terminal'
       else
-        tmp = {}
         @rules.each do |ptr|
-          if ptr.reduce? then
-            # reduce at index 0 --> null
-            @nullp = true
-          else
-            tmp[ ptr.unref ] = true
-          end
-        end
+          until ptr.reduce? do
+            tok = ptr.unref
+            if tok.terminal? then
+              ret[ tok ] = true
+              break
+            else
+              tok.upd_first( ret, lock ) unless lock[tok.tokenid]
+              break unless tok.nullable?
+            end
 
-        tmp.each_key do |tok|
-          ret.update tok.first unless tok.terminal?
+            ptr = ptr.increment
+          end
         end
       end
 
-      @first = ret
-      puts "get_first: for=#{token}; ret=#{ret.keys.join(' ')}" if @d_token
-
-      return ret
+      ret
     end
 
 
-    def expand
-      puts "expand: start: tok=#{self}" if @d_state
+    def compute_follow
+      puts "follow> #{to_s}" if @d_token
+      @follow = upd_follow( {}, [] )
+      puts "follow< #{to_s}: #{@follow.keys.join(' ')}" if @d_token
+    end
 
-      return @bfrom if @bfrom
-      @bfrom = 1                           #####
+    def upd_follow( ret, lock )
+      if @follow then
+        ret.update @follow
+        return @follow
+      end
+      lock[tokenid] = true
 
-      ret = {}
-      tmp = {}
-      @rules.each do |ptr|
-        ret.store( ptr, true )
-        tok = ptr.unref
-        if not ptr.reduce? and not tok.terminal? then
-          tmp[ tok ] = true
+      ptr = tok = nil
+
+      @locate.each do |ptr|
+        while true do
+          ptr = ptr.increment || ptr
+          if ptr.reduce? then
+            tok = ptr.rule.simbol
+            tok.upd_follow( ret, lock ) unless lock[tok.tokenid]
+            break
+          end
+          tok = ptr.unref
+          if tok.terminal? then
+            ret[tok] = true
+            break
+          else
+            ret.update tok.first
+            break unless tok.nullable?
+          end
         end
       end
-      tmp.each_key do |tok|
-        if (h = tok.expand) != 1 then      #####
-          ret.update h
-        end
-      end
 
-      @bfrom = ret
-      puts "expand: ret #{ret.keys.join(' ')}" if @d_state
-
-      return ret
+      ret
     end
 
   end   # class Token

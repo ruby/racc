@@ -12,20 +12,25 @@ require 'amstd/bug'
 require 'strscan'
 
 
+unless defined? ScanError then
+  class ScanError < StandardError; end
+end
+
 module Racc
 
 class Scanner
 
-  EOL   = /\A(\n|\r\n|\r)/o
-  SPC   = /\A[ \t]+/o
-  LINE  = /\A[^\r\n]*(\n|\r\n|\r|\z)/o
+  EOL   = /\A(?:\n|\r\n|\r)/o
+  SPACE = /\A[ \t]+/o
+  LINE  = /\A[^\r\n]*(?:\n|\r\n|\r|\z)/o
   QPAIR = /\A\\./o
   CHAR  = /\A./o
 
 
-  def initialize( str )
+  def initialize( str, fname = nil )
     @avoid_gc = str   # no need but
     @scan     = StringScanner.new( str, false )
+    @filename = fname
     @lineno   = 1
     @debug    = false
   end
@@ -47,25 +52,36 @@ class Scanner
   private
 
 
-  def scan_string( right, preserve = true )
-    cont = /\A[^\\#{right}]+/    # don't o
-    term = /\A#{right}/          # don't o
+  def do_scan_string( contexp, termexp, preserve )
     ret = ''
+    tmp = nil
+    qpair = QPAIR
 
     while true do
-      if co = @scan.scan( cont ) then
-        ret << co
-      end
-      if qp = @scan.scan( QPAIR ) then
-        ret << (preserve ? qp : qp[1, qp.size - 1])
-        next
-      end
-      if ri = @scan.scan( term )
-        return ret
+      if tmp = @scan.scan( contexp ) then
+        ret << tmp
       end
 
-      scan_error! 'found unterminated string'
+      if tmp = @scan.scan( qpair ) then
+        ret << (preserve ? tmp : tmp[1, tmp.size - 1])
+
+      elsif @scan.skip( termexp )
+        break
+
+      else
+        scan_error! 'found unterminated string'
+      end
     end
+
+    ret
+  end
+
+  def scan_string( right, preserve = true )
+    do_scan_string( /\A[^\\#{right}]+/, /\A#{right}/, preserve )
+  end
+
+  def scan_Q_string( preserve = true )
+    do_scan_string( /\A[^\\"]+/, /A"/, preserve )
   end
 
 
@@ -73,18 +89,16 @@ class Scanner
     raise ScanError, "#{@filename}:#{@lineno}: #{mes}"
   end
 
-
   def scan_bug!( mes = 'must not happen' )
     bug! "#{@filename}:#{@lineno}: #{mes}"
   end
 
-
   def debug_report( arr )
-    puts "rest=#{@scan.restsize}"
     s = arr[0]
-    puts "token #{Fixnum === s ? s.id2name : s.inspect}"
-    puts "value #{arr[1]}"
-    puts
+    printf "%7d %-10s %s\n",
+      @scan.restsize,
+      Symbol === s ? s.id2name : s.inspect,
+      arr[1].inspect
   end
 
 end

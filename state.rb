@@ -9,6 +9,9 @@ require 'amstd/must'
 
 module Racc
 
+  class RaccError < StandardError; end
+
+
   class LALRstateTable
 
     def initialize( racc )
@@ -19,10 +22,9 @@ module Racc
       @d_state  = racc.d_state
       @d_reduce = racc.d_reduce
       @d_shift  = racc.d_shift
+      @prof     = racc.d_prof
 
       @states = []
-      # require '/home/aamine/r/racc/ft/corecache'
-      # @statecache = LALRcoreCache.new
       @statecache = {}
 
       @actions = LALRactionTable.new( @ruletable, self )
@@ -30,6 +32,16 @@ module Racc
     
 
     attr :actions
+
+    def size
+      @states.size
+    end
+
+
+    def inspect
+      "#<state table>"
+    end
+    alias to_s inspect
 
     def []( i )
       @states[i]
@@ -44,12 +56,9 @@ module Racc
       @states.each_index( &block )
     end
 
-    def to_s
-      "<LALR state table: #{@states.size} states>"
-    end
 
+    def init
 
-    def do_initialize
       # add state 0
       seed_to_state( [ @ruletable[0].ptrs(0) ] )
 
@@ -62,15 +71,34 @@ module Racc
 
 
     def resolve
-      @states.each do |state|
-        if state.conflicting? then
-          if @d_reduce or @d_shift then
-            puts "resolving state #{state.stateid} -------------"
-          end
+      $stderr.puts 'resolver start' if @prof
 
-          state.resolve_rr
-          state.resolve_sr
+      @states.each do |state|
+        state.compute_first_term
+      end
+      if @prof then
+        b = Time.times.utime
+        slr = 0
+        lalr = 0
+      end
+      @states.each do |state|
+        if @prof then
+          if state.stateid % 40 == 39 then
+            $stderr.puts "end #{state.stateid + 1} states"
+          end
         end
+
+        if state.conflicting? then
+          ret = state.resolve
+          if ret == :slr then slr += 1 else lalr += 1 end if @prof
+        end
+      end
+
+      if @prof then
+        e = Time.times.utime
+        puts "total #{e - b} sec"
+        puts "slr #{slr}, lalr #{lalr}"
+        $stderr.puts 'resolve ok'
       end
 
       # set accept
@@ -84,7 +112,7 @@ module Racc
       acc_state.nonterm_table.clear
       acc_state.defact = @actions.accept
 
-      enshort   #not_enshort
+      simplify   #not_simplify
     end
 
 
@@ -116,13 +144,13 @@ module Racc
         end
       end
 
-      devseed.each do |tok, arr|
-        # all 'arr's must be rule table order (upper to lower)
-        arr.sort!{|a, b| a.hash <=> b.hash }
+      devseed.each do |tok, seed|
+        # all 'seed's must be rule table order (upper to lower)
+        seed.sort!{|a, b| a.hash <=> b.hash }
 
-        puts "devlop_state: tok=#{tok} nseed=#{arr.join(' ')}" if @d_state
+        puts "devlop_state: tok=#{tok} nseed=#{seed.join(' ')}" if @d_state
 
-        dest = seed_to_state( arr )
+        dest = seed_to_state( seed )
         connect( state, tok, dest )
       end
     end
@@ -131,8 +159,7 @@ module Racc
     def seed_to_state( seed )
       unless dest = @statecache[seed] then
         # not registered yet
-        lr_closure = closure( seed )
-        dest = LALRstate.new( @states.size, lr_closure, seed, @racc )
+        dest = LALRstate.new( @states.size, seed, @racc )
         @states.push dest
 
         @statecache[ seed ] = dest
@@ -149,32 +176,12 @@ module Racc
     end
 
 
-    def closure( ptrs )
-      puts "closure: ptrs=#{ptrs.join(' ')}" if @d_state
-
-      tmp = {}
-      ptrs.each do |ptr|
-        tmp[ ptr ] = true
-
-        tok = ptr.unref
-        if not ptr.reduce? and not tok.terminal? then
-          tmp.update( tok.expand )
-        end
-      end
-      ret = tmp.keys
-      ret.sort!{|a,b| a.hash <=> b.hash }
-
-      puts "closure: ret #{ret.join(' ')}" if @d_state
-      ret
-    end
-
-
     def connect( from, tok, dest )
       puts "connect: #{from.stateid} --(#{tok})-> #{dest.stateid}" if @d_state
 
       # check infinite recursion
       if from.stateid == dest.stateid and from.closure.size < 2 then
-        @racc.logic.push sprintf( "Infinite recursion: state %d, with rule %d",
+        raise RaccError, sprintf( "Infinite recursion: state %d, with rule %d",
           from.stateid, from.ptrs[0].ruleid )
       end
 
@@ -194,21 +201,20 @@ module Racc
     end
 
 
-    def not_enshort
+    def not_simplify
       err = @actions.error
       @states.each do |st|
         st.defact ||= err
       end
     end
 
-    def enshort
-      arr = nil
-      act = nil
-      i = nil
+    def simplify
+      st = arr = act = nil
+      i = n = s = r = nil
 
       @states.each do |st|
         #
-        # find most used reduce rule
+        # find most frequently used reduce rule
         #
         act = st.action
         arr = Array.new( @ruletable.size, 0 )
@@ -217,14 +223,9 @@ module Racc
             arr[ a.ruleid ] += 1
           end
         end
-        i = 1
-        s = nil
-        arr.each_with_index do |n,idx|
-          if n > i then
-            i = n
-            s = idx
-          end
-        end
+        i = s = nil
+        i = arr.max
+        s = arr.index( i ) if i > 0
 
         if s then
           r = @actions.reduce(s)
@@ -241,11 +242,87 @@ module Racc
   end   # LALRstateTable
 
 
+  class SLRerror < StandardError; end
+
 
   class LALRstate
 
+    def initialize( sid, seed, racc )
+      @stateid = sid
+      @seed = seed
+
+      @closure = nil
+      @closure_hash = nil
+
+      @racc       = racc
+      @tokentable = racc.tokentable
+      @actions    = racc.statetable.actions
+      @d_state    = racc.d_state
+      @d_reduce   = racc.d_reduce
+      @d_shift    = racc.d_shift
+      @prof       = racc.d_prof
+
+      @from_table    = {}
+      @term_table    = {}
+      @nonterm_table = {}
+
+      @first_term = {}
+      @nullable = []
+
+      @shift_toks  = []
+      @reduce_ptrs = []
+      @reduce_seed = []
+
+      @action = {}
+      @defact = nil
+
+      @resolve_log = []
+
+      @rrconf = nil
+      @srconf = nil
+
+      init_values
+    end
+
+    def init_values
+      @reduce_seed = seed.find_all {|ptr| ptr.reduce? }
+
+      @seed.each do |ptr|
+        t = ptr.unref
+        if t and t.nullable? then
+          @nullable.push t
+        end
+      end
+
+      @closure = compute_closure( @seed )
+    end
+
+    def compute_closure( ptrs )
+      puts "closure: ptrs=#{ptrs.join(' ')}" if @d_state
+
+      @closure_hash = tmp = {}
+      tok = a = b = nil
+
+      ptrs.each do |ptr|
+        tmp[ ptr ] = true
+
+        tok = ptr.unref
+        if tok and not tok.terminal? then
+          tmp.update tok.expand
+        end
+      end
+
+      ret = tmp.keys
+      ret.sort!{|a,b| a.hash <=> b.hash }
+
+      puts "closure: ret #{ret.join(' ')}" if @d_state
+      ret
+    end
+
+
     attr :stateid
     attr :closure
+    attr :closure_hash
 
     attr :seed
 
@@ -253,40 +330,24 @@ module Racc
     attr :term_table
     attr :nonterm_table
 
+    attr :nullable
+    attr :first_term
+
     attr :reduce_ptrs
+    attr :reduce_seed
 
     attr :action
     attr :defact, true   # default action
 
+    attr :resolve_log
 
-    def initialize( state_id, lr_closure, seed, racc )
+    attr :rrconf
+    attr :srconf
 
-      @stateid = state_id
-      @closure = lr_closure
-
-      @seed = seed
-
-      @racc       = racc
-      @tokentable = racc.tokentable
-      @actions    = racc.statetable.actions
-      @d_reduce   = racc.d_reduce
-      @d_shift    = racc.d_shift
-
-      @from_table    = {}
-      @term_table    = {}
-      @nonterm_table = {}
-
-      @reduce_ptrs = []
-      @shift_toks  = []
-
-      @action = {}
-      @defact = nil
-
-      @first_terms = nil
-
-      @rrconf = []
-      @srconf = []
+    def inspect
+      "#<LALRstate #{@stateid}>"
     end
+    alias to_s inspect
 
 
     def ==( oth )
@@ -301,11 +362,6 @@ module Racc
       @stateid
     end
 
-    def to_s
-      sprintf( '<state %d %s>', @stateid, @closure.join(' ') )
-    end
-    alias inspect to_s
-
     def each_ptr( &block )
       @closure.each( &block )
     end
@@ -314,17 +370,48 @@ module Racc
     def conflicting?
       if @reduce_ptrs.size > 0 then
         if @closure.size == 1 then
-          @defact = @actions.reduce( @closure[0].rule )
+          @defact = @actions.reduce( @reduce_ptrs[0].rule )
+          #
+          # reduce
+          #
         else
+          #
+          # conflict
+          #
           return true
         end
       else
+        #
+        # shift
+        #
         @term_table.each do |tok, goto|
           @action[ tok ] = @actions.shift( goto )
         end
       end
 
-      return false
+      false
+    end
+
+
+    def resolve
+      if @d_reduce or @d_shift then
+        puts "resolving state #{@stateid} -------------"
+      end
+
+      @method = :slr
+      begin
+        resolve_rr
+        resolve_sr
+      rescue SLRerror
+        if @d_reduce or @d_shift then
+          puts "state #{@stateid}, slr fail -------------"
+        end
+        @action.clear
+        @method = :lalr
+        retry
+      end
+
+      @method
     end
 
 
@@ -332,50 +419,150 @@ module Racc
     #  Reduce/Reduce Conflict resolver
     #
 
-    def resolve_rr
-      puts "resolve_rr: state #{@stateid}" if @d_reduce
+#trap( 'INT' ) do
+#puts "resolving #{$resolving_state.stateid}"; $stdout.flush
+#raise Exception, "stopped by SIGINT"
+#end
 
-      act = curptr = tok = nil
+    def resolve_rr
+#$resolving_state = self
+      puts "resolve_rr: state #{@stateid}, #{method.id2name}" if @d_reduce
+
+      la = act = curptr = tok = nil
 
       @reduce_ptrs.each do |curptr|
-        puts "resolve_rr: each: #{curptr}" if @d_reduce
+        puts "resolve_rr: resolving #{curptr}" if @d_reduce
 
-        lookahead_tokens( curptr ).each_key do |tok|
+        la = send( @method, curptr )
+        la.each_key do |tok|
           act = @action[ tok ]
-          if ReduceAction === act then
+          if act then
+            unless ReduceAction === act then
+              bug! "no reduce action #{act.type} in action table"
+            end
             #
             # can't resolve R/R conflict (on tok).
             #   reduce with upper rule as default
             #
-            rrconf act.rule, curptr.rule, tok
+
+            rr_conflict act.rule, curptr.rule, tok
           else
-            # resolved
+            # not conflict
             @action[ tok ] = @actions.reduce( curptr.rule )
           end
         end
       end
     end
 
-    
-    def lookahead_tokens( ptr )
-      puts "lookahead: start ptr=#{ptr}" if @d_reduce
 
-      ret = {}
-      backtrack( ptr ).each_key do |st|
-        ret.update st.first_terms([])
-      end
-
-      puts "lookahead: ret [#{ret.keys.join(' ')}]" if @d_reduce
-      return ret
+    def slr( ptr )
+      ptr.rule.simbol.follow
     end
 
 
-    def backtrack( ptr )
-      cur = { self => true }
-      newstates = {}
-      backed = nil
+    def lalr( ptr )
+      ret = lookahead( ptr, [] )
+      puts "LA: state #{@stateid}: #{ret.keys.join(' ')}" if @d_reduce
+      ret
+    end
 
-      puts "backtrack: start: state #{@stateid}, ptr #{ptr}" if @d_reduce
+    def compute_first_term
+      h = @first_term
+
+      h.update @term_table
+      @nonterm_table.each_key do |tok|
+        h.update tok.first
+      end
+    end
+
+
+    def lookahead( ptr, lock )
+      puts "la> state #{@stateid},#{ptr}" if @d_reduce
+      st_beg = Time.times.utime if @prof
+
+      sim = ptr.rule.simbol
+      ret = {}
+      gotos = {}
+      new = {}
+      goto = pt = nil
+      ff = len = nil
+      f = a = tmp = nil
+      nt = h = nil
+
+      head_state( ptr ).each_key do |f|
+        tmp = f.nonterm_table[ sim ]
+        if a = gotos[tmp]; a[f]=1 else gotos[tmp] = {f,1} end
+      end
+
+      i = 0 if @prof
+      until gotos.empty? do
+        i += 1 if @prof
+
+        gotos.each do |goto, froms|
+          puts "la: goto #{goto.stateid}" if @d_reduce
+
+          next if lock[goto.stateid]
+          lock[goto.stateid] = true
+          ret.update goto.first_term
+
+  goto.reduce_seed.each do |pt|
+    sim = pt.rule.simbol
+
+    froms.each do |f,len|
+      if pt.index == len then
+                  tmp = f.nonterm_table[ sim ]
+#unless tmp then p goto.stateid; p f.stateid; p pt; bug! end
+                  if h = new[tmp]; h[f]=1 else new[tmp] = {f,1} end
+      else
+#begin
+        f.head_state( pt.before(len) ).each_key do |ff|
+                  tmp = ff.nonterm_table[ sim ]
+#unless tmp then p goto.stateid; p ff.stateid; p pt; bug! end
+                  if h = new[tmp]; h[ff]=1 else new[tmp] = {ff,1} end
+        end
+#rescue FindBug
+#p f
+#p len
+#p pt
+#raise
+#end
+      end
+    end
+  end           # seed.each
+  goto.nullable.each do |nt|
+                  tmp = goto.nonterm_table[ nt ]
+#unless tmp then p goto.stateid; p ff.stateid; p pt; bug! end
+                  if h = new[tmp] then
+                    froms.each {|f,len| bug! if h[f]; h[f] = len + 1 }
+                  else
+                    h = {}; froms.each {|f,len| h[f] = len + 1 }
+                    new[tmp] = h
+                  end
+  end
+        end     # gotos.each
+
+        tmp = gotos
+        gotos = new
+        new = tmp
+        new.clear
+      end            # until
+
+      if @prof
+        st_end = Time.times.utime
+        printf "%-4d %4d %4d %f\n",
+               @stateid, lock.compact.size, i, st_end - st_beg
+      end
+
+      puts "la< state #{@stateid}" if @d_reduce
+      ret
+    end
+
+    def head_state( ptr )
+      puts "hs> ptr #{ptr}" if @d_reduce
+
+      cur = { self => true }
+      new = {}
+      backed = st = nil
 
       until ptr.head? do
         ptr = ptr.decrement
@@ -383,65 +570,27 @@ module Racc
 
         cur.each_key do |st|
           unless backed = st.from_table[ tok ] then
+#p st.from_table
+#p tok
+#puts "from table void: state #{st.stateid} key '#{tok}'"
+#$stdout.flush
             bug! "from table void: state #{st.stateid} key #{tok}"
           end
-          newstates.update backed
+          new.update backed
         end
 
         tmp = cur
-        cur = newstates
-        newstates = tmp
-        newstates.clear
+        cur = new
+        new = tmp
+        new.clear
       end
 
-      sim = ptr.rule.simbol
-      ret = newstates
-      cur.each_key do |st|
-        t = st.nonterm_table[ sim ]
-        ret[t] = true if t
-      end
-
-      puts "backtrack: from #{@stateid} to #{sh2s ret}" if @d_reduce
-      ret
+      puts "hs< backed [#{sh2s cur}]" if @d_reduce
+      cur
     end
 
     def sh2s( sh )
-      '[' + sh.collect{|s,v| s.stateid }.join(' ') + ']'
-    end
-
-
-    def first_terms( idlock )
-      idlock[ @stateid ] = true             # recurcive lock
-      return @first_terms if @first_terms   # cached
-
-      puts "first_terms: state #{@stateid} ---" if @d_reduce
-
-      ret = {}   # hash of look-ahead token
-      tmp = {}   # backtrack-ed states
-
-      @term_table.each do |tok, goto|
-        ret[ tok ] = true
-      end
-      @nonterm_table.each do |tok, goto|
-        ret.update tok.first
-        if tok.null? then
-          tmp[ goto ] = true
-        end
-      end
-      @reduce_ptrs.each do |ptr|
-        tmp.update backtrack( ptr )
-      end
-
-      tmp.each_key do |st|
-        unless idlock[ st.stateid ] then
-          ret.update st.first_terms( idlock )
-        end
-      end
-      @first_terms = ret
-
-      puts "first_terms: state #{@stateid} [#{ret.keys.join(' ')}]" if @d_reduce
-
-      ret
+      sh.collect{|s,v| s.stateid }.join(',')
     end
 
 
@@ -478,7 +627,7 @@ module Racc
 
             when :CantResolve   # shift as default
               @action[ stok ] = @actions.shift( goto )
-              srconf stok, act.rule
+              sr_conflict stok, act.rule
             end
           else
             bug! "wrong act in action table: #{act}(#{act.type})"
@@ -503,36 +652,60 @@ module Racc
       end
       sprec = stok.prec
 
-      if rprec == sprec then
-        case rtok.assoc
-        when :Left     then ret = :Reduce
-        when :Right    then ret = :Shift
-        when :Nonassoc then ret = :Remove  # 'rtok' raises ParseError
-        else
-          bug! "prec is not Left/Right/Nonassoc, #{rtok}"
-        end
-      else
-        if rprec > sprec then
-          ret = (if @reverse then :Shift else :Reduce end)
-        else
-          ret = (if @reverse then :Reduce else :Shift end)
-        end
-      end
+      ret = if rprec == sprec then
+              case rtok.assoc
+              when :Left     then :Reduce
+              when :Right    then :Shift
+              when :Nonassoc then :Remove  # 'rtok' makes error
+              else
+                bug! "#{rtok}.assoc is not Left/Right/Nonassoc"
+              end
+            else
+              if rprec > sprec
+              then :Reduce
+              else :Shift
+              end
+            end
 
-      puts "resolve_sr: resolved as #{ret.id2name}" if @d_state
-
-      return ret
+      puts "resolve_sr: resolved as #{ret.id2name}" if @d_shift
+      ret
     end
     private :do_resolve_sr
 
 
 
-    def rrconf( rule1, rule2, tok )
-      @racc.rrconf.push RRconflict.new( @stateid, rule1, rule2, tok )
+    def rr_conflict( high, low, ctok )
+      if @method == :slr then
+        raise SLRerror, "SLR r/r conflict in state #{@stateid}"
+      end
+        
+      c = RRconflict.new( @stateid, high, low, ctok )
+
+      unless @rrconf then
+        @rrconf = {}
+      end
+      if a = @rrconf[ctok] then
+        a.push c
+      else
+        @rrconf[ctok] = [c]
+      end
     end
 
-    def srconf( stok, rrule )
-      @racc.srconf.push SRconflict.new( @stateid, stok, rrule )
+    def sr_conflict( shift, reduce )
+      if @method == :slr then
+        raise SLRerror, "SLR s/r conflict in state #{@stateid}"
+      end
+
+      c = SRconflict.new( @stateid, shift, reduce )
+
+      unless @srconf then
+        @srconf = {}
+      end
+      if a = @srconf[shift] then
+        a.push c
+      else
+        @srconf[shift] = [c]
+      end
     end
 
   end   # LALRstate
@@ -683,10 +856,10 @@ module Racc
 
   class SRconflict < ConflictData
 
-    def initialize( sid, stok, rrule )
+    def initialize( sid, shift, reduce )
       @stateid = sid
-      @shift   = stok
-      @reduce  = rrule
+      @shift   = shift
+      @reduce  = reduce
     end
     
     attr :stateid
@@ -702,21 +875,21 @@ module Racc
 
   class RRconflict < ConflictData
     
-    def initialize( sid, rule1, rule2, tok )
-      @stateid = sid
-      @reduce1 = rule1
-      @reduce2 = rule2
-      @token   = tok
+    def initialize( sid, high, low, tok )
+      @stateid   = sid
+      @high_prec = high
+      @low_prec  = low
+      @token     = tok
     end
 
     attr :stateid
-    attr :reduce1
-    attr :reduce2
+    attr :high_prec
+    attr :low_prec
     attr :token
   
     def to_s
       sprintf( 'state %d: R/R conflict with rule %d and %d on %s',
-               @stateid, @reduce1.ruleid, @reduce2.ruleid, @token.to_s )
+               @stateid, @high_prec.ruleid, @low_prec.ruleid, @token.to_s )
     end
 
   end
