@@ -120,6 +120,7 @@ try %w( echk.y   -E               ), [], true
 try %w( err.y                     ), [], true
 try %w( mailp.y                   ), []
 try %w( conf.y   -v               ), [4,1,1,2]
+try %w( rrconf.y                  ), [1,1,0,0]
 try %w( opt.y                     ), [], true
 try %w( yyerr.y                   ), [], true
 try %w( recv.y                    ), [5,10,1,4]
