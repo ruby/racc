@@ -56,6 +56,17 @@ def exec_test( file )
   ruby 'tab/' + file
 end
 
+def must_fail( file )
+  testing( file.split('.')[0] ) {
+    begin
+      ruby '../racc ' + file
+    rescue TestError
+    else
+      raise TestError, 'error not raised'
+    end
+  }
+end
+
 
 class TestError < StandardError; end
 
@@ -133,4 +144,6 @@ try %w( nullbug2.y                ), [0,0,0,0]
 try %w( firstline.y               ), []
 try %w( nonass.y                  ), [], true
 try %w( digraph.y                 ), [], true
+must_fail 'norule.y'
+must_fail 'unterm.y'
 report
