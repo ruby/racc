@@ -52,36 +52,32 @@ module Racc
     def do_scan
       begin
         until @line.empty? do
-          @line.sub! /\A\s+/, ''
+          @line.sub!( /\A\s+/, '' )
 
           if /\A\#/ === @line then
-            next_line
+            break
 
           elsif /\A\/\*/ === @line then
             skip_comment
 
-          elsif m = /\A[a-zA-Z_]\w*/.match( @line ) then
-            @line = m.post_match
-            return check_atom( m[0] )
+          elsif s = reads( /\A[a-zA-Z_]\w*/ ) then
+            return check_atom(s)
 
-          elsif m = /\A\d+/.match( @line ) then
-            @line = m.post_match
-            return [:DIGIT, m[0].to_i]
+          elsif s = reads( /\A\d+/ ) then
+            return :DIGIT, s.to_i
 
-          elsif m = /\A./.match( @line ) then
-            ch = m[0]
-            @line = m.post_match
+          elsif ch = reads( /\A./ ) then
             case ch
             when '"', "'"
-              return [:STRING, eval(scan_string ch)]
+              return :STRING, eval(scan_quoted(ch))
             when '{'
               no = lineno
-              return [:ACTION, [scan_action, no]]
+              return :ACTION, [scan_action, no]
             else
               if ch == '|' then
                 @line_head = false
               end
-              return [ch, ch]
+              return ch, ch
             end
 
           else
@@ -90,7 +86,7 @@ module Racc
         end
       end while next_line
 
-      [false, '$']
+      return false, '$'
     end
 
 
@@ -110,7 +106,7 @@ module Racc
 
         false
       else
-        @line.sub! /(?:\n|\r\n|\r)\z/, ''
+        @line.sub!( /(?:\n|\r\n|\r)\z/, '' )
         @line_head = true
         true
       end
@@ -166,8 +162,6 @@ module Racc
     end
 
 
-    GVAR_CHARS = '_~*$?!@/\\;:,.=<>"`\'-&+1234567890'
-
     def scan_action
       ret = ''
       nest = 1
@@ -177,22 +171,21 @@ module Racc
 
       begin
         pre = nil
+        if s = reads( /\A\s+/ ) then
+          # does not set 'pre'
+          ret << s
+        end
 
         until @line.empty? do
-          if m = /\A[^'"`{}%#\/\$]+/.match( @line ) then
-            pre = m[0]
-            ret << pre
-            @line = m.post_match
+          if s = reads( /\A[^'"`{}%#\/\$]+/ ) then
+            ret << (pre = s)
             next
           end
 
-          ch = @line[0,1]
-          @line = @line[1..-1]
-          case ch
+          case ch = read(1)
           when '{'
             nest += 1
-            pre = ch
-            ret << ch
+            ret << (pre = ch)
 
           when '}'
             nest -= 1
@@ -200,53 +193,49 @@ module Racc
               @in_block = nil
               return ret
             end
-            pre = ch
-            ret << ch
+            ret << (pre = ch)
 
-          when '#'
+          when '#'   # comment
             ret << ch << @line
             break
 
           when "'", '"', '`'
-            pre = scan_string( ch )
-            ret << pre
+            ret << (pre = scan_quoted(ch))
 
           when '%'
-            if (not pre or /\s/ === pre[-1,1]) and
-               /\A[^a-zA-Z0-9= ]/ === @line then   # is false if @line.empty?
-              #
-              # %-String
-              #
-              sep = @line[0,1]
-              @line = @line[1..-1]
-              pre = scan_string( sep )
-              ret << '%' << pre
+            if literal_head? pre, @line then
+              # % string, regexp, array
+              ret << ch
+              case ch = read(1)
+              when /[qQx]/n
+                ret << ch << (pre = scan_quoted(read(1), '%string'))
+              when /w/n
+                ret << ch << (pre = scan_quoted(read(1), '%array'))
+              when /r/n
+                ret << ch << (pre = scan_quoted(read(1), '%regexp'))
+              when /[a-zA-Z0-9= ]/n   # does not include "_"
+                scan_error! "unknown type of % literal '%#{ch}'"
+              else
+                ret << (pre = scan_quoted(ch, '%string'))
+              end
             else
-              #
-              # mod
-              #
-              pre = ch
-              ret << pre
+              # operator
+              ret << '||op->' if $raccs_print_type
+              ret << (pre = ch)
             end
 
           when '/'
-            if (not pre or /\W/ === pre[-1,1]) and
-               (tmp = @line[0,1]) and not /[\s\=]/ === tmp or
-               not tmp then
+            if literal_head? pre then
               # regexp
-              pre = scan_string(ch)
+              ret << (pre = scan_quoted(ch, 'regexp'))
             else
-              # division
-              pre = ch
+              # operator
+              ret << '||op->' if $raccs_print_type
+              ret << (pre = ch)
             end
-            ret << pre
 
-          when '$'
-            ret << (pre = ch)
-            if /\A[#{Regexp.quote GVAR_CHARS}]/o === @line then
-              ret << (pre = @line[0,1])
-              @line = @line[1..-1]
-            end
+          when '$'   # gvar
+            ret << ch << (pre = read(1))
 
           else
             bug!
@@ -259,42 +248,68 @@ module Racc
       bug!
     end
 
+    def literal_head?( pre, post )
+      (not pre or not /[a-zA-Z_0-9]/n === pre[-1,1]) and
+      not post.empty? and not /\A[\s\=]/n === post
+    end
 
-    LEFT_TO_RIGHT = {
-      '(' => '\)',
-      '{' => '}',
-      '[' => '\]',
-      '<' => '>'
-    }
 
-    CACHE = {}
+    def read( len )
+      s = @line[0, len]
+      @line = @line[len .. -1]
+      s
+    end
 
-    def scan_string( left )
-      ret = left.dup
-      term = LEFT_TO_RIGHT[left] || left
-      unless re = CACHE[term] then
-        CACHE[term] = re = /\A[^#{term}\\]*(?:\\.[^\\#{term}]*)*#{term}/
+    def reads( re )
+      if m = re.match( @line ) then
+        @line = m.post_match
+        m[0]
+      else
+        nil
       end
+    end
 
-      @in_block = 'string'
+
+    def scan_quoted( left, tag = 'string' )
+      ret = left.dup
+      ret = "||#{tag}->" + ret if $raccs_print_type
+      re = get_quoted_re( left )
+
+      sv, @in_block = @in_block, tag
       begin
-        if m = re.match( @line ) then
-          ret << m[0]
-          @line = m.post_match
+        if s = reads(re) then
+          ret << s
           break
         else
           ret << @line
         end
       end while next_line
-      @in_block = nil
+      @in_block = sv
 
+      ret << "<-#{tag}||" if $raccs_print_type
       ret
+    end
+
+    LEFT_TO_RIGHT = {
+      '(' => ')',
+      '{' => '}',
+      '[' => ']',
+      '<' => '>'
+    }
+
+    CACHE = {}
+
+    def get_quoted_re( left )
+      term = Regexp.quote( LEFT_TO_RIGHT[left] || left )
+      CACHE[left] ||= /\A[^#{term}\\]*(?:\\.[^\\#{term}]*)*#{term}/
     end
 
 
     def scan_error!( msg )
       raise ScanError, "#{lineno}: #{msg}"
     end
+
+    $raccs_print_type = false
           
   end
 
