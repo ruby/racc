@@ -1,3 +1,7 @@
+Sun Oct 12 18:43:45 2003  Minero Aoki  <aamine@loveruby.net>
+
+	* misc/dist.sh: remove web/ directory before distribute.
+
 Sun Oct 12 18:37:29 2003  Minero Aoki  <aamine@loveruby.net>
 
 	* Makefile: new target `site'.

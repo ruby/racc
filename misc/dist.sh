@@ -11,7 +11,7 @@ cd tmp
 # racc, raccrt
 cvs -Q export -r`echo V$version | tr . -` -d racc-$version racc
 mkdir -p raccrt-$version/lib/racc
-(cd racc-$version; rm -rf bits fastcache Bison-Parser)
+(cd racc-$version; rm -rf bits fastcache web Bison-Parser)
 (cd racc-$version/lib/racc; make)
 mv racc-$version/lib/racc/parser.rb  raccrt-$version/lib/racc
 mv racc-$version/ext                 raccrt-$version
