@@ -21,16 +21,16 @@ end
 module Racc
   class ParseError < StandardError; end
 end
-unless defined? ParseError then
+unless defined? ::ParseError then
   ParseError = Racc::ParseError
-end
-
-unless defined? Racc_No_Extentions then
-  Racc_No_Extentions = false
 end
 
 
 module Racc
+
+  unless defined? Racc_No_Extentions then
+    Racc_No_Extentions = false
+  end
 
   class Parser
 
