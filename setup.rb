@@ -4,19 +4,17 @@ require 'amstd/inst'
 class RACCinstaller < Installer
 
   def com_setup
+    setup_library 'racc'
   end
 
   def com_install
-    lib_install( 'racc' ) do |rb_to, so_to|
+    chdir( 'bin' ) do
       add_rubypath 'racc'
       install 'racc', BINDIR, 0755, true
-      install_rb rb_to
-      each_dir do |ext|
-        make_install_so so_to
-      end
     end
 
     install_library 'amstd'
+    install_library 'racc'
   end
 
 end
