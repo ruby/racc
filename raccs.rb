@@ -9,7 +9,6 @@
 # For details of the GNU LGPL, see the file "COPYING".
 #
 
-
 module Racc
 
   class ScanError < StandardError; end

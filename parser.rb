@@ -1,19 +1,19 @@
 #
 # parser.rb
 #
-#   Copyright (c) 1999-2002 Minero Aoki <aamine@loveruby.net>
+# Copyright (c) 1999-2003 Minero Aoki <aamine@loveruby.net>
 #
-#   This program is free software.
-#   You can distribute/modify this program under the same terms of ruby.
+# This program is free software.
+# You can distribute/modify this program under the same terms of ruby.
 #
-#   As a special exception, when this code is copied by Racc
-#   into a Racc output file, you may use that output file
-#   without restriction.
+# As a special exception, when this code is copied by Racc
+# into a Racc output file, you may use that output file
+# without restriction.
 #
-#   $Id$
+# $Id$
 #
 
-unless defined? NotImplementedError
+unless defined?(NotImplementedError)
   NotImplementedError = NotImplementError
 end
 
@@ -21,14 +21,14 @@ end
 module Racc
   class ParseError < StandardError; end
 end
-unless defined? ::ParseError
+unless defined?(::ParseError)
   ParseError = Racc::ParseError
 end
 
 
 module Racc
 
-  unless defined? Racc_No_Extentions
+  unless defined?(Racc_No_Extentions)
     Racc_No_Extentions = false
   end
 
@@ -63,7 +63,7 @@ module Racc
       Racc_Runtime_Type            = 'ruby'
     end
 
-    def self.racc_runtime_type
+    def Parser.racc_runtime_type
       Racc_Runtime_Type
     end
 
@@ -150,7 +150,6 @@ module Racc
       }
     end
 
-
     ###
     ### yyparse
     ###
@@ -223,7 +222,6 @@ module Racc
         end
       }
     end
-
 
     ###
     ### common

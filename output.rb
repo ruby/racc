@@ -1,13 +1,13 @@
 #
 # output.rb
 #
-#   Copyright (c) 1999-2002 Minero Aoki <aamine@loveruby.net>
+# Copyright (c) 1999-2003 Minero Aoki <aamine@loveruby.net>
 #
-#   This program is free software.
-#   You can distribute/modify this program under the terms of
-#   the GNU Lesser General Public License version 2 or later.
+# This program is free software.
+# You can distribute/modify this program under the terms of
+# the GNU LGPL, Lesser General Public License version 2.
+# For details of the GNU LGPL, see the file "COPYING".
 #
-
 
 module Racc
 
@@ -44,9 +44,7 @@ module Racc
       output_actions out
     end
 
-
     private
-
 
     def output_reduce_table( out )
       out << "racc_reduce_table = [\n"
@@ -65,10 +63,6 @@ module Racc
       out << "racc_reduce_n = #{@actions.reduce_n}\n\n"
       out << "racc_shift_n = #{@actions.shift_n}\n\n"
     end
-
-    
-    #####
-
 
     def output_action_table( out )
       tbl  = []   # yytable
@@ -99,7 +93,6 @@ module Racc
       output_table out, ptr, 'racc_action_pointer'
       output_table out, defa, 'racc_action_default'
     end
-
 
     def output_goto_table( out )
       tbl  = []   # yytable (2)
@@ -219,7 +212,7 @@ module Racc
         i = ii
       end
 
-      Regexp.new(map, 'n')
+      Regexp.compile(map, 'n')
     end
 
     def set_table( entries, dummy, tbl, chk, ptr )
@@ -296,7 +289,7 @@ module Racc
       end
       out.puts ' ]'
 
-      out.print <<S
+      out.print(<<EOS)
 #{label} = arr = Array.new(#{tab.size}, nil)
 str = a = i = nil
 idx = 0
@@ -307,7 +300,7 @@ clist.each do |str|
   end
 end
 
-S
+EOS
     end
 
     def output_table_s( out, tab, label )
@@ -332,10 +325,6 @@ S
       out.print " ]\n\n"
     end
 
-
-    #####
-
-
     def output_token_table( out )
       sep = "\n"
       sep_rest = ",\n"
@@ -349,13 +338,9 @@ S
       out << " }\n\n"
     end
 
-
-    #####
-
-
     def output_other( out )
       out << "racc_use_result_var = #{@result}\n\n"
-      out.write <<"---"
+      out.print(<<EOS)
 racc_nt_base = #{@symboltable.nt_base}
 
 Racc_arg = [
@@ -374,17 +359,13 @@ Racc_arg = [
  racc_reduce_n,
  racc_use_result_var ]
 
----
+EOS
       out << "Racc_token_to_s_table = [\n"
       out << @symboltable.collect {|tok|
               "'" + tok.to_s.gsub(/'/, '\\\'') + "'" }.join(",\n")
       out << "]\n\n"
       out << "Racc_debug_parser = #{@dsrc}\n\n"
     end
-
-
-    #####
-
 
     def output_actions( out )
       rl = act = nil
@@ -454,7 +435,6 @@ module_eval <<'.,.,', '%s', %d
 
   end   # class CodeGenerator
 
-
   ###
   ###
   ###
@@ -469,6 +449,9 @@ module_eval <<'.,.,', '%s', %d
       output_state    out
     end
 
+    #
+    # Warnings
+    #
 
     def output_conflict( out )
       @statetable.each do |state|
@@ -482,7 +465,6 @@ module_eval <<'.,.,', '%s', %d
         end
       end
     end
-
 
     def output_useless( out )
       rl = t = nil
@@ -500,6 +482,9 @@ module_eval <<'.,.,', '%s', %d
       end
     end
 
+    #
+    # States
+    #
 
     def output_state( out )
       ptr = nil
@@ -603,9 +588,9 @@ module_eval <<'.,.,', '%s', %d
       end
     end
 
-
-    #####
-
+    #
+    # Rules
+    #
 
     def output_rule( out )
       out.print "-------- Grammar --------\n\n"
@@ -617,9 +602,9 @@ module_eval <<'.,.,', '%s', %d
       end
     end
 
-
-    #####
-
+    #
+    # Tokens
+    #
 
     def output_token( out )
       out.print "------- Symbols -------\n\n"

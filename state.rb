@@ -1,11 +1,12 @@
 #
 # state.rb
 #
-#   Copyright (c) 1999-2002 Minero Aoki <aamine@loveruby.net>
+# Copyright (c) 1999-2003 Minero Aoki <aamine@loveruby.net>
 #
-#   This program is free software.
-#   You can distribute/modify this program under the terms of
-#   the GNU Lesser General Public License version 2 or later.
+# This program is free software.
+# You can distribute/modify this program under the terms of
+# the GNU LGPL, Lesser General Public License version 2.
+# For details of the GNU LGPL, see the file "COPYING".
 #
 
 require 'racc/iset'
@@ -14,7 +15,6 @@ require 'racc/iset'
 module Racc
 
   class RaccError < StandardError; end
-
 
   #
   # StateTable
@@ -63,7 +63,6 @@ module Racc
     def each_index( &block )
       @states.each_index(&block)
     end
-
 
     ###
     ### nfa
@@ -150,7 +149,6 @@ module Racc
       arr.collect {|i| i.ident }.pack('L*')
     end
 
-
     ###
     ### dfa
     ###
@@ -168,7 +166,6 @@ module Racc
       end
       check_useless
     end
-
 
     #
     # lookahead
@@ -396,7 +393,6 @@ module Racc
       end
     end
 
-
     #
     # resolve
     #
@@ -518,7 +514,6 @@ module Racc
       ret
     end
 
-
     #
     # complete
     #
@@ -583,7 +578,7 @@ module Racc
   #
   # State
   #
-  # stands one lalr state.
+  # represents a LALR state.
   #
 
   class State
@@ -608,7 +603,6 @@ module Racc
 
       @closure = make_closure(@core)
     end
-
 
     attr_reader :ident
     alias stateid ident
@@ -641,7 +635,6 @@ module Racc
     end
 
     alias eql? ==
-
 
     def make_closure( core )
       set = ISet.new
@@ -744,10 +737,10 @@ module Racc
   #
   # Goto
   #
-  # stands one transition on the grammar.
+  # represents a transition on the grammar.
   # REAL GOTO means transition by nonterminal,
   # but this class treats also terminal's.
-  # If is terminal transition, .ident returns nil.
+  # If one is a terminal transition, .ident returns nil.
   #
 
   class Goto
@@ -774,7 +767,7 @@ module Racc
   #
   # Item
   #
-  # lalr item. set of rule and its lookahead tokens.
+  # a LALR item. A set of rule and its lookahead tokens.
   #
 
   class Item
@@ -805,8 +798,8 @@ module Racc
   #
   # ActionTable
   #
-  # the table of lalr actions. Actions are
-  # Shift, Reduce, Accept and Error
+  # The table of LALR actions. Actions are either of
+  # Shift, Reduce, Accept and Error.
   #
 
   class ActionTable
@@ -832,7 +825,6 @@ module Racc
       @error = Error.new
     end
 
-
     def reduce_n
       @reduce.size
     end
@@ -854,7 +846,6 @@ module Racc
       @reduce.each(&block)
     end
 
-
     def shift_n
       @shift.size
     end
@@ -873,7 +864,6 @@ module Racc
     def each_shift( &block )
       @shift.each(&block)
     end
-
 
     attr_reader :accept
     attr_reader :error

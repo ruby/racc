@@ -1,3 +1,25 @@
+Mon May 26 23:06:58 2003  Minero Aoki  <aamine@loveruby.net>
+
+	* compiler.rb: update copyright year.
+
+	* grammar.rb: ditto.
+
+	* in.raccp.rb: ditto.
+
+	* info.rb: ditto.
+
+	* iset.rb: ditto.
+
+	* output.rb: ditto.
+
+	* parser.rb: ditto.
+
+	* raccs.rb: ditto.
+
+	* state.rb: ditto.
+
+	* ucodep.rb: ditto.
+
 Sun May 25 13:21:27 2003  Minero Aoki  <aamine@loveruby.net>
 
 	* raccs.rb: update coding style.

@@ -1,11 +1,12 @@
 #
 # compiler.rb
 #
-#   Copyright (c) 1999-2002 Minero Aoki <aamine@loveruby.net>
+# Copyright (c) 1999-2003 Minero Aoki <aamine@loveruby.net>
 #
-#   This program is free software.
-#   You can distribute/modify this program under the terms of
-#   the GNU Lesser General Public License version 2 or later.
+# This program is free software.
+# You can distribute/modify this program under the terms of
+# the GNU LGPL, Lesser General Public License version 2.
+# For details of the GNU LGPL, see the file "COPYING".
 #
 
 require 'racc/raccp'
@@ -14,7 +15,7 @@ require 'racc/state'
 require 'racc/output'
 
 
-unless [].respond_to? 'collect!'
+unless [].respond_to?(:collect!)
   class Array
     alias collect! filter
   end
@@ -25,13 +26,13 @@ module Racc
 
   class Compiler
 
-    attr :filename
+    attr_reader :filename
 
-    attr :parser
-    attr :ruletable
-    attr :symboltable
-    attr :statetable
-    attr :formatter
+    attr_reader :parser
+    attr_reader :ruletable
+    attr_reader :symboltable
+    attr_reader :statetable
+    attr_reader :formatter
 
     attr_accessor :debug_parser
     attr_accessor :convert_line

@@ -3,11 +3,12 @@
 #
 # raccp.rb
 #
-#   Copyright (c) 1999-2002 Minero Aoki <aamine@loveruby.net>
+# Copyright (c) 1999-2003 Minero Aoki <aamine@loveruby.net>
 #
-#   This program is free software.
-#   You can distribute/modify this program under the terms of
-#   the GNU Lesser General Public License version 2.
+# This program is free software.
+# You can distribute/modify this program under the terms of
+# the GNU LGPL, Lesser General Public License version 2.
+# For details of the GNU LGPL, see the file "COPYING".
 #
 
 require 'racc/parser'
@@ -28,16 +29,14 @@ module Racc
       @super_class = nil
     end
 
-    attr :class_name
-    attr :super_class
+    attr_reader :class_name
+    attr_reader :super_class
 
     def parse( str )
       @scanner = GrammarFileScanner.new(str)
       @scanner.debug = @yydebug
-
       do_parse
     end
-
 
     private
 
