@@ -99,6 +99,7 @@ This tool is written in Ruby and outputs Ruby scripts.
   end
 
   def update
+    build
     upver $bin, $mainrb, %w( README.ja README.en )
     upemail $bin, $mainrb, %w( README.ja README.en )
     $<raccrt>.update
@@ -111,10 +112,7 @@ This tool is written in Ruby and outputs Ruby scripts.
   end
 
   def pack
-    update
-    build
-    _pack
-    _raw
+    super
     $<raccrt>.raw
   end
 
