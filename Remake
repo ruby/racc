@@ -4,18 +4,16 @@
 
 mount 'amstd'
 mount 'strscan'
-require 'amstd/bug'
 
 
 environ( 'rubyprog/racc' ) {
 
-  $version   = '1.3.10'
+  $version   = '1.3.11'
 
+  $packaging = %w( single multi )
   $type      = 'ruby'
-  $package   = 'racc'
   $instpath  = 'racc'
   $topfile   =  nil
-  $raw       =  true
 
   $extern_libs = %w( raccrt strscan amstd )
 
@@ -148,7 +146,7 @@ environ( 'rubyprog/raccrt' ) {
     $topfile  =  nil
 
     $c        = %w( cparse.c )
-    $etool    = %w( MANIFEST extconf.rb )
+    $tools    = %w( MANIFEST extconf.rb )
 
     def update
       upver $c
@@ -156,7 +154,7 @@ environ( 'rubyprog/raccrt' ) {
     end
 
     def set_files( packdir )
-      bug!
+      raise 'cparse.set_files called???'
     end
 
   }
