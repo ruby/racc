@@ -82,7 +82,7 @@ Racc_Options = <<EOS
 
   o -C --check-only       - syntax check only
   o -S --output-status    - output status time to time
-  o -  --no-extentions    - run without any ruby extentions
+  x -  --no-extentions    - run without any ruby extentions
   o -  --version          - print version and quit
   o -  --runtime-version  - print runtime version and quit
   o -  --copyright        - print copyright and quit
@@ -125,7 +125,7 @@ def get_options
     puts "racc version #{Racc::Version}"
     exit 0
   end
-  Racc.const_set :Racc_No_Extentions, opt['--no-extentions']
+  # Racc.const_set :Racc_No_Extentions, opt['--no-extensions']
   if opt['--runtime-version']
     printf "racc runtime version %s (rev. %s); %s\n",
            Racc::Parser::Racc_Runtime_Version,
