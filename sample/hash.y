@@ -1,12 +1,7 @@
 #
-# converting string like ruby's hash into Hash
+# hash.y
 #
-# input example:
-#
-#    {
-#      name => MyName,
-#      id => MyIdent
-#    }
+# converting Hash-like string into (real) Hash
 #
 
 class HashParser
@@ -58,9 +53,16 @@ end
 
 ---- footer
 
-p HashParser.new.parse <<S
+if $0 == __FILE__ then
+  src = <<S
 {
   name => MyName,
   id => MyIdent
 }
 S
+  puts 'parsing:'
+  print src
+  puts
+  puts 'result:'
+  p HashParser.new.parse( src )
+end
