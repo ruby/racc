@@ -13,7 +13,7 @@
 #include <stdio.h>
 #include "ruby.h"
 
-#define RACC_VERSION "1.3.7"
+#define RACC_VERSION "1.3.8"
 
 #define DFLT_TOK -1
 #define ERR_TOK   1
