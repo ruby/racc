@@ -183,7 +183,7 @@ module Racc
           end
 
           ch = @line[0,1]
-          @line = @line[ 1, @line.size - 1 ]
+          @line = @line[1..-1]
           case ch
           when '{'
             nest += 1
@@ -208,17 +208,22 @@ module Racc
             ret << pre
 
           when '%'
-            if (not pre or /\W/ === pre[-1,1]) and
-               (tmp = @line[0,1]) and /[a-zA-Z=]/ === tmp then
-              # % string
-              ret << ch
-              @line = @line[ 1, @line - 1 ]
-              pre = scan_string( @line[1,1] )
+            if (not pre or /\s/ === pre[-1,1]) and
+               /\A[^a-zA-Z0-9= ]/ === @line then   # is false if @line.empty?
+              #
+              # %-String
+              #
+              sep = @line[0,1]
+              @line = @line[1..-1]
+              pre = scan_string( sep )
+              ret << '%' << pre
             else
+              #
               # mod
+              #
               pre = ch
+              ret << pre
             end
-            ret << pre
 
           when '/'
             if (not pre or /\W/ === pre[-1,1]) and
