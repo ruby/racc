@@ -55,13 +55,13 @@ module Racc
     end
 
     def each_state( &block )
-      @states.each( &block )
+      @states.each(&block)
     end
 
     alias each each_state
 
     def each_index( &block )
-      @states.each_index( &block )
+      @states.each_index(&block)
     end
 
 
@@ -848,7 +848,7 @@ end
     end
 
     def each_reduce( &block )
-      @reduce.each &block
+      @reduce.each(&block)
     end
 
 
@@ -867,7 +867,7 @@ end
     end
 
     def each_shift( &block )
-      @shift.each &block
+      @shift.each(&block)
     end
 
 

@@ -478,7 +478,7 @@ EOS
 unless $".index '#{rbfile}' then
 $".push '#{rbfile}'
 EOS
-    add_file RubyLoader.find_feature rbfile
+    add_file RubyLoader.find_feature(rbfile)
     @f.puts "end   # end of #{rbfile}"
   end
 

@@ -426,7 +426,7 @@ module_eval <<'.,.,', '%s', %d
                      rl.ident
         else
           act ||= defact
-          act.sub! /\s+\z/, ''
+          act.sub!(/\s+\z/, '')
           if @line then
             i = rl.lineno
             while m = /\A[ \t\f]*(?:\n|\r\n|\r)/.match(act) do
@@ -440,7 +440,7 @@ module_eval <<'.,.,', '%s', %d
             out.printf src, @fname, i - 1, rl.ident,
                        result1, act, result2, delim
           else
-            act.sub! /\A\s*(?:\n|\r\n|\r)/, ''
+            act.sub!(/\A\s*(?:\n|\r\n|\r)/, '')
             out.printf src, rl.ident,
                        result1, act, result2
           end

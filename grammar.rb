@@ -738,7 +738,7 @@ module Racc
     end
 
     def each( &block )
-      @symbols.each &block
+      @symbols.each(&block)
     end
 
     def terminals( &block )
@@ -746,7 +746,7 @@ module Racc
     end
 
     def each_terminal( &block )
-      @terms.each( &block )
+      @terms.each(&block)
     end
 
     def nonterminals
@@ -754,7 +754,7 @@ module Racc
     end
 
     def each_nonterm( &block )
-      @nterms.each( &block )
+      @nterms.each(&block)
     end
 
   end
