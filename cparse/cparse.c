@@ -2,7 +2,7 @@
 
     cparse.c
   
-    Copyright (c) 1999-2001 Minero Aoki <aamine@dp.u-netsurf.ne.jp>
+    Copyright (c) 1999-2001 Minero Aoki <aamine@loveruby.net>
   
     This library is free software.
     You can distribute/modify this program under the terms of
@@ -178,7 +178,7 @@ struct cparse_params {
     return;
 
 
-static void initvars _((VALUE, struct cparse_params*, VALUE, VALUE, ID));
+static void initvars _((VALUE, struct cparse_params*, VALUE, VALUE, VALUE));
 static void wrap_yyparse _((struct cparse_params*));
 static void parser_core _((struct cparse_params*, VALUE, VALUE, int));
 static void extract_utok _((struct cparse_params*, VALUE, VALUE*, VALUE*));
