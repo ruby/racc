@@ -5,7 +5,7 @@ require 'amstd/must'
 require 'amstd/bug'
 
 if ARGV.include? '--1.4' then
-  $ruby = 'ruby-1.4'
+  $ruby = 'ruby-1.4.5'
 elsif ARGV.include? '--1.6' then
   $ruby = 'ruby-1.6.2'
 else
