@@ -1,3 +1,7 @@
+Sun Oct 12 18:12:09 2003  Minero Aoki  <aamine@loveruby.net>
+
+	* lib/racc/info.rb: version 1.4.4.
+
 Sun Oct 12 18:11:42 2003  Minero Aoki  <aamine@loveruby.net>
 
 	* Makefile (dist): split out misc/dist.sh.
