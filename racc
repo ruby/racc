@@ -52,7 +52,7 @@ parseArgs( 1, nil, "vhPgG",
 if $OPT_R then
   require $OPT_R
 else
-  require 'libracc'
+  require 'racc/libracc'
 end
 
 if $OPT_version then
@@ -237,7 +237,7 @@ class_name = $OPT_n || racc.class_name
 
 File.open( tabfn, 'w' ) do |f|
   f.print "#!#{$OPT_e}\n\n" if $OPT_e
-  f.puts  "require '#{$OPT_X || 'parser'}'"
+  f.puts  "require '#{$OPT_X || 'racc/parser'}'"
   connect_part srcfn, f, $OPT_p, 'prepare'
   f.puts  "class #{class_name} < #{$OPT_S || 'Parser'}\n"
   connect_part srcfn, f, $OPT_i, 'inner'

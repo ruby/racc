@@ -30,10 +30,7 @@ class Scanner
 
 
   def initialize
-    @spipe = []
-    @vpipe = []
-    @preserve = ''
-    @scan = StrScanner.new( @preserve )
+    @scan = StrScanner.new( '' )
   end
 
 
@@ -41,8 +38,6 @@ class Scanner
     str.must String
     @preserve = str
     @scan.reset( str, false )
-    @spipe.clear
-    @vpipe.clear
     @lineno = 1
     @debug = false
   end
@@ -57,7 +52,6 @@ class Scanner
   private
 
 
-
   def scan_string( right, preserve = true )
     cont = /\A[^\\#{right}]+/    # don't o
     term = /\A#{right}/          # don't o
@@ -70,12 +64,8 @@ class Scanner
       end
       if qp = @scan.scan( QPAIR ) then
 # puts "bspc ---#{qp}---"
-        if preserve then
-          ret << qp
-        else
-          ret << qp[ 1, qp.size - 1 ]
-          next
-        end
+        ret << (preserve ? qp : qp[1, qp.size - 1])
+        next
       end
       if ri = @scan.scan( term )
 # puts "term ---#{ri}---"
@@ -86,7 +76,7 @@ class Scanner
       scan_error! 'found unterminated string'
     end
 
-    return ret
+    ret
   end
 
 
@@ -100,10 +90,10 @@ class Scanner
   end
 
 
-  def debug_report
-    puts "@scan.size=#{@scan.size}"
-    sret = @spipe[-1]
-    vret = @vpipe[-1]
+  def debug_report( arr )
+    puts "rest=#{@scan.size}"
+    sret = arr[0]
+    vret = arr[1]
     if Integer === sret then
       puts "sret #{sret.id2name}"
     else

@@ -34,27 +34,17 @@ class Number ; end
 
 ------ inner -------------------------------
 
-  def parse( tsrc, vsrc )
-    @token_source = tsrc
-    @value_source = vsrc
-
+  def parse( src )
+	  @src = src
     do_parse
   end
 
   def next_token
-    @token_source.shift
+    @src.shift
   end
-
-  def next_value
-    @value_source.shift
-  end
-
-  def peep_token
-    @token_source[0]
-  end      
 
 	def initialize
-	  #@__debug__ = true
+	  #@yydebug = true
 	end
 
 
@@ -64,43 +54,65 @@ class Number ; end
 $parser = Calcp.new
 $tidx = 1
 
-def chk( sar, var, exp )
-  ret = $parser.parse( sar, var )
-  unless ret == exp then
+def chk( src, ans )
+  ret = $parser.parse( src )
+  unless ret == ans then
     bug! "test #{$tidx} fail"
   end
   $tidx += 1
 end
 
 chk(
-  [ Number, false, false ],
-  [ 9, false, false ],
-  9
+  [ [Number, 9],
+	  [false, false],
+    [false, false] ], 9
 )
 
 chk(
-  [ Number, '*', Number, '-', Number, '*', Number, false, false ],
-  [ 5, nil, 1, nil, 1, nil, 8 ],
-  -3
+  [ [Number, 5],
+	  ['*', nil],
+		[Number, 1],
+		['-', nil],
+		[Number, 1],
+		['*', nil],
+		[Number, 8],
+		[false, false],
+		[false, false] ], -3
 )
 
 chk(
-  [ Number, '+', Number, '-', Number, '+', Number, '-', Number,
-	  false, false ],
-	[ 5, nil, 2, nil, 5, nil, 2, nil, 5 ],
-	-1
+  [ [Number, 5],
+	  ['+', nil],
+		[Number, 2],
+		['-', nil],
+		[Number, 5],
+		['+', nil],
+		[Number, 2],
+		['-', nil],
+		[Number, 5],
+	  [false, false],
+		[false, false] ], -1
 )
 
 chk(
-  [ '-', Number, false, false ],
-	[ nil, 4 ],
-	-4
+  [ ['-', nil],
+	  [Number, 4],
+		[false, false],
+		[false, false] ], -4
 )
 
 chk(
-  [ Number, '*', '(', Number, '+', Number, ')', '-', Number, false, false ],
-	[ 7, nil, nil, 4, nil, 3, nil, nil, 9 ],
-	40
+  [ [Number, 7],
+	  ['*', nil],
+		['(', nil],
+		[Number, 4],
+		['+', nil],
+		[Number, 3],
+		[')', nil],
+		['-', nil],
+		[Number, 9],
+		[false, false],
+		[false, false] ], 40
 )
 
 print "\n\ntest ok\n\n"

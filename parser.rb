@@ -27,7 +27,6 @@ class Parser
 
 
   abstract :next_token
-  abstract :next_value
 
 
   def do_parse
@@ -45,8 +44,9 @@ class Parser
     tstack = []
     vstack = []
 
-    tok = next_token
-    val = next_value
+    atmp = next_token
+    tok = atmp[0]
+    val = atmp[1]
 
     hash = nil
     act  = nil
@@ -84,8 +84,9 @@ class Parser
         curstate = act
         state.push curstate
 
-        tok = next_token
-        val = next_value
+        atmp = next_token
+        tok = atmp[0]
+        val = atmp[1]
 
       when Reduce
 

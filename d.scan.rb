@@ -10,10 +10,11 @@
 
 
     def scan
+      ret = nil
+
       while true do
         unless @scan.rest? then
-          @spipe.push false ; @vpipe.push false 
-          @spipe.push false ; @vpipe.push false
+          ret = [false, false]
           break
         end
 
@@ -37,26 +38,24 @@
         end
 
         if atm = @scan.scan( ATOM ) then
-          scan_atom( atm )
-          break  #next
+          ret = scan_atom( atm )
+          break
         end
 
         case fch = @scan.getch
         when '"', "'"
-          @spipe.push :STRING
-          @vpipe.push scan_string( fch )
+          ret = [:STRING, scan_string( fch )]
         when '{'
-          @spipe.push :ACTION
-          @vpipe.push scan_action
+          ret = [:ACTION, scan_action]
         else
-          @spipe.push fch
-          @vpipe.push fch
+          ret = [fch, fch]
         end
 
         break
       end
 
-      debug_report if @debug
+      debug_report ret if @debug
+      ret
     end
 
 
@@ -83,8 +82,7 @@
       when '$end'     then vret = Parser::Anchor
       end
 
-      @spipe.push sret
-      @vpipe.push vret
+      [sret, vret]
     end
 
 

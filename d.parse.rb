@@ -16,29 +16,15 @@
 
 
     def parse( str, fname )
+      fname.must String
       @scanner.reset( str )
-      @sbuf = @scanner.spipe
-      @vbuf = @scanner.vpipe
-
-      @filename = (fname.must String)
-      @scanner.filename = @filename
+      @scanner.filename = @filename = fname
 
       do_parse
     end
 
     def next_token
-      if @sbuf.size == 0 then @scanner.scan end
-      @sbuf.shift
-    end
-
-    def next_value
-      if @vbuf.size == 0 then @scanner.scan end
-      @vbuf.shift
-    end
-
-    def peep_token
-      if @sbuf.size == 0 then @scanner.scan end
-      @sbuf[0]
+      @scanner.scan
     end
 
     def on_error( tok, val, state, sstack, vstack )
