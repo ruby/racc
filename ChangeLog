@@ -1,3 +1,7 @@
+Wed Oct 16 15:45:11 2002  Minero Aoki  <aamine@loveruby.net>
+
+	* parser.rb: reformat.
+
 Fri Aug  9 18:21:01 2002  Minero Aoki  <aamine@loveruby.net>
 
 	* cparse/cparse.c: use better variable/macro names.
