@@ -132,4 +132,5 @@ try %w( nullbug1.y                ), [0,0,0,0]
 try %w( nullbug2.y                ), [0,0,0,0]
 try %w( firstline.y               ), []
 try %w( nonass.y                  ), [], true
+try %w( digraph.y                 ), [], true
 report
