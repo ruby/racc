@@ -44,3 +44,5 @@ import:
 site:
 	install-html --template=$(tmpldir)/basic.tmpl.ja web/racc.ja.html $(siteroot)/ja/prog
 	install-html --template=$(tmpldir)/basic.tmpl.en web/racc.en.html $(siteroot)/en
+	compile-documents --ja --template=$(tmpldir)/basic.tmpl.ja --nocode=$(datadir)/NOCODE --refrdrc=$(datadir)/refrdrc.ja doc $(siteroot)/ja/man/racc
+	compile-documents --en --template=$(tmpldir)/basic.tmpl.en --nocode=$(datadir)/NOCODE doc $(siteroot)/en/man/racc
