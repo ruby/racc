@@ -1,5 +1,5 @@
 #
-# format.rb
+# output.rb
 #
 #   Copyright (c) 1999-2001 Minero Aoki <aamine@dp.u-netsurf.ne.jp>
 #
@@ -22,11 +22,11 @@ module Racc
       @actions     = racc.statetable.actions
 
       @fname       = racc.filename
-      @debug       = racc.debug
-      @dsrc        = racc.debug_parser
-      @line        = racc.convert_line
-      @omit        = racc.omit_action
-      @result      = racc.result_var
+      @debug       = racc.debug         ? true : false
+      @dsrc        = racc.debug_parser  ? true : false
+      @line        = racc.convert_line  ? true : false
+      @omit        = racc.omit_action   ? true : false
+      @result      = racc.result_var    ? true : false
       @showall     = racc.d_la || racc.d_state
     end
 

@@ -20,6 +20,7 @@ environ( 'racc' ) do
   set :type,      'ruby'
   set :package,   'racc'
   set :instpath,  'racc'
+  set :topfile,   nil
 
   set :raw, true
 
@@ -27,15 +28,15 @@ environ( 'racc' ) do
   set :bin, %w( racc )
 
   set :mainrb, %w(
-    libracc.rb
-    facade.rb
-    ucodep.rb
-    raccs.rb
-    iset.rb
+    compiler.rb
     grammer.rb
-    state.rb
-    format.rb
     info.rb
+    iset.rb
+    output.rb
+    parser.rb
+    raccs.rb
+    state.rb
+    ucodep.rb
   )
 
   set :src, %w(
