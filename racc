@@ -195,9 +195,9 @@ def usage( status = 1, msg = nil )
   f.puts "#{File.basename $0}: #{msg}" if msg
   f.print <<EOS
 
-usage: racc [options] <grammar file>
+Usage: racc [options] <grammar file>
 
-options:
+Options:
 EOS
 
   Racc_Options.each do |line|
