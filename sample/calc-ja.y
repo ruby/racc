@@ -1,32 +1,27 @@
 #
-# simple calc 2 (ja)
-#
-# This file contains Japanese characters (euc-jp) !!!
+# A simple calculator, version 2.
+# This file contains Japanese characters (euc-jp).
 #
 
-class Calcp
-
+class Calculator2
   prechigh
     nonassoc UMINUS
     left '*' '/'
     left '+' '-'
   preclow
-
+  options no_result_var
 rule
-
   target  : exp
-          | /* none */ { result = 0 }
+          | /* none */ { 0 }
 
-  exp     : exp '+' exp { result += val[2] }
-          | exp '-' exp { result -= val[2] }
-          | exp '*' exp { result *= val[2] }
-          | exp '/' exp { result /= val[2] }
-          | '(' exp ')' { result = val[1] }
-          | '-' NUMBER  = UMINUS { result = -val[1] }
+  exp     : exp '+' exp { val[0] + val[2] }
+          | exp '-' exp { val[0] - val[2] }
+          | exp '*' exp { val[0] * val[2] }
+          | exp '/' exp { val[0] / val[2] }
+          | '(' exp ')' { val[1] }
+          | '-' NUMBER  =UMINUS { -(val[1]) }
           | NUMBER
-
 end
-
 
 ---- header ----
 #
@@ -35,87 +30,40 @@ end
 
 ---- inner ----
   
-  def parse( str )
-    @q = []
-
-    while str.size > 0 do
+  def evaluate( str )
+    @tokens = []
+    until str.empty?
       case str
       when /\A\s+/
+        ;
       when /\A\d+/
-        @q.push [:NUMBER, $&.to_i]
+        @tokens.push [:NUMBER, $&.to_i]
       when /\A.|\n/
         s = $&
-        @q.push [s, s]
+        @tokens.push [s, s]
       end
       str = $'
     end
-    @q.push [false, '$']
-
+    @tokens.push [false, '$']
     do_parse
   end
 
   def next_token
-    @q.shift
+    @tokens.shift
   end
 
 ---- footer ----
 
-class Nemui < Exception; end
-
-parser = Calcp.new
-count = 0
-scnt  = 0
-
-print "\n***********************"
-print "\n超豪華お役だち電卓2号機"
-print "\n***********************\n\n"
-print "帰りたくなったらQをタイプしてね\n"
-
-while true do
-  print "\n"
-  print 'ikutu? > '
-  str = gets.chop!
+puts '超豪華電卓 2 号機'
+puts 'Q で終了します'
+calc = Calculator2.new
+while true
+  print '>>> '; $stdout.flush
+  str = $stdin.gets.strip
   break if /q/i === str
-
   begin
-    val = parser.parse( str )
-    print 'kotae! = ', val, "\n"
-    scnt += 1
-    
-    case scnt
-    when 5
-      print "\n働きものでしょっ 5回も計算しちゃった！\n\n"
-    when 8
-      print "\nいっぱい計算するんだね…\n\n"
-    when 9
-      print "\nねえーっ もうつかれたー！ もう休もうよー\n\n"
-    when 10
-      print "\nもうねるのっ！！\n\n"
-      raise Nemui, "もうだめ。"
-    end
-
+    p calc.evaluate(str)
   rescue ParseError
-    case count
-    when 0
-      print "\n  いじわるっ！\n"
-    when 1
-      print "\n  もうっ、おこっちゃうよ！！\n"
-    when 2
-      print "\n  もう許してあげないんだからっ！！！\n\n\n"
-      sleep 0.5
-      print "           えいっ☆\n\n"
-      sleep(1)
-      raise
-    end
-    count += 1
-
-  rescue
-    print "\n  さよなら…\n"
-    raise
-
+    puts 'parse error'
   end
-
 end
-
-print "\nじゃあ、またねっ\n\n"
-sleep 0.5
