@@ -4,8 +4,10 @@ require 'amstd/futils'
 require 'amstd/must'
 require 'amstd/bug'
 
-if ARGV[0] == '--1.4' then
+if ARGV.include? '--1.4' then
   $ruby = 'ruby-1.4'
+elsif ARGV.include? '--1.6' then
+  $ruby = 'ruby-1.6.2'
 else
   $ruby = 'ruby'
 end
@@ -63,6 +65,6 @@ comptest %w( recv.y                    ), [5,10,1,4]
 comptest %w( ichk.y                    ), []; dotest 'tab/ichk'
 comptest %w( intp.y                    ), []; dotest 'tab/intp'
 comptest %w( expect.y                  ), [1,0,0,0,1]; dotest 'tab/intp'
-comptest %w( la-null.y                 ), [0,0,0,0]
+comptest %w( nullbug.y                 ), [0,0,0,0]
 
 print "\n\n        ok\n\n\n"
