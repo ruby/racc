@@ -11,6 +11,8 @@
 #   into a Racc output file, you may use that output file
 #   without restriction.
 #
+# $Id$
+#
 
 module Racc
   class ParseError < StandardError; end
