@@ -23,250 +23,403 @@ static ID id__shift;
 static ID id__reduce;
 static ID id__accept;
 
+static VALUE findbug;
 
-static void
-repbug(parser, mes)
-	VALUE parser;
-	char *mes;
-{
-	rb_funcall(parser, rb_intern("bug!"), 1, rb_str_new2(mes));
+
+#define DEFAULT 0
+#define FINAL_TOKEN 1
+#define ERROR_TOKEN 2
+#define TRY_N 3
+
+
+struct cstack {
+    long *ptr;
+    long capa;
+    long len;
+}
+
+#define STACK_INIT_LEN 64
+
+/* C stack macros */
+
+#define INIT_C_STACK(s) {\
+    s.ptr = ALLOC_N(long, INIT_STACK_LEN); \
+    s.capa = INIT_STACK_LEN;               \
+    s.len = 0;                             \
+}
+
+#define FREE_C_STACK(s) \
+    free(s.ptr);
+
+#define C_PUSH(s, i) {\
+    if (s.len == s->capa)                     \
+        s.ptr = REALLOC_N(s.ptr, s.capa * 2); \
+    s.ptr[s.len] = i;                         \
+    s.len++;                                  \
+}
+
+#define C_POP(s) \
+    if (s.len) s.len--;
+
+#define C_CUT_TAIL(s, leng) {\
+    if (s->len > leng) s->len -= leng; \
+    else { \
+        ENSURE_DO; \
+        rb_raise(findbug, "[Racc Bug] c stack unexpected empty"); \
+}
+
+#define MUST_NOT_EMPTY(s) \
+    if (s.len == 0) { \
+        ENSURE_DO; \
+        rb_raise(findbug, "[Racc Bug] state stack unexpected empty"); \
+    }
+
+
+/* Ruby stack macros */
+
+#define INIT_R_STACK(s) \
+    s = rb_ary_new2(STACK_INIT_LEN);
+
+#define R_PUSH(s, i) \
+    rb_ary_store(s, RARRAY(s)->len, i);
+
+#define R_POP(s) \
+    rb_ary_pop(s);
+
+#define R_GET_TAIL(s, leng) \
+    rb_ary_new4(leng, RARRAY(s)->ptr + RARRAY(s)->len - leng);
+
+#define R_CUT_TAIL(arr, leng) {\
+    long i;                \
+    for (i = leng; i; i--) \
+        rb_ary_pop(arr);   \
 }
 
 
+
+static char*
+value_class(val)
+    VALUE val;
+{
+    VALUE tmp;
+
+    tmp = rb_class_of(val);
+    tmp = rb_class_path(tmp);
+    return STR2CSTR(tmp);
+}
+
+
+static void
+chk_params(val, type, tag)
+    VALUE val;
+    int type;
+    char *tag;
+{
+    if (TYPE(val) != type) {
+        rb_raise(rb_eTypeError, "[Racc Bug] illegal param type %s for %s",
+                 value_class(val), tag);
+    }
+}
+
+
+#define CHECK_TOKEN_TYPE(tok) \
+    if (TYPE(tok) != T_ARRAY)                                    \
+        rb_raise(rb_eTypeError,                                  \
+            "next_token returns wrong type %s (Array required)", \
+            value_class(tok));
+
+#define CONV_ERR(tok) {\
+    ENSURE_DO;                                                         \
+    if (NIL_P(tok))                                                    \
+        rb_raise(rb_eTypeError,                                        \
+                 "can't convert token simbol(%s) into internal value", \
+                 value_class(tok));                                    \
+    else                                                               \
+        rb_raise(findbug, "token table include non Fixnum: %s",        \
+                 value_class(tok));                                    \
+}
+
 #define FETCH_NEXT_TOKEN \
-	tmp = rb_funcall(parser, id_nexttoken, 0); \
-	Check_Type(tmp, T_ARRAY); \
-	if (RARRAY(tmp)->len < 2) \
-		rb_raise(rb_eArgError, "next_token returns too little array"); \
-	tok = RARRAY(tmp)->ptr[0]; \
-	val = RARRAY(tmp)->ptr[1]; \
-	tmp = rb_hash_aref(token_table, tok); \
-	t = FIX2INT(tmp)
-
-#define STACK_INIT_LEN 64
-#define INIT_STACK(s) \
-	s = rb_ary_new2(STACK_INIT_LEN);
-
-#define PUSH(s, i) \
-	rb_ary_store(s, RARRAY(s)->len, i)
-
-#define GET_TAIL(s, leng) \
-	rb_ary_new4(leng, RARRAY(s)->ptr + RARRAY(s)->len - leng)
-
-#define CUT_TAIL(arr, leng) \
-do { \
-	long i; \
-	for (i = leng; i; i--) \
-		rb_ary_pop(arr); \
-} while (0)
-/* this is LITTLE fast but not safe
-   RARRAY(arr)->len -= leng */
+    tmp = rb_funcall(parser, id_nexttoken, 0);                         \
+    CHECK_TOKEN_TYPE(tmp);                                             \
+    if (RARRAY(tmp)->len < 2)                                          \
+        rb_raise(rb_eArgError, "next_token returns too little array"); \
+    tok = RARRAY(tmp)->ptr[0];                                         \
+    val = RARRAY(tmp)->ptr[1];                                         \
+    tmp = rb_hash_aref(token_table, tok);                              \
+    if (!FIXNUM_P(tmp)) CONV_ERR(tmp);                                 \
+    t = FIX2INT(tmp)
 
 #define SEARCH_ERROR -1
-#define SEARCH(pointer, table, state, token, retvar) \
-do {                                                             \
-	long i, ii;                                                  \
-	tmp = RARRAY(pointer)->ptr[state];                           \
-	i = FIX2LONG(tmp);                                           \
-	if (i == SEARCH_ERROR) { puts("ptr is -1"); return Qnil; }   \
-	while (1) {                                                  \
-/* printf("i=%ld\n", i); */ \
-		tmp = RARRAY(table)->ptr[i];                             \
-		ii = FIX2LONG(tmp);                                      \
-		if (ii == token || ii == 0) {                            \
-			retvar = RARRAY(table)->ptr[i+1];                    \
-			break;                                               \
-		}                                                        \
-		i += 2;                                                  \
-	}                                                            \
-} while (0)
 
+#define SEARCH(table, i, t, retvar) \
+    while (1) {                               \
+        long ii;                              \
+/* printf("i=%ld\n", i); */                   \
+        tmp = RARRAY(table)->ptr[i];          \
+        ii = FIX2LONG(tmp);                   \
+        if (ii == t || ii == DEFAULT) {       \
+            retvar = RARRAY(table)->ptr[i+1]; \
+            break;                            \
+        }                                     \
+        i += 2;                               \
+    }
+
+#define ACCEPT {\
+    ENSURE_DO;                     \
+    return RARRAY(vstack)->ptr[0]; \
+}
+
+#define ENSURE_DO {\
+    FREE_C_STACK(state); \
+}
 
 static VALUE
-raccparse(parser, indebug)
-	VALUE parser, indebug;
+do_raccparse(parser)
+    VALUE parser;
 {
-	int in_debug;
-	VALUE parser_class;
-	VALUE debugp;
-	int debug;
+    int in_debug;
+    VALUE parser_class;
+    VALUE debugp;
+    int debug;
 
-	VALUE action_table, action_ptr;
-	VALUE goto_ptr, goto_table;
-	VALUE reduce_table, token_table;
-	VALUE stn, shn, ren;
-	long state_n, shift_n, reduce_n;
+    VALUE action_table, action_ptr;
+    VALUE goto_ptr, goto_table;
+    VALUE reduce_table, token_table;
+    VALUE shn, ren;
+    long state_n, reduce_n;
 
-	long curstate;
-	long act;
-	VALUE tstack, vstack, state;
-	VALUE tok, val;
-	long t;
+    long curstate;
+    struct cstack state;
+    long act;
+    VALUE tstack, vstack;
+    VALUE tok, val;
+    long t;
 
-	VALUE reduce_to, reduce_len, method_id;
-	long len, re;
-	VALUE tmp_v;
+    VALUE reduce_to, reduce_len, method_id, m_result;
+    long len, re;
+    VALUE tmp_t, tmp_v;
 
-	VALUE tmp;
+    long err_state, err_total;
 
-	VALUE pass[5];
+    VALUE tmp;
+    long i;
+
+    VALUE pass[5];
 
     /* --------------------------
-	   initialize local values
-	-------------------------- */
+       initialize local values
+    -------------------------- */
 
-	in_debug = RTEST(indebug);
+    in_debug = RTEST(indebug);
 
-	parser_class = CLASS_OF(parser);
-	debugp = rb_ivar_get(parser, id_yydebug);
-	debug = RTEST(debugp);
+    parser_class = CLASS_OF(parser);
+    debugp = rb_ivar_get(parser, id_yydebug);
+    debug = RTEST(debugp);
 
-	if (in_debug) puts("start cparse");
+    if (in_debug) puts("start cparse");
 
-	action_table = rb_const_get(parser_class, id_actiontable);
-	action_ptr   = rb_const_get(parser_class, id_actionptr);
-	goto_table   = rb_const_get(parser_class, id_gototable);
-	goto_ptr     = rb_const_get(parser_class, id_gotoptr);
-	reduce_table = rb_const_get(parser_class, id_reducetable);
-	token_table  = rb_const_get(parser_class, id_tokentable);
-	Check_Type(action_table, T_ARRAY);
-	Check_Type(action_ptr, T_ARRAY);
-	Check_Type(goto_table, T_ARRAY);
-	Check_Type(goto_ptr, T_ARRAY);
-	Check_Type(reduce_table, T_ARRAY);
-	Check_Type(token_table, T_HASH);
+    action_table = rb_const_get(parser_class, id_actiontable);
+    action_ptr   = rb_const_get(parser_class, id_actionptr);
+    goto_table   = rb_const_get(parser_class, id_gototable);
+    goto_ptr     = rb_const_get(parser_class, id_gotoptr);
+    reduce_table = rb_const_get(parser_class, id_reducetable);
+    token_table  = rb_const_get(parser_class, id_tokentable);
+    chk_params(action_table, T_ARRAY, "action table");
+    chk_params(action_ptr,   T_ARRAY, "action pointer");
+    chk_params(goto_table,   T_ARRAY, "goto table");
+    chk_params(goto_ptr,     T_ARRAY, "goto pointer");
+    chk_params(reduce_table, T_ARRAY, "reduce table");
+    chk_params(token_table,  T_HASH,  "token table");
 
-	/* stn = rb_const_get(parser_class, id_staten); */
-	shn = rb_const_get(parser_class, id_shiftn);
-	ren = rb_const_get(parser_class, id_reducen);
-	/* state_n = FIX2INT(stn); */
-	shift_n = FIX2INT(shn);
-	reduce_n = FIX2INT(ren);
+    shn = rb_const_get(parser_class, id_shiftn);
+    ren = rb_const_get(parser_class, id_reducen);
+    shift_n = FIX2LONG(shn);
+    reduce_n = FIX2LONG(ren);
 
-	if (debug) INIT_STACK(tstack);
-	INIT_STACK(vstack);
-	INIT_STACK(state);
-	curstate = 0;
-	PUSH(state, INT2FIX(0));
+    if (debug) INIT_R_STACK(tstack);
+    INIT_R_STACK(vstack);
+    INIT_C_STACK(state);
+    curstate = 0;
+    C_PUSH(state, 0);
 
-	FETCH_NEXT_TOKEN;
+    act = 0;
 
-	if (in_debug) puts("params initialized");
+    err_state = 0;
+    total_err = 0;
+
+    if (in_debug) puts("params initialized");
 
     /* -----------------------------------
-	   LALR parsing algorithm main loop
-	----------------------------------- */
-	
-	while (1) {
-		if (in_debug) puts("enter new loop");
+       LALR parsing algorithm main loop
+    ----------------------------------- */
+    
+    while (1) {
+        if (in_debug) puts("enter new loop");
 
-		/* decide action */
+        if (!act) {
+            /* fetch action ID */
 
-		SEARCH(action_ptr, action_table, curstate, t, tmp);
-		act = FIX2LONG(tmp);
-		if (in_debug) printf("act=%ld\n", act);
+            while (1) {
+                tmp = RARRAY(action_ptr)->ptr[state];
+                i = FIX2LONG(tmp);
+                if (RARRAY(action_table)->ptr[i] == 0) {
+                    tmp = RARRAY(action_table)->ptr[i+1];
+                    break;
+                }
+                if (t != FINAL_TOKEN)
+                    FETCH_NEXT_TOKEN;
+                SEARCH(action_table, i, t, tmp);
+                break;
+            }
+            act = FIX2LONG(tmp);
+            if (in_debug) printf("act=%ld\n", act);
+        }
 
-		if (act >= 0 && act <= shift_n) {
-			/* shift */
-			
-			PUSH(vstack, val);
-			if (debug) {
-				PUSH(tstack, INT2FIX(t));
-				rb_funcall(parser, id__shift,
-			               2, INT2FIX(t), tstack);
-			}
 
-			curstate = act;
-			PUSH(state, INT2FIX(curstate));
-			FETCH_NEXT_TOKEN;
-		}
-		else if (act < 0 && act >= -reduce_n) {
-			/* reduce */
+        /* decide action */
 
-			act = -act * 3;
-			reduce_len = RARRAY(reduce_table)->ptr[act];
-			reduce_to  = RARRAY(reduce_table)->ptr[act+1];
-			method_id  = RARRAY(reduce_table)->ptr[act+2];
-			len = FIX2LONG(reduce_len);
-			re = FIX2LONG(reduce_to);
+        if (act > 0 && act < shift_n) {
+            /* shift */
+            
+            R_PUSH(vstack, val);
+            if (debug) {
+                R_PUSH(tstack, INT2FIX(t));
+                rb_funcall(parser, id__shift,
+                           2, INT2FIX(t), tstack);
+            }
 
-			if (len == 0) {
-				tmp_v = rb_ary_new();
-			}
-			else {
-				tmp_v = GET_TAIL(vstack, len);
-				CUT_TAIL(vstack, len);
-				CUT_TAIL(state, len);
-				if (debug) {
-					CUT_TAIL(tstack, len);
-				}
-			}
+            curstate = act;
+            C_PUSH(state, INT2FIX(curstate));
 
-			/* method call must be done before tstack.push */
-			tmp = rb_funcall(parser, (ID)FIX2LONG(method_id),
-			                 2, tmp_v, vstack);
-			PUSH(vstack, tmp);
-			if (debug) {
-				PUSH(tstack, reduce_to);
-				rb_funcall(parser, id__reduce,
-			               3, tmp_t, reduce_to, tstack);
-			}
+            act = 0;
+        }
+        else if (act < 0 && act > -reduce_n) {
+            /* reduce */
 
-			if (RARRAY(state)->len == 0) {
-				repbug(parser, "state stack unexpected empty");
-			}
-			tmp = RARRAY(state)->ptr[RARRAY(state)->len - 1];
-			curstate = FIX2LONG(tmp);
-			SEARCH(goto_ptr, goto_table, curstate, re, tmp);
-			curstate = FIX2LONG(tmp);
-			PUSH(state, tmp);
-		}
-		else if (act == -reduce_n - 1) {
-			/* accept */
+            act = -act * 3;
+            reduce_len = RARRAY(reduce_table)->ptr[act];
+            reduce_to  = RARRAY(reduce_table)->ptr[act+1];
+            method_id  = RARRAY(reduce_table)->ptr[act+2];
+            len = FIX2LONG(reduce_len);
+            re = FIX2LONG(reduce_to);
 
-			if (debug) rb_funcall(parser, id__accept, 0);
-			break;
-		}
-		else if (act == shift_n + 1) {
-			/* error */
+            if (len == 0) {
+                tmp_v = rb_ary_new();
+                m_result = Qnil;
+            }
+            else {
+                tmp_v = R_GET_TAIL(vstack, len);
+                m_result = RARRAY(tmp_v)->ptr[0];
+                R_CUT_TAIL(vstack, len);
+                C_CUT_TAIL(state, len);
+                if (debug) {
+                    tmp_t = R_GET_TAIL(tstack, len);
+                    R_CUT_TAIL(tstack, len);
+                }
+            }
 
-			rb_funcall(parser, id_onerror,
-			           3, INT2FIX(t), val, vstack);
-		}
-		else {
-			fprintf(stderr, "racc c-parse: unknown act %ld\n", act);
-			repbug(parser, "unknown act value");
-		}
-	}
+            /* method call must be done before tstack.push */
+            tmp = rb_funcall(parser, (ID)FIX2LONG(method_id),
+                             3, tmp_v, vstack, m_result);
+            R_PUSH(vstack, tmp);
+            if (debug) {
+                R_PUSH(tstack, reduce_to);
+                rb_funcall(parser, id__reduce,
+                           3, tmp_t, reduce_to, tstack);
+            }
 
-	return RARRAY(vstack)->ptr[0];
+            MUST_NOT_EMPTY(state);
+            i = state.ptr[state.len - 1];
+            tmp = RARRAY(goto_pointer)->ptr[i];
+            i = FIX2LONG(tmp);
+            if (i == SEARCH_ERROR) rb_raise(findbug, "pointer is -1");
+            SEARCH(goto_table, i, re, tmp);
+            curstate = FIX2LONG(tmp);
+            C_PUSH(state, curstate);
+
+            act = 0;
+        }
+        else if (act == shift_n) {
+            /* error */
+
+            if (err_state == 0) {
+                err_total++;
+                rb_funcall(parser, id_onerror,
+                           3, INT2FIX(t), val, vstack);
+            }
+            if (err_state == 3) {
+                FETCH_NEXT_TOKEN;
+            }
+            err_state = 3;
+
+            while (1) {
+                tmp = RARRAY(action_ptr)->ptr[state];
+                i = FIX2LONG(tmp);
+                SEARCH(action_table, i, ERROR_TOKEN, tmp);
+                act = FIX2LONG(tmp);
+
+                if (act > 0) {
+                    if (act < shift_n) break;    /* shift */
+                }
+                if (act < 0) {
+                    act = -act;
+                    if (act == reduce_n) ACCEPT;
+                    if (act < reduce_n)  break;  /* reduce */
+                }
+
+                /* error yet ... */
+
+                MUST_NOT_EMPTY(state);
+
+                if (debug) R_POP(tstack);
+                R_POP(vstack);
+                C_POP(state);
+            }
+        }
+        else if (act == reduce_n) {
+            /* accept */
+
+            if (debug) rb_funcall(parser, id__accept, 0);
+            ACCEPT;
+        }
+        else {
+            /* racc error */
+
+            rb_raise(findbug, "[Racc Bug] unknown act value %ld", act);
+        }
+    }
+
+    return Qnil;  /* not reach */
 }
 
 
 void
 Init_cparse()
 {
-	VALUE psr;
+    VALUE psr;
 
-	psr = rb_eval_string("Parser");
-	rb_define_private_method(psr, "_c_parse", raccparse, 1);
+    psr = rb_eval_string("Parser");
+    rb_define_private_method(psr, "_c_parse", raccparse, 1);
 
-	id_yydebug      = rb_intern("@yydebug");
+    findbug = rb_eval_string("FindBug");
+
+    id_yydebug      = rb_intern("@yydebug");
     id_nexttoken    = rb_intern("next_token");
-	id_onerror      = rb_intern("on_error");
+    id_onerror      = rb_intern("on_error");
 
-	id_actiontable  = rb_intern("LR_action_table");
-	id_actionptr    = rb_intern("LR_action_table_ptr");
-	id_gototable    = rb_intern("LR_goto_table");
-	id_gotoptr      = rb_intern("LR_goto_table_ptr");
-	id_reducetable  = rb_intern("LR_reduce_table");
-	id_tokentable   = rb_intern("LR_token_table");
-	id_staten       = rb_intern("LR_state_n");
-	id_shiftn       = rb_intern("LR_shift_n");
-	id_reducen      = rb_intern("LR_reduce_n");
-	id_tostable     = rb_intern("LR_to_s_table");
+    id_actiontable  = rb_intern("LR_action_table");
+    id_actionptr    = rb_intern("LR_action_table_ptr");
+    id_gototable    = rb_intern("LR_goto_table");
+    id_gotoptr      = rb_intern("LR_goto_table_ptr");
+    id_reducetable  = rb_intern("LR_reduce_table");
+    id_tokentable   = rb_intern("LR_token_table");
+    /* id_staten       = rb_intern("LR_state_n"); */
+    id_shiftn       = rb_intern("LR_shift_n");
+    id_reducen      = rb_intern("LR_reduce_n");
+    id_tostable     = rb_intern("LR_to_s_table");
 
-	id__shift       = rb_intern("_shift");
-	id__reduce      = rb_intern("_reduce");
-	id__accept      = rb_intern("_accept");
+    id__shift       = rb_intern("_shift");
+    id__reduce      = rb_intern("_reduce");
+    id__accept      = rb_intern("_accept");
 }
