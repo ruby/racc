@@ -11,6 +11,7 @@
 # For details of the GNU LGPL, see the file "COPYING".
 #
 
+require 'racc/compat'
 require 'racc/parser'
 require 'racc/raccs'
 require 'racc/ucodep'

@@ -197,8 +197,10 @@ module Racc
               case ch = read(1)
               when /[qQx]/n
                 buf << ch << (pre = scan_quoted(read(1), '%string'))
-              when /w/n
+              when /wW/n
                 buf << ch << (pre = scan_quoted(read(1), '%array'))
+              when /s/n
+                buf << ch << (pre = scan_quoted(read(1), '%symbol'))
               when /r/n
                 buf << ch << (pre = scan_quoted(read(1), '%regexp'))
               when /[a-zA-Z0-9= ]/n   # does not include "_"

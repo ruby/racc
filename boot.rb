@@ -2,6 +2,7 @@
 # boot.rb
 #
 
+require 'racc/compat'
 require 'racc/info'
 require 'racc/grammar'
 require 'racc/state'
@@ -51,7 +52,6 @@ module Racc
       nonterm, symlist = parse_rule_exp(rulestr)
       lineno = /:(\d+)(?:\z|:)/.match(caller(1)[0])[1].to_i + 1
       symlist.push UserAction.new(format_action(actstr), lineno)
-
       @ruletable.register_rule nonterm, symlist
     end
 
@@ -59,19 +59,18 @@ module Racc
       tokens = str.strip.scan(/[\:\|]|'.'|\w+/)
       nonterm = (tokens[0] == '|') ? nil : @symboltable.get(tokens.shift.intern)
       tokens.shift   # discard ':' or '|'
-
       return nonterm,
-             tokens.collect {|t|
-                 @symboltable.get(
-                   (/\A'/ === t) ? eval(%Q<"#{t[1..-2]}">) : t.intern
-                 )
+             tokens.map {|t|
+               @symboltable.get(if /\A'/ === t
+                                then eval(%Q<"#{t[1..-2]}">)
+                                else t.intern
+                                end)
              }
     end
 
     def format_action( str )
-      str.sub(/\A */, '').sub(/\s+\z/, '').collect {|line|
-              line.sub(/\A {20}/, '')
-      }.join('')
+      str.sub(/\A */, '').sub(/\s+\z/, '')\
+          .map {|line| line.sub(/\A {20}/, '') }.join('')
     end
 
     def build( debugflag )
@@ -250,16 +249,16 @@ _"              |                                                        ", ''
       @statetable.determine
 
       File.open('raccp.rb', 'w') {|f|
-          File.foreach('in.raccp.rb') do |line|
-            if /STATE_TRANSITION_TABLE/ === line
-              CodeGenerator.new(self).output f
-            else
-              f.print line
-            end
+        File.foreach('in.raccp.rb') do |line|
+          if /STATE_TRANSITION_TABLE/ === line
+            CodeGenerator.new(self).output f
+          else
+            f.print line
           end
+        end
       }
       File.open('b.output', 'w') {|f|
-          VerboseOutputter.new(self).output f
+        VerboseOutputter.new(self).output f
       }
     end
 

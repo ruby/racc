@@ -15,7 +15,7 @@ module Racc
   # ISet
   #
   # indexed set.
-  # all items respond to :ident
+  # all items must respond to :ident
   #
 
   class ISet
@@ -90,7 +90,7 @@ module Racc
     end
 
     def dup
-      ISet.new @set.dup
+      ISet.new(@set.dup)
     end
   
   end   # class ISet

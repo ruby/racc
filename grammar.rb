@@ -9,6 +9,7 @@
 # For details of the GNU LGPL, see the file "COPYING".
 #
 
+require 'racc/compat'
 require 'racc/iset'
 
 
@@ -17,19 +18,21 @@ module Racc
   class UserAction
   
     def initialize( str, lineno )
-      @val = (/\A\s*\z/ === str ? nil : str)
+      @val = (str.strip.empty? ? nil : str)
       @lineno = lineno
     end
 
-    attr :val
-    attr :lineno
+    attr_reader :val
+    attr_reader :lineno
 
     def name
       '{action}'
     end
+
     alias inspect name
   
   end
+
 
   class OrMark
 
@@ -40,11 +43,13 @@ module Racc
     def name
       '|'
     end
+
     alias inspect name
 
-    attr :lineno
+    attr_reader :lineno
 
   end
+
 
   class Prec
   
@@ -56,10 +61,11 @@ module Racc
     def name
       '='
     end
+
     alias inspect name
 
-    attr :val
-    attr :lineno
+    attr_reader :val
+    attr_reader :lineno
   
   end
 
@@ -96,7 +102,6 @@ module Racc
 
       @end_rule = false
     end
-
 
     ###
     ### register
@@ -136,66 +141,44 @@ module Racc
       else
         act = UserAction.new('', 0)
       end
-      list.collect! do |t|
-        UserAction === t ? embed_symbol(t) : t
-      end
+      list.map! {|t| (UserAction === t) ? embed_symbol(t) : t }
 
-      regi targ, list, act
+      reg_rule targ, list, act
       @start ||= targ
       @sprec = nil
     end
 
-    def regi( targ, list, act )
-      tmp = Rule.new(targ, list, act,
-                     @rules.size + 1,
-                     @hashval, @sprec)
-      @rules.push tmp
-      @hashval += list.size + 1
+    def reg_rule( targ, list, act )
+      @rules.push Rule.new(targ, list, act, @rules.size + 1, @hashval, @sprec)
+      @hashval += (list.size + 1)
     end
 
     def embed_symbol( act )
       sym = @symboltable.get("@#{@emb}".intern, true)
       @emb += 1
-      regi sym, [], act
+      reg_rule sym, [], act
       sym
     end
 
     def end_register_rule
       @end_rule = true
-      if @rules.empty?
-        raise RaccError, 'no rule in input'
-      end
+      raise RaccError, 'no rule in input' if @rules.empty?
     end
 
-
     def register_start( tok )
-      if @start
-        raise ParseError, "'start' defined twice'"
-      end
+      raise ParseError, "'start' defined twice'" if @start
       @start = tok
     end
 
-
     def register_option( option )
-      if m = /\Ano_/.match(option)
-        opt = m.post_match
-        flg = true
-      else
-        opt = option
-        flg = false
-      end
-      case opt
+      case option.sub(/\Ano_/, '')
       when 'omit_action_call'
-        @racc.omit_action = inv(flg, true)
+        @racc.omit_action = ((/\Ano_/ === option) ? false : true)
       when 'result_var'
-        @racc.result_var = inv(flg, true)
+        @racc.result_var = ((/\Ano_/ === option) ? false : true)
       else
         raise ParseError, "unknown option '#{option}'"
       end
-    end
-    
-    def inv( i, f )
-      i ? (!f) : f
     end
 
     def expect( n = nil )
@@ -204,12 +187,11 @@ module Racc
       @expect = n
     end
 
-
     ###
     ### accessor
     ###
 
-    attr :start
+    attr_reader :start
 
     def []( x )
       @rules[x]
@@ -236,7 +218,6 @@ module Racc
     def to_s
       "<Racc::RuleTable>"
     end
-
 
     ###
     ### process
@@ -292,7 +273,7 @@ module Racc
         tmp = nil
         rule.ptrs.each do |ptr|
           unless ptr.reduce?
-            tok = ptr.deref
+            tok = ptr.dereference
             tok.locate.push ptr
             tmp = tok if tok.terminal?
           end
@@ -314,9 +295,7 @@ module Racc
       # t.useless?, rule.useless?
       #
       compute_useless
-
     end
-
 
     def compute_expand( t )
       puts "expand> #{t.to_s}" if @d_token
@@ -334,7 +313,7 @@ module Racc
 
       ret.update_a t.heads
       t.heads.each do |ptr|
-        tok = ptr.deref
+        tok = ptr.dereference
         if tok and tok.nonterminal?
           unless lock[tok.ident]
             lock[tok.ident] = true
@@ -345,7 +324,6 @@ module Racc
 
       ret
     end
-
 
     def compute_nullable
       @rules.each       {|r| r.null = false }
@@ -384,11 +362,9 @@ module Racc
             break
           end
         end
-
         t.nullable?
       end
     end
-
 
     ###
     ### WHAT IS "USELESS"?
@@ -467,18 +443,18 @@ module Racc
       tmp.push LocationPointer.new(self, syms.size, nil)
     end
 
-    attr :target
-    attr :symbols
+    attr_reader :target
+    attr_reader :symbols
 
-    attr :action
-    attr :lineno
+    attr_reader :action
+    attr_reader :lineno
 
-    attr :ident
-    attr :hash
-    attr :ptrs
+    attr_reader :ident
+    attr_reader :hash
+    attr_reader :ptrs
 
-    attr :prec
-    attr :specified_prec
+    attr_reader :prec
+    attr_reader :specified_prec
 
     def set_prec( t )
       @prec ||= t
@@ -542,22 +518,25 @@ module Racc
     def initialize( rule, i, sym )
       @rule   = rule
       @index  = i
-      @deref  = sym
-
+      @symbol = sym
       @ident  = @rule.hash + i
       @reduce = sym.nil?
     end
 
-    attr :rule
-    attr :index
-    attr :deref
+    attr_reader :rule
+    attr_reader :index
+    attr_reader :symbol
 
-    attr :ident;      alias hash      ident
-    attr :reduce;     alias reduce?   reduce
+    alias dereference symbol
+
+    attr_reader :ident
+    alias hash ident
+    attr_reader :reduce
+    alias reduce? reduce
 
     def to_s
-      sprintf '(%d,%d %s)',
-              @rule.ident, @index, reduce? ? '#' : deref.to_s
+      sprintf('(%d,%d %s)',
+              @rule.ident, @index, (reduce?() ? '#' : @symbol.to_s))
     end
 
     alias inspect to_s
@@ -625,9 +604,9 @@ module Racc
       @error.conv = 'Object.new'
     end
 
-    attr :dummy
-    attr :anchor
-    attr :error
+    attr_reader :dummy
+    attr_reader :anchor
+    attr_reader :error
 
     def get( val, dummy = false )
       unless ret = @chk[val]
@@ -727,7 +706,7 @@ module Racc
       @symbols[id]
     end
 
-    attr :nt_base
+    attr_reader :nt_base
 
     def nt_max
       @symbols.size
@@ -800,17 +779,17 @@ module Racc
     class << self
       def once_writer( nm )
         nm = nm.id2name
-        module_eval %-
+        module_eval(<<-EOS)
           def #{nm}=( v )
             bug! unless @#{nm}.nil?
             @#{nm} = v
           end
-        -
+        EOS
       end
     end
 
     #
-    # attrs
+    # attributes
     #
 
     once_writer :ident
@@ -818,7 +797,7 @@ module Racc
 
     alias hash ident
 
-    attr :value
+    attr_reader :value
 
     def dummy?() @dummy end
 
@@ -845,8 +824,8 @@ module Racc
     # computed
     #
 
-    attr :heads
-    attr :locate
+    attr_reader :heads
+    attr_reader :locate
 
     once_writer :snull
     def self_null?() @snull end
@@ -855,7 +834,7 @@ module Racc
     def null=(n)    @null = n end
 
     once_writer :expand
-    attr :expand
+    attr_reader :expand
 
     def useless=(f) @useless = f end
     def useless?() @useless end

@@ -89,7 +89,7 @@ module Racc
       ptr = pt = s = g = nil
 
       state.closure.each do |ptr|
-        if sym = ptr.deref
+        if sym = ptr.dereference
           addsym table, sym, ptr.next
         end
       end
@@ -146,7 +146,7 @@ module Racc
     end
 
     def fingerprint( arr )
-      arr.collect {|i| i.ident }.pack('L*')
+      arr.map {|i| i.ident }.pack('L*')
     end
 
     ###
@@ -640,7 +640,7 @@ module Racc
       set = ISet.new
       core.each do |ptr|
         set.add ptr
-        if t = ptr.deref and t.nonterminal?
+        if t = ptr.dereference and t.nonterminal?
           set.update_a t.expand
         end
       end
@@ -652,7 +652,7 @@ module Racc
       s = []
       r = []
       @closure.each do |ptr|
-        if t = ptr.deref
+        if t = ptr.dereference
           if t.terminal?
             s[t.ident] = t
             if t.ident == 1    # $error
@@ -674,7 +674,7 @@ module Racc
 
       if @conflict
         @la_rules_i = la_rules.size
-        @la_rules = r.collect {|i| i.ident }
+        @la_rules = r.map {|i| i.ident }
         la_rules.concat r
       else
         @la_rules_i = @la_rules = nil

@@ -9,6 +9,9 @@
 # For details of the GNU LGPL, see the file "COPYING".
 #
 
+require 'racc/compat'
+
+
 module Racc
 
   class Formatter
@@ -121,7 +124,7 @@ module Racc
         max = freq.max
         if max > 1
           dflt = freq.index( max )
-          tmp.collect! {|i| dflt == i ? nil : i }
+          tmp.map! {|i| dflt == i ? nil : i }
         else
           dflt = nil
         end
@@ -361,7 +364,7 @@ Racc_arg = [
 
 EOS
       out << "Racc_token_to_s_table = [\n"
-      out << @symboltable.collect {|tok|
+      out << @symboltable.map {|tok|
               "'" + tok.to_s.gsub(/'/, '\\\'') + "'" }.join(",\n")
       out << "]\n\n"
       out << "Racc_debug_parser = #{@dsrc}\n\n"
@@ -628,10 +631,13 @@ SRC
     end
 
     def locatestr( ptrs )
-      arr = ptrs.collect {|ptr| i = ptr.rule.ident; i == 0 ? nil : i }
-      arr.compact!
-      arr.uniq!
-      arr.join(' ')
+      list = ptrs.map {|ptr|
+                    i = ptr.rule.ident
+                    (i == 0) ? nil : i
+                  }
+      list.compact!
+      list.uniq!
+      list.join(' ')
     end
 
   end   # class VerboseOutputter

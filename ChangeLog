@@ -1,3 +1,21 @@
+Sun Oct 12 14:24:47 2003  Minero Aoki  <aamine@loveruby.net>
+
+	* boot.rb: reformat only.
+
+	* compiler.rb: ditto.
+
+	* grammar.rb: ditto.
+
+	* in.raccp.rb: ditto.
+
+	* iset.rb: ditto.
+
+	* output.rb: ditto.
+
+	* raccs.rb: ditto.
+
+	* state.rb: ditto.
+
 Sun Oct 12 14:17:22 2003  Minero Aoki  <aamine@loveruby.net>
 
 	* test/test.rb: refactoring.

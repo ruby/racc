@@ -9,17 +9,11 @@
 # For details of the GNU LGPL, see the file "COPYING".
 #
 
+require 'racc/compat'
 require 'racc/raccp'
 require 'racc/grammar'
 require 'racc/state'
 require 'racc/output'
-
-
-unless [].respond_to?(:collect!)
-  class Array
-    alias collect! filter
-  end
-end
 
 
 module Racc
@@ -86,7 +80,6 @@ module Racc
 
     def nfa
       $stderr.puts 'initializing state machine...' if @verbose
-
       @statetable = StateTable.new(self)
       @ruletable.init
       @statetable.init
@@ -106,13 +99,11 @@ module Racc
 
     def source( f )
       $stderr.puts 'creating table file...' if @verbose
-
       CodeGenerator.new(self).output f
     end
 
     def output( f )
       $stderr.puts 'creating .output file...' if @verbose
-
       VerboseOutputter.new(self).output f
     end
 
