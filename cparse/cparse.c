@@ -41,17 +41,27 @@ static ID id_d_read_token;
 static ID id_d_next_state;
 static ID id_d_e_pop;
 
+
 #ifdef ID2SYM
 # define id_to_value(i) ID2SYM(i)
 #else
 # define id_to_value(i) INT2FIX(i)
 #endif
 
+static ID
+value_to_id(v)
+    VALUE v;
+{
+    if (! SYMBOL_P(v)) {
+        rb_raise(rb_eTypeError, "not symbol");
+    }
 #ifdef SYM2ID
-# define value_to_id(v) SYM2ID(v)
+    return SYM2ID(v);
 #else
-# define value_to_id(v) (ID)FIX2LONG(v)
+    return (ID)FIX2LONG(v);
 #endif
+}
+
 
 #ifdef DEBUG
 # define D(code) if (v->in_debug) code
