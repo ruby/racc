@@ -129,4 +129,5 @@ try %w( expect.y                  ), [1,0,0,0,1]
 try %w( nullbug1.y                ), [0,0,0,0]
 try %w( nullbug2.y                ), [0,0,0,0]
 try %w( firstline.y               ), []
+try %w( nonass.y                  ), [], true
 report
