@@ -1,3 +1,7 @@
+Sun Oct 12 14:17:22 2003  Minero Aoki  <aamine@loveruby.net>
+
+	* test/test.rb: refactoring.
+
 Tue Jun 24 03:14:01 2003  Minero Aoki  <aamine@as600.loveruby.net>
 
 	* ucodep.rb: typo: Grammer -> Grammar
