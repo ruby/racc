@@ -1,5 +1,4 @@
 MANIFEST
-.cvsignore
 cparse.c
 depend
 extconf.rb
