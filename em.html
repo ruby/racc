@@ -4,7 +4,7 @@
 <h1>Racc User Manual</h1>
 
 <p>
-updated for version 1.3.4
+updated for version 1.3.5
 
 <ul>
 <li><a href="usage.html">Usage</a>
@@ -220,6 +220,7 @@ class block is like this:
     class <var>class_name</var>
       [<var>precedance table</var>]
       [<var>token declearations</var>]
+      [<var>expected number of S/R conflict</var>]
       [<var>options</var>]
       [<var>semantic value convertion</var>]
       [<var>start rule</var>]
@@ -350,6 +351,20 @@ is also OK.
 
 </pre>
 
+<h3><a name="expect">expect</a></h3>
+<p>
+Racc has bison's "expect" directive.
+<pre>
+# Example
+
+class MyParser
+rule
+  expect 3
+    :
+</pre>
+This directive declears "expected" number of shift/reduce conflict.
+If "expected" number is equal to real number, racc does not print
+confliction warning message. Mainly for release-version parser.
 
 <h3><a name="token">Token Declearation</a></h3>
 <p>
@@ -568,9 +583,10 @@ return from parse routine (return value is Symbol-Value-Stack[0]).
 <h1>Change Log</h1>
 
 <hr>
-<h2>1.3.5 (2001--)</h2>
+<h2>1.3.5 (2001-01-18)</h2>
 <p>
 <ul>
+<li>%-string scanning was wrong
 <li>new directive "expect"
 </ul>
 
