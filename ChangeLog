@@ -1,3 +1,7 @@
+Sun Oct 12 18:31:07 2003  Minero Aoki  <aamine@loveruby.net>
+
+	* version 1.4.4.
+
 Sun Oct 12 18:30:55 2003  Minero Aoki  <aamine@loveruby.net>
 
 	* misc/dist.sh: forgot to remove tmp comment out.
