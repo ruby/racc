@@ -1,3 +1,7 @@
+Tue Jun 24 03:14:01 2003  Minero Aoki  <aamine@as600.loveruby.net>
+
+	* ucodep.rb: typo: Grammer -> Grammar
+
 Mon May 26 23:06:58 2003  Minero Aoki  <aamine@loveruby.net>
 
 	* compiler.rb: update copyright year.

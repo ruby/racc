@@ -13,7 +13,7 @@ module Racc
 
   class GrammarFileParser < Parser
 
-    def GrammerFileParser.get_ucode( fname )
+    def GrammarFileParser.get_ucode( fname )
       ret = {}
       re = /\A----+\s*(header|inner|footer|prepare|driver)\s*(=)?/i
       str = nil
