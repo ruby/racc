@@ -14,6 +14,7 @@ default: all
 
 all: update
 	cd lib/racc && $(MAKE)
+	cd ext/racc/cparse && ruby extconf.rb && make
 
 update:
 	update-version --version=$(version) lib/racc/info.rb lib/racc/parser.rb ext/racc/cparse/cparse.c
