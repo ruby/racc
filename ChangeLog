@@ -1,3 +1,7 @@
+Sun Oct 12 23:37:18 2003  Minero Aoki  <aamine@loveruby.net>
+
+	* doc/parser.rrd.m: missing 'j'.
+
 Sun Oct 12 23:29:11 2003  Minero Aoki  <aamine@loveruby.net>
 
 	* Makefile: new target `doc'.
