@@ -175,7 +175,7 @@ struct cparse_params {
 static void initvars _((VALUE, struct cparse_params*, VALUE, VALUE, ID));
 static void wrap_yyparse _((struct cparse_params*));
 static void parser_core _((struct cparse_params*, VALUE, VALUE, int));
-static void check_nexttoken_value _((VALUE));
+static void extract_utok _((VALUE, VALUE*, VALUE*));
 static VALUE catch_iter _((VALUE));
 static VALUE do_reduce _((VALUE, VALUE, VALUE));
 
@@ -241,9 +241,7 @@ catch_scaniter(arr, data, self)
     VALUE tok, val;
 
     Data_Get_Struct(data, struct cparse_params, v);
-    check_nexttoken_value(arr);
-    tok = AREF(arr, 0);
-    val = AREF(arr, 1);
+    extract_utok(arr, &tok, &val);
     parser_core(v, tok, val, 1);
     if (v->fin)
        /* rb_break */; 
@@ -349,9 +347,16 @@ initvars(parser, v, arg, recv, mid)
 }
 
 static void
-check_nexttoken_value(arr)
+extract_utok(arr, t_var, v_var)
     VALUE arr;
+    VALUE *t_var, *v_var;
 {
+    if (NIL_P(arr)) {
+        /* EOF */
+        *t_var = Qfalse;
+        *v_var = rb_str_new("$", 1);
+        return;
+    }
     if (TYPE(arr) != T_ARRAY) {
         rb_raise(rb_eTypeError,
                  "next_token returned %s (must be Array[2])",
@@ -360,6 +365,8 @@ check_nexttoken_value(arr)
     if (RARRAY(arr)->len != 2)
         rb_raise(rb_eArgError,
                  "size of array returned from next_token is not 2");
+    *t_var = AREF(arr, 0);
+    *v_var = AREF(arr, 1);
 }
 
 static void
@@ -403,9 +410,7 @@ parser_core(v, tok, val, resume)
         return;
     }
                     tmp = rb_funcall(v->parser, id_nexttoken, 0);
-                    check_nexttoken_value(tmp);
-                    tok = AREF(tmp, 0);
-                    val = AREF(tmp, 1);
+                    extract_utok(tmp, &tok, &val);
     resume:
     if (v->iterator_p) {
         D(puts("resume"));
