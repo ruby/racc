@@ -1,3 +1,9 @@
+Mon Nov  3 17:19:26 2003  Minero Aoki  <aamine@loveruby.net>
+
+	* lib/racc/parser.rb: update version.
+
+	* ext/racc/cparse/cparse.c: update version.
+
 Mon Nov  3 17:19:01 2003  Minero Aoki  <aamine@loveruby.net>
 
 	* Makefile: update version in parser.rb, cparse.c.
