@@ -66,6 +66,10 @@ value_to_id(v)
 #endif
 }
 
+#ifndef LONG2NUM
+#  define LONG2NUM(i) INT2NUM(i)
+#endif
+
 static VALUE
 slice_tail(stack, len)
     VALUE stack;
@@ -86,12 +90,6 @@ cut_off_tail(stack, len)
         len--;
     }
 }
-
-#ifdef DEBUG
-# define D(code) if (v->in_debug) code
-#else
-# define D(code)
-#endif
 
 #define STACK_INIT_LEN 64
 #define INIT_STACK(s) \
@@ -163,6 +161,14 @@ struct cparse_params {
 };
 
 
+static void initvars _((VALUE, struct cparse_params*, VALUE, VALUE, VALUE));
+static void wrap_yyparse _((struct cparse_params*));
+static void parser_core _((struct cparse_params*, VALUE, VALUE, int));
+static void extract_utok _((struct cparse_params*, VALUE, VALUE*, VALUE*));
+static VALUE catch_iter _((VALUE));
+static VALUE do_reduce _((VALUE, VALUE, VALUE));
+
+
 #define REDUCE(v, act) \
     v->ruleno = -act * 3;                            \
     tmp = rb_iterate(catch_iter, v->parser,          \
@@ -198,12 +204,11 @@ struct cparse_params {
     return;
 
 
-static void initvars _((VALUE, struct cparse_params*, VALUE, VALUE, VALUE));
-static void wrap_yyparse _((struct cparse_params*));
-static void parser_core _((struct cparse_params*, VALUE, VALUE, int));
-static void extract_utok _((struct cparse_params*, VALUE, VALUE*, VALUE*));
-static VALUE catch_iter _((VALUE));
-static VALUE do_reduce _((VALUE, VALUE, VALUE));
+#ifdef DEBUG
+# define D(code) if (v->in_debug) code
+#else
+# define D(code)
+#endif
 
 
 static VALUE
