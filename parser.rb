@@ -1,7 +1,7 @@
 #
 # parser.rb
 #
-#   Copyright (c) 1999-2001 Minero Aoki <aamine@loveruby.net>
+#   Copyright (c) 1999-2002 Minero Aoki <aamine@loveruby.net>
 #
 #   This program is free software.
 #   You can distribute/modify this program under the same terms of ruby.
@@ -13,6 +13,11 @@
 #   $Id$
 #
 
+unless defined? NotImplementedError then
+  NotImplementedError = NotImplementError
+end
+
+
 module Racc
   class ParseError < StandardError; end
 end
@@ -20,8 +25,8 @@ unless defined? ParseError then
   ParseError = Racc::ParseError
 end
 
-unless defined? NotImplementedError then
-  NotImplementedError = NotImplementError
+unless defined? Racc_No_Extentions then
+  Racc_No_Extentions = false
 end
 
 
@@ -29,38 +34,41 @@ module Racc
 
   class Parser
 
-    private
+    Racc_Runtime_Version = '1.4.1'
+    Racc_Runtime_Revision = '$Revision$'.split(/\s+/)[1]
 
-
+    Racc_Runtime_Core_Version_R = '1.4.1'
+    Racc_Runtime_Core_Revision_R = '$Revision$'.split(/\s+/)[1]
     begin
-      if defined? Racc_Debug_Ruby_Parser then
-        raise LoadError, 'debugging ruby version runtime routine'
-      end
       require 'racc/cparse'
+    # Racc_Runtime_Core_Version_C  = (defined in extention)
+      Racc_Runtime_Core_Revision_C = Racc_Runtime_Core_Id_C.split(/\s+/)[2]
       unless new.respond_to? :_racc_do_parse_c, true then
         raise LoadError, 'old cparse.so'
       end
-      Racc_Main_Parsing_Routine = :_racc_do_parse_c
-      Racc_YY_Parse_Method      = :_racc_yyparse_c
-      Racc_c_parser_revision    = Racc_c_parser_id.split(/\s+/)[2]
+      if Racc_No_Extentions then
+        raise LoadError, 'selecting ruby version of racc runtime core'
+      end
+
+      Racc_Main_Parsing_Routine    = :_racc_do_parse_c
+      Racc_YY_Parse_Method         = :_racc_yyparse_c
+      Racc_Runtime_Core_Version    = Racc_Runtime_Core_Version_C
+      Racc_Runtime_Core_Revision   = Racc_Runtime_Core_Revision_C
+      Racc_Runtime_Type            = 'c'
     rescue LoadError
-      Racc_Main_Parsing_Routine = :_racc_do_parse_rb
-      Racc_YY_Parse_Method      = :_racc_yyparse_rb
+      Racc_Main_Parsing_Routine    = :_racc_do_parse_rb
+      Racc_YY_Parse_Method         = :_racc_yyparse_rb
+      Racc_Runtime_Core_Version    = Racc_Runtime_Core_Version_R
+      Racc_Runtime_Core_Revision   = Racc_Runtime_Core_Revision_R
+      Racc_Runtime_Type            = 'ruby'
     end
-
-    Racc_ruby_parser_version = '1.4.0'
-    Racc_ruby_parser_revision = '$Id$'.split(/\s+/)[2]
-
-    Racc_parser_version = Racc_ruby_parser_version
-    Racc_parser_revision = Racc_ruby_parser_revision
 
     def self.racc_runtime_type
-      if Racc_Main_Parsing_Routine == :_racc_do_parse_c then
-        'c'
-      else
-        'ruby'
-      end
+      Racc_Runtime_Type
     end
+
+
+    private
 
 
     def _racc_setup
