@@ -8,7 +8,7 @@ require 'amstd/pack'
 
 environ( 'racc' ) do
 
-  set :version, '1.3.7'
+  set :version, '1.3.8'
 
   set :dir, expand('~/r/racc')
 
@@ -16,11 +16,11 @@ environ( 'racc' ) do
   set :category,  'parser generator'
   set :format,    'ruby script, ruby extention'
   set :require,   'ruby(>=1.4), C compiler'
-  set :license,   'lgpl'
+  set :license,   'LGPL'
   set :type,      'ruby'
   set :package,   'racc'
   set :instpath,  'racc'
-  set :topfile,   nil
+  set :topfile,    nil
 
   set :raw, true
 
@@ -104,9 +104,10 @@ environ( 'racc' ) do
 
     set :dir, (e :racc).g(:dir)
 
-    set :type, 'ruby'
-    set :package, 'raccrt'
+    set :type,     'ruby'
+    set :package,  'raccrt'
     set :instpath, 'racc'
+    set :topfile,   nil
 
     set :rb, %w( parser.rb )
 
@@ -129,9 +130,10 @@ environ( 'racc' ) do
 
     set :dir, expand('~/r/racc/cp')
 
-    set :type, 'ext'
-    set :package, 'raccrt'
+    set :type,     'ext'
+    set :package,  'raccrt'
     set :instpath, 'racc'
+    set :topfile,   nil
 
 
     set :c, %w( cparse.c )
