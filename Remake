@@ -8,7 +8,7 @@ mount 'strscan'
 
 environ( 'rubyprog/racc' ) {
 
-  $version   = '1.3.12'
+  $version   = '1.4.0'
 
   $packaging = %w( single multi )
   $type      = 'ruby'
@@ -117,7 +117,8 @@ This tool is written in Ruby and outputs Ruby scripts.
 
 environ( 'rubyprog/raccrt' ) {
 
-  $dir = 'rubycvs/lib/racc'
+  $origdir = $dir
+  $dir = $origdir + '/rubycvs/lib/racc'
 
   $version = $<racc>.$version
 
@@ -145,7 +146,7 @@ environ( 'rubyprog/raccrt' ) {
 
   environ( 'cparse' ) {
 
-    $dir = 'rubycvs/ext/racc/cparse'
+    $dir = $origdir + '/rubycvs/ext/racc/cparse'
 
     $type     = 'ext'
     $topfile  =  nil

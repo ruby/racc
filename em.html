@@ -4,12 +4,12 @@
 <h1>Racc User Manual</h1>
 
 <p>
-updated for version 1.3.12
+updated for version 1.4.0
 
 <ul>
 <li><a href="usage.html">Usage</a>
 <li><a href="command.html">racc Command Reference</a>
-<li><a href="grammer.html">Racc Grammer Reference</a>
+<li><a href="grammar.html">Racc Grammar Reference</a>
 <li><a href="parser.html">Racc::Parser class Reference</a>
 <li><a href="debug.html">For Debug</a>
 <li><a href="changes.html">Change Log</a>
@@ -23,10 +23,10 @@ updated for version 1.3.12
 
 <hr>
 
-<h2>Compiling Racc grammer file</h2>
+<h2>Compiling Racc grammar file</h2>
 
 <p>
-To compile Racc grammer file, simply type:
+To compile Racc grammar file, simply type:
 <pre>
 
   $ racc parse.y
@@ -38,14 +38,14 @@ This creates ruby script file "parse.tab.y". -o option changes this.
 <h2>Creating Parser with Racc</h2>
 
 <p>
-If you want your own parser, you have to write grammer file.
-A grammer file contains name of parser class, grammer the parser can parse,
+If you want your own parser, you have to write grammar file.
+A grammar file contains name of parser class, grammar the parser can parse,
 user code, and any.<br>
-When writing grammer file, yacc's knowledge is helpful.
+When writing grammar file, yacc's knowledge is helpful.
 If you have not use yacc, also racc is too difficult.
 
 <p>
-Here's example of Racc grammer file.
+Here's example of Racc grammar file.
 <pre>
 
 class Calcparser
@@ -60,7 +60,7 @@ rule
 end
 
 </pre>
-Racc grammer file is resembles to yacc file.
+Racc grammar file is resembles to yacc file.
 But (of cource), action is Ruby code. yacc's $$ is 'result', $0, $1... is
 an array 'val', $-1, $-2... is an array '_values'.
 
@@ -74,7 +74,7 @@ racc's parse method,
 yylex(). This method must returns an array like [TOKENSYMBOL, ITS_VALUE].
 EOF is [false, false].
 (token symbol is ruby symbol (got by String#intern) as default.
- If you want to change this, see <a href="grammer#token">grammer reference</a>.
+ If you want to change this, see <a href="grammar#token">grammar reference</a>.
 <br> 
 "yyparse()" is little complecated, but useful. It does not use "next_token()",
 it gets tokens from any iterator. For example, "yyparse(obj, :scan)" causes
@@ -184,10 +184,10 @@ print usage.
 </dl>
 
 <% footer 1999 %>
-. file grammer.html --------------------------------------------------
-<% header 'Grammer Reference' %>
+. file grammar.html --------------------------------------------------
+<% header 'Grammar Reference' %>
 
-<h1>Racc grammer reference</h1>
+<h1>Racc grammar reference</h1>
 
 <hr>
 
@@ -246,10 +246,10 @@ end
 </pre>
 
 
-<h3><a name="grammer">rule block</a></h3>
+<h3><a name="grammar">rule block</a></h3>
 
 <p>
-'rule block' discripts grammer which is able to be understood by parser.
+'rule block' discripts grammar which is able to be understood by parser.
 For example:
 <pre>
 
@@ -562,7 +562,7 @@ return from parse routine (return value is Symbol-Value-Stack[0]).
 <h2>when parse error</h2>
 
 <ul>
-<li>Isn't there too many "end" ? grammer of racc file is changed in v0.10.
+<li>Isn't there too many "end" ? grammar of racc file is changed in v0.10.
 </ul>
 
 <h2>when parsing</h2>
@@ -581,6 +581,15 @@ return from parse routine (return value is Symbol-Value-Stack[0]).
 <% header 'Changes' %>
 
 <h1>Change Log</h1>
+
+<hr>
+<h2>1.4.0 (2001-11-30)</h2>
+<p>
+<ul>
+<li>minor version up for checking in runtime library into ruby CVS repositry.
+<li>RaccParser, RaccScanner -&gt; GrammarFileParser, GrammarFileScanner
+<li>modify typo (grammer -&gt; grammar)
+</ul>
 
 <hr>
 <h2>1.3.12 (2001-11-22)</h2>
@@ -613,7 +622,7 @@ return from parse routine (return value is Symbol-Value-Stack[0]).
 <ul>
 <li>output symbol name when error
 <li>Racc::Parser#token_to_str
-<li>Bug in generator: couldn't resolve the grammer below:
+<li>Bug in generator: couldn't resolve the grammar below:
 <blockquote><pre>
 targ      : operation nullhead
 	  | variable
@@ -628,7 +637,7 @@ variable  : A
 <p>
 <ul>
 <li>allow nil for EndOfInput (experimental)
-<li>more sample grammer files
+<li>more sample grammar files
 </ul>
 
 <h2>1.3.6 (2001-01-22)</h2>
@@ -913,7 +922,7 @@ variable  : A
 <h2>0.11.0 (2000-02-19)</h2>
 <p>
 <ul>
-<li>if error is occured in action, ruby print line number of grammer file
+<li>if error is occured in action, ruby print line number of grammar file
 </ul>
 
 <hr>

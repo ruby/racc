@@ -4,7 +4,7 @@
 <h1>Racc user manual</h1>
 
 <p>
-updated for version 1.3.12
+updated for version 1.4.0
 
 <p>
 Racc は文法規則から Ruby で書かれたパーサを生成するパーサジェネレータです。
@@ -13,7 +13,7 @@ Racc は文法規則から Ruby で書かれたパーサを生成するパーサジェネレータです。
 <ul>
 <li><a href="usage.html">Racc の使い方</a>
 <li><a href="command.html">racc コマンドリファレンス</a>
-<li><a href="grammer.html">規則ファイル文法リファレンス</a>
+<li><a href="grammar.html">規則ファイル文法リファレンス</a>
 <li><a href="parser.html">Parser クラスリファレンス</a>
 <li><a href="debug.html">デバッグ情報</a>
 <li><a href="changes.html">変更履歴</a>
@@ -101,7 +101,7 @@ Racc は文法ファイルから Ruby のクラスを生成するツールだと言いました。
 そのクラスは全て Racc::Parser の下位クラスで、名前は文法ファイル中で
 指定します。以下、ここに書くべきことが「なんなのか」を説明します。
 ここでは内容に重点を置くので、文法ファイル自体の文法の詳細は
-<a href="grammer.html">文法リファレンス</a>
+<a href="grammar.html">文法リファレンス</a>
 を見てください。
 
 <h3>文法</h3>
@@ -420,11 +420,11 @@ racc [-o<var>filename</var>] [--output-file=<var>filename</var>]
      [-a] [--no-omit-actions]
      [-C] [--check-only]
      [-S] [--output-status]
-     [--version] [--copyright] [--help] <var>grammerfile</var>
+     [--version] [--copyright] [--help] <var>grammarfile</var>
 </p>
 
 <dl>
-<dt><var>grammerfile</var>
+<dt><var>grammarfile</var>
 <dd>
 Raccの文法ファイルを指定します。拡張子には特に制限はありません。
 
@@ -511,8 +511,8 @@ Racc のバージョンを出力して終了します。
 </dl>
 
 <% footer 1999 %>
-. file grammer.html -----------------------------------------------------
-<% header 'Grammer Reference' %>
+. file grammar.html -----------------------------------------------------
+<% header 'Grammar Reference' %>
 
 <h1>規則ファイル文法リファレンス</h1>
 
@@ -587,7 +587,7 @@ end
 ために用意したもので、現在指定する必然性はあまりありません。
 
 
-<h4><a name="grammer">文法の記述</a></h4>
+<h4><a name="grammar">文法の記述</a></h4>
 <p>
 racc で生成するパーサが理解できる文法を記述します。
 文法は、予約語 rule と end の間に、以下のような書式で書きます。
@@ -988,7 +988,7 @@ Object
     →その文字列そのまま(たとえば、<code>'='</code>)
 </ul>
 で表します。これを変更する方法については、
-<a href="grammer.html#token">文法リファレンス</a>を参照してください。
+<a href="grammar.html#token">文法リファレンス</a>を参照してください。
 <p>
 また、もう送るシンボルがなくなったときには <code>[false, なにか]
 </code> を返してください。これを忘れるとわけのわからないパースエラーに
@@ -1168,6 +1168,15 @@ yacc ではユーザーコードを分類する必要はありませんが、racc ではパーサがクラスなの
 <% header 'Change Log' %>
 
 <h1>変更履歴</h1>
+
+<hr>
+<h2>1.4.0 (2001-11-30)</h2>
+<p>
+<ul>
+<li>ランタイムを Ruby の CVS に入れたのにあわせてマイナーバージョンアップ
+<li>RaccParser, RaccScanner → GrammarFileParser, GrammarFileScanner
+<li>ハズい typo を修正 (grammer → grammar)
+</ul>
 
 <hr>
 <h2>1.3.12 (2001-11-22)</h2>
