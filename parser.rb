@@ -1,15 +1,23 @@
 #
 # parser.rb
 #
-#    Copyright(c) 1999 Minero Aoki
-#    aamine@dp.u-netsurf.ne.jp
+#   Copyright (c) 1999 Minero Aoki <aamine@dp.u-netsurf.ne.jp>
+#
+#   This program is free software.
+#   You can distribute/modify this program under the terms of
+#   the GNU Lesser General Public License version 2 or later.
 #
 
-require 'amstd/extmod'
 require 'amstd/bug'
 
+###
 
-class ParseError < StandardError ; end
+unless defined? ParseError then
+  class ParseError < StandardError ; end
+end
+
+
+module Racc
 
 
 class Parser
@@ -25,7 +33,9 @@ class Parser
   end
 
 
-  abstract :next_token
+  def next_token
+    raise NotImplementError, "#{self.type}#next_token must be defined"
+  end
 
 
   def do_parse
@@ -35,8 +45,18 @@ class Parser
     @yydebug = @yydebug ? true : false
 
     case Racc_Main_Parsing_Routine
-    when :c  then _c_parse true
-    when :rb then _rb_parse
+    when :c  then
+      t = self.type
+      _c_parse([ t::LR_action_table,
+                 t::LR_action_table_ptr,
+                 t::LR_goto_table,
+                 t::LR_goto_table_ptr,
+                 t::LR_reduce_table,
+                 t::LR_token_table,
+                 t::LR_shift_n,
+                 t::LR_reduce_n ], false )
+    when :rb then
+      _rb_parse
     else
       bug!
     end
@@ -48,14 +68,15 @@ class Parser
     # local variables
     #
 
-    action_table = self.type::LR_action_table
-    action_ptr   = self.type::LR_action_table_ptr
-    goto_table   = self.type::LR_goto_table
-    goto_ptr     = self.type::LR_goto_table_ptr
-    reduce_table = self.type::LR_reduce_table
-    token_table  = self.type::LR_token_table
-    shift_n      = self.type::LR_shift_n
-    reduce_n     = self.type::LR_reduce_n
+    t = self.type
+    action_table = t::LR_action_table
+    action_ptr   = t::LR_action_table_ptr
+    goto_table   = t::LR_goto_table
+    goto_ptr     = t::LR_goto_table_ptr
+    reduce_table = t::LR_reduce_table
+    token_table  = t::LR_token_table
+    shift_n      = t::LR_shift_n
+    reduce_n     = t::LR_reduce_n
 
     state    = [ 0 ]
     curstate = 0
@@ -158,7 +179,6 @@ class Parser
         errstatus = 3
 
         while true do
-p state
           i = action_ptr[curstate]
           while true do
             ii = action_table[i]
@@ -313,3 +333,6 @@ p state
   end
 
 end
+
+
+end   # module Racc

@@ -17,9 +17,11 @@ def openread( fn )
   ret
 end
 
-class Racc
+module Racc
 
-  Version = '0.10.3'
+  Version = '0.10.4'
+
+class Core
 
   attr :ruletable
   attr :tokentable
@@ -190,13 +192,7 @@ class Racc
 
     File.open( 'raccp.rb', 'w' ) do |f|
       f.write openread( 'p.prepare' )
-      f.puts
-      f.write <<SRC
-$RACCPARSER_DEBUG = #{ @dflag ? 'true' : 'false' }
-
-class Racc
-
-SRC
+      f.puts "  class RaccParser < Parser"
       f.write openread( 'p.inner' )
       @formatter.source( f )
       f.puts '  end'
@@ -213,5 +209,7 @@ SRC
 
 end
 
+end
 
-Racc.new.build( (ARGV[0] == '-g') )
+
+Racc::Core.new.build( (ARGV[0] == '-g') )

@@ -5,7 +5,7 @@
 #
 
 
-class Racc
+module Racc
 
   class LALRstateTable
 
@@ -19,6 +19,8 @@ class Racc
       @d_shift  = racc.d_shift
 
       @states = []
+      # require '/home/aamine/r/racc/ft/corecache'
+      # @statecache = LALRcoreCache.new
       @statecache = {}
 
       @actions = LALRactionTable.new( @ruletable, self )
@@ -207,7 +209,7 @@ class Racc
         # find most used reduce rule
         #
         act = st.action
-        arr = Array.new( @ruletable.size - 1, 0 )
+        arr = Array.new( @ruletable.size, 0 )
         act.each do |t,a|
           if ReduceAction === a then
             arr[ a.ruleid ] += 1
@@ -717,4 +719,4 @@ class Racc
 
   end
 
-end
+end   # module Racc

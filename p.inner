@@ -1,12 +1,10 @@
 
-  class RaccParser < Parser
-
     attr :start
     attr :classname
 
 
     def initialize( racc )
-      racc.must Racc
+      racc.must Racc::Core
       @racc   = racc
       @interf = racc.interf
 

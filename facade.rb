@@ -4,9 +4,12 @@
 #   Copyright (c) 1999 Minero Aoki <aamine@dp.u-netsurf.ne.jp>
 #
 
-class Racc
 
-  Version = '0.10.3'
+module Racc
+
+  Version = '0.10.4'
+
+class Core
 
   attr :class_name
 
@@ -88,3 +91,6 @@ class Racc
   end
 
 end
+
+
+end   # module Racc

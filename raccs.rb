@@ -3,11 +3,15 @@
 #
 #   Copyright (c) 1999 Minero Aoki <aamine@dp.u-netsurf.ne.jp>
 #
+#   This library is free (and open source) software.
+#   You can distribute/modify this library under the terms of
+#   the GNU Library General Public License.
+#
 
 require 'racc/scanner'
 
 
-class Racc
+module Racc
 
   class RaccScanner < Scanner
 

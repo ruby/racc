@@ -5,7 +5,7 @@
 #
 
 
-class Racc
+module Racc
 
   class RaccFormatter
 
@@ -27,7 +27,7 @@ class Racc
 
 
     def source( out = '' )
-      out << "##### racc version #{Version} generates ###\n\n"
+      out << "##### racc version #{Racc::Version} generates ###\n\n"
 
       action_table_tab( out )
       out << "\n"
@@ -346,4 +346,4 @@ SRC
 
   end   # class RaccFormatter
 
-end
+end   # module Racc

@@ -4,7 +4,7 @@
 #   Copyright (c) 1999 Minero Aoki <aamine@dp.u-netsurf.ne.jp>
 #
 
-class Racc
+module Racc
 
   class BuildInterface
 
@@ -473,16 +473,16 @@ class Racc
       @tokenid = tid
     end
 
-    attr     :tokenid
+    attr :tokenid
 
-    attr     :value
-    attr     :rules
-    attr     :locate
-    attr     :term,                true
-    attr     :nullp,               true
-    attr     :assoc,               true
-    attr     :prec,                true
-    property :conv,  String, true, true
+    attr :value
+    attr :rules
+    attr :locate
+    attr :term,  true
+    attr :nullp, true
+    attr :assoc, true
+    attr :prec,  true
+    attr :conv,  true
 
     alias terminal? term
     alias null?     nullp
@@ -571,6 +571,6 @@ class Racc
       return ret
     end
 
-  end   # Token
+  end   # class Token
 
-end
+end   # module Racc
