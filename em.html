@@ -4,7 +4,7 @@
 <h1>Racc User Manual</h1>
 
 <p>
-updated for version 1.3.7
+updated for version 1.3.8
 
 <ul>
 <li><a href="usage.html">Usage</a>
@@ -588,12 +588,21 @@ return from parse routine (return value is Symbol-Value-Stack[0]).
 <ul>
 <li>output symbol name when error
 <li>Racc::Parser#token_to_str
+<li>Bug in generator: couldn't resolve the grammer below:
+<blockquote><pre>
+targ      : operation nullhead
+	  | variable
+nullhead  : null B
+null      :
+operation : A
+variable  : A
+</pre></blockquote>
 </ul>
 
 <h2>1.3.7 (2001-02-04)</h2>
 <p>
 <ul>
-<li>allow nil for EOF (experimental)
+<li>allow nil for EndOfInput (experimental)
 <li>more sample grammer files
 </ul>
 

@@ -1170,17 +1170,26 @@ yacc ではユーザーコードを分類する必要はありませんが、racc ではパーサがクラスなの
 <h1>変更履歴</h1>
 
 <hr>
-<h2>1.3.8 (2001-03-09)</h2>
+<h2>1.3.8 (2001-03-17)</h2>
 <p>
 <ul>
 <li>パースエラーの時に記号名も出力するようにした
 <li>Racc::Parser#token_to_s
+<li>ジェネレータにバグ。以下の文法の衝突を解決できなかった
+<blockquote><pre>
+targ      : operation nullhead
+	  | variable
+nullhead  : null B
+null      :
+operation : A
+variable  : A
+</pre></blockquote>
 </ul>
 
 <h2>1.3.7 (2001-02-04)</h2>
 <p>
 <ul>
-<li>実験的に、トークン終端は nil でもよいことにした。
+<li>実験的に、入力トークンの終端は nil でもよいことにした。
     バグの発見が遅れるようであればやっぱりやめる。
 <li>サンプルを増やした
 </ul>
