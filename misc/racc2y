@@ -21,7 +21,7 @@ class R
   def initialize
     @symboltable = Racc::SymbolTable.new( self )
     @ruletable   = Racc::RuleTable.new( self )
-    @parser      = Racc::RaccParser.new( self )
+    @parser      = Racc::GrammarFileParser.new( self )
   end
 
   attr :ruletable
@@ -45,7 +45,7 @@ class R
     @parser.parse( str )
     @ruletable.init
 
-    u = Racc::RaccParser.get_ucode( fname )
+    u = Racc::GrammarFileParser.get_ucode( fname )
     @header, = u['header']
     @inner,  = u['inner']
     @footer, = u['footer']
