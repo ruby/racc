@@ -94,7 +94,7 @@ bitmap_set(VALUE self, VALUE idx)
 }
 
 static VALUE
-bitmap_updor(VALUE self, VALUE other)
+bitmap_update(VALUE self, VALUE other)
 {
     struct bmap *dest, *src;
     long i;
@@ -156,7 +156,7 @@ Init_bitmap(void)
     rb_define_method(Bitmap, "length", bitmap_size, 0);
     rb_define_method(Bitmap, "[]", bitmap_aref, 1);
     rb_define_method(Bitmap, "set", bitmap_set, 1);
-    rb_define_method(Bitmap, "updor", bitmap_updor, 1);
+    rb_define_method(Bitmap, "update", bitmap_update, 1);
     rb_define_method(Bitmap, "clear", bitmap_clear, 0);
     rb_define_method(Bitmap, "inspect", bitmap_inspect, 0);
 }
