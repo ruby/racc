@@ -234,7 +234,7 @@ class Parser
 
 
   def on_error( t, val, vstack )
-    raise ParseError, "unexpected token #{val.inspect}"
+    raise ParseError, "\nunexpected token #{val.inspect}"
   end
 
 

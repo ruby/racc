@@ -1,10 +1,11 @@
 #!/usr/local/bin/ruby
 
+require 'amstd/rbparams'
 require 'amstd/inst'
 
-rubypath = Installer::RUBY_PATH
-#raccpath = './bin/racc'
-raccpath = './racc'
+
+rubypath = RubyParams::RUBY_PATH
+raccpath = './bin/racc'
 $cmd     = "ruby #{raccpath} -ocalc.rb -e#{rubypath} %s"
 
 
