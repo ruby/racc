@@ -14,7 +14,7 @@
 #include <stdio.h>
 #include "ruby.h"
 
-#define RACC_VERSION "1.4.1"
+#define RACC_VERSION "1.4.2"
 
 #define DFLT_TOK -1
 #define ERR_TOK   1
