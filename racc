@@ -389,6 +389,7 @@ S
     real = mods.pop
     mods.each_with_index do |m,i|
       @f.puts  "#{'  ' * i}module #{m}"
+      @f.puts
     end
     @f.puts  "#{'  ' * mods.size}class #{real} < #{superclass}"
 
@@ -396,6 +397,7 @@ S
 
     @f.puts "#{'  ' * mods.size}end   \# class #{real}"
     mods.reverse.each_with_index do |m,i|
+      @f.puts
       @f.puts  "#{'  ' * (mods.size - i - 1)}end   \# module #{m}"
     end
   end
