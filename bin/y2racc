@@ -50,7 +50,7 @@ def main
   cname = $OPT_c || 'MyParser'
   fname = ARGV[0]
   outf = $OPT_o || 'r.' + fname
-  conv Converter.new(cname)
+  conv = Converter.new(cname)
   begin
     File.open(fname) {|f|
       conv.parse f, fname
@@ -291,7 +291,7 @@ SRC
       f.puts '---- header'
       f.puts @header
     end
-    if not $OPT_u and @footer
+    if $OPT_u and @footer
       f.puts
       f.puts '---- footer'
       f.puts @footer
