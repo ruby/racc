@@ -1,110 +1,100 @@
-/* vi:set sw=4: */
+/*
+    $Id$
 
-#include <stdio.h>
-#include <stdlib.h>
+    Copyright (C) 2005 Minero Aoki
+
+    This program is free software.
+    You can distribute/modify this program under the terms of
+    the GNU LGPL, Lesser General Public License version 2.1.
+*/
 
 #include "ruby.h"
-
 
 #define BITS 8
 
 struct bmap {
-    long size;
-    long bits;
-    char *p;
+    unsigned char *ptr;
+    long len;
+    long capa;
 };
 
 static VALUE Bitmap;
 
-
 static void
-bitmap_free(p)
-    struct bmap *p;
+bitmap_free(void *ptr)
 {
-    free(p->p);
+    struct bmap *p = (struct bmap *)ptr;
+    free(p->ptr);
     free(p);
 }
 
 static void
-bmcheck(v)
-    VALUE v;
+bmcheck(VALUE v)
 {
     Check_Type(v, T_DATA);
     if (RDATA(v)->dfree == bitmap_free) return;
     rb_raise(rb_eTypeError, "not Bitmap");
 }
 
-
 static VALUE
-bitmap_s_new(klass, len)
-    VALUE klass, len;
+bitmap_s_new(VALUE klass, VALUE len)
 {
     struct bmap *p;
 
     p = ALLOC(struct bmap);
-    p->bits = NUM2LONG(len);
-    p->size = p->bits / BITS + 1;
-    if (p->size <= 0)
+    p->len = NUM2LONG(len);
+    p->capa = p->len / BITS + 1;
+    if (p->capa <= 0)
         rb_raise(rb_eIndexError, "negative index for Bitmap.new");
-    p->p = ALLOC_N(char, p->size);
-    memset(p->p, 0, p->size);
+    p->ptr = ALLOC_N(char, p->capa);
+    memset(p->ptr, 0, p->capa);
     return Data_Wrap_Struct(klass, 0, bitmap_free, p);
 }
 
 static VALUE
-bitmap_size(self)
-    VALUE self;
+bitmap_size(VALUE self)
 {
     struct bmap *p;
 
     Data_Get_Struct(self, struct bmap, p);
-    return INT2NUM(p->bits);
+    return INT2NUM(p->len);
 }
 
 static VALUE
-bitmap_aref(self, idx)
-    VALUE self, idx;
+bitmap_aref(VALUE self, VALUE idx)
 {
     struct bmap *p;
-    int mask;
     long i;
 
     Data_Get_Struct(self, struct bmap, p);
     i = NUM2LONG(idx);
     if (i < 0)
         rb_raise(rb_eIndexError, "negative index for Bitmap#[]");
-    if (i >= p->bits)
+    if (i >= p->len)
         rb_raise(rb_eIndexError, "too big index for Bitmap#[]");
-    mask = 1;
-    mask <<= (i % BITS);
-    i = (*(p->p + (i / BITS)) & mask) ? 1 : 0;
+    i = (p->ptr[i/BITS] & (1 << (i%BITS))) ? 1 : 0;
     return INT2FIX(i);
 }
 
 static VALUE
-bitmap_set(self, idx)
-    VALUE self, idx;
+bitmap_set(VALUE self, VALUE idx)
 {
     struct bmap *p;
     long i;
-    int mask;
 
     Data_Get_Struct(self, struct bmap, p);
     i = NUM2LONG(idx);
     if (i < 0)
         rb_raise(rb_eIndexError, "negative index for Bitmap#set");
-    if (i >= p->bits)
+    if (i >= p->len)
         rb_raise(rb_eIndexError, "too big index for Bitmap#set");
-    mask = 1;
-    mask <<= (i % BITS);
-    *(p->p + (i / BITS)) |= mask;
+    p->ptr[i/BITS] |= (1 << (i%BITS));
 
     return idx;
 }
 
 static VALUE
-bitmap_updor(self, other)
-    VALUE self, other;
+bitmap_updor(VALUE self, VALUE other)
 {
     struct bmap *dest, *src;
     long i;
@@ -112,59 +102,58 @@ bitmap_updor(self, other)
     Data_Get_Struct(self, struct bmap, dest);
     bmcheck(other);
     Data_Get_Struct(other, struct bmap, src);
-    if (src->size > dest->size)
+    if (src->capa > dest->capa)
         rb_raise(rb_eArgError, "src is bigger than dest");
-    for (i = 0; i < src->size; i++)
-        dest->p[i] |= src->p[i];
+    for (i = 0; i < src->capa; i++)
+        dest->ptr[i] |= src->ptr[i];
 
     return self;
 }
 
 static VALUE
-bitmap_clear(self)
-    VALUE self;
+bitmap_clear(VALUE self)
 {
     struct bmap *p;
 
     Data_Get_Struct(self, struct bmap, p);
-    memset(p->p, 0, p->size);
+    memset(p->ptr, 0, p->capa);
 
     return Qnil;
 }
 
 static VALUE
-bitmap_inspect(self)
-    VALUE self;
+bitmap_inspect(VALUE self)
 {
     struct bmap *p;
-    VALUE ret;
+    VALUE result;
     int mask;
     long b, i, j;
 
     Data_Get_Struct(self, struct bmap, p);
-    ret = rb_str_new2("#<Bitmap ");
+    result = rb_str_new2("#<Bitmap ");
     b = 0;
-    for (i = 0; i < p->size; i++) {
+    for (i = 0; i < p->capa; i++) {
         mask = 1;
-        for (j = 0; j < BITS && b < p->bits; j++, b++) {
-            if (p->p[i] & mask)
-                rb_str_cat(ret, "1", 1);
+        for (j = 0; j < BITS && b < p->len; j++, b++) {
+            if (p->ptr[i] & mask)
+                rb_str_cat(result, "1", 1);
             else
-                rb_str_cat(ret, "0", 1);
+                rb_str_cat(result, "0", 1);
             mask <<= 1;
         }
     }
-    rb_str_cat(ret, ">", 1);
+    rb_str_cat(result, ">", 1);
 
-    return ret;
+    return result;
 }
 
 void
-Init_bitmap()
+Init_bitmap(void)
 {
     Bitmap = rb_define_class("Bitmap", rb_cObject);
     rb_define_singleton_method(Bitmap, "new", bitmap_s_new, 1);
     rb_define_method(Bitmap, "size", bitmap_size, 0);
+    rb_define_method(Bitmap, "length", bitmap_size, 0);
     rb_define_method(Bitmap, "[]", bitmap_aref, 1);
     rb_define_method(Bitmap, "set", bitmap_set, 1);
     rb_define_method(Bitmap, "updor", bitmap_updor, 1);
