@@ -154,6 +154,7 @@ try %w( nullbug2.y                ), [0,0,0,0]
 try %w( firstline.y               ), []
 try %w( nonass.y                  ), [], true
 try %w( digraph.y                 ), [], true
+try %w( noend.y                   ), []
 must_fail 'norule.y'
 must_fail 'unterm.y'
 report
