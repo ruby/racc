@@ -266,7 +266,7 @@ module Racc
       @symboltable = racc.symboltable
 
       @class_name = nil
-      @super_class = 'Racc::Parser'
+      @super_class = nil
     end
 
     attr :class_name

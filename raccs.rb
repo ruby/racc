@@ -250,16 +250,16 @@ module Racc
 
 
     LEFT_TO_RIGHT = {
-      '(' => ')',
+      '(' => '\)',
       '{' => '}',
-      '[' => ']',
+      '[' => '\]',
       '<' => '>'
     }
 
     def scan_string( left )
       ret = left.dup
       term = LEFT_TO_RIGHT[left] || left
-      eline = /\A(?:[^\\#{term}]+|\\.)*#{term}/
+      eline = /\A[^#{term}\\]*(?:\\.[^\\#{term}]*)*#{term}/
 
       @in_block = 'string'
       begin

@@ -108,7 +108,7 @@ module Racc
       reduce_n,     use_result    = arg
 
       _racc_init_sysvars
-      act = i = nil
+      tok = act = i = nil
       nerr = 0
 
 
@@ -117,9 +117,13 @@ module Racc
 
         if i = action_pointer[ @racc_state[-1] ] then
           if @racc_read_next then
-            if @racc_t != 0 then   # $
+            if @racc_t != 0 then   # not EOF
               tok, @racc_val = next_token()
-              @racc_t = (token_table[tok] or 1)   # error token
+              unless tok then   # EOF
+                @racc_t = 0
+              else
+                @racc_t = (token_table[tok] or 1)   # error token
+              end
               racc_read_token( @racc_t, tok, @racc_val ) if @yydebug
 
               @racc_read_next = false
@@ -128,7 +132,7 @@ module Racc
           i += @racc_t
           if i >= 0 and act = action_table[i] and
              action_check[i] == @racc_state[-1] then
-             ;
+            ;
           else
             act = action_default[ @racc_state[-1] ]
           end
@@ -172,8 +176,12 @@ module Racc
 
         recv.__send__( mid ) do |tok, val|
 # $stderr.puts "rd: tok=#{tok}, val=#{val}"
+          unless tok then
+            @racc_t = 0
+          else
+            @racc_t = (token_table[tok] or 1)   # error token
+          end
           @racc_val = val
-          @racc_t = (token_table[tok] or 1)   # error token
           @racc_read_next = false
 
           i += @racc_t

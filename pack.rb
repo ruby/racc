@@ -77,7 +77,7 @@ environ( 'racc' ) do
   end
 
   def all_sample
-    all_in a('sample'), /\.(y|rb)\z/
+    Dir[ "#{a 'sample'}/*.y" ]
   end
 
   def set_files_etc( packdir )

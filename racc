@@ -313,7 +313,9 @@ def write_table_file( racc, srcfn, opt )
     f.require opt['--embedded'], opt['--runtime'] || 'racc/parser'
     f.header opt['--line-convert-all']
     f.parser_class( racc.parser.class_name,
-                    opt['--super'] || racc.parser.super_class ) {
+                    opt['--super'] ||
+                    racc.parser.super_class ||
+                    '::Racc::Parser') {
       f.inner
       racc.source f.file
     }
