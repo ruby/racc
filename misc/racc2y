@@ -10,7 +10,7 @@
 #
 
 require 'getopts'
-require 'racc/libracc'
+require 'racc/compiler'
 
 
 class R
