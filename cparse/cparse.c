@@ -52,6 +52,9 @@ static ID
 value_to_id(v)
     VALUE v;
 {
+#ifndef SYMBOL_P
+#  define SYMBOL_P(v) FIXNUM_P(v)
+#endif
     if (! SYMBOL_P(v)) {
         rb_raise(rb_eTypeError, "not symbol");
     }
