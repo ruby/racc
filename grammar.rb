@@ -114,9 +114,7 @@ module Racc
           register_rule sym, new
           new = []
         when Prec
-          if @sprec then
-            raise ParseError, "'=<prec>' used twice in one rule"
-          end
+          raise ParseError, "'=<prec>' used twice in one rule" if @sprec
           @sprec = i.val
         else
           new.push i
@@ -126,16 +124,16 @@ module Racc
     end
     
     def register_rule( targ, list )
-      if targ then
+      if targ
         @prev_target = targ
       else
         targ = @prev_target
       end
 
-      if UserAction === list[-1] then
+      if UserAction === list[-1]
         act = list.pop
       else
-        act = UserAction.new( '', 0 )
+        act = UserAction.new('', 0)
       end
       list.collect! do |t|
         UserAction === t ? embed_symbol(t) : t
@@ -147,15 +145,15 @@ module Racc
     end
 
     def regi( targ, list, act )
-      tmp = Rule.new( targ, list, act,
-                      @rules.size + 1,
-                      @hashval, @sprec )
+      tmp = Rule.new(targ, list, act,
+                     @rules.size + 1,
+                     @hashval, @sprec)
       @rules.push tmp
       @hashval += list.size + 1
     end
 
     def embed_symbol( act )
-      sym = @symboltable.get( "@#{@emb}".intern, true )
+      sym = @symboltable.get("@#{@emb}".intern, true)
       @emb += 1
       regi sym, [], act
       sym
@@ -163,14 +161,14 @@ module Racc
 
     def end_register_rule
       @end_rule = true
-      if @rules.empty? then
+      if @rules.empty?
         raise RaccError, 'no rule in input'
       end
     end
 
 
     def register_start( tok )
-      if @start then
+      if @start
         raise ParseError, "'start' defined twice'"
       end
       @start = tok
@@ -178,7 +176,7 @@ module Racc
 
 
     def register_option( option )
-      if m = /\Ano_/.match(option) then
+      if m = /\Ano_/.match(option)
         opt = m.post_match
         flg = true
       else
@@ -196,15 +194,12 @@ module Racc
     end
     
     def inv( i, f )
-      if i then !f else f end
+      i ? (!f) : f
     end
 
     def expect( n = nil )
       return @expect unless n
-
-      if @expect then
-        raise ParseError, "'expect' exist twice"
-      end
+      raise ParseError, "'expect' exist twice" if @expect
       @expect = n
     end
 
@@ -220,17 +215,17 @@ module Racc
     end
 
     def each_rule( &block )
-      @rules.each( &block )
+      @rules.each(&block)
     end
 
     alias each each_rule
 
     def each_index( &block )
-      @rules.each_index( &block )
+      @rules.each_index(&block)
     end
 
     def each_with_index( &block )
-      @rules.each_with_index( &block )
+      @rules.each_with_index(&block)
     end
 
     def size
@@ -250,10 +245,10 @@ module Racc
       #
       # add dummy rule
       #
-      tmp = Rule.new( @symboltable.dummy,
-                      [ @start, @symboltable.anchor, @symboltable.anchor ],
-                      UserAction.new( '', 0 ),
-                      0, 0, nil )
+      tmp = Rule.new(@symboltable.dummy,
+                     [ @start, @symboltable.anchor, @symboltable.anchor ],
+                     UserAction.new('', 0),
+                     0, 0, nil)
                     # id hash prec
       @rules.unshift tmp
       @rules.freeze
@@ -272,14 +267,14 @@ module Racc
       #
       @symboltable.each do |t|
         t.term = t.heads.empty?
-        if t.terminal? then
+        if t.terminal?
           t.snull = false
           next
         end
 
         tmp = false
         t.heads.each do |ptr|
-          if ptr.reduce? then
+          if ptr.reduce?
             tmp = true
             break
           end
@@ -295,7 +290,7 @@ module Racc
       @rules.each do |rule|
         tmp = nil
         rule.ptrs.each do |ptr|
-          unless ptr.reduce? then
+          unless ptr.reduce?
             tok = ptr.deref
             tok.locate.push ptr
             tmp = tok if tok.terminal?
@@ -324,12 +319,12 @@ module Racc
 
     def compute_expand( t )
       puts "expand> #{t.to_s}" if @d_token
-      t.expand = coex( t, ISet.new, [] )
+      t.expand = _compute_expand(t, ISet.new, [])
       puts "expand< #{t.to_s}: #{t.expand.to_s}" if @d_token
     end
 
-    def coex( t, ret, lock )
-      if tmp = t.expand then
+    def _compute_expand( t, ret, lock )
+      if tmp = t.expand
         ret.update tmp
         return ret
       end
@@ -339,10 +334,10 @@ module Racc
       ret.update_a t.heads
       t.heads.each do |ptr|
         tok = ptr.deref
-        if tok and tok.nonterminal? then
-          unless lock[ tok.ident ] then
-            lock[ tok.ident ] = true
-            coex( tok, ret, lock )
+        if tok and tok.nonterminal?
+          unless lock[tok.ident]
+            lock[tok.ident] = true
+            _compute_expand tok, ret, lock
           end
         end
       end
@@ -370,7 +365,7 @@ module Racc
       r.delete_if do |rl|
         rl.null = true
         rl.symbols.each do |t|
-          unless t.nullable? then
+          unless t.nullable?
             rl.null = false
             break
           end
@@ -383,7 +378,7 @@ module Racc
     def check_s_nullable( s )
       s.delete_if do |t|
         t.heads.each do |ptr|
-          if ptr.rule.nullable? then
+          if ptr.rule.nullable?
             t.null = true
             break
           end
@@ -419,7 +414,7 @@ module Racc
       r.delete_if do |rule|
         rule.useless = false
         rule.symbols.each do |t|
-          if t.useless? then
+          if t.useless?
             rule.useless = true
             break
           end
@@ -432,7 +427,7 @@ module Racc
       t = ptr = nil
       s.delete_if do |t|
         t.heads.each do |ptr|
-          unless ptr.rule.useless? then
+          unless ptr.rule.useless?
             t.useless = false
             break
           end
@@ -466,9 +461,9 @@ module Racc
 
       @ptrs = tmp = []
       syms.each_with_index do |t,i|
-        tmp.push LocationPointer.new( self, i, t )
+        tmp.push LocationPointer.new(self, i, t)
       end
-      tmp.push LocationPointer.new( self, syms.size, nil )
+      tmp.push LocationPointer.new(self, syms.size, nil)
     end
 
     attr :target
@@ -519,7 +514,7 @@ module Racc
     end
 
     def accept?
-      if tok = @symbols[-1] then
+      if tok = @symbols[-1]
         tok.anchor?
       else
         false
@@ -527,7 +522,7 @@ module Racc
     end
 
     def each( &block )
-      @symbols.each( &block )
+      @symbols.each(&block)
     end
 
   end   # class Rule
@@ -577,13 +572,13 @@ module Racc
     end
 
     def next
-      @rule.ptrs[ @index + 1 ] or ptr_bug!
+      @rule.ptrs[@index + 1] or ptr_bug!
     end
 
     alias increment next
 
     def before( len )
-      @rule.ptrs[ @index - len ] or ptr_bug!
+      @rule.ptrs[@index - len] or ptr_bug!
     end
 
     private
@@ -621,9 +616,9 @@ module Racc
       @end_conv = false
       @end_prec = false
       
-      @dummy  = get( :$start, true )
-      @anchor = get( :$end,   true )   # ID 0
-      @error  = get( :error, false )   # ID 1
+      @dummy  = get(:$start, true)
+      @anchor = get(:$end,   true)   # ID 0
+      @error  = get(:error, false)   # ID 1
 
       @anchor.conv = 'false'
       @error.conv = 'Object.new'
@@ -634,8 +629,8 @@ module Racc
     attr :error
 
     def get( val, dummy = false )
-      unless ret = @chk[ val ] then
-        @chk[ val ] = ret = Sym.new( val, dummy )
+      unless ret = @chk[val]
+        @chk[val] = ret = Sym.new(val, dummy)
         @symbols.push ret
       end
       ret
@@ -649,7 +644,7 @@ module Racc
 
 
     def register_prec( assoc, toks )
-      if @end_prec then
+      if @end_prec
         raise ParseError, "'prec' block is defined twice"
       end
       toks.push assoc
@@ -666,7 +661,7 @@ module Racc
         ass = toks.pop
         toks.each do |tok|
           tok.assoc = ass
-          if rev then
+          if rev
             tok.prec = top - idx
           else
             tok.prec = idx
@@ -677,7 +672,7 @@ module Racc
 
 
     def register_conv( tok, str )
-      if @end_conv then
+      if @end_conv
         raise ParseError, "'convert' block is defined twice"
       end
       tok.conv = str
@@ -712,15 +707,15 @@ module Racc
       #
       # check if decleared symbols are really terminal
       #
-      toks = @symbols[ 2, @nt_base - 2 ]
+      toks = @symbols[2, @nt_base - 2]
       @token_list.uniq!
       @token_list.each do |t|
-        unless toks.delete t then
+        unless toks.delete t
           $stderr.puts "racc warning: terminal #{t} decleared but not used"
         end
       end
       toks.each do |t|
-        unless String === t.value then
+        unless String === t.value
           $stderr.puts "racc warning: terminal #{t} used but not decleared"
         end
       end
@@ -742,7 +737,7 @@ module Racc
     end
 
     def terminals( &block )
-      @symbols[ 0, @nt_base ]
+      @symbols[0, @nt_base]
     end
 
     def each_terminal( &block )
@@ -750,7 +745,7 @@ module Racc
     end
 
     def nonterminals
-      @symbols[ @nt_base, @symbols.size - @nt_base ]
+      @symbols[@nt_base, @symbols.size - @nt_base]
     end
 
     def each_nonterm( &block )
@@ -789,15 +784,15 @@ module Racc
       @useless  = nil
 
       # for human
-      @to_s =
-        if @value.respond_to? 'id2name' then @value.id2name
-                                        else @value.to_s.inspect
-        end
+      @to_s = if @value.respond_to?(:id2name)
+              then @value.id2name
+              else @value.to_s.inspect
+              end
       # for ruby source
-      @uneval =
-        if @value.respond_to? 'id2name' then ':' + @value.id2name
-                                        else @value.to_s.inspect
-        end
+      @uneval = if @value.respond_to?(:id2name)
+                then ':' + @value.id2name
+                else @value.to_s.inspect
+                end
     end
 
 
@@ -818,7 +813,8 @@ module Racc
     #
 
     once_writer :ident
-    attr :ident
+    attr_reader :ident
+
     alias hash ident
 
     attr :value
@@ -835,7 +831,7 @@ module Racc
     end
 
     def conv=( str ) @conv = @uneval = str end
-    attr :conv
+    attr_reader :conv
 
     attr_accessor :prec
     attr_accessor :assoc

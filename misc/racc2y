@@ -1,4 +1,4 @@
-#!/usr/local/bin/ruby
+#!/usr/bin/ruby
 #
 # r2yacc  ---  racc to yacc converter
 #
@@ -19,14 +19,14 @@ class R
 
 
   def initialize
-    @symboltable = Racc::SymbolTable.new( self )
-    @ruletable   = Racc::RuleTable.new( self )
-    @parser      = Racc::GrammarFileParser.new( self )
+    @symboltable = Racc::SymbolTable.new(self)
+    @ruletable   = Racc::RuleTable.new(self)
+    @parser      = Racc::GrammarFileParser.new(self)
   end
 
-  attr :ruletable
-  attr :symboltable
-  attr :parser
+  attr_reader :ruletable
+  attr_reader :symboltable
+  attr_reader :parser
 
   def debug()   false end
   def verbose() false end
@@ -42,10 +42,10 @@ class R
 
   def parse( str, fname )
     @fname = fname
-    @parser.parse( str )
+    @parser.parse str
     @ruletable.init
 
-    u = Racc::GrammarFileParser.get_ucode( fname )
+    u = Racc::GrammarFileParser.get_ucode(fname)
     @header, = u['header']
     @inner,  = u['inner']
     @footer, = u['footer']
@@ -59,15 +59,15 @@ class R
   def output( f )
     rule = t = nil
 
-    f.print <<SRC
+    f.print(<<EOS)
 /*
 
     generated from #{@fname} by racc2y version #{R::Version}
 
 */
 
-SRC
-    if $OPT_H and @header then
+EOS
+    if $OPT_H and @header
       f.puts '%{'
       f.puts '/*---- header ----*/'
       f.puts @header
@@ -78,13 +78,13 @@ SRC
     output_defs f
     output_grammer f
 
-    if $OPT_I and @inner then
+    if $OPT_I and @inner
       f.puts
       f.puts '/*---- inner ----*/'
       f.puts
       f.puts @inner
     end
-    if $OPT_F and @footer then
+    if $OPT_F and @footer
       f.puts
       f.puts '/*---- footer ----*/'
       f.puts
@@ -96,7 +96,7 @@ SRC
     output_token f
     f.puts
     prec = getprecs
-    unless prec.empty? then
+    unless prec.empty?
       output_prec f, prec
     end
   end
@@ -113,12 +113,12 @@ SRC
       next if t == err
       next if t == anc
 
-      unless String === t.value then
-        if total > 60 then
+      unless String === t.value
+        if total > 60
           f.print "\n     "
           total = 0
         end
-        total += f.write( " #{tok t}" )
+        total += f.write(" #{tok t}")
       end
     end
     f.puts
@@ -128,7 +128,7 @@ SRC
     prec = []
     @symboltable.each do |t|
       next unless t.prec
-      if a = prec[t.prec] then
+      if a = prec[t.prec]
         a.push t
       else
         prec[t.prec] = [t.assoc, t]
@@ -141,7 +141,7 @@ SRC
   def output_prec( f, tab )
     f.puts '/* precedance table */'
     tab.each do |a|
-      if a then
+      if a
         f.printf '%%%-8s', a.shift.id2name.downcase
         a.each do |t|
           f.print ' ', tok(t)
@@ -162,19 +162,19 @@ SRC
     emb    = []
 
     @ruletable.each do |rule|
-      if rule.target.dummy? then
+      if rule.target.dummy?
         emb.push rule.action if rule.action
         next
       end
 
-      if rule.target == targ then
+      if rule.target == targ
         f.print ' ' * indent, '|'
       else
         targ = rule.target
         f.printf fmt, tok(targ)
       end
       rule.symbols.each do |t|
-        if t.dummy? then   # target of dummy rule for embedded action
+        if t.dummy?   # target of dummy rule for embedded action
           f.puts
           output_act f,
                      emb.shift,
@@ -184,11 +184,11 @@ SRC
           f.print ' ', tok(t)
         end
       end
-      if rule.specified_prec then
+      if rule.specified_prec
         f.print ' %prec ', tok(rule.specified_prec)
       end
       f.puts
-      if rule.action then
+      if rule.action
         output_act f, rule.action, indent
       end
     end
@@ -211,10 +211,8 @@ end   # class R
 
 
 def usage( stat = 0 )
-  if stat != 0 then
-    $stderr.puts 'wrong option'
-  end
-  $stderr.print <<MSG
+  $stderr.puts 'wrong option' unless stat == 0
+  (stat == 0 ? $stdout : $stderr).print(<<EOS)
 
 racc2y version #{R::Version}
 
@@ -228,40 +226,34 @@ usage:
     -I         output 'inner'
     -F         output 'footer'
 
-MSG
+EOS
   exit stat
 end
 
-unless getopts( 'AHIF', 'o:', 'version', 'help', 'copyright' ) then
-  usage 1
-end
-if $OPT_version then
-  $stderr.puts "racc2y version #{R::Version}"
+getopts('AHIF', 'o:', 'version', 'help', 'copyright') or usage 1
+if $OPT_version
+  puts "racc2y version #{R::Version}"
   exit 0
 end
-if $OPT_help then
-  usage 0
-end
-if $OPT_copyright then
-  $stderr.puts "Copyright (c) 2000 Minero Aoki <aamine@loveruby.net>"
+if $OPT_copyright
+  puts "Copyright (c) 2000 Minero Aoki <aamine@loveruby.net>"
   exit 0
 end
-unless ARGV.size == 1 then
-  usage 1
-end
+usage 0 if $OPT_help
+usage 1 unless ARGV.size == 1
 
 
 fname = ARGV[0]
 outf = $OPT_o || 'y.' + fname
 begin
   str = nil
-  File.open( fname ) {|f| str = f.read }
+  File.open(fname) {|f| str = f.read }
 rescue Errno::ENOENT
   $stderr.puts "#{File.basename $0}: no such file: #{fname}"
   exit 1
 end
 r = R.new
-r.parse( str, fname )
-File.open( outf, 'w' ) do |f|
-  r.output f
-end
+r.parse str, fname
+File.open(outf, 'w') {|f|
+    r.output f
+}

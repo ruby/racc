@@ -27,40 +27,44 @@ module Racc
     attr :set
 
     def add( i )
-      @set[ i.ident ] = i
+      @set[i.ident] = i
     end
 
     def []( key )
-      @set[ key.ident ]
+      @set[key.ident]
     end
 
     def []=( key, val )
-      @set[ key.ident ] = val
+      @set[key.ident] = val
     end
 
     alias include? []
     alias key? []
 
     def update( other )
-      s = @set; o = other.set
-      i = t = nil
-      o.each_index {|i| if t = o[i] then s[i] = t end }
+      s = @set
+      o = other.set
+      o.each_index do |idx|
+        if t = o[idx]
+          s[idx] = t
+        end
+      end
     end
 
     def update_a( a )
       s = @set
       i = nil
-      a.each {|i| s[ i.ident ] = i }
+      a.each {|i| s[i.ident] = i }
     end
 
     def delete( key )
-      i = @set[ key.ident ]
-      @set[ key.ident ] = nil
+      i = @set[key.ident]
+      @set[key.ident] = nil
       i
     end
 
     def each( &block )
-      @set.compact.each( &block )
+      @set.compact.each(&block)
     end
 
     def to_a

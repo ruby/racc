@@ -49,10 +49,10 @@ module Racc
 
     def _( rulestr, actstr )
       nonterm, symlist = parse_rule_exp(rulestr)
-      lineno = /:(\d+)(?:\z|:)/.match( caller(1)[0] )[1].to_i + 1
+      lineno = /:(\d+)(?:\z|:)/.match(caller(1)[0])[1].to_i + 1
       symlist.push UserAction.new(format_action(actstr), lineno)
 
-      @ruletable.register_rule( nonterm, symlist )
+      @ruletable.register_rule nonterm, symlist
     end
 
     def parse_rule_exp( str )
@@ -63,7 +63,7 @@ module Racc
       return nonterm,
              tokens.collect {|t|
                  @symboltable.get(
-                         (/\A'/ === t) ? eval(%Q<"#{t[1..-2]}">) : t.intern
+                   (/\A'/ === t) ? eval(%Q<"#{t[1..-2]}">) : t.intern
                  )
              }
     end
@@ -77,9 +77,9 @@ module Racc
     def build( debugflag )
       @dflag = debugflag
 
-      @symboltable = SymbolTable.new( self )
-      @ruletable   = RuleTable.new( self )
-      @statetable  = StateTable.new( self )
+      @symboltable = SymbolTable.new(self)
+      @ruletable   = RuleTable.new(self)
+      @statetable  = StateTable.new(self)
 
 
 _"  xclass      : XCLASS class params XRULE rules opt_end                ",
@@ -188,7 +188,7 @@ _"              | STRING                                                 ",
 
 _"  rules       : rules_core                                             ",
                    %{
-                        unless result.empty? then
+                        unless result.empty?
                           @ruletable.register_rule_from_array result
                         end
                     }
@@ -204,7 +204,7 @@ _"              | rules_core rule_item                                   ",
                     }
 _"              | rules_core ';'                                         ",
                    %{
-                        unless result.empty? then
+                        unless result.empty?
                           @ruletable.register_rule_from_array result
                         end
                         result.clear
@@ -212,7 +212,7 @@ _"              | rules_core ';'                                         ",
 _"              | rules_core ':'                                         ",
                    %{
                         pre = result.pop
-                        unless result.empty? then
+                        unless result.empty?
                           @ruletable.register_rule_from_array result
                         end
                         result = [pre]
@@ -221,15 +221,15 @@ _"              | rules_core ':'                                         ",
 _"  rule_item   : symbol                                                 ", ''
 _"              | '|'                                                    ",
                    %{
-                        result = OrMark.new( @scanner.lineno )
+                        result = OrMark.new(@scanner.lineno)
                     }
 _"              | '=' symbol                                             ",
                    %{
-                        result = Prec.new( val[1], @scanner.lineno )
+                        result = Prec.new(val[1], @scanner.lineno)
                     }
 _"              | ACTION                                                 ",
                    %{
-                        result = UserAction.new( *result )
+                        result = UserAction.new(*result)
                     }
 
 _"  bare_symlist: XSYMBOL                                                ",
@@ -249,16 +249,16 @@ _"              |                                                        ", ''
       @statetable.init
       @statetable.determine
 
-      File.open( 'raccp.rb', 'w' ) {|f|
-      File.foreach( 'in.raccp.rb' ) do |line|
-        if /STATE_TRANSITION_TABLE/ === line then
-          CodeGenerator.new(self).output f
-        else
-          f.print line
-        end
-      end
+      File.open('raccp.rb', 'w') {|f|
+          File.foreach('in.raccp.rb') do |line|
+            if /STATE_TRANSITION_TABLE/ === line
+              CodeGenerator.new(self).output f
+            else
+              f.print line
+            end
+          end
       }
-      File.open( 'b.output', 'w' ) {|f|
+      File.open('b.output', 'w') {|f|
           VerboseOutputter.new(self).output f
       }
     end

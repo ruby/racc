@@ -1,3 +1,9 @@
+Fri Nov 15 17:08:01 2002  Minero Aoki  <aamine@loveruby.net>
+
+	* boot.rb, compiler.rb, grammar.rb, in.raccp.rb, iset.rb,
+	  output.rb, parser.rb, racc, raccs.rb, state.rb, ucodep.rb,
+	  misc/racc2y, misc/y2racc: follows (my) latest coding styles.
+
 Thu Nov 14 14:39:53 2002  Minero Aoki  <aamine@loveruby.net>
 
 	* raccs.rb: explicit method call for VCALL.

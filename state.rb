@@ -35,10 +35,10 @@ module Racc
       @states = []
       @statecache = {}
 
-      @actions = ActionTable.new( @ruletable, self )
+      @actions = ActionTable.new(@ruletable, self)
     end
 
-    attr :actions
+    attr_reader :actions
 
     def size
       @states.size
@@ -71,11 +71,11 @@ module Racc
 
     def init
       # add state 0
-      core_to_state( [ @ruletable[0].ptrs[0] ] )
+      core_to_state  [ @ruletable[0].ptrs[0] ]
 
       cur = 0
       @gotos = []
-      while cur < @states.size do
+      while cur < @states.size
         generate_states @states[cur]   # state is added here
         cur += 1
       end
@@ -90,7 +90,7 @@ module Racc
       ptr = pt = s = g = nil
 
       state.closure.each do |ptr|
-        if sym = ptr.deref then
+        if sym = ptr.deref
           addsym table, sym, ptr.next
         end
       end
@@ -98,27 +98,24 @@ module Racc
       table.each do |sym, core|
         puts "dstate: sym=#{sym} ncore=#{core}" if @d_state
 
-        dest = core_to_state( core.to_a )
+        dest = core_to_state(core.to_a)
         state.goto_table[sym] = dest
-        id = if sym.nonterminal? then @gotos.size else nil end
-        g = Goto.new( id, sym, state, dest )
-        if sym.nonterminal? then
-          @gotos.push g
-        end
+        id = sym.nonterminal?() ? @gotos.size : nil
+        g = Goto.new(id, sym, state, dest)
+        @gotos.push g if sym.nonterminal?
         state.gotos[sym] = g
         puts "dstate: #{state.ident} --#{sym}--> #{dest.ident}" if @d_state
 
         # check infinite recursion
-        if state.ident == dest.ident and state.closure.size == 1 then
-          raise RaccError,
-            sprintf( "Infinite recursion: state %d, with rule %d",
-                     state.ident, state.ptrs[0].rule.ident )
+        if state.ident == dest.ident and state.closure.size == 1
+          raise RaccError, sprintf("Infinite recursion: state %d, with rule %d",
+                                   state.ident, state.ptrs[0].rule.ident)
         end
       end
     end
 
     def addsym( table, sym, ptr )
-      unless s = table[sym] then
+      unless s = table[sym]
         table[sym] = s = ISet.new
       end
       s.add ptr
@@ -126,20 +123,21 @@ module Racc
 
     def core_to_state( core )
       #
-      # creates/find state keeping core unique
+      # convert CORE to a State object.
+      # If matching state does not exist, create it and add to the table.
       #
 
-      k = fingerprint( core )
-      unless dest = @statecache[k] then
+      k = fingerprint(core)
+      unless dest = @statecache[k]
         # not registered yet
-        dest = State.new( @states.size, core )
+        dest = State.new(@states.size, core)
         @states.push dest
 
         @statecache[k] = dest
         
         puts "core_to_state: create state   ID #{dest.ident}" if @d_state
       else
-        if @d_state then
+        if @d_state
           puts "core_to_state: dest is cached ID #{dest.ident}"
           puts "core_to_state: dest core #{dest.core.join(' ')}"
         end
@@ -149,7 +147,7 @@ module Racc
     end
 
     def fingerprint( arr )
-      arr.collect {|i| i.ident }.pack( 'L*' )
+      arr.collect {|i| i.ident }.pack('L*')
     end
 
 
@@ -183,7 +181,7 @@ module Racc
       state = goto = arr = ptr = st = rl = i = a = t = g = nil
 
       gotos = @gotos
-      if @d_la then
+      if @d_la
         puts "\n--- goto ---"
         gotos.each_with_index {|g,i| print i, ' '; p g }
       end
@@ -192,23 +190,23 @@ module Racc
       ### set_goto_map()
       la_rules = []
       @states.each do |state|
-        state.check_la( la_rules )
+        state.check_la la_rules
       end
 
 
       ### initialize_F()
-      f     = create_tmap( gotos.size )
+      f     = create_tmap(gotos.size)
       reads = []
       edge  = []
       gotos.each do |goto|
         goto.to_state.goto_table.each do |t, st|
-          if t.terminal? then
+          if t.terminal?
             f[goto.ident] |= (1 << t.ident)
-          elsif t.nullable? then
+          elsif t.nullable?
             edge.push goto.to_state.gotos[t].ident
           end
         end
-        if edge.empty? then
+        if edge.empty?
           reads.push nil
         else
           reads.push edge
@@ -216,7 +214,7 @@ module Racc
         end
       end
       digraph f, reads
-      if @d_la then
+      if @d_la
         puts "\n--- F1 (reads) ---"
         print_tab gotos, reads, f
       end
@@ -226,14 +224,14 @@ module Racc
       ### compute_FOLLOWS
       path = nil
       edge = []
-      lookback = Array.new( la_rules.size, nil )
+      lookback = Array.new(la_rules.size, nil)
       includes = []
       gotos.each do |goto|
         goto.symbol.heads.each do |ptr|
-          path = record_path( goto.from_state, ptr.rule )
+          path = record_path(goto.from_state, ptr.rule)
           g = path[-1]
           st = g ? g.to_state : goto.from_state
-          if st.conflict? then
+          if st.conflict?
             addrel lookback, st.rruleid(ptr.rule), goto
           end
           path.reverse_each do |g|
@@ -242,31 +240,31 @@ module Racc
             break unless g.symbol.nullable?
           end
         end
-        if edge.empty? then
+        if edge.empty?
           includes.push nil
         else
           includes.push edge
           edge = []
         end
       end
-      includes = transpose( includes )
+      includes = transpose(includes)
       digraph f, includes
-      if @d_la then
+      if @d_la
         puts "\n--- F2 (includes) ---"
         print_tab gotos, includes, f
       end
 
 
       ### compute_lookaheads
-      la = create_tmap( la_rules.size )
+      la = create_tmap(la_rules.size)
       lookback.each_with_index do |arr, i|
-        if arr then
+        if arr
           arr.each do |g|
             la[i] |= f[g.ident]
           end
         end
       end
-      if @d_la then
+      if @d_la
         puts "\n--- LA (lookback) ---"
         print_tab la_rules, lookback, la
       end
@@ -274,12 +272,12 @@ module Racc
       la
     end
     
-    def create_tmap( siz )
-      Array.new( siz, 0 )   # use Integer as bitmap
+    def create_tmap( size )
+      Array.new(size, 0)   # use Integer as bitmap
     end
 
     def addrel( tbl, i, item )
-      if a = tbl[i] then
+      if a = tbl[i]
         a.push item
       else
         tbl[i] = [item]
@@ -298,9 +296,9 @@ module Racc
     end
 
     def transpose( rel )
-      new = Array.new( rel.size, nil )
+      new = Array.new(rel.size, nil)
       rel.each_with_index do |arr, idx|
-        if arr then
+        if arr
           arr.each do |i|
             addrel new, i, idx
           end
@@ -311,13 +309,13 @@ module Racc
 
     def digraph( map, relation )
       n = relation.size
-      index    = Array.new( n, nil )
+      index    = Array.new(n, nil)
       vertices = []
       @infinity = n + 2
 
       i = nil
       index.each_index do |i|
-        if not index[i] and relation[i] then
+        if not index[i] and relation[i]
           traverse i, index, vertices, map, relation
         end
       end
@@ -328,12 +326,12 @@ module Racc
       index[i] = height = vertices.size
 
       proci = nil
-      if rp = relation[i] then
+      if rp = relation[i]
         rp.each do |proci|
-          unless index[proci] then
+          unless index[proci]
             traverse proci, index, vertices, map, relation
           end
-          if index[i] > index[proci] then
+          if index[i] > index[proci]
             # circulative recursion !!!
             index[i] = index[proci]
           end
@@ -341,8 +339,8 @@ module Racc
         end
       end
 
-      if index[i] == height then
-        while true do
+      if index[i] == height
+        while true
           proci = vertices.pop
           index[proci] = @infinity
           break if i == proci
@@ -354,6 +352,7 @@ module Racc
 
     ###
 
+    # debug method
     def print_atab( idx, tab )
       tab.each_with_index do |i,ii|
         printf '%-20s', idx[ii].inspect
@@ -365,19 +364,22 @@ module Racc
       tab.each_with_index do |bin,i|
         print i, ' ', idx[i].inspect, ' << '; p rel[i]
         print '  '
-        each_t( @symboltable, bin ) {|t| print ' ', t }
+        each_t(@symboltable, bin) {|t| print ' ', t }
         puts
       end
     end
-def print_tab_i( idx, rel, tab, i )
-  bin = tab[i]
-  print i, ' ', idx[i].inspect, ' << '; p rel[i]
-  print '  '
-  each_t( @symboltable, bin ) {|t| print ' ', t }
-end
 
+    # debug method
+    def print_tab_i( idx, rel, tab, i )
+      bin = tab[i]
+      print i, ' ', idx[i].inspect, ' << '; p rel[i]
+      print '  '
+      each_t(@symboltable, bin) {|t| print ' ', t }
+    end
+
+    # debug method
     def printb( i )
-      each_t( @symboltable, i ) do |t|
+      each_t(@symboltable, i) do |t|
         print t, ' '
       end
       puts
@@ -387,7 +389,7 @@ end
       i = ii = idx = nil
       0.upto( set.size ) do |i|
         (0..7).each do |ii|
-          if set[ idx = i * 8 + ii ] == 1 then
+          if set[idx = i * 8 + ii] == 1
             yield tbl[idx]
           end
         end
@@ -400,18 +402,18 @@ end
     #
 
     def resolve( state )
-      if state.conflict? then
+      if state.conflict?
         resolve_rr state, state.ritems
         resolve_sr state, state.stokens
       else
-        if state.rrules.empty? then
+        if state.rrules.empty?
           # shift
           state.stokens.each do |t|
-            state.action[t] = @actions.shift( state.goto_table[t] )
+            state.action[t] = @actions.shift(state.goto_table[t])
           end
         else
           # reduce
-          state.defact = @actions.reduce( state.rrules[0] )
+          state.defact = @actions.reduce(state.rrules[0])
         end
       end
     end
@@ -420,10 +422,10 @@ end
       pt = t = act = item = nil
 
       r.each do |item|
-        item.each_la( @symboltable ) do |t|
+        item.each_la(@symboltable) do |t|
           act = state.action[t]
-          if act then
-            Reduce === act or raise "Racc FATAL: #{act.type} in action table"
+          if act
+            Reduce === act or raise "Racc FATAL: #{act.class} in action table"
             #
             # can't resolve R/R conflict (on t).
             #   reduce with upper rule as default
@@ -431,7 +433,7 @@ end
             state.rr_conflict act.rule, item.rule, t
           else
             # not conflict
-            state.action[t] = @actions.reduce( item.rule )
+            state.action[t] = @actions.reduce(item.rule)
           end
         end
       end
@@ -444,40 +446,40 @@ end
         goto = state.goto_table[stok]
         act = state.action[stok]
 
-        unless act then
+        unless act
           # no conflict
-          state.action[ stok ] = @actions.shift( goto )
+          state.action[stok] = @actions.shift(goto)
         else
-          unless Reduce === act then
+          unless Reduce === act
             puts 'DEBUG -------------------------------'
             p stok
             p act
             state.action.each do |k,v|
               print k.inspect, ' ', v.inspect, "\n"
             end
-            raise "Racc FATAL: #{act.type} in action table"
+            raise "Racc FATAL: #{act.class} in action table"
           end
 
           # conflict on stok
 
           rtok = act.rule.prec
-          case do_resolve_sr( stok, rtok )
+          case do_resolve_sr(stok, rtok)
           when :Reduce
             # action is already set
 
           when :Shift
             # overwrite
             act.decref
-            state.action[ stok ] = @actions.shift( goto )
+            state.action[stok] = @actions.shift(goto)
 
           when :Error
             act.decref
-            state.action[ stok ] = @actions.error
+            state.action[stok] = @actions.error
 
           when :CantResolve
             # shift as default
             act.decref
-            state.action[ stok ] = @actions.shift( goto )
+            state.action[stok] = @actions.shift(goto)
             state.sr_conflict stok, act.rule
           end
         end
@@ -493,23 +495,23 @@ end
     def do_resolve_sr( stok, rtok )
       puts "resolve_sr: s/r conflict: rtok=#{rtok}, stok=#{stok}" if @d_prec
 
-      unless rtok and rtok.prec then
+      unless rtok and rtok.prec
         puts "resolve_sr: no prec for #{rtok}(R)" if @d_prec
         return :CantResolve
       end
       rprec = rtok.prec
 
-      unless stok and stok.prec then
+      unless stok and stok.prec
         puts "resolve_sr: no prec for #{stok}(S)" if @d_prec
         return :CantResolve
       end
       sprec = stok.prec
 
-      ret = if rprec == sprec then
-              ASSOC[ rtok.assoc ] or
+      ret = if rprec == sprec
+              ASSOC[rtok.assoc] or
                   raise "Racc FATAL: #{rtok}.assoc is not Left/Right/Nonassoc"
             else
-              if rprec > sprec then :Reduce else :Shift end
+              (rprec > sprec) ? (:Reduce) : (:Shift)
             end
 
       puts "resolve_sr: resolved as #{ret.id2name}" if @d_prec
@@ -523,9 +525,9 @@ end
 
     def set_accept
       anch = @symboltable.anchor
-      init_state = @states[0].goto_table[ @ruletable.start ]
-      targ_state = init_state.action[ anch ].goto_state
-      acc_state  = targ_state.action[ anch ].goto_state
+      init_state = @states[0].goto_table[@ruletable.start]
+      targ_state = init_state.action[anch].goto_state
+      acc_state  = targ_state.action[anch].goto_state
 
       acc_state.action.clear
       acc_state.goto_table.clear
@@ -535,20 +537,20 @@ end
     def pack( state )
       ### find most frequently used reduce rule
       act = state.action
-      arr = Array.new( @ruletable.size, 0 )
+      arr = Array.new(@ruletable.size, 0)
       t = a = nil
       act.each do |t,a|
-        if Reduce === a then
-          arr[ a.ruleid ] += 1
+        if Reduce === a
+          arr[a.ruleid] += 1
         end
       end
       i = arr.max
       s = i>0 ? arr.index(i) : nil
 
       ### set & delete default action
-      if s then
+      if s
         r = @actions.reduce(s)
-        if not state.defact or state.defact == r then
+        if not state.defact or state.defact == r
           act.delete_if {|t,a| a == r }
           state.defact = r
         end
@@ -561,15 +563,15 @@ end
       act = nil
       used = []
       @actions.each_reduce do |act|
-        if not act or act.refn == 0 then
+        if not act or act.refn == 0
           act.rule.useless = true
         else
           t = act.rule.target
-          used[ t.ident ] = t
+          used[t.ident] = t
         end
       end
-      @symboltable.nt_base.upto( @symboltable.nt_max - 1 ) do |n|
-        unless used[n] then
+      @symboltable.nt_base.upto(@symboltable.nt_max - 1) do |n|
+        unless used[n]
           @symboltable[n].useless = true
         end
       end
@@ -604,29 +606,29 @@ end
 
       ###
 
-      @closure = make_closure( @core )
+      @closure = make_closure(@core)
     end
 
 
-    attr :ident
+    attr_reader :ident
     alias stateid ident
     alias hash ident
 
-    attr :core
-    attr :closure
+    attr_reader :core
+    attr_reader :closure
 
-    attr :goto_table
-    attr :gotos
+    attr_reader :goto_table
+    attr_reader :gotos
 
-    attr :stokens
-    attr :ritems
-    attr :rrules
+    attr_reader :stokens
+    attr_reader :ritems
+    attr_reader :rrules
 
-    attr :action
-    attr :defact, true   # default action
+    attr_reader :action
+    attr_accessor :defact   # default action
 
-    attr :rrconf
-    attr :srconf
+    attr_reader :rrconf
+    attr_reader :srconf
 
     def inspect
       "<state #{@ident}>"
@@ -645,7 +647,7 @@ end
       set = ISet.new
       core.each do |ptr|
         set.add ptr
-        if t = ptr.deref and t.nonterminal? then
+        if t = ptr.deref and t.nonterminal?
           set.update_a t.expand
         end
       end
@@ -657,10 +659,10 @@ end
       s = []
       r = []
       @closure.each do |ptr|
-        if t = ptr.deref then
-          if t.terminal? then
+        if t = ptr.deref
+          if t.terminal?
             s[t.ident] = t
-            if t.ident == 1 then   # $error
+            if t.ident == 1    # $error
               @conflict = true
             end
           end
@@ -668,8 +670,8 @@ end
           r.push ptr.rule
         end
       end
-      unless r.empty? then
-        if not s.empty? or r.size > 1 then
+      unless r.empty?
+        if not s.empty? or r.size > 1
           @conflict = true
         end
       end
@@ -677,7 +679,7 @@ end
       @stokens  = s
       @rrules = r
 
-      if @conflict then
+      if @conflict
         @la_rules_i = la_rules.size
         @la_rules = r.collect {|i| i.ident }
         la_rules.concat r
@@ -691,7 +693,7 @@ end
     end
 
     def rruleid( rule )
-      if i = @la_rules.index( rule.ident ) then
+      if i = @la_rules.index(rule.ident)
         @la_rules_i + i
       else
         puts '/// rruleid'
@@ -709,16 +711,16 @@ end
       i = @la_rules_i
       @ritems = r = []
       @rrules.each do |rule|
-        r.push Item.new( rule, la[i] )
+        r.push Item.new(rule, la[i])
         i += 1
       end
     end
 
     def rr_conflict( high, low, ctok )
-      c = RRconflict.new( @ident, high, low, ctok )
+      c = RRconflict.new(@ident, high, low, ctok)
 
       @rrconf ||= {}
-      if a = @rrconf[ctok] then
+      if a = @rrconf[ctok]
         a.push c
       else
         @rrconf[ctok] = [c]
@@ -726,10 +728,10 @@ end
     end
 
     def sr_conflict( shift, reduce )
-      c = SRconflict.new( @ident, shift, reduce )
+      c = SRconflict.new(@ident, shift, reduce)
 
       @srconf ||= {}
-      if a = @srconf[shift] then
+      if a = @srconf[shift]
         a.push c
       else
         @srconf[shift] = [c]
@@ -757,10 +759,10 @@ end
       @to_state   = to
     end
 
-    attr :ident
-    attr :symbol
-    attr :from_state
-    attr :to_state
+    attr_reader :ident
+    attr_reader :symbol
+    attr_reader :from_state
+    attr_reader :to_state
     
     def inspect
       "(#{@from_state.ident}-#{@symbol}->#{@to_state.ident})"
@@ -782,15 +784,15 @@ end
       @la  = la
     end
 
-    attr :rule
-    attr :la
+    attr_reader :rule
+    attr_reader :la
 
     def each_la( tbl )
       la = @la
       i = ii = idx = nil
-      0.upto( la.size - 1 ) do |i|
+      0.upto(la.size - 1) do |i|
         (0..7).each do |ii|
-          if la[ idx = i * 8 + ii ] == 1 then
+          if la[idx = i * 8 + ii] == 1
             yield tbl[idx]
           end
         end
@@ -820,11 +822,11 @@ end
     end
 
     def init
-      @ruletable.each do |rl|
-        @reduce.push Reduce.new( rl )
+      @ruletable.each do |rule|
+        @reduce.push Reduce.new(rule)
       end
-      @statetable.each do |st|
-        @shift.push Shift.new( st )
+      @statetable.each do |state|
+        @shift.push Shift.new(state)
       end
       @accept = Accept.new
       @error = Error.new
@@ -839,7 +841,8 @@ end
       case i
       when Rule    then i = i.ident
       when Integer then ;
-      else              raise "Racc FATAL: wrong type #{i.type} for reduce"
+      else
+        raise "Racc FATAL: wrong class #{i.class} for reduce"
       end
 
       r = @reduce[i] or raise "Racc FATAL: reduce action #{i.inspect} not exist"
@@ -860,7 +863,8 @@ end
       case i
       when State   then i = i.ident
       when Integer then ;
-      else              raise "Racc FATAL: wrong type #{i.type} for shift"
+      else
+        raise "Racc FATAL: wrong class #{i.class} for shift"
       end
 
       @shift[i] or raise "Racc FATAL: shift action #{i} not exist"
@@ -871,8 +875,8 @@ end
     end
 
 
-    attr :accept
-    attr :error
+    attr_reader :accept
+    attr_reader :error
 
   end
 
@@ -883,7 +887,7 @@ end
       @goto_state = goto
     end
 
-    attr :goto_state
+    attr_reader :goto_state
 
     def goto_id
       @goto_state.ident
@@ -903,8 +907,8 @@ end
       @refn = 0
     end
 
-    attr :rule
-    attr :refn
+    attr_reader :rule
+    attr_reader :refn
 
     def ruleid
       @rule.ident
@@ -920,9 +924,7 @@ end
 
     def decref
       @refn -= 1
-      if @refn < 0 then
-        bug! 'act.refn < 0'
-      end
+      bug! 'act.refn < 0' if @refn < 0
     end
 
   end
@@ -958,13 +960,13 @@ end
       @reduce  = reduce
     end
     
-    attr :stateid
-    attr :shift
-    attr :reduce
+    attr_reader :stateid
+    attr_reader :shift
+    attr_reader :reduce
   
     def to_s
-      sprintf( 'state %d: S/R conflict rule %d reduce and shift %s',
-               @stateid, @reduce.ruleid, @shift.to_s )
+      sprintf('state %d: S/R conflict rule %d reduce and shift %s',
+              @stateid, @reduce.ruleid, @shift.to_s)
     end
 
   end
@@ -978,14 +980,14 @@ end
       @token     = tok
     end
 
-    attr :stateid
-    attr :high_prec
-    attr :low_prec
-    attr :token
+    attr_reader :stateid
+    attr_reader :high_prec
+    attr_reader :low_prec
+    attr_reader :token
   
     def to_s
-      sprintf( 'state %d: R/R conflict with rule %d and %d on %s',
-               @stateid, @high_prec.ident, @low_prec.ident, @token.to_s )
+      sprintf('state %d: R/R conflict with rule %d and %d on %s',
+              @stateid, @high_prec.ident, @low_prec.ident, @token.to_s)
     end
 
   end

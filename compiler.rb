@@ -14,7 +14,7 @@ require 'racc/state'
 require 'racc/output'
 
 
-unless [].respond_to? 'collect!' then
+unless [].respond_to? 'collect!'
   class Array
     alias collect! filter
   end
@@ -70,12 +70,12 @@ module Racc
       $stderr.puts 'parsing grammar file...' if @verbose
 
       # must be this order
-      @symboltable = SymbolTable.new( self )
-      @ruletable   = RuleTable.new( self )
-      @parser      = GrammarFileParser.new( self )
+      @symboltable = SymbolTable.new(self)
+      @ruletable   = RuleTable.new(self)
+      @parser      = GrammarFileParser.new(self)
 
       @filename = fname
-      @parser.parse( str )
+      @parser.parse(str)
     end
 
     def compile
@@ -86,18 +86,18 @@ module Racc
     def nfa
       $stderr.puts 'initializing state machine...' if @verbose
 
-      @statetable = StateTable.new( self )
+      @statetable = StateTable.new(self)
       @ruletable.init
       @statetable.init
     end
 
     def dfa
-      if @verbose then
+      if @verbose
         $stderr.puts "resolving #{@statetable.size} states..."
         b = Process.times.utime
       end
       @statetable.determine
-      if @verbose then
+      if @verbose
         e = Process.times.utime
         $stderr.puts "all resolved in #{e - b} sec"
       end
@@ -106,13 +106,13 @@ module Racc
     def source( f )
       $stderr.puts 'creating table file...' if @verbose
 
-      CodeGenerator.new( self ).output f
+      CodeGenerator.new(self).output f
     end
 
     def output( f )
       $stderr.puts 'creating .output file...' if @verbose
 
-      VerboseOutputter.new( self ).output f
+      VerboseOutputter.new(self).output f
     end
 
   end

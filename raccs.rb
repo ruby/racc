@@ -17,7 +17,7 @@ module Racc
   class GrammarFileScanner
 
     def initialize( str )
-      @lines  = str.split( /\n|\r\n|\r/ )
+      @lines  = str.split(/\n|\r\n|\r/)
       @lineno = -1
 
       @line_head   = true
@@ -40,7 +40,7 @@ module Racc
 
     def scan
       ret = do_scan()
-      if @debug then
+      if @debug
         $stderr.printf "%7d %-10s %s\n",
                        lineno, ret[0].inspect, ret[1].inspect
       end
@@ -49,22 +49,22 @@ module Racc
 
     def do_scan
       begin
-        until @line.empty? do
-          @line.sub!( /\A\s+/, '' )
+        until @line.empty?
+          @line.sub!(/\A\s+/, '')
 
-          if /\A\#/ === @line then
+          if /\A\#/ === @line
             break
 
-          elsif /\A\/\*/ === @line then
+          elsif /\A\/\*/ === @line
             skip_comment
 
-          elsif s = reads( /\A[a-zA-Z_]\w*/ ) then
+          elsif s = reads(/\A[a-zA-Z_]\w*/)
             return check_atom(s)
 
-          elsif s = reads( /\A\d+/ ) then
+          elsif s = reads(/\A\d+/)
             return :DIGIT, s.to_i
 
-          elsif ch = reads( /\A./ ) then
+          elsif ch = reads(/\A./)
             case ch
             when '"', "'"
               return :STRING, eval(scan_quoted(ch))
@@ -72,7 +72,7 @@ module Racc
               no = lineno
               return :ACTION, [scan_action, no]
             else
-              if ch == '|' then
+              if ch == '|'
                 @line_head = false
               end
               return ch, ch
@@ -82,7 +82,7 @@ module Racc
             ;
           end
         end
-      end while next_line
+      end while next_line()
 
       return false, '$'
     end
@@ -92,19 +92,19 @@ module Racc
 
     def next_line
       @lineno += 1
-      @line = @lines[ @lineno ]
+      @line = @lines[@lineno]
 
-      if not @line or /\A----/ === @line then
+      if not @line or /\A----/ === @line
         @lines.clear
         @line = nil
-        if @in_block then
+        if @in_block
           @lineno -= 1
           scan_error! sprintf('unterminated %s', @in_block)
         end
 
         false
       else
-        @line.sub!( /(?:\n|\r\n|\r)\z/, '' )
+        @line.sub!(/(?:\n|\r\n|\r)\z/, '')
         @line_head = true
         true
       end
@@ -128,12 +128,12 @@ module Racc
     }
 
     def check_atom( cur )
-      if cur == 'end' then
+      if cur == 'end'
         sret = :XEND
         @in_conv_blk = false
         @in_rule_blk = false
       else
-        if @line_head and not @in_conv_blk and not @in_rule_blk then
+        if @line_head and not @in_conv_blk and not @in_rule_blk
           sret = ResWord[cur] || :XSYMBOL
         else
           sret = :XSYMBOL
@@ -152,7 +152,7 @@ module Racc
 
     def skip_comment
       @in_block = 'comment'
-      until m = /\*\//.match( @line ) do
+      until m = /\*\//.match(@line)
         next_line
       end
       @line = m.post_match
@@ -169,13 +169,13 @@ module Racc
 
       begin
         pre = nil
-        if s = reads( /\A\s+/ ) then
+        if s = reads(/\A\s+/)
           # does not set 'pre'
           ret << s
         end
 
-        until @line.empty? do
-          if s = reads( /\A[^'"`{}%#\/\$]+/ ) then
+        until @line.empty?
+          if s = reads(/\A[^'"`{}%#\/\$]+/)
             ret << (pre = s)
             next
           end
@@ -187,7 +187,7 @@ module Racc
 
           when '}'
             nest -= 1
-            if nest == 0 then
+            if nest == 0
               @in_block = nil
               return ret
             end
@@ -201,7 +201,7 @@ module Racc
             ret << (pre = scan_quoted(ch))
 
           when '%'
-            if literal_head? pre, @line then
+            if literal_head? pre, @line
               # % string, regexp, array
               ret << ch
               case ch = read(1)
@@ -223,7 +223,7 @@ module Racc
             end
 
           when '/'
-            if literal_head? pre, @line then
+            if literal_head? pre, @line
               # regexp
               ret << (pre = scan_quoted(ch, 'regexp'))
             else
@@ -241,7 +241,7 @@ module Racc
         end
 
         ret << "\n"
-      end while next_line
+      end while next_line()
 
       raise 'Racc FATAL: scan finished before parse finished'
     end
@@ -259,7 +259,7 @@ module Racc
     end
 
     def reads( re )
-      if m = re.match( @line ) then
+      if m = re.match(@line)
         @line = m.post_match
         m[0]
       else
@@ -271,17 +271,17 @@ module Racc
     def scan_quoted( left, tag = 'string' )
       ret = left.dup
       ret = "||#{tag}->" + ret if $raccs_print_type
-      re = get_quoted_re( left )
+      re = get_quoted_re(left)
 
       sv, @in_block = @in_block, tag
       begin
-        if s = reads(re) then
+        if s = reads(re)
           ret << s
           break
         else
           ret << @line
         end
-      end while next_line
+      end while next_line()
       @in_block = sv
 
       ret << "<-#{tag}||" if $raccs_print_type
@@ -298,7 +298,7 @@ module Racc
     CACHE = {}
 
     def get_quoted_re( left )
-      term = Regexp.quote( LEFT_TO_RIGHT[left] || left )
+      term = Regexp.quote(LEFT_TO_RIGHT[left] || left)
       CACHE[left] ||= /\A[^#{term}\\]*(?:\\.[^\\#{term}]*)*#{term}/
     end
 

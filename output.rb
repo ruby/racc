@@ -80,17 +80,17 @@ module Racc
       e2 = []
 
       @statetable.each do |state|
-        defa.push act2actid( state.defact )
+        defa.push act2actid(state.defact)
 
-        if state.action.empty? then
+        if state.action.empty?
           ptr.push nil
           next
         end
         tmp = []
         state.action.each do |tok, act|
-          tmp[ tok.ident ] = act2actid( act )
+          tmp[tok.ident] = act2actid(act)
         end
-        addent( e1, e2, tmp, state.ident, ptr )
+        addent e1, e2, tmp, state.ident, ptr
       end
       set_table e1, e2, tbl, chk, ptr
 
@@ -116,17 +116,17 @@ module Racc
         #
         # decide default
         #
-        freq = Array.new( @statetable.size, 0 )
+        freq = Array.new(@statetable.size, 0)
         @statetable.each do |state|
-          st = state.goto_table[ tok ]
-          if st then
+          st = state.goto_table[tok]
+          if st
             st = st.ident
-            freq[ st ] += 1
+            freq[st] += 1
           end
-          tmp[ state.ident ] = st
+          tmp[state.ident] = st
         end
         max = freq.max
-        if max > 1 then
+        if max > 1
           dflt = freq.index( max )
           tmp.collect! {|i| dflt == i ? nil : i }
         else
@@ -140,13 +140,13 @@ module Racc
         # delete default value
         #
         tmp.pop until tmp[-1] or tmp.empty?
-        if tmp.compact.empty? then
+        if tmp.compact.empty?
           # only default
           ptr.push nil
           next
         end
 
-        addent( e1, e2, tmp, tok.ident - @symboltable.nt_base, ptr )
+        addent e1, e2, tmp, (tok.ident - @symboltable.nt_base), ptr
       end
       set_table e1, e2, tbl, chk, ptr
 
@@ -161,18 +161,18 @@ module Racc
       min = nil
       item = idx = nil
       arr.each_with_index do |item,idx|
-        if item then
+        if item
           min ||= idx
         end
       end
-      ptr.push( -7777 )    # mark
+      ptr.push(-7777)    # mark
 
-      arr = arr[ min ... max ]
+      arr = arr[min...max]
       ent = [ arr, chkval, mkmapexp(arr), min, ptr.size - 1 ]
       all.push ent
     end
 
-    unless defined? RegexpError then
+    unless defined? RegexpError
       RegexpError = RegxpError
     end
     begin
@@ -196,9 +196,9 @@ module Racc
       maxdup = RE_DUP_MAX
       curr = nil
 
-      while i < as do
+      while i < as
         ii = i + 1
-        if arr[i] then
+        if arr[i]
           ii += 1 while ii < as and arr[ii]
           curr = '-'
         else
@@ -207,10 +207,10 @@ module Racc
         end
 
         offset = ii - i
-        if offset == 1 then
+        if offset == 1
           map << curr
         else
-          while offset > maxdup do
+          while offset > maxdup
             map << "#{curr}{#{maxdup}}"
             offset -= maxdup
           end
@@ -219,27 +219,24 @@ module Racc
         i = ii
       end
 
-      Regexp.new( map, 'n' )
+      Regexp.new(map, 'n')
     end
 
     def set_table( entries, dummy, tbl, chk, ptr )
-      a = b = ent = nil
-      idx = item = i = nil
-      arr = chkval = min = ptri = exp = nil
       upper = 0
       map = '-' * 10240
 
       # sort long to short
       entries.sort! {|a,b| b[0].size <=> a[0].size }
 
-      entries.each do |arr, chkval, exp, min, ptri|
-        if upper + arr.size > map.size then
+      entries.each do |arr, chkval, expr, min, ptri|
+        if upper + arr.size > map.size
           map << '-' * (arr.size + 1024)
         end
-        idx = map.index( exp )
-        ptr[ ptri ] = idx - min
+        idx = map.index(expr)
+        ptr[ptri] = idx - min
         arr.each_with_index do |item, i|
-          if item then
+          if item
             i += idx
             tbl[i] = item
             chk[i] = chkval
@@ -257,12 +254,12 @@ module Racc
       when Accept then @actions.shift_n
       when Error  then @actions.reduce_n * -1
       else
-        raise "Racc FATAL: wrong act type #{act.type} in action table"
+        raise "Racc FATAL: wrong act type #{act.class} in action table"
       end
     end
 
     def output_table( out, tab, label )
-      if tab.size > 2000 then
+      if tab.size > 2000
         #
         # compressed table
         #
@@ -286,21 +283,21 @@ module Racc
       out.print 'clist = ['
       tab.each do |i|
         buf << co << i.to_s; co = ncom
-        if buf.size > 66 then
+        if buf.size > 66
           out.print sep; sep = nsep
           out.print "'", buf, "'"
           buf = ''
           co = com
         end
       end
-      unless buf.empty? then
+      unless buf.empty?
         out.print sep
         out.print "'", buf, "'"
       end
       out.puts ' ]'
 
       out.print <<S
-#{label} = arr = Array.new( #{tab.size}, nil )
+#{label} = arr = Array.new(#{tab.size}, nil)
 str = a = i = nil
 idx = 0
 clist.each do |str|
@@ -322,7 +319,7 @@ S
       out.puts "#{label} = ["
       tab.each do |t|
         buf << sep ; sep = nsep
-        if i == 10 then
+        if i == 10
           i = 0
           buf << "\n"
           out << buf
@@ -344,9 +341,9 @@ S
       sep_rest = ",\n"
       out << "racc_token_table = {"
       @symboltable.each do |tok|
-        if tok.terminal? then
+        if tok.terminal?
           out.print sep; sep = sep_rest
-          out.printf( " %s => %d", tok.uneval, tok.ident )
+          out.printf " %s => %d", tok.uneval, tok.ident
         end
       end
       out << " }\n\n"
@@ -392,7 +389,7 @@ Racc_arg = [
     def output_actions( out )
       rl = act = nil
 
-      if @result then
+      if @result
         result1 = ', result '
         result2 = "\n   result"
         defact = ''
@@ -401,7 +398,7 @@ Racc_arg = [
         defact = '  val[0]'
       end
       result = @result ? ', result ' : ''
-      if @line then
+      if @line
         src = <<'--'
 
 module_eval <<'.,.,', '%s', %d
@@ -421,20 +418,20 @@ module_eval <<'.,.,', '%s', %d
 
       @ruletable.each_rule do |rl|
         act = rl.action
-        if not act and @omit then
+        if not act and @omit
           out.printf "\n # reduce %d omitted\n",
                      rl.ident
         else
           act ||= defact
           act.sub!(/\s+\z/, '')
-          if @line then
+          if @line
             i = rl.lineno
-            while m = /\A[ \t\f]*(?:\n|\r\n|\r)/.match(act) do
+            while m = /\A[ \t\f]*(?:\n|\r\n|\r)/.match(act)
               act = m.post_match
               i += 1
             end
             delim = '.,.,'
-            while act.index(delim) do
+            while act.index(delim)
               delim *= 2
             end
             out.printf src, @fname, i - 1, rl.ident,
@@ -475,11 +472,11 @@ module_eval <<'.,.,', '%s', %d
 
     def output_conflict( out )
       @statetable.each do |state|
-        if state.srconf then
+        if state.srconf
           out.printf "state %d contains %d shift/reduce conflicts\n",
                      state.stateid, state.srconf.size
         end
-        if state.rrconf then
+        if state.rrconf
           out.printf "state %d contains %d reduce/reduce conflicts\n",
                      state.stateid, state.rrconf.size
         end
@@ -491,13 +488,13 @@ module_eval <<'.,.,', '%s', %d
       rl = t = nil
       used = []
       @ruletable.each do |rl|
-        if rl.useless? then
+        if rl.useless?
           out.printf "rule %d (%s) never reduced\n",
                      rl.ident, rl.target.to_s
         end
       end
       @symboltable.each_nonterm do |t|
-        if t.useless? then
+        if t.useless?
           out.printf "useless nonterminal %s\n", t.to_s
         end
       end
@@ -512,23 +509,22 @@ module_eval <<'.,.,', '%s', %d
         out << "\nstate #{state.ident}\n\n"
 
         (@showall ? state.closure : state.core).each do |ptr|
-          pointer_out( out, ptr ) if ptr.rule.ident != 0 or @showall
+          pointer_out(out, ptr) if ptr.rule.ident != 0 or @showall
         end
         out << "\n"
 
-        action_out( out, state )
+        action_out out, state
       end
     end
 
     def pointer_out( out, ptr )
-      tmp = sprintf( "%4d) %s :",
-                     ptr.rule.ident, ptr.rule.target.to_s )
+      buf = sprintf("%4d) %s :", ptr.rule.ident, ptr.rule.target.to_s)
       ptr.rule.symbols.each_with_index do |tok, idx|
-        tmp << ' _' if idx == ptr.index
-        tmp << ' ' << tok.to_s
+        buf << ' _' if idx == ptr.index
+        buf << ' ' << tok.to_s
       end
-      tmp << ' _' if ptr.reduce?
-      out.puts tmp
+      buf << ' _' if ptr.reduce?
+      out.puts buf
     end
 
     def action_out( f, state )
@@ -543,12 +539,12 @@ module_eval <<'.,.,', '%s', %d
       [ Shift, Reduce, Error, Accept ].each do |type|
         keys.delete_if do |tok|
           act = acts[tok]
-          if type === act then
+          if type === act
             outact f, tok, act
-            if sr and c = sr.delete(tok) then
+            if sr and c = sr.delete(tok)
               outsrconf f, c
             end
-            if rr and c = rr.delete(tok) then
+            if rr and c = rr.delete(tok)
               outrrconf f, c
             end
 
@@ -562,13 +558,13 @@ module_eval <<'.,.,', '%s', %d
       rr.each {|tok, c| outrrconf f, c } if rr
 
       act = state.defact
-      if not Error === act or @debug then
+      if not Error === act or @debug
         outact f, '$default', act
       end
 
       f.puts
       state.goto_table.each do |t, st|
-        if t.nonterminal? then
+        if t.nonterminal?
           f.printf "  %-12s  go to state %d\n", t.to_s, st.ident
         end
       end
@@ -587,7 +583,7 @@ module_eval <<'.,.,', '%s', %d
       when Error
         f.printf "  %-12s  error\n", t.to_s
       else
-        raise "Racc FATAL: wrong act for outact: act=#{act}(#{act.type})"
+        raise "Racc FATAL: wrong act for outact: act=#{act}(#{act.class})"
       end
     end
 
@@ -614,7 +610,7 @@ module_eval <<'.,.,', '%s', %d
     def output_rule( out )
       out.print "-------- Grammar --------\n\n"
       @ruletable.each_rule do |rl|
-        if @debug or rl.ident != 0 then
+        if @debug or rl.ident != 0
           out.printf "rule %d %s: %s\n",
                      rl.ident, rl.target.to_s, rl.symbols.join(' ')
         end

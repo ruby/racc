@@ -32,7 +32,7 @@ module Racc
     attr :super_class
 
     def parse( str )
-      @scanner = GrammarFileScanner.new( str )
+      @scanner = GrammarFileScanner.new(str)
       @scanner.debug = @yydebug
 
       do_parse
@@ -46,9 +46,9 @@ module Racc
     end
 
     def on_error( tok, val, _values )
-      if val.respond_to? :id2name then
+      if val.respond_to?(:id2name)
         v = val.id2name
-      elsif String === val then
+      elsif String === val
         v = val
       else
         v = val.inspect

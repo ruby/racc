@@ -13,8 +13,7 @@ require 'getopts'
 require 'strscan'
 
 
-unless defined? StringScanner_C or
-       $".include? 'strscan.so' then
+unless defined? StringScanner_C or $".include?('strscan.so')
   $stderr.puts "#{$0}: fatal: NEVER USE ruby-level strscan with y2racc"
   exit 3
 end
@@ -44,7 +43,7 @@ class Y
   def parse( f, fname )
     @fname = fname
     str = f.read
-    s = StringScanner.new( str )
+    s = StringScanner.new(str)
 
     procdef s
     procrule s
@@ -53,22 +52,22 @@ class Y
 
   def procdef( s )
     skip_until_percent s
-    until s.empty? do
-      if t = s.scan( /(left|right|nonassoc|token|start)\b/ ) then
+    until s.empty?
+      if t = s.scan(/(left|right|nonassoc|token|start)\b/)
         send 'proc_' + t, get_tokens( s )
 
       elsif s.skip %r<(?:
             type | union | expect | thong | binary |
             semantic_parser | pure_parser | no_lines |
-            raw | token_table                          )\b>x then
+            raw | token_table                          )\b>x
         skip_until_percent s
 
       elsif s.skip /\{/
-        @header = s.scan_until( /\%\}/ )
+        @header = s.scan_until(/\%\}/)
         @header.chop!; @header.chop!   # %}
         skip_until_percent s
 
-      elsif s.skip /\%/ then   # %%
+      elsif s.skip /\%/   # %%
         return
 
       else
@@ -78,11 +77,11 @@ class Y
   end
 
   def skip_until_percent( s )
-    until s.empty? do
+    until s.empty?
       s.skip /[^\%\/]+/
-      if t = s.scan( COMMENT ) then
+      if t = s.scan(COMMENT)
         ;
-      elsif s.getch == '/' then
+      elsif s.getch == '/'
         ;
       else
         return
@@ -92,17 +91,17 @@ class Y
 
   def get_tokens( s )
     ret = []
-    until s.empty? do
+    until s.empty?
       s.skip /\s+/
       next if s.skip COMMENT
 
-      if t = s.scan( /'((?:[^'\\]+|\\.)*)'/ ) then
+      if t = s.scan(/'((?:[^'\\]+|\\.)*)'/)
         ret.push t
-      elsif t = s.scan( /"((?:[^"\\]+|\\.)*)"/ ) then
+      elsif t = s.scan(/"((?:[^"\\]+|\\.)*)"/)
         ret.push t
-      elsif s.skip /\%/ then
+      elsif s.skip /\%/
         break
-      elsif t = s.scan( /\S+/ ) then
+      elsif t = s.scan(/\S+/)
         ret.push t
       else
         raise 'scan error'
@@ -125,7 +124,7 @@ class Y
   end
 
   def proc_token( arr )
-    if /\A\<.*\>\z/ === arr[0] then
+    if /\A\<.*\>\z/ === arr[0]
       arr.shift
     end
     @tokens.concat arr
@@ -143,14 +142,14 @@ class Y
   def procrule( s )
     @text = []
 
-    until s.empty? do
-      if t = s.scan( /[^%'"{\/]+/ ) then
+    until s.empty?
+      if t = s.scan(/[^%'"{\/]+/)
         @text.push t
         break if s.empty?
       end
 
-      if s.skip /\{/ then
-        if $OPT_A then
+      if s.skip /\{/
+        if $OPT_A
           skip_action s
         else
           scan_action s
@@ -159,8 +158,8 @@ class Y
       elsif t = s.scan( STRINGQ ) then @text.push t
       elsif t = s.scan( COMMENT ) then @text.push t
       elsif s.skip /%prec\b/      then @text.push '='
-      elsif s.skip /%%/           then
-        if $OPT_u then
+      elsif s.skip /%%/
+        if $OPT_u
           @footer = s.rest
         end
         break
@@ -182,12 +181,12 @@ class Y
     @text.push '{'
 
     nest = 1
-    until s.empty? do
-      if t = s.scan( /[^{'"}\/]+/ ) then
+    until s.empty?
+      if t = s.scan(/[^{'"}\/]+/)
         @text.push t
         break if s.empty?
       end
-      if t = s.scan( COMMENT ) then
+      if t = s.scan(COMMENT)
         @text.push t
         next
       end
@@ -199,7 +198,7 @@ class Y
         nest += 1
       when '}'
         nest -= 1
-        if nest == 0 then
+        if nest == 0
           return
         end
       else
@@ -227,16 +226,16 @@ SRC
     f.print 'token'
     total = 0
     @tokens.each do |t|
-      if total > 60 then
+      if total > 60
         f.print "\n     "
         total = 0
       end
-      total += f.write( " #{t}" )
+      total += f.write(" #{t}")
     end
     f.puts
     f.puts
 
-    unless @prectab.empty? then
+    unless @prectab.empty?
       f.puts 'preclow'
       @prectab.each do |type, toks|
         f.printf "  %-8s %s\n", type, toks.join(' ') unless toks.empty?
@@ -245,7 +244,7 @@ SRC
       f.puts
     end
 
-    if @start then
+    if @start
       f.puts "start #{@start}"
       f.puts
     end
@@ -255,12 +254,12 @@ SRC
     f.puts
     f.puts 'end'
 
-    if not $OPT_H and @header then
+    if not $OPT_H and @header
       f.puts
       f.puts '---- header'
       f.puts @header
     end
-    if not $OPT_u and @footer then
+    if not $OPT_u and @footer
       f.puts
       f.puts '---- footer'
       f.puts @footer
@@ -271,10 +270,8 @@ end
 
 
 def usage( stat = 1 )
-  if stat != 0 then
-    $stderr.puts "#{File.basename $0}: wrong option"
-  end
-  $stderr.print <<MSG
+  $stderr.puts "#{File.basename $0}: wrong option" unless stat == 0
+  (stat == 0 ? $stdout : $stderr).print(<<EOS)
 
 y2racc version #{Y::Version}
 
@@ -289,46 +286,38 @@ usage:
     -A           cut off actions
     -U           cut off user code (%%....) (default)
 
-MSG
+EOS
   exit stat
 end
 
 
-unless getopts( 'uAHU', 'c:', 'o:', 'version', 'copyright', 'help' ) then
-  usage 1
-end
-if $OPT_U then
-  $OPT_u = false
-end
+getopts('uAHU', 'c:', 'o:', 'version', 'copyright', 'help') or usage 1
+$OPT_u = false if $OPT_U
 if $OPT_version then
-  $stderr.puts "y2racc version #{Y::Version}"
+  puts "y2racc version #{Y::Version}"
   exit 0
-end
-if $OPT_help then
-  usage 0
 end
 if $OPT_copyright then
-  $stderr.puts 'Copyright (c) 2000 Minero Aoki <aamine@loveruby.net>'
+  puts 'Copyright (c) 2000 Minero Aoki <aamine@loveruby.net>'
   exit 0
 end
-unless ARGV.size == 1 then
-  usage 1
-end
+usage 0 if $OPT_help
+usage 1 unless ARGV.size == 1
 
 
 cname = $OPT_c || 'MyParser'
 fname = ARGV[0]
 outf = $OPT_o || 'r.' + fname
 
-y = Y.new( cname )
+y = Y.new(cname)
 begin
-  File.open( fname ) do |f|
-    y.parse f, fname
-  end
+  File.open(fname) {|f|
+      y.parse f, fname
+  }
 rescue Errno::ENOENT
   $stderr.puts "no such file: #{fname}"
   exit 1
 end
-File.open( outf, 'w' ) do |f|
-  y.output f
-end
+File.open(outf, 'w') {|f|
+    y.output f
+}

@@ -411,7 +411,7 @@ nerr = 0   # tmp
     def racc_reduce( toks, sim, tstack, vstack )
       out = @racc_debug_out
       out.print 'reduce '
-      if toks.empty? then
+      if toks.empty?
         out.print ' <none>'
       else
         toks.each {|t| out.print ' ', racc_token2str(t) }

@@ -18,10 +18,10 @@ module Racc
       str = nil
       lineno = 0
 
-      File.foreach( fname ) do |line|
+      File.foreach(fname) do |line|
         lineno += 1
-        if m = re.match(line) then
-          ret[ m[1].downcase ] = [
+        if m = re.match(line)
+          ret[m[1].downcase] = [
               str = '',
               lineno + 1,
               (m[2] && !m[2].empty?) ?  m.post_match.strip.split(/\s+/) : nil
