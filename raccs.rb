@@ -104,6 +104,7 @@ module Racc
         @lines.clear
         @line = nil
         if @in_block then
+          @lineno -= 1
           scan_error! sprintf('unterminated %s', @in_block)
         end
 
@@ -165,9 +166,12 @@ module Racc
     end
 
 
+    GVAR_CHARS = '_~*$?!@/\\;:,.=<>"`\'-&+1234567890'
+
     def scan_action
       ret = ''
       nest = 1
+      pre = nil
 
       @in_block = 'action'
 
@@ -175,7 +179,7 @@ module Racc
         pre = nil
 
         until @line.empty? do
-          if m = /\A[^'"`{}%#\/]+/.match( @line ) then
+          if m = /\A[^'"`{}%#\/\$]+/.match( @line ) then
             pre = m[0]
             ret << pre
             @line = m.post_match
@@ -236,6 +240,13 @@ module Racc
               pre = ch
             end
             ret << pre
+
+          when '$'
+            ret << (pre = ch)
+            if /\A[#{Regexp.quote GVAR_CHARS}]/o === @line then
+              ret << (pre = @line[0,1])
+              @line = @line[1..-1]
+            end
 
           else
             bug!
