@@ -105,23 +105,13 @@ environ( 'racc' ) do
     set :package, 'raccrt'
     set :instpath, 'racc'
 
-
     set :rb, %w( parser.rb )
-
-    set :tool, %w(
-      rtpack.rb
-    )
-
 
     set :intern_libs, %w( cparse )
 
 
     def update
       (e :cparse).update
-    end
-
-    def set_files_etc( packdir )
-      cp a(g :tool), packdir
     end
 
     def site

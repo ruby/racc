@@ -95,15 +95,18 @@ You must use -g option and set @yydebug true to get output.
 <p>
 A parser, which is created by Racc, requires Racc runtime.
 You should re-distribute Racc runtime with your parser.
-It can be done by '-E' option.
+It can be done by using '-E' option.
 <pre>
 
   racc -E myparser.y
 
 </pre>
-This creates myparser.tab.rb which INCLUDES racc runtime.
-Only you must do is to distribute your .tab.rb file.
-(License problem does not exist.)
+creates myparser.tab.rb which includes racc runtime.
+Only you must do is to distribute parser file (.rb).
+
+<p>
+Note: parser.rb is LGPL but your parser is not.
+You own parser is completely yours.
 
 <% footer 1999 %>
 . file command.html ------------------------------------------------------
