@@ -21,13 +21,17 @@ def dotest( code )
   puts "ok: #{code}"
 end
 
-def comptest( arg, chk = nil )
-  fname = arg.shift
-  opt = if arg.empty? then nil else arg.join(' ') end
+def comptest( args, chk = nil )
+  fname = args.shift
   n = fname.sub(/\.y\z/, '')
-  a = [ opt, '-Oout/' + n, '-otab/' + n ].compact
+  args.push '-Oout/' + n
+  args.push '-otab/' + n
+  args.unshift '-Dapo'
+  args.unshift '../racc'
+  args.push fname
+
   File.truncate 'log', 0
-  dotest "../racc -Dapo #{a.join ' '} #{fname}"
+  dotest args.join(' ')
   if chk then
     File.foreach( 'log' ) do |line|
       line.strip!
@@ -58,6 +62,7 @@ comptest %w( normal.y                  ), []
 comptest %w( normal.y -vg              )
 comptest %w( chk.y    -vg              ), []; dotest 'tab/chk'
 comptest %w( chk.y    -c               ), []; dotest 'tab/chk'
+comptest %w( echk.y   -E               ), []; dotest 'tab/echk'
 comptest %w( err.y                     ), []; dotest 'tab/err'
 comptest %w( mailp.y                   ), []
 comptest %w( conf.y   -v               ), [4,1,1,2]
