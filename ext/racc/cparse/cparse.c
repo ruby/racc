@@ -1,19 +1,18 @@
 /*
 
-    cparse.c -- runtime routine for racc parser.
+    cparse.c -- racc runtime core
   
-    Copyright (c) 1999-2002 Minero Aoki <aamine@loveruby.net>
+    Copyright (c) 1999-2003 Minero Aoki <aamine@loveruby.net>
   
     This library is free software.
-    You can distribute/modify this program
-    under the same terms of ruby interpreter.
+    You can distribute/modify this program under the same terms of ruby.
 
     $Id$
 
 */
 
-#include <stdio.h>
 #include "ruby.h"
+#include <stdio.h>
 
 
 /* -----------------------------------------------------------------------
@@ -148,7 +147,7 @@ struct cparse_params {
 
     int   lex_is_iterator;
     VALUE lexer;           /* scanner object */
-    ID    lexmid;          /* name of scanner method (must be iterator) */
+    ID    lexmid;          /* name of scanner method (must be an iterator) */
 
     /* State transition tables (immutable)
        Data structure is from Dragon Book 4.9 */
@@ -207,9 +206,9 @@ static void call_lexer _((struct cparse_params *v));
 static VALUE lexer_iter _((VALUE data));
 static VALUE lexer_i _((VALUE block_args, VALUE data, VALUE self));
 
-static VALUE check_array _((VALUE a));
-static long check_num _((VALUE n));
-static VALUE check_hash _((VALUE h));
+static VALUE assert_array _((VALUE a));
+static long assert_integer _((VALUE n));
+static VALUE assert_hash _((VALUE h));
 static void initialize_params _((struct cparse_params *v,
                                  VALUE parser, VALUE arg,
                                  VALUE lexer, VALUE lexmid));
@@ -236,13 +235,15 @@ racc_cparse(parser, arg, sysdebug)
     VALUE parser, arg, sysdebug;
 {
     struct cparse_params params;
+    struct cparse_params *v = &params;
 
     D_puts("starting cparse");
-    params.sys_debug = RTEST(sysdebug);
-    initialize_params(&params, parser, arg, Qnil, Qnil);
-    params.lex_is_iterator = Qfalse;
-    parse_main(&params, Qnil, Qnil, 0);
-    return params.retval;
+    v->sys_debug = RTEST(sysdebug);
+    initialize_params(v, parser, arg, Qnil, Qnil);
+    v->lex_is_iterator = Qfalse;
+    parse_main(v, Qnil, Qnil, 0);
+
+    return v->retval;
 }
 
 static VALUE
@@ -250,20 +251,21 @@ racc_yyparse(parser, lexer, lexmid, arg, sysdebug)
     VALUE parser, lexer, lexmid, arg, sysdebug;
 {
     struct cparse_params params;
+    struct cparse_params *v = &params;
 
-    params.sys_debug = RTEST(sysdebug);
+    v->sys_debug = RTEST(sysdebug);
     D_puts("start C yyparse");
-    initialize_params(&params, parser, arg, lexer, lexmid);
-    params.lex_is_iterator = Qtrue;
+    initialize_params(v, parser, arg, lexer, lexmid);
+    v->lex_is_iterator = Qtrue;
     D_puts("params initialized");
-    parse_main(&params, Qnil, Qnil, 0);
-    call_lexer(&params);
-    if (! params.fin) {
+    parse_main(v, Qnil, Qnil, 0);
+    call_lexer(v);
+    if (!v->fin) {
         rb_raise(rb_eArgError, "%s() is finished before EndOfToken",
-                 rb_id2name(params.lexmid));
+                 rb_id2name(v->lexmid));
     }
 
-    return params.retval;
+    return v->retval;
 }
 
 static void
@@ -302,7 +304,7 @@ lexer_i(block_args, data, self)
 }
 
 static VALUE
-check_array(a)
+assert_array(a)
     VALUE a;
 {
     Check_Type(a, T_ARRAY);
@@ -310,7 +312,7 @@ check_array(a)
 }
 
 static VALUE
-check_hash(h)
+assert_hash(h)
     VALUE h;
 {
     Check_Type(h, T_HASH);
@@ -318,7 +320,7 @@ check_hash(h)
 }
 
 static long
-check_num(n)
+assert_integer(n)
     VALUE n;
 {
     return NUM2LONG(n);
@@ -341,19 +343,19 @@ initialize_params(v, parser, arg, lexer, lexmid)
     Check_Type(arg, T_ARRAY);
     if (!(13 <= RARRAY(arg)->len && RARRAY(arg)->len <= 14))
         rb_raise(RaccBug, "[Racc Bug] wrong arg.size %ld", RARRAY(arg)->len);
-    v->action_table   = check_array(RARRAY(arg)->ptr[ 0]);
-    v->action_check   = check_array(RARRAY(arg)->ptr[ 1]);
-    v->action_default = check_array(RARRAY(arg)->ptr[ 2]);
-    v->action_pointer = check_array(RARRAY(arg)->ptr[ 3]);
-    v->goto_table     = check_array(RARRAY(arg)->ptr[ 4]);
-    v->goto_check     = check_array(RARRAY(arg)->ptr[ 5]);
-    v->goto_default   = check_array(RARRAY(arg)->ptr[ 6]);
-    v->goto_pointer   = check_array(RARRAY(arg)->ptr[ 7]);
-    v->nt_base        = check_num  (RARRAY(arg)->ptr[ 8]);
-    v->reduce_table   = check_array(RARRAY(arg)->ptr[ 9]);
-    v->token_table    = check_hash (RARRAY(arg)->ptr[10]);
-    v->shift_n        = check_num  (RARRAY(arg)->ptr[11]);
-    v->reduce_n       = check_num  (RARRAY(arg)->ptr[12]);
+    v->action_table   = assert_array  (RARRAY(arg)->ptr[ 0]);
+    v->action_check   = assert_array  (RARRAY(arg)->ptr[ 1]);
+    v->action_default = assert_array  (RARRAY(arg)->ptr[ 2]);
+    v->action_pointer = assert_array  (RARRAY(arg)->ptr[ 3]);
+    v->goto_table     = assert_array  (RARRAY(arg)->ptr[ 4]);
+    v->goto_check     = assert_array  (RARRAY(arg)->ptr[ 5]);
+    v->goto_default   = assert_array  (RARRAY(arg)->ptr[ 6]);
+    v->goto_pointer   = assert_array  (RARRAY(arg)->ptr[ 7]);
+    v->nt_base        = assert_integer(RARRAY(arg)->ptr[ 8]);
+    v->reduce_table   = assert_array  (RARRAY(arg)->ptr[ 9]);
+    v->token_table    = assert_hash   (RARRAY(arg)->ptr[10]);
+    v->shift_n        = assert_integer(RARRAY(arg)->ptr[11]);
+    v->reduce_n       = assert_integer(RARRAY(arg)->ptr[12]);
     if (RARRAY(arg)->len > 13) {
         v->use_result_var = RTEST(RARRAY(arg)->ptr[13]);
     }
@@ -416,7 +418,7 @@ extract_user_token(v, block_args, tok, val)
       case 1: /* yyerror */   \
         goto user_yyerror;    \
       case 2: /* yyaccept */  \
-        D_puts("u accept");  \
+        D_puts("u accept");   \
         goto accept;          \
       default:                \
         break;                \
@@ -599,7 +601,7 @@ parse_main(v, tok, val, resume)
       error_pop:
         D_puts("(err) act not found: can't handle error token; pop");
 
-        if (RARRAY(v->state)->len == 0) {
+        if (RARRAY(v->state)->len <= 1) {
             v->retval = Qnil;
             v->fin = CP_FIN_CANTPOP;
             return;

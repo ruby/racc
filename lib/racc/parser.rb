@@ -312,7 +312,7 @@ nerr = 0   # tmp
             end
           end
 
-          throw :racc_end_parse, nil if @racc_state.size < 2
+          throw :racc_end_parse, nil if @racc_state.size <= 1
           @racc_state.pop
           @racc_vstack.pop
           if @yydebug

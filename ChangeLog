@@ -1,3 +1,17 @@
+Mon Nov  3 21:20:25 2003  Minero Aoki  <aamine@loveruby.net>
+
+	* ext/racc/cparse/cparse.c (parse_main): abort if length of state
+	  stack <=1, not ==0.
+
+	* lib/racc/parser.rb: use <=1, not <2.
+
+	* ext/racc/cparse/cparse.c: check_*() -> assert_*()
+
+	* ext/racc/cparse/cparse.c (racc_cparse): define lvar `v' for
+	  debugging.
+
+	* ext/racc/cparse/cparse.c (racc_yyparse): ditto.
+
 Mon Nov  3 17:21:55 2003  Minero Aoki  <aamine@loveruby.net>
 
 	* Makefile (all): make cparse.so.
