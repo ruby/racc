@@ -1,3 +1,7 @@
+Mon Aug  5 21:53:07 2002  Minero Aoki  <aamine@loveruby.net>
+
+	* cparse/cparse.c: grand refine.
+
 Tue Jun  4 00:15:28 2002  Minero Aoki  <aamine@loveruby.net>
 
 	* boot.rb: allow to omit last 'end'.
