@@ -10,9 +10,9 @@
     # pattern
 
     COMMENT   = /\A\#[^\n\r]*/o
-    BEGIN_C   = /\A\/\*[^\n\r(\*\/)]*/o
-    ATOM      = /\A[a-zA-Z_]\w*/o
-    CODEBLOCK = /\A(\n|\r\n|\r)\-\-\-\-+/o
+    BEGIN_C   = /\A\/\*[^\n\r\*\/]*/o
+    ATOM      = /\A[a-zA-Z_]\w*|\A\$end/o
+    CODEBLOCK = /\A(?:\n|\r\n|\r)\-\-\-\-+/o
 
 
     def scan
@@ -96,7 +96,7 @@
     end
 
 
-  # BEGIN_C   = /\A\/\*[^\n\r(\*\/)]*/o
+  # BEGIN_C   = /\A\/\*[^\n\r\*\/]*/o
     COM_ENT   = /\A[^\n\r*]+/o
     COM_ENT2  = /\A\*+[^*\/\r\n]/o
     END_C     = /\A\*+\//o

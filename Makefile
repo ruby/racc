@@ -7,12 +7,12 @@ all:
 DEBUG = #-g
 TMP = ${DEBUG} -v#P
 RUBYPATH = /usr/local/bin/ruby
-DRACC    = ./racc.rb ${TMP} -e${RUBYPATH}
+DRACC    = racc ${TMP} -e${RUBYPATH}
 
 
 # app data
 
-VERSION  = 0.9.4
+VERSION  = 0.9.5
 APPNAME  = racc
 
 
@@ -37,6 +37,7 @@ RACCSRC  = \
            d.rule.rb   \
 	         d.state.rb  \
            d.format.rb \
+					 parser.rb
 
 RACCTOOL = Makefile bld.rb
 
@@ -44,8 +45,7 @@ LIBSRC   = \
            extmod.rb   \
 					 must.rb     \
 					 bug.rb      \
-					 parser.rb   \
-					 scanner.rb
+					 scanner.rb  \
 
 CALCSRC  = calc.y
 CALCTOOL = calc.makefile
@@ -77,7 +77,7 @@ test: debug
 	${DRACC} -ochk.rb chk.y &> er
 	./chk.rb
 
-calc: libracc.rb racc.rb
+calc: libracc.rb racc
 	make -f calc.makefile
 
 rmcalc:
@@ -87,11 +87,11 @@ rmcalc:
 
 clean:
 	rm -f libracc.rb racc-*.tar.gz chk.rb
-	cd ${BINDIR} ; rm -f racc.rb
+	cd ${BINDIR} ; rm -f racc
 	cd ${LIBDIR} ; rm -f libracc.rb
 
-install: racc.rb libracc.rb
-	mupdate racc.rb ${BINDIR}/racc.rb
+install: racc libracc.rb
+	mupdate racc ${BINDIR}/racc
 	mupdate libracc.rb ${LIBDIR}/libracc.rb
 
 pack:

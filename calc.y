@@ -11,8 +11,8 @@ class Calcp
 
   rule
     target: exp
-      |  /* none */ { result = 0 }
-      ;
+          | /* none */ { result = 0 }
+          ;
 
     exp: exp '+' exp { result += val[2] }
        | exp '-' exp { result -= val[2] }
@@ -90,7 +90,7 @@ while true do
   print "\n"
   print 'ikutu? > '
   str = gets.chop!
-  if /\Aq/io === str then break end
+  if /q/io === str then break end
 
   begin
     val = parser.parse( str )

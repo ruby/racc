@@ -118,9 +118,9 @@
     def redumethods_cat( str )
       @ruletable.each_rule do |rl|
         if rl.size == 0 then
-          multiredu_cat( str, rl )
-        else
           singleredu_cat( str, rl )
+        else
+          multiredu_cat( str, rl )
         end
       end
     end
@@ -169,10 +169,9 @@ def __reduce_with_rule_#{rl.ruleid}( vstack, sstack, __state__ )
 SOURCE
 
       if @dsrc then
-        str <<SOURCE
+        str.concat <<SOURCE
 if @__debug__ then
- print '<none> --> ', "#{rl.simbol.to_s}\n"
- print "\\n"
+ print '<none> --> ', "#{rl.simbol.to_s}\\n"
 end
 SOURCE
       end
@@ -224,7 +223,7 @@ SOURCE
 
 
     def cat_state( str, stat )
-      str << "state #{stat.stateid}"
+      str << "state #{stat.stateid}\n"
 
       stat.ptrs.each{|pt| cat_ptr( str, pt ) }
       str << "\n"
