@@ -1,11 +1,12 @@
 #
 # raccs.rb
 #
-#   Copyright (c) 1999-2002 Minero Aoki <aamine@loveruby.net>
+# Copyright (c) 1999-2003 Minero Aoki <aamine@loveruby.net>
 #
-#   This program is free software.
-#   You can distribute/modify this program under the terms of
-#   the GNU Lesser General Public License version 2 or later.
+# This program is free software.
+# You can distribute/modify this program under the terms of
+# the GNU LGPL, Lesser General Public License version 2.
+# For details of the GNU LGPL, see the file "COPYING".
 #
 
 
@@ -19,13 +20,10 @@ module Racc
     def initialize( str )
       @lines  = str.split(/\n|\r\n|\r/)
       @lineno = -1
-
       @line_head   = true
       @in_rule_blk = false
       @in_conv_blk = false
-
       @in_block = nil
-
       @debug = false
 
       next_line
@@ -37,14 +35,13 @@ module Racc
 
     attr_accessor :debug
 
-
     def scan
-      ret = do_scan()
+      result = do_scan()
       if @debug
         $stderr.printf "%7d %-10s %s\n",
-                       lineno, ret[0].inspect, ret[1].inspect
+                       lineno(), result[0].inspect, result[1].inspect
       end
-      ret
+      result
     end
 
     def do_scan
@@ -69,8 +66,7 @@ module Racc
             when '"', "'"
               return :STRING, eval(scan_quoted(ch))
             when '{'
-              no = lineno
-              return :ACTION, [scan_action, no]
+              return :ACTION, [scan_action(), lineno()]
             else
               if ch == '|'
                 @line_head = false
@@ -86,7 +82,6 @@ module Racc
 
       return false, '$'
     end
-
 
     private
 
@@ -110,8 +105,7 @@ module Racc
       end
     end
 
-
-    ResWord = {
+    ReservedWord = {
       'right'    => :XRIGHT,
       'left'     => :XLEFT,
       'nonassoc' => :XNONASSOC,
@@ -129,26 +123,24 @@ module Racc
 
     def check_atom( cur )
       if cur == 'end'
-        sret = :XEND
+        symbol = :XEND
         @in_conv_blk = false
         @in_rule_blk = false
       else
         if @line_head and not @in_conv_blk and not @in_rule_blk
-          sret = ResWord[cur] || :XSYMBOL
+          symbol = ReservedWord[cur] || :XSYMBOL
         else
-          sret = :XSYMBOL
+          symbol = :XSYMBOL
         end
-
-        case sret
+        case symbol
         when :XRULE then @in_rule_blk = true
         when :XCONV then @in_conv_blk = true
         end
       end
       @line_head = false
 
-      [sret, cur.intern]
+      [symbol, cur.intern]
     end
-
 
     def skip_comment
       @in_block = 'comment'
@@ -159,9 +151,8 @@ module Racc
       @in_block = nil
     end
 
-
     def scan_action
-      ret = ''
+      buf = ''
       nest = 1
       pre = nil
 
@@ -171,76 +162,76 @@ module Racc
         pre = nil
         if s = reads(/\A\s+/)
           # does not set 'pre'
-          ret << s
+          buf << s
         end
 
         until @line.empty?
           if s = reads(/\A[^'"`{}%#\/\$]+/)
-            ret << (pre = s)
+            buf << (pre = s)
             next
           end
 
           case ch = read(1)
           when '{'
             nest += 1
-            ret << (pre = ch)
+            buf << (pre = ch)
 
           when '}'
             nest -= 1
             if nest == 0
               @in_block = nil
-              return ret
+              return buf
             end
-            ret << (pre = ch)
+            buf << (pre = ch)
 
           when '#'   # comment
-            ret << ch << @line
+            buf << ch << @line
             break
 
           when "'", '"', '`'
-            ret << (pre = scan_quoted(ch))
+            buf << (pre = scan_quoted(ch))
 
           when '%'
             if literal_head? pre, @line
               # % string, regexp, array
-              ret << ch
+              buf << ch
               case ch = read(1)
               when /[qQx]/n
-                ret << ch << (pre = scan_quoted(read(1), '%string'))
+                buf << ch << (pre = scan_quoted(read(1), '%string'))
               when /w/n
-                ret << ch << (pre = scan_quoted(read(1), '%array'))
+                buf << ch << (pre = scan_quoted(read(1), '%array'))
               when /r/n
-                ret << ch << (pre = scan_quoted(read(1), '%regexp'))
+                buf << ch << (pre = scan_quoted(read(1), '%regexp'))
               when /[a-zA-Z0-9= ]/n   # does not include "_"
                 scan_error! "unknown type of % literal '%#{ch}'"
               else
-                ret << (pre = scan_quoted(ch, '%string'))
+                buf << (pre = scan_quoted(ch, '%string'))
               end
             else
               # operator
-              ret << '||op->' if $raccs_print_type
-              ret << (pre = ch)
+              buf << '||op->' if $raccs_print_type
+              buf << (pre = ch)
             end
 
           when '/'
             if literal_head? pre, @line
               # regexp
-              ret << (pre = scan_quoted(ch, 'regexp'))
+              buf << (pre = scan_quoted(ch, 'regexp'))
             else
               # operator
-              ret << '||op->' if $raccs_print_type
-              ret << (pre = ch)
+              buf << '||op->' if $raccs_print_type
+              buf << (pre = ch)
             end
 
           when '$'   # gvar
-            ret << ch << (pre = read(1))
+            buf << ch << (pre = read(1))
 
           else
             raise 'Racc FATAL: did not match'
           end
         end
 
-        ret << "\n"
+        buf << "\n"
       end while next_line()
 
       raise 'Racc FATAL: scan finished before parse finished'
@@ -251,7 +242,6 @@ module Racc
       not post.empty? and not /\A[\s\=]/n === post
     end
 
-
     def read( len )
       s = @line[0, len]
       @line = @line[len .. -1]
@@ -259,33 +249,29 @@ module Racc
     end
 
     def reads( re )
-      if m = re.match(@line)
-        @line = m.post_match
-        m[0]
-      else
-        nil
-      end
+      m = re.match(@line) or return nil
+      @line = m.post_match
+      m[0]
     end
 
-
     def scan_quoted( left, tag = 'string' )
-      ret = left.dup
-      ret = "||#{tag}->" + ret if $raccs_print_type
+      buf = left.dup
+      buf = "||#{tag}->" + buf if $raccs_print_type
       re = get_quoted_re(left)
 
       sv, @in_block = @in_block, tag
       begin
         if s = reads(re)
-          ret << s
+          buf << s
           break
         else
-          ret << @line
+          buf << @line
         end
       end while next_line()
       @in_block = sv
 
-      ret << "<-#{tag}||" if $raccs_print_type
-      ret
+      buf << "<-#{tag}||" if $raccs_print_type
+      buf
     end
 
     LEFT_TO_RIGHT = {
@@ -302,9 +288,8 @@ module Racc
       CACHE[left] ||= /\A[^#{term}\\]*(?:\\.[^\\#{term}]*)*#{term}/
     end
 
-
     def scan_error!( msg )
-      raise ScanError, "#{lineno}: #{msg}"
+      raise ScanError, "#{lineno()}: #{msg}"
     end
 
     $raccs_print_type = false
