@@ -9,14 +9,14 @@
 #   the GNU Lesser General Public Lisence version 2 or later.
 #
 
-require 'English'
 require 'getopts'
 require 'strscan'
 require 'amstd/bug'
 
 
-unless $LOADED_FEATURES.include? 'strscan.so' then
-  $stderr.puts "#{$0}: DO NOT USE ruby-level strscan with y2racc"
+unless defined? StringScanner_C or
+       $".include? 'strscan.so' then
+  $stderr.puts "#{$0}: fatal: NEVER USE ruby-level strscan with y2racc"
   exit 3
 end
 
