@@ -8,17 +8,19 @@
 require 'extmod'
 require 'bug'
 
+
 class ParseError < StandardError ; end
 
 
 class Parser
 
-  class Accept  ; end
-  class Shift   ; end
+  Shift   = Integer
+  Reduce  = Array
+  Accept  = Object.new
 
-  class Dammy   ; end
-  class Default ; end
-  Anchor = false
+  Dammy   = Object.new
+  Default = Object.new
+  Anchor  = false
 
 
   private
@@ -26,174 +28,170 @@ class Parser
 
   abstract :next_token
   abstract :next_value
-  abstract :peep_token
 
 
   def do_parse
+
+    #
+    # local parameters
+    #
+
     lr_action_table = self.type::LR_action_table
     lr_goto_table   = self.type::LR_goto_table
-
-    if self.type::DEBUG_PARSER and @__debug__ then
-      tostbl = self.type::TOKEN_TO_S_TABLE
-    else
-      @__debug__ = false
-      tostbl = nil
-    end
 
     state    = [ 0 ]
     curstate = 0
 
-    sstack = []
+    tstack = []
     vstack = []
 
+    tok = next_token
+    val = next_value
+
+    hash = nil
+    act  = nil
+
+    len       = nil
+    reduce_to = nil
+
+    tmp_t = nil
+    tmp_v = nil
+
+    void_array = []
+
+    unless self.type::DEBUG_PARSER then
+      @yydebug = false
+    end
+
+
+    #
+    # LR parsing algorithm main loop
+    #
 
     while true do
-      #
-      # dicide action
-      #
 
-      tact = lr_action_table[ curstate ]
+      hash = lr_action_table[ curstate ]
+      act = (hash[ tok ] or hash[ Default ])
 
-      if tact.type == Hash then
-        # look ahead
-        act = tact[ peep_token ]
-        unless act then act = tact[ Default ] end
-      else
-        act = tact
-      end
+      case act
+      when Shift
 
-      __showact__( tact, act, tostbl ) if @__debug__
+        tstack.push tok
+        vstack.push val
 
-      if act == Shift then
-        #
-        # shift
-        #
+        _shift( tok, tstack ) if @yydebug
+
+        curstate = act
+        state.push curstate
 
         tok = next_token
-        sstack.push tok
-        vstack.push next_value
+        val = next_value
 
-        __shift__( sstack, tok, tostbl ) if @__debug__
+      when Reduce
 
-      elsif Integer === act then
-        #
-        # reduce
-        #
+        # act = [len, reduce_to, method_ID]
 
-        ret = send( act, vstack, sstack, state )
-        vstack.push ret
+        len       = act[0]
+        reduce_to = act[1]
 
-        curstate = state[-1]
-        if sstack[-1] == Accept then break end
+        tmp_t = tstack[ -len, len ]
+        tmp_v = vstack[ -len, len ]
+        tstack[ -len, len ] = void_array
+        vstack[ -len, len ] = void_array
+        state[ -len, len ]  = void_array
 
-        __reduce__( sstack, tostbl ) if @__debug__
+        # tstack must be renewed AFTER method calling
+        vstack.push send( act[2], tmp_t, tmp_v, tstack, vstack, state )
+        tstack.push reduce_to
+
+        break if reduce_to == Accept
+
+        _reduce( tmp_t, reduce_to, tstack ) if @yydebug
+
+        curstate = lr_goto_table[ state[-1] ][ reduce_to ]
+        state.push curstate
+
+      when Accept
+
+        break   # not used yet
 
       else
-        #
-        # error
-        #
-
-        if tact then
-          if act then
-            bug! "state #{curstate}, wrong act type #{act.type}"
-          else
-            __error_handler__( state, sstack, vstack, false )
-          end
+        unless act then
+          _error_handler( tok, val, tstack, vstack, state )
         else
-          bug! "in state #{curstate}, tact is nil (tact=#{tact})"
+          bug! "act is not Shift/Reduce, '#{act}'(#{act.type})"
         end
       end
 
-      #
-      # goto
-      #
-
-      unless hsh = lr_goto_table[ curstate ] then
-        bug! "reduce state (ID #{curstate}) is current"
-      end
-
-      unless curstate = hsh[ sstack[-1] ] then
-        __error_handler__( state, sstack, vstack, true )
-      end
-
-      state.push curstate
-
-      __showstate__( state, curstate ) if @__debug__
+      _print_state( curstate, state ) if @yydebug
     end
-    
-    __accept__ if @__debug__
+
+    _accept if @yydebug
 
     return vstack[0]
   end
 
 
-  def on_error( etok, sstack, vstack, stat )
-    raise ParseError,
-      "\n\nparse error: unexpected token '#{etok}', in state #{stat[-1]}"
-  end
-
-
-  def __error_handler__( state, sstack, vstack, la )
-
-    next_value if la   # discard one value ... fix!
-    etok = next_value
-
+  def _error_handler( tok, val, tstack, vstack, state )
     begin
-      on_error( etok, sstack, vstack, state )
+      on_error( tok, val, tstack, vstack, state )
     rescue ParseError
       raise
     rescue
-      raise( ParseError,
-        "raised in user define 'on_error', message:\n#{$!}" )
+      raise ParseError, "raised in user define 'on_error', message:\n#{$!}"
     end
   end
 
+
+  def on_error( tok, val, tstack, vstack, state )
+    raise ParseError,
+      "\nunexpected token '#{val}', in state #{state[-1]}"
+  end
 
 
   # for debugging output
 
-  def __showact__( tact, act, tbl )
-    if tact.type == Hash then
-      puts 'lookaheading...'
-      
-      if act == Shift then
-        print 'shift   '
-      else
-        print 'reduce '
-      end
+  def _shift( tok, tstack )
+    print 'shift   ', _token2str(tok), "\n"
+    _print_tokens( tstack, true )
+    print "\n\n"
+  end
 
-    elsif tact == Shift then
-      print 'shift   '
+  def _accept
+    print "accept\n\n"
+  end
 
+  def _reduce( toks, sim, tstack )
+    print 'reduce '
+    if toks.size == 0 then
+      print ' <none>'
     else
-      print 'reduce '
+      _print_tokens( toks, false )
     end
+    print ' --> '; puts _token2str(sim)
+        
+    _print_tokens( tstack, true )
+    print "\n\n"
   end
 
-  def __shift__( stack, tok, tbl )
-    puts tbl[ tok ]
-    __showstack__( stack, tbl )
+  def _print_tokens( toks, bla )
+    print '        [' if bla
+    toks.each {|t| print ' ', _token2str(t) }
+    print ' ]' if bla
   end
 
-  def __accept__
-    puts "accept\n\n"
-  end
-
-  def __reduce__( stack, tbl )
-    __showstack__( stack, tbl )
-  end
-
-  def __showstack__( stack, tbl )
-    print 'stack   ['
-    stack.each{|sim| print ' ', tbl[ sim ] }
+  def _print_state( curstate, state )
+    puts  "goto    #{curstate}"
+    print '        ['
+    state.each {|st| print ' ', st }
     print " ]\n\n"
   end
 
-  def __showstate__( state, curstate )
-    print "goto    #{curstate}\n"
-    print 'stack   ['
-    state.each{|st| print ' ', st }
-    print " ]\n\n"
+  def _token2str( tok )
+    unless ret = self.type::TOKEN_TO_S_TABLE[tok] then
+      bug! "can't convert token #{tok} to string"
+    end
+    ret
   end
 
 end

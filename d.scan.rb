@@ -1,12 +1,6 @@
 
   class RaccScanner < Scanner
 
-    def reset( str, rac )
-      super( str )
-      @toktbl = rac.ruletable.tokentable
-      @code   = rac.code
-    end
-    
     # pattern
 
     COMMENT   = /\A\#[^\n\r]*/o
@@ -32,9 +26,7 @@
         end
 
         if temp = @scan.scan( CODEBLOCK ) then
-          @scan.unscan
-          @scan.skip EOL ; @lineno += 1
-          scan_usercode
+          @lineno += 1
           @scan.clear
           next
         end
@@ -74,7 +66,7 @@
 
     def scan_atom( cur )
       sret = :TOKEN
-      vret = @toktbl.get_token( cur.intern )
+      vret = cur.intern
 
       case cur
       when 'end'      then sret = :XEND
@@ -88,7 +80,7 @@
       when 'class'    then sret = :CLASS
       when 'rule'     then sret = :RULE
       when 'file'     then sret = :XFILE
-      when '$end'     then vret = @toktbl.get_token( Parser::Anchor )
+      when '$end'     then vret = Parser::Anchor
       end
 
       @spipe.push sret
@@ -166,75 +158,6 @@
 
       return ret
     end
-
-
-    INCLUDE    = /\A\s+\=/o
-    BEGINBLOCK = /\A\-\-\-\-+/o
-
-    def scan_usercode
-      bname = nil
-      ret = ''
-
-      while @scan.rest? do
-        unless line = @scan.scan( LINE ) then
-          bug! 'in scan_rest, not match'
-        end
-
-        if BEGINBLOCK === line then
-          if bname then
-            @code.store( bname, ret )
-            ret = ''
-          end
-          bname, rest = get_blockname( $' )
-
-          if INCLUDE === rest then
-            arr = get_filename( $' )
-            load_files( arr, ret, bname )
-          end
-        else
-          ret << line
-        end
-        @lineno += 1
-      end
-            
-      if bname then
-        @code.store( bname, ret )
-      end
-    end
-
-
-    BLOCKNAME = /\A[ \t]*(\w+)/o
-
-    def get_blockname( str )
-      unless BLOCKNAME === str then
-        scan_error! 'missing block name'
-      end
-      return $1.downcase, $'
-    end
-
-
-    def get_filename( str )
-      str.strip!
-      return str.split( /[ \t]/o )
-    end
-
-
-    def load_files( arr, ret, bname )
-      arr.each do |fname|
-        unless File.exist? fname then
-          raise NameError, "#{bname} file '#{fname}' does not exist"
-        end
-        unless File.file? fname then
-          raise NameError, "#{bname} file '#{fname}' is not file"
-        end
-        f = File.open( fname )
-        ret << f.read
-        f.close
-
-        ret << "\n"  # for safety
-      end
-    end
-      
 
   end   # RaccScanner
 

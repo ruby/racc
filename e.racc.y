@@ -144,9 +144,7 @@ lhs             : variable
 fname           : tIDENTIFIER
                 | tFID
                 | tFNAME_OP
-								.
-								  @scanner.mode = :EXPR_END
-								.
+								       # @scanner.mode = :EXPR_END
                 ;
 
 undef_list      : fname
@@ -338,9 +336,7 @@ superclass      : term
                 ;
 
 f_arglist       : '(' f_args opt_nl ')'
-                .
-                  @scanner.mode = :EXPR_BEG
-                .
+                       # @scanner.mode = :EXPR_BEG
                 | f_args term
                 ;
 
@@ -415,24 +411,15 @@ terms           : term
 
 
 mode_fname      :
-                .
-                  @scanner.mode = :EXPR_FNAME
-                .
+                  # @scanner.mode = :EXPR_FNAME
 								;
 
 mode_beg        :
-                .
-                  @scanner.mode = :EXPR_BEG
-                .
+                  # @scanner.mode = :EXPR_BEG
 								;
 
 in_defined      :
-                .
-								  @scanner.in_defined = true
-								.
+								  # @scanner.in_defined = true
 								;
 
-
-end   # rule
-
-end   # class
+end

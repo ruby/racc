@@ -1,63 +1,14 @@
 
   class RaccFormatter
 
-    def initialize( rac )
-      @racc = rac
-      @ruletable  = rac.ruletable
-      @tokentable = @ruletable.tokentable
-      @statetable = rac.statetable
-      @dsrc       = rac.dsrc
+    def initialize( racc )
+      @ruletable  = racc.ruletable
+      @statetable = racc.statetable
+      @dsrc       = racc.dsrc
+      @debug      = racc.debug
 
-      @temp = {}
+      @hash = {}
     end
-
-
-    def source
-      str = "##### racc generated code begin ###\n"
-      main_table_cat( str )
-
-      if @dsrc then
-        str << "\nDEBUG_PARSER = true\n"
-        tostable_cat( str )
-      else
-        str << "\nDEBUG_PARSER = false\n"
-      end
-
-      reduce_method_all_cat( str )
-      str << "##### racc generated code end #####\n"
-
-      return str
-    end
-
-
-    def output_state
-      str = "\n--------- State ---------\n\n"
-      @statetable.each_state{|s| cat_state( str, s ) }
-      str << "\n\n"
-
-      return str
-    end
-
-
-    def output_rule
-      str = "\n-------- Grammar --------\n\n"
-      @ruletable.each_rule do |rl|
-        cat_rule( str, rl ) if @racc.debug or rl.ruleid != 0
-      end
-
-      return str
-    end
-
-
-    def output_token
-      str = "\n------- Token data -------\n\n"
-      cat_toks( str )
-      return str
-    end
-
-
-
-    private
 
 
     ########
@@ -65,123 +16,100 @@
     ########
 
 
-    def main_table_cat( str )
-      str << 'LR_action_table = ['
+    def source( out = '' )
+      out << "##### racc generated code begin ###\n\n"
+
+      action_table_tab( out )
+      goto_table_tab( out )
+      if @dsrc then
+        out << "\nDEBUG_PARSER = true\n"
+        out << "\nTOKEN_TO_S_TABLE = {\n"
+        out << Token::Instance.collect{|v,tok|
+               sprintf( "%s => '%s'", tok.uneval, tok.to_s ) }.join(",\n")
+        out << "\n}\n"
+      else
+        out << "\nDEBUG_PARSER = false\n"
+      end
+      reduce_methods_tab( out )
+
+      out << "##### racc generated code end #####\n"
+    end
+
+
+    #####
+
+
+    def action_table_tab( out )
+
+      ShiftAction.each_instance do |obj|
+        i = obj.goto_state
+        out << "shift_#{i} = #{i}\n"
+      end
+      out << "\n"
+
+      @ruletable.each_with_index do |rl, i|
+        out <<
+          sprintf( "reduce_%d = [%d, %s, :_action_for_reduce_%d]\n",
+            i, rl.size, rl.accept? ? 'Accept' : rl.simbol.uneval, i )
+      end
+      out << "\n"
+
+      out << 'LR_action_table = ['
       sep = "\n"
 
       @statetable.each_state do |state|
-        act = state.action
 
-        str << sep ; sep = ",\n"
-        str << "# state #{state.stateid}\n"
+        out << sep ; sep = ",\n"
+        out << "# state #{state.stateid}\n{"
 
-        case act
-        when LookaheadAction then laact_cat( str, act )
-        when ShiftAction     then str << 'Shift'
-        when ReduceAction
-          str << ":__reduce_with_rule_#{act.value.ruleid}"
-        else
-          bug! "wrong action #{act.type} in state #{state.stateid}"
+        comma = " "
+        state.action.each do |tok, act|
+          out << comma ; comma = ",\n  "
+          out << tok.uneval << ' => ' <<
+            case act
+            when ShiftAction  then "shift_#{act.goto_state}"
+            when ReduceAction then "reduce_#{act.rule.ruleid}"
+            else
+              bug! "wrong act type #{act.type} in state #{state.stateid}"
+            end
         end
+        out << " }"
       end
-      str << "\n]   # LR action table\n\n"
+      out << "\n]   # LR action table\n\n"
     end
       
 
-    def gototable_cat( str )
-      str << 'LR_goto_table = ['
-      com = "\n"
+    def goto_table_tab( out )
+      out << 'LR_goto_table = ['
+      sep = "\n"
 
       @statetable.each_state do |state|
-        str << com ; com = ",\n"
-        str << "# state #{state.stateid}\n"
+        out << sep ; sep = ",\n"
+        out << "# state #{state.stateid}\n"
 
-        if state.goto_table.size == 0 then
-          str << 'nil'
+        if state.nonterm_table.size == 0 then
+          out << 'nil'
         else
-          str << '{'
-          add = "\n"
-
-          state.goto_table.each do |tok, dest|
-            str << "#{add}#{tok.conv or tok.uneval} => #{dest.stateid}"
-            add = ",\n"
-          end
-          str << "\n}"
+          out << "{ " << state.nonterm_table.collect{|tok, dest|
+            tok.uneval + ' => ' + dest.stateid.to_s }.join(",\n  ")
+          out << ' }'
         end
       end
-      str << "\n]   # LR goto table\n"
+      out << "\n]   # LR goto table\n"
     end
 
 
-    def reduce_method_all_cat( str )
+    def reduce_methods_tab( out )
       @ruletable.each_rule do |rl|
-        reduce_method_cat( str, rl )
-      end
-    end
+        out << sprintf( <<SOURCE, rl.ruleid, rl.action )
 
- sstack.push #{rl.accept? ? 'Accept' : rl.simbol.uneval}
-
-    def reduce_method_cat( str, rl )
-      le = (rl.size * -1).to_s << ', '
-      le << rl.size.to_s
-
-      str.concat <<SOURCE
-
-def __reduce_with_rule_#{rl.ruleid}( tok, val, tokens, values, __state__ )
-SOURCE
-
-      if @dsrc then
-        str <<   %| if @__debug__ then\n|
-        idx = 0
-        if rl.size == 0 then
-          str <<   %|  print ' <none>'\n|
-        else
-          rl.each_token do |tok|
-            str << %|  print " #{tok}(\#{val[#{idx}].inspect})"\n|
-            idx += 1
-          end
-        end
-        str <<   %|  print " --> #{rl.simbol.to_s}\\n"\n|
-        str <<   %| end\n|
-      end
-
-      str.concat <<SOURCE
+def _action_for_reduce_%d( tok, val, _tokens, _values, _states )
  result = val[0]
- #{rl.action}
+%s
  result
 end
 SOURCE
-    end
-
-
-    def laact_cat( str, act )
-      if act.value.size == 0 then
-        bug! "LA action size is 0"
       end
-
-      str << '{'
-      com = "\n"
-      act.value.each do |tok, act|
-        str << com ; com = ",\n"
-        str << "#{tok.conv or tok.uneval} => "
-        case act
-        when ShiftAction  then str << 'Shift'
-        when ReduceAction then str << ":__reduce_with_rule_#{act.value.ruleid}"
-        end
-      end
-      str << "\n}"
-      str
-    end
-
-
-    def tostable_cat( str )
-      str << "\nTOKEN_TO_S_TABLE = {"
-      com = "\n"
-      @tokentable.each_token do |tok|
-        str << com ; com = ",\n"
-        str << "#{tok.conv or tok.uneval} => '#{tok}'"
-      end
-      str << "\n}\n"
     end
 
 
@@ -190,166 +118,135 @@ SOURCE
     #########
 
 
-    def cat_state( str, state )
-      str << "state #{state.stateid}\n"
+    def output_state( out )
+      out << "\n--------- State ---------\n\n"
 
-      state.ptrs.each{|pt| cat_ptr( str, pt ) }
-      str << "\n"
+      @statetable.each_state do |state|
+        out << "state #{state.stateid}\n"
 
-      act = state.action
-      case act
-      when LookaheadAction then cat_laact( str, state )
-      when ShiftAction     then cat_shift( str, state )
-      when ReduceAction    then cat_reduce( str, state )
-      else
-        bug! "cat_state not match: act=#{act}(#{act.type})"
+        state.closure.each {|ptr| pointer_out( out, ptr ) }
+        out << "\n"
+
+        action_out( out, state )
+        out << "\n\n"
       end
-      str << "\n\n"
+      out << "\n\n"
+
+      return out
     end
 
 
-    def cat_ptr( str, ptr )
-      rule = ptr.rule
-
-      str << "#{rule.ruleid.to_s.rjust(4)}) #{rule.simbol} :"
-
-      rule.each_token_with_index do |tok, idx|
-        str << ' _' if idx == ptr.index
-        str << " #{tok}"
+    def pointer_out( out, ptr )
+      tmp = ''
+      ptr.rule.each_with_index do |tok, idx|
+        tmp << ' _' if idx == ptr.index
+        tmp << ' ' << tok.to_s
       end
-      if ptr.reduce? then
-        str << ' _'
-      end
-      str << "\n"
+      tmp << ' _' if ptr.reduce?
+
+      out << sprintf( "%4d) %s :%s\n",
+                      ptr.rule.ruleid, ptr.rule.simbol.to_s, tmp )
     end
 
 
-    def cat_laact( str, state )
-      tstr = ''
-      nstr = ''
+    def action_out( out, state )
+      shift_str = ''
 
       state.action.each do |tok, act|
         case act
-        when ShiftAction  then cat_termline( tstr, tok, state.goto_table[tok] )
-        when ReduceAction then cat_lareduce( str, tok, act )
+        when ShiftAction
+          shift_str << sprintf( "  %-12s  shift, and go to state %d\n", 
+                                tok.to_s, act.goto_state )
+        when ReduceAction
+          out <<
+            if   act.rule.accept?
+            then sprintf( "  %-12s  accept\n", tok.to_s )
+            else sprintf( "  %-12s  reduce using rule %d\n",
+                          tok.to_s, act.rule.ruleid )
+            end
         else
-          bug! "cat_laact not match: act=#{act}(#{act.type})"
+          bug! "act is not shift/reduce: act=#{act}(#{act.type})"
         end
       end
-      str << tstr
+      out << shift_str
 
-      state.goto_table.each do |tok, dest|
-        com = "\n"
-        unless tok.term then
-          str << com ; com = ''
-          cat_ntermline( str, tok, state.goto_table[tok] )
-        end
+      state.nonterm_table.each do |tok, dest|
+        out << sprintf( "  %-12s  go to state %d\n", 
+                        tok.to_s, state.stateid )
       end
     end
 
 
-    def cat_shift( str, state )
-      act = state.action
-      gstr = ''
-      ssize = 0
-      gsize = 0
+    #####
 
-      state.goto_table.each do |tok,state|
-        if tok.term then cat_termline( str, tok, state )   ; ssize += 1
-        else             cat_ntermline( gstr, tok, state ) ; gsize += 1
+
+    def output_rule( out )
+      out << "\n-------- Grammar --------\n\n"
+      @ruletable.each_rule do |rl|
+        if @debug or rl.ruleid != 0 then
+          out << sprintf( "rule %d %s: %s\n\n",
+            rl.ruleid, rl.simbol.to_s, rl.tokens.join(' ') )
         end
       end
 
-      if gsize > 0 then
-        str << "\n" if ssize > 0
-        str << gstr
-      end
+      return out
     end
 
 
-    def cat_termline( str, tok, state )
-      str << sprintf( "  %-12s  shift, and go to state %d\n", 
-                      tok.to_s, state.stateid )
-    end
+    #####
 
 
-    def cat_ntermline( str, tok, state )
-      str << sprintf( "  %-12s  go to state %d\n", 
-                      tok.to_s, state.stateid )
-    end
+    def output_token( out )
+      out << "\n------- Token data -------\n\n"
 
+      out << "**Nonterminals, with rules where they appear\n\n"
+      tmp = "**Terminals, with rules where they appear\n\n"
 
-    def cat_reduce( str, state )
-      rule = state.action.value
-      if rule.accept? then str << "  accept\n"
-      else                 str << "  reduce using rule #{rule.ruleid}\n"
-      end
-    end
-
-
-    def cat_lareduce( str, tok, act )
-      rule = act.value
-      if rule.accept? then str << sprintf( "  %-12s  accept\n", tok.to_s )
-      else                 str << sprintf( "  %-12s  reduce using rule %d\n",
-                                           tok.to_s, rule.ruleid )
-      end
-    end
-
-
-    def cat_toks( str )
-      str << "**Terminals, with rules where they appear\n\n"
-      nstr = "\n**Nonterminals, with rules where they appear\n\n"
-
-      @tokentable.each_token do |tok|
-        if tok.term then cat_termtok( str, tok ) unless tok.anchor?
-        else             cat_ntermtok( nstr, tok ) unless tok.dammy?
+      Token.each do |tok|
+        if tok.terminal? then
+          terminal_out( tmp, tok ) unless tok.anchor?
+        else
+          nonterminal_out( out, tok ) unless tok.dammy?
         end
       end
 
-      str << nstr
+      out << "\n" << tmp
+
+      return out
     end
 
 
-    def cat_termtok( str, tok )
-      str << "  #{tok}"
-      if temp = tok.conv then str << "(#{temp})" end
-      str << "\n"
+    def terminal_out( out, tok )
+      tmp = <<SRC
+  %s%s
+    on right: %s
 
-      # locate
-      str << "    on right: #{arr2strnz(tok.locate)}\n\n"
+SRC
+      out << sprintf( tmp,
+        tok.to_s, tok.conv || '', tokens2s( tok.locate ) )
     end
 
 
-    def cat_ntermtok( str, tok )
-      str << "  #{tok}\n"
-
-      # locate
-      if tok.locate.size > 0 then
-        str << "    on right: #{arr2strnz(tok.locate)}\n"
-      end
-
-      # rule
-      str << "    on left : #{arr2strnz(tok.rules)}\n\n"
-    end
-
-
-    def cat_rule( str, rl )
-      str << sprintf( 'rule %-5d %s:',
-                      rl.ruleid, rl.simbol.to_s )
-      rl.each_token{|tok| str << " #{tok}" }
-      str << "\n\n"
+    def nonterminal_out( out, tok )
+      tmp = <<SRC
+  %s
+    on right: %s
+    on left : %s
+SRC
+      out << sprintf( tmp,
+        tok.to_s, tokens2s( tok.locate ), tokens2s( tok.rules ) )
     end
 
     
-    def arr2strnz( arr )
+    def tokens2s( arr )
       arr.each do |ptr|
-        @temp.store( ptr.ruleid, true ) unless ptr.ruleid == 0
+        @hash[ ptr.ruleid ] = true if ptr.ruleid != 0
       end
-      ret = @temp.keys.join(' ')
-      @temp.clear
+      ret = @hash.keys.join(' ')
+      @hash.clear
 
       return ret
     end
 
-  end
+  end   # class RaccFormatter
 

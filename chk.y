@@ -10,20 +10,20 @@ class Calcp
     NUMBER 'Number'
   end
 
-  rule
-    target: exp | /* none */ { result = 0 } ;
+rule
 
-    exp: exp '+' exp { result += val[2] ; a = 'plus' }
-       | exp '-' exp { result -= val[2] ; "string test" }
-       | exp '*' exp { result *= val[2] }
-       | exp '/' exp { result /= val[2] }
-       | '(' exp ')' { result = val[1]  }
-       | '-' NUMBER  { result = -val[1] }
-       | NUMBER
-       ;
-  end
+	target: exp | /* none */ { result = 0 } ;
 
-end   # class
+	exp: exp '+' exp { result += val[2] ; a = 'plus' }
+		 | exp '-' exp { result -= val[2] ; "string test" }
+		 | exp '*' exp { result *= val[2] }
+		 | exp '/' exp { result /= val[2] }
+		 | '(' exp ')' { result = val[1]  }
+		 | '-' NUMBER  { result = -val[1] }
+		 | NUMBER
+		 ;
+
+end
 
 
 

@@ -1,9 +1,8 @@
 
   class BuildInterface
 
-    def initialize( rac )
-      @ruletable = rac.ruletable
-      @tokentable = @ruletable.tokentable
+    def initialize( racc )
+      @ruletable  = racc.ruletable
 
       @precs = []
 
@@ -14,15 +13,15 @@
 
     
     def get_token( val )
-      @tokentable.get_token( val )
+      Token.new( val )
     end
     
     def register_rule( simbol, rulearr, tempprec, actstr )
-      @d_rule and
-        puts "register: add: #{simbol} -> #{rulearr.join(' ')}"
+      puts "register: add: #{simbol} -> #{rulearr.join(' ')}" if @d_rule
 
-      @end_rule and
+      if @end_rule then
         raise ParseError, "'rule' block is defined twice"
+      end
 
       if simbol then
         @pre = simbol
@@ -40,11 +39,11 @@
 
 
     def register_prec( atr, toks )
-      @d_prec and
-        puts "register: atr=#{atr.id2name}, toks=#{toks.join(' ')}"
+      puts "register: atr=#{atr.id2name}, toks=#{toks.join(' ')}" if @d_prec
 
-      @end_prec and
+      if @end_prec then
         raise ParseError, "'prec' block is defined twice"
+      end
 
       toks.push atr
       @precs.push toks
@@ -70,8 +69,9 @@
 
 
     def register_conv( tok, str )
-      @end_conv and
+      if @end_conv then
         raise ParseError, "'token' block is defined twice"
+      end
 
       tok.conv = str
     end
@@ -85,17 +85,12 @@
 
   class RuleTable
 
-    attr :tokentable
-
-
     def initialize( rac )
       @racc     = rac
 
       @d_token = rac.d_token
       @d_rule  = rac.d_rule
       @d_state = rac.d_state
-
-      @tokentable = TokenTable.new
 
       @rules    = []
       @finished = false
@@ -107,12 +102,12 @@
       rule = Rule.new(
         simbol, rulearr, actstr,
         @rules.size + 1,         # ID
-        @hashval,                # hash
+        @hashval,                # hash value
         tempprec                 # prec
       )
       @rules.push rule
 
-      @hashval += (rulearr.size + 2)
+      @hashval += rulearr.size + 2
     end
    
     
@@ -121,15 +116,10 @@
       ### add dammy rule
 
       start  = (start or @rules[0].simbol)
-      dammy  = @tokentable.get_token( Parser::Dammy )
-      anchor = @tokentable.get_token( Parser::Anchor )
 
-      temp = Rule.new(
-        dammy, [ start, anchor ], '',
-        0,     # id
-        0,     # hash
-        nil    # prec token
-      )
+      temp = Rule.new( Token.dammy, [ start, Token.anchor ], '',
+             0, 0, nil )
+           # id hash prec
       @rules.unshift temp
       @rules.freeze
 
@@ -140,13 +130,13 @@
         rule.simbol.rules.push rule.ptrs(0)
       end
 
-      @tokentable.each_token do |tok|
+      Token.each do |tok|
         tok.term = (tok.rules.size == 0)
       end
 
-      @tokentable.each_token do |tok|
-        tok.first
-      end
+      #Token.each do |tok|
+      #  tok.first
+      #end
 
       @rules.each do |rule|
         temp = nil
@@ -157,7 +147,7 @@
           temp = tok if tok.term
         end
 
-        rule.prec = temp unless rule.prec
+        rule.prec = temp if rule.prec.nil?
       end
     end
 
@@ -166,8 +156,17 @@
       @rules[x]
     end
 
-    def each_rule
-      @rules.each{|rl| yield rl }
+    def each_rule( &block )
+      @rules.each( &block )
+    end
+    alias each each_rule
+
+    def each_index( &block )
+      @rules.each_index( &block )
+    end
+
+    def each_with_index( &block )
+      @rules.each_with_index( &block )
     end
 
     def to_s
@@ -199,56 +198,12 @@
 
   class Rule
 
-    attr :action
-    attr :simbol
-    attr :ruleid
-    attr :hashval
-    attr :prec, true
-
-
-    def []( idx ) @rulearr[idx] end
-
-    def size ; @rulearr.size ; end
-
-    def ptrs( idx ) @ptrs[idx] end
-
-    def toks( idx ) @rulearr[idx] end
-
-    def to_s() "<Rule:ID #{@ruleid}>" end
-
-    def ==( other )
-      (other.type == Rule) and (@ruleid == other.ruleid)
-    end
-
-    def hash() @hashval end
-
-    def accept?()
-      (tok = @rulearr[-1]) and tok.anchor?
-    end
-
-    def each_token
-      @rulearr.each{|t| yield t }
-    end
-
-    def each_token_with_index
-      @rulearr.each_with_index{|t, i| yield t, i }
-    end
-
-    def each_ptr
-      pmax = @ptrs.size - 1
-      pidx = 0
-      while pidx < pmax do
-        yield @ptrs[ pidx ]
-        pidx += 1
-      end
-    end
-
     def initialize( tok, rlarr, actstr, rid, hval, tprec )
       @simbol  = tok
       @rulearr = rlarr
       @action  = actstr
       @ruleid  = rid
-      @hashval = hval
+      @hash    = hval
       @prec    = tprec
 
       @ptrs = []
@@ -259,6 +214,71 @@
       # reduce pos
       s = rlarr.size
       @ptrs[ s ] = RulePointer.new( self, s, nil )
+    end
+
+
+    attr :action
+    attr :simbol
+    attr :ruleid
+    attr :hash
+    attr :prec, true
+
+    def ==( other )
+      Rule === other and @ruleid == other.ruleid
+    end
+
+    def accept?()
+      if tok = @rulearr[-1] then
+        tok.anchor?
+      else
+        false
+      end
+    end
+
+    def []( idx )
+      @rulearr[idx]
+    end
+
+    def size
+      @rulearr.size
+    end
+
+    def to_s
+      "<Rule:ID #{@ruleid}>"
+    end
+
+    def ptrs( idx )
+      @ptrs[idx]
+    end
+
+    def pointers
+      @ptrs.dup
+    end
+
+    def toks( idx )
+      @rulearr[idx]
+    end
+
+    def tokens
+      @rulearr.dup
+    end
+
+    def each_token( &block )
+      @rulearr.each( &block )
+    end
+    alias each each_token
+
+    def each_with_index( &block )
+      @rulearr.each_with_index( &block )
+    end
+
+    def each_ptr( &block )
+      pmax = @ptrs.size - 1
+      i = 0
+      while i < pmax do
+        yield @ptrs[i]
+        i += 1
+      end
     end
 
   end   # class Rule
@@ -272,6 +292,7 @@
     attr :index
     attr :unref
     attr :data
+    attr :hash
 
 
     def initialize( rl, idx, tok )
@@ -280,39 +301,45 @@
       @index  = idx
       @unref  = tok
 
-      @hashval = @rule.hash + @index
-      @reduce  = tok.nil?
+      @hash   = @rule.hash + @index
+      @reduce = tok.nil?
     end
 
 
     def to_s
-      str = "(#{@rule.ruleid},#{@index}"
-      if reduce? then
-        str << '#)'
-      else
-        str << unref.to_s << ')'
+      sprintf( '(%d,%d %s)',
+               @rule.ruleid, @index, reduce? ? '#' : unref.to_s )
+    end
+    alias inspect to_s
+
+    #def inspect
+    #  bug! 'ptr.inspect call'
+    #end
+
+    def eql?( ot )
+      @hash == ot.hash
+    end
+    alias == eql?
+
+    def reduce?
+      @unref.nil?
+    end
+
+    def head?
+      @index == 0
+    end
+
+    def increment
+      unless ret = @rule.ptrs( @index + 1 ) then
+        ptr_bug!
       end
-      return str
-    end
-
-    def inspect
-      bug! 'ptr.inspect call'
-    end
-
-    def hash()     @hashval end
-    def ==( ot )   @hashval == ot.hash end
-    def eql?( ot ) @hashval == ot.hash end
-
-    def reduce?()  @unref.nil? end
-    def head?()    @index == 0 end
-
-    def increment()
-      (ret = @rule.ptrs(@index + 1)) or ptr_bug!
       return ret
     end
 
-    def decrement()
-      (ret = @rule.ptrs(@index - 1)) or ptr_bug!
+    def decrement
+      unless ret = @rule.ptrs( @index - 1 ) then
+        ptr_bug!
+      end
       return ret
     end
 
@@ -326,62 +353,52 @@
 
 
 
-  class TokenTable
-
-    def initialize
-      @tokens  = {}
-
-      # add system token data
-      get_token( Parser::Default )
-      get_token( Parser::Anchor )
-      get_token( Parser::Dammy )
-    end
-
-    def get_token( val )
-
-      ### for same value, Token exist only one
-
-      unless (ret = @tokens.fetch( val )) then
-        ret = Token.new( val )
-        @tokens.store( val, ret )
-      end
-
-      return ret
-    end
-
-    def each_token
-      @tokens.each_value{|tok| yield tok }
-    end
-    
-  end   # class TokenTable
-
-
-
   class Token
 
-    attr     :value
-    attr     :rules
-    attr     :locate
-    attr     :term,                true
-    attr     :nullp,               true
-    attr     :assoc,               true
-    attr     :prec,                true
-    property :conv,  String, true, true
+    Instance = {}
 
+    class << self
 
-    Dammy   = Parser::Dammy
-    Anchor  = Parser::Anchor
-    Default = Parser::Default
+      alias orig_new new
+
+      def new( val )
+        unless ret = Instance[ val ] then
+          ret = orig_new( val )
+          Instance[ val ] = ret
+        end
+
+        ret
+      end
+
+      def each( &block )
+        Instance.each_value( &block )
+      end
+
+      def dammy
+        new( Parser::Default )
+      end
+
+      def anchor
+        new( Parser::Anchor )
+      end
+
+      def default
+        new( Parser::Default )
+      end
+
+    end
 
 
     def initialize( tok )
-      if tok.type == Token then tok = tok.value end
+if Token === tok then
+  bug! 'Token for Token.new'
+end
       @value = tok
 
       @valtype = @value.type
       @dammy   = (@value == Dammy)
       @anchor  = (@value == Anchor)
-      @hashval = @value.hash
+      @hash    = @value.hash
 
       @rules  = []
       @locate = []
@@ -393,96 +410,114 @@
     end
 
 
-    def dammy?()  @dammy   end
+    Dammy   = Parser::Dammy
+    Anchor  = Parser::Anchor
+    Default = Parser::Default
 
-    def anchor?() @anchor  end
+    attr     :value
+    attr     :rules
+    attr     :locate
+    attr     :term,                true
+    attr     :nullp,               true
+    attr     :assoc,               true
+    attr     :prec,                true
+    property :conv,  String, true, true
 
-    def hash()    @hashval end
+    alias terminal? term
+    alias null?     nullp
+
+    attr :dammy
+    attr :anchor
+    attr :hash
+
+    alias dammy?  dammy
+    alias anchor? anchor
+
 
     def to_s
-      if    @value  ==  Dammy   then '$dammy'
-      elsif Integer === @value  then @value.id2name
+      if    Integer === @value  then @value.id2name
       elsif String  === @value  then @value.inspect
       elsif @value  ==  Anchor  then '$end'
       elsif @value  ==  Default then '$default'
+      elsif @value  ==  Dammy   then '$dammy'
       else
-        bug! "token#uneval not match: val=#{@value}(#{@value.type})"
+        bug! "wrong token type: val=#{@value}(#{@value.type})"
       end
     end
     alias inspect to_s
 
 
     def uneval
-      if    @value  ==  Dammy   then 'Dammy'
-      elsif Integer === @value  then ':' << @value.id2name
+      if    @conv               then @conv.dup
+      elsif @value  ==  Dammy   then 'Dammy'
+      elsif Integer === @value  then ':' + @value.id2name
       elsif String  === @value  then @value.inspect
       elsif @value  ==  Anchor  then 'Anchor'
       elsif @value  ==  Default then 'Default'
       else
-        bug! "token#uneval not match: val=#{@value}(#{@value.type})"
+        bug! "wrong token type: val=#{@value}(#{@value.type})"
       end
     end
 
 
     def first
-      @d_token and
-        puts "get_first: start: token=#{self.to_s}"
+      puts "get_first: start: token=#{self.to_s}" if @d_token
 
-      @first and return @first
+      return @first if @first
       @first = {}
 
       ret = {}
       @nullp = false
 
       if @term then
-        ret.store( self, true )
+        bug! '"first" called for terminal'
+        #ret[ self ] = true
       else
-        temp = {}
+        tmp = {}
         @rules.each do |ptr|
           if ptr.reduce? then
-            # reduce --> index 0 is null
+            # reduce at index 0 --> null
             @nullp = true
           else
-            temp.store( ptr.unref, true )
+            tmp[ ptr.unref ] = true
           end
         end
 
-        temp.each_key do |tok|
-          ret.update tok.first
+        tmp.each_key do |tok|
+          ret.update tok.first unless tok.terminal?
         end
       end
 
       @first = ret
-      @d_token and
-        puts "get_first: for #{token}, ret #{ret.keys.join(' ')}"
+      puts "get_first: for=#{token}; ret=#{ret.keys.join(' ')}" if @d_token
 
       return ret
     end
 
 
     def expand
-      @d_state and
-        puts "expand: start: tok=#{self.to_s}"
+      puts "expand: start: tok=#{self}" if @d_state
 
-      @bfrom and return @bfrom
-      @bfrom = {}
+      return @bfrom if @bfrom
+      @bfrom = 1                           #####
 
-      ret  = {}
-      temp = {}
+      ret = {}
+      tmp = {}
       @rules.each do |ptr|
         ret.store( ptr, true )
         tok = ptr.unref
-        if not ptr.reduce? and not tok.term then
-          temp.store( tok, true )
+        if not ptr.reduce? and not tok.terminal? then
+          tmp[ tok ] = true
         end
       end
-      temp.each_key do |tok|
-        ret.update tok.expand
+      tmp.each_key do |tok|
+        if (h = tok.expand) != 1 then      #####
+          ret.update h
+        end
       end
 
       @bfrom = ret
-      @d_state and
-        puts "expand: ret #{ret.keys.join(' ')}"
+      puts "expand: ret #{ret.keys.join(' ')}" if @d_state
 
       return ret
     end

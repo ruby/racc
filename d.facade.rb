@@ -1,14 +1,12 @@
   Version = '0.9.5'
 
-  attr :code
-  attr :classname
+  attr :class_name
 
   attr :parser
-  attr :interf
-  attr :prectable
   attr :ruletable
   attr :statetable
   attr :formatter
+  attr :interf
 
   attr :logic
   attr :srconf
@@ -26,20 +24,17 @@
   attr :d_shift,  true
 
 
-  def compile( str, fname = '' )
+  def compile( str, fn = '' )
     reset
-    parse( str, fname )
+    parse( str, fn )
     init_rule
     init_state
     resolve
-    return output
   end
-
 
   def reset
     @ruletable  = RuleTable.new( self )
     @interf     = BuildInterface.new( self )
-    @code       = {}
     @parser     = RaccParser.new( self )
     @statetable = LALRstateTable.new( self )
     @formatter  = RaccFormatter.new( self )
@@ -48,7 +43,7 @@
   def parse( str, fname = '' )
     str.must String
     @parser.parse( str, fname )
-    @classname = @parser.classname
+    @class_name = @parser.classname
   end
 
   def init_rule
@@ -63,8 +58,16 @@
     @statetable.resolve
   end
 
-  def output
-    @formatter.source
+  def source( f = '' )
+    @formatter.source f
+    f
+  end
+
+  def output( f = '' )
+    @formatter.output_rule  f
+    @formatter.output_token f
+    @formatter.output_state f
+    f
   end
 
 

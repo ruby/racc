@@ -46,124 +46,164 @@ class Racc
 	  @dflag = debugflag
 
     @ruletable  = RuleTable.new( self )
-    @statetable = LALRstatTable.new( self )
+    @statetable = LALRstateTable.new( self )
     @formatter  = RaccFormatter.new( self )
 
 		@interf = BuildInterface.new( self )
 
 ############
-    r :xclass, [ :CLASS, :TOKEN, :clsentity, :XEND ], <<SRC
-      @classname = val[1].to_s
-SRC
+		# 1
+    r :xclass, [ :CLASS, :TOKEN, :params, :RULE, :rules, :XEND ], %{
+			@interf.end_register_rule
+      @classname = if Integer === val[1] then val[1].id2name else val[1] end
+    }
 ############
-    r :clsentity, [], ''
-    r nil, [ :clsentity, :RULE, :rules, :XEND ], <<SRC
-      @interf.end_register_rule
-SRC
-    r nil, [ :clsentity, :XTOKEN, :tokdefs, :XEND ], <<SRC
+		# 2
+    r :params, [], ''
+		# 3
+		r nil, [ :params, :param_seg ], ''
+############
+		# 4
+    r :param_seg, [ :XTOKEN, :tokdefs, :XEND ], %{
       @interf.end_register_conv
-SRC
-    r nil, [ :clsentity, :xprec ], ''
-    r nil, [ :clsentity, :START, :TOKEN ], <<SRC
+		}
+		# 5
+    r nil, [ :xprec ], ''
+		# 6
+    r nil, [ :START, :TOKEN ], %{
       if @start then
         raise ParseError, "start rule defined twice"
       end
-      @start = val[1]
-SRC
+      @start = @interf.get_token( val[1] )
+    }
 ############
-    r :tokdefs, [ :toksim, :STRING ], <<SRC
+		# 7
+    r :tokdefs, [ :toksim, :STRING ], %{
       @interf.register_conv( val[0], val[1] )
-SRC
-    r nil, [ :tokdefs, :toksim, :STRING ], <<SRC
+		}
+		# 8
+    r nil, [ :tokdefs, :toksim, :STRING ], %{
       @interf.register_conv( val[1], val[2] )
-SRC
+    }
 ############
-    r :xprec, [ :PRECHIGH, :preclines, :PRECLOW ], <<SRC
+		# 9
+    r :xprec, [ :PRECHIGH, :preclines, :PRECLOW ], %{
       @interf.end_register_prec( true )
-SRC
-    r nil, [ :PRECLOW, :preclines, :PRECHIGH ], <<SRC
+		}
+		# 10
+    r nil, [ :PRECLOW, :preclines, :PRECHIGH ], %{
       @interf.end_register_prec( false )
-SRC
+    }
 ############
+		# 11
     r :preclines, [ :precline ], ''
+		# 12
     r nil, [ :preclines, :precline ], ''
 ############
-    r :precline, [ :LEFT, :tokens ], <<SRC
+		# 13
+    r :precline, [ :LEFT, :tokens_1 ], %{
       @interf.register_prec( :Left, val[1] )
-SRC
-    r nil, [ :RIGHT, :tokens ], <<SRC
+    }
+		# 14
+    r nil, [ :RIGHT, :tokens_1 ], %{
       @interf.register_prec( :Right, val[1] )
-SRC
-    r nil, [ :NONASSOC, :tokens ], <<SRC
+    }
+		# 15
+    r nil, [ :NONASSOC, :tokens_1 ], %{
       @interf.register_prec( :Nonassoc, val[1] )
-SRC
+    }
 ############
+		# 16
+    r :tokens_1, [ :toksim ], %{
+      result = val
+    }
+		# 17
+    r nil, [ :tokens_1, :toksim ], %{
+      result.push val[1]
+    }
+############
+		# 18
     r :rules, [ :ruleseg, :rulesegterm ], ''
+		# 19
     r nil, [ :rules, :ruleseg, :rulesegterm ], ''
 ############
+		# 20
+    r :ruleseg, [ :TOKEN, ':', :tokens, :tempprec, :action ], %{
+      @interf.register_rule( Token.new(val[0]), val[2], val[3], val[4] )
+    }
+		# 21
+    r nil, [ :ruleseg, '|', :tokens, :tempprec, :action ], %{
+      @interf.register_rule( nil, val[2], val[3], val[4] )
+    }
+############
+		# 22
     r :rulesegterm, [ :EOL ], ''
+		# 23
     r nil, [ ';' ], ''
 ############
-    r :ruleseg, [ :TOKEN, ':', :tokens, :tempprec, :action ], <<SRC
-      @interf.register_rule( val[0], val[2], val[3], val[4] )
-SRC
-    r nil, [ :ruleseg, '|', :tokens, :tempprec, :action ], <<SRC
-      @interf.register_rule( nil, val[2], val[3], val[4] )
-SRC
-############
-    r :tokens, [], <<SRC
+		# 24
+    r :tokens, [], %{
       result = []
-SRC
-    r nil, [ :tokens, :toksim ], <<SRC
+    }
+		# 25
+    r nil, [ :tokens, :toksim ], %{
       result.push val[1]
-SRC
+    }
 ############
-		r :toksim, [ :TOKEN ], ''
-		r nil,     [ :STRING ], <<SRC
+		# 26
+		r :toksim, [ :TOKEN ], %{
+		  result = @interf.get_token( val[0] )
+		}
+		# 27
+		r nil,     [ :STRING ], %{
 			result = @interf.get_token( eval '"' + val[0] + '"' )
-SRC
+    }
 ############
+		# 28
     r :tempprec, [], ''
-    r nil, [ '=', :toksim ], <<SRC
+		# 29
+    r nil, [ '=', :toksim ], %{
       result = val[1]
-SRC
+    }
 ############
-		r :action, [], <<SRC
+		# 30
+		r :action, [], %{
 		  result = ''
-SRC
+    }
+		# 31
 		r nil, [ :ACTION ], ''
 ############
 
     @ruletable.do_initialize( nil )
     @statetable.do_initialize
     @statetable.resolve
-    src = @formatter.source
 
-
-    openwrite( 'libracc.rb', <<SOURCE )
-#{openread( 'd.head.rb' )}
-
+		File.open( 'libracc.rb', 'w' ) do |f|
+		  f.write openread( 'd.head.rb' )
+			f.puts
+			f.write <<SRC
 $RACCPARSER_DEBUG = #{ @dflag ? 'true' : 'false' }
 
 class Racc
 
-#{openread( 'd.facade.rb' )}
-#{openread( 'd.scan.rb' )}
-#{openread( 'd.parse.rb' )}
-#{src}
-  end
-#{openread( 'd.rule.rb' )}
-#{openread( 'd.state.rb' )}
-#{openread( 'd.format.rb' )}
-end
-SOURCE
+SRC
+      f.write openread( 'd.facade.rb' )
+			f.write openread( 'd.scan.rb' )
+			f.write openread( 'd.parse.rb' )
+			@formatter.source( f )
+			f.puts  '  end'
+			f.puts
+			f.write openread( 'd.rule.rb' )
+			f.write openread( 'd.state.rb' )
+			f.write openread( 'd.format.rb' )
+			f.write 'end'
+		end
 
-    openwrite( 'b.output', <<SOURCE )
-#{formatter.output_rule}
-#{formatter.output_token}
-#{formatter.output_state}
-SOURCE
-
+    File.open( 'b.output', 'w' ) do |f|
+      formatter.output_rule f
+      formatter.output_token f
+      formatter.output_state f
+		end
   end
 
 end

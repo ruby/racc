@@ -1,13 +1,11 @@
 
-all:
-	make update
-	make libracc.rb
+all: update libracc.rb
 
 
 DEBUG = #-g
 TMP = ${DEBUG} -v#P
 RUBYPATH = /usr/local/bin/ruby
-DRACC    = racc ${TMP} -e${RUBYPATH}
+DRACC    = ruby racc ${TMP} -e${RUBYPATH}
 
 
 # app data
@@ -63,10 +61,9 @@ TEXT     = README.ja README.en
 #-------------------------------------------------------------
 
 libracc.rb: ${RACCTOOL} ${RACCSRC}
-	./bld.rb &> er
+	./bld.rb &> er || cat er
 
 debug: ${RACCTOOL} ${RACCSRC}
-	update -w2 -v${VERSION} ${RACCSRC} ${RACCBIN}
 	./bld.rb -g &> er
 
 #-------------------------------------------------------------

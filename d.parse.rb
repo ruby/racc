@@ -7,17 +7,16 @@
 
     def initialize( rac )
       @racc   = (rac.must Racc)
-      @code   = @racc.code
       @interf = @racc.interf
 
       @scanner = RaccScanner.new
 
-      @scanner.debug = @__debug__ = $RACCPARSER_DEBUG
+      @scanner.debug = @yydebug = $RACCPARSER_DEBUG
     end
 
 
     def parse( str, fname )
-      @scanner.reset( str, @racc )
+      @scanner.reset( str )
       @sbuf = @scanner.spipe
       @vbuf = @scanner.vpipe
 
@@ -42,9 +41,9 @@
       @sbuf[0]
     end
 
-    def on_error( etok, state, sstack, vstack )
+    def on_error( tok, val, state, sstack, vstack )
       raise ParseError, <<MES
-  parse error:#{@filename}:#{@scanner.lineno}: unexpected token '#{etok}'
+  parse error:#{@filename}:#{@scanner.lineno}: unexpected token '#{val}'
 MES
     end
 
