@@ -59,7 +59,7 @@ end
 comptest %w( syntax.y -v               ), []
 comptest %w( newsyn.y                  ), []
 comptest %w( normal.y                  ), []
-comptest %w( normal.y -vg              )
+comptest %w( normal.y -vg              ), []
 comptest %w( chk.y    -vg              ), []; dotest 'tab/chk'
 comptest %w( chk.y    -c               ), []; dotest 'tab/chk'
 comptest %w( echk.y   -E               ), []; dotest 'tab/echk'
@@ -70,6 +70,7 @@ comptest %w( opt.y                     ), []; dotest 'tab/opt'
 comptest %w( yyerr.y                   ), []; dotest 'tab/yyerr'
 comptest %w( recv.y                    ), [5,10,1,4]
 comptest %w( ichk.y                    ), []; dotest 'tab/ichk'
+comptest %w( intp.y                    ), []; dotest 'tab/intp'
 
 if remove then
   Dir.glob( '*.tab.rb' ) do |fn|
