@@ -97,6 +97,9 @@ This tool is written in Ruby and outputs Ruby scripts.
     build
     update_src $bin, $mainrb
     upemail Dir.glob('README.*')
+    $misc.each do |n|
+      upemail 'misc/' + n
+    end
     $<raccrt>.update
   end
 

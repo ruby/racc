@@ -2,7 +2,7 @@
 #
 # r2yacc  ---  racc to yacc converter
 #
-#   Copyright (c) 1999-2001 Minero Aoki <aamine@dp.u-netsurf.ne.jp>
+#   Copyright (c) 1999-2001 Minero Aoki <aamine@loveruby.net>
 #
 #   This program is feee software.
 #   You can distribute/modify this program under the terms of
@@ -243,7 +243,7 @@ if $OPT_help then
   usage 0
 end
 if $OPT_copyright then
-  $stderr.puts "Copyright (c) 2000 Minero Aoki <aamine@dp.u-netsurf.ne.jp>"
+  $stderr.puts "Copyright (c) 2000 Minero Aoki <aamine@loveruby.net>"
   exit 0
 end
 unless ARGV.size == 1 then
