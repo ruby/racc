@@ -1,10 +1,14 @@
 Racc README
 ===========
 
+  Racc は LALR(1) パーサジェネレータです。
+  yacc の Ruby 版に相当します。
+
+
 必要環境
 --------
 
-  *  ruby 1.4 以降 (できるだけ 1.6 の最新がよい)
+  *  ruby 1.6 以降
  (*) C コンパイラと make
 
 
@@ -14,16 +18,16 @@ Racc README
   パッケージのトップディレクトリで次のように入力してください。
   ($ は通常ユーザ、# はルートのプロンプトです)
 
-      $ ruby install.rb config
-      $ ruby install.rb setup
+      $ ruby setup.rb config
+      $ ruby setup.rb setup
      ($ su)
-      # ruby install.rb install
+      # ruby setup.rb install
 
   これで通常のパスに Racc がインストールされます。自分の好き
   なディレクトリにインストールしたいときは、setup.rb config に
   各種オプションをつけて実行してください。オプションのリストは
 
-      $ ruby install.rb --help
+      $ ruby setup.rb --help
 
   で見られます。
 
@@ -34,7 +38,7 @@ Racc README
   config を以下のようにすれば、拡張モジュールなしで
   インストールできます。
 
-      $ ruby install.rb config --without-ext
+      $ ruby setup.rb config --without-ext
 
 
 テスト
@@ -61,11 +65,11 @@ Racc README
 ライセンス
 ----------
 
-  このパッケージに付属するファイルの著作権は Minero Aoki が保持
-  します。ライセンスは GNU Lesser General Public License (LGPL)
-  version 2 です。ただしユーザが書いた規則ファイルや、Racc が
-  そこから生成した Ruby スクリプトはその対象外です。好きなライ
-  センスで配布してください。
+  このパッケージに付属するファイルの著作権は青木峰郎が保持します。
+  ライセンスは GNU Lesser General Public License (LGPL) version 2
+  です。ただしユーザが書いた規則ファイルや、Racc がそこから生成し
+  た Ruby スクリプトはその対象外です。好きなライセンスで配布して
+  ください。
 
 
 バグなど
@@ -79,4 +83,4 @@ Racc README
 
                                          青木峰郎(あおきみねろう)
                                               aamine@loveruby.net
-                                          http://www.loveruby.net
+                                            http://i.loveruby.net

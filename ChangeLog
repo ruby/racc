@@ -1,3 +1,9 @@
+Sun Oct 12 15:33:02 2003  Minero Aoki  <aamine@loveruby.net>
+
+	* README.ja: update description.
+
+	* README.en: ditto.
+
 Sun Oct 12 15:25:23 2003  Minero Aoki  <aamine@loveruby.net>
 
 	* lib/racc/compiler.rb: adjust file names.

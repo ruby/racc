@@ -8,7 +8,7 @@ Racc README
 Requirement
 -----------
 
-  *  ruby version 1.4.x or later. Latest 1.6 is the best.
+  *  ruby version 1.6.x or later.
  (*) make and C compiler.
 
 
@@ -17,17 +17,17 @@ Installation
 
   Type this in the top directory of the extracted archive:
 
-    $ ruby install.rb config
-    $ ruby install.rb setup
+    $ ruby setup.rb config
+    $ ruby setup.rb setup
    ($ su)
-    # ruby install.rb install
+    # ruby setup.rb install
 
   You can install Racc into your favorite directory by giving
-  options to install.rb. e.g.
+  options to setup.rb. e.g.
   
-    $ ruby install.rb config --prefix=/usr
+    $ ruby setup.rb config --prefix=/usr
   
-  For details, try "ruby install.rb --help".
+  For details, try "ruby setup.rb --help".
 
 
   If you don't have C Compiler
@@ -36,7 +36,7 @@ Installation
   You can install Racc without C compilers. Type following
   command in config phase.
 
-    $ ruby install.rb config --without-ext
+    $ ruby setup.rb config --without-ext
 
 
 Testing Racc
@@ -74,4 +74,4 @@ Bug Reports
 
                                                       Minero Aoki
                                               aamine@loveruby.net
-                                          http://www.loveruby.net
+                                            http://i.loveruby.net
