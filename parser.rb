@@ -19,6 +19,10 @@ unless defined? ParseError then
   ParseError = Racc::ParseError
 end
 
+unless defined? NotImplementedError then
+  NotImplementedError = NotImplementError
+end
+
 
 module Racc
 
@@ -98,7 +102,7 @@ module Racc
     end
 
     def next_token
-      raise NotImplementError, "#{self.type}\#next_token must be defined"
+      raise NotImplementedError, "#{self.type}\#next_token is not defined"
     end
 
     def _racc_do_parse_rb( arg, in_debug )
