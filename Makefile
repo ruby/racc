@@ -43,7 +43,7 @@ import:
 	remove-cvsid amstd $(wcdir)/amstd/rubyloader.rb > lib/racc/rubyloader.rb
 
 site:
-	install-html --template=$(tmpldir)/basic.tmpl.ja web/racc.ja.html $(siteroot)/ja/prog
-	install-html --template=$(tmpldir)/basic.tmpl.en web/racc.en.html $(siteroot)/en
+	erb web/racc.ja.rhtml | wrap-html --template=$(tmpldir)/basic.tmpl.ja | nkf -Ej > $(siteroot)/ja/prog/racc.html
+	erb web/racc.en.rhtml | wrap-html --template=$(tmpldir)/basic.tmpl.en > $(siteroot)/en/racc.html
 	compile-documents --ja --template=$(tmpldir)/basic.tmpl.ja --nocode=$(datadir)/NOCODE --refrdrc=$(datadir)/refrdrc.ja doc $(siteroot)/ja/man/racc
 	compile-documents --en --template=$(tmpldir)/basic.tmpl.en --nocode=$(datadir)/NOCODE doc $(siteroot)/en/man/racc
