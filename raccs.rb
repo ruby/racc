@@ -14,7 +14,7 @@ module Racc
   class ScanError < StandardError; end
 
   
-  class RaccScanner
+  class GrammarFileScanner
 
     def initialize( str )
       @lines  = str.split( /\n|\r\n|\r/ )

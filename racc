@@ -161,10 +161,10 @@ def get_options
   end
 
   if ARGV.empty? then
-    usage 1, 'no grammer file given'
+    usage 1, 'no grammar file given'
   end
   if ARGV.size > 1 then
-    usage 1, 'too many grammer files given'
+    usage 1, 'too many grammar files given'
   end
 
 
@@ -187,7 +187,7 @@ def usage( status = 1, msg = nil )
   f.puts "#{File.basename $0}: #{msg}" if msg
   f.print <<S
 
-usage: racc [options] <grammer file>
+usage: racc [options] <grammar file>
 
 options:
 S
@@ -432,7 +432,7 @@ S
   ###
 
   def init_user_code
-    @usercode = Racc::RaccParser.get_ucode( @srcfn )
+    @usercode = Racc::GrammarFileParser.get_ucode( @srcfn )
     check_dup_ucode
   end
 

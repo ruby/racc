@@ -10,7 +10,7 @@
 
 module Racc
 
-  class RaccParser < Parser
+  class GrammarFileParser < Parser
 
     def self.get_ucode( fname )
       ret = {}

@@ -57,7 +57,7 @@ This tool is written in Ruby and outputs Ruby scripts.
 
   $mainrb = %w(
     compiler.rb
-    grammer.rb
+    grammar.rb
     info.rb
     iset.rb
     output.rb
@@ -90,15 +90,14 @@ This tool is written in Ruby and outputs Ruby scripts.
 
 
   def build
-    upver $src
-    upemail $src
+    update_src $src
     command 'ruby build'
   end
 
   def update
     build
-    upver $bin, $mainrb, %w( README.ja README.en )
-    upemail $bin, $mainrb, %w( README.ja README.en )
+    update_src $bin, $mainrb
+    upemail Dir.glob('README.*')
     $<raccrt>.update
   end
 
@@ -118,6 +117,8 @@ This tool is written in Ruby and outputs Ruby scripts.
 
 environ( 'rubyprog/raccrt' ) {
 
+  $dir = 'rubycvs/lib/racc'
+
   $version = $<racc>.$version
 
   $packaging   = %w( single )
@@ -125,15 +126,15 @@ environ( 'rubyprog/raccrt' ) {
   $package     = 'raccrt'
   $instpath    = 'racc'
   $topfile     =  nil
-  $license     = 'LGPL'
+  $license     = 'Ruby'
 
   $view_name = 'Racc Runtime'
 
   $rb = %w( parser.rb )
 
   def update
-    upver $rb
-    upemail $rb
+    update_src $rb
+    upemail Dir.glob('README.*')
     $<cparse>.update
   end
 
@@ -144,7 +145,7 @@ environ( 'rubyprog/raccrt' ) {
 
   environ( 'cparse' ) {
 
-    $dir      = $dir + '/cp'
+    $dir = 'rubycvs/ext/racc/cparse'
 
     $type     = 'ext'
     $topfile  =  nil
@@ -153,8 +154,7 @@ environ( 'rubyprog/raccrt' ) {
     $tools    = %w( MANIFEST extconf.rb )
 
     def update
-      upver $c
-      upemail $c
+      update_src $c
     end
 
     def set_files( packdir )

@@ -9,7 +9,7 @@
 #
 
 require 'racc/raccp'
-require 'racc/grammer'
+require 'racc/grammar'
 require 'racc/state'
 require 'racc/output'
 
@@ -67,12 +67,12 @@ module Racc
     end
 
     def parse( str, fname = '-' )
-      $stderr.puts 'parsing grammer file...' if @verbose
+      $stderr.puts 'parsing grammar file...' if @verbose
 
       # must be this order
       @symboltable = SymbolTable.new( self )
       @ruletable   = RuleTable.new( self )
-      @parser      = RaccParser.new( self )
+      @parser      = GrammarFileParser.new( self )
 
       @filename = fname
       @parser.parse( str )

@@ -742,7 +742,7 @@ end
   #
   # Goto
   #
-  # stands one transition on the grammer.
+  # stands one transition on the grammar.
   # REAL GOTO means transition by nonterminal,
   # but this class treats also terminal's.
   # If is terminal transition, .ident returns nil.

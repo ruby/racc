@@ -1,5 +1,5 @@
 #
-# grammer.rb
+# grammar.rb
 #
 #   Copyright (c) 1999-2001 Minero Aoki <aamine@loveruby.net>
 #
@@ -73,7 +73,7 @@ module Racc
   #
   # RuleTable
   #
-  # stands grammer. Each items of @rules are Rule object.
+  # stands grammar. Each items of @rules are Rule object.
   #
 
   class RuleTable
@@ -447,7 +447,7 @@ module Racc
   #
   # Rule
   #
-  # stands one rule of grammer.
+  # stands one rule of grammar.
   #
 
   class Rule
