@@ -11,7 +11,7 @@
 
 module Racc
 
-  Version   = '1.4.2'
+  Version   = '1.4.3'
   Copyright = 'Copyright (c) 1999-2002 Minero Aoki'
 
 end

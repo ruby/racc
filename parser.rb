@@ -34,10 +34,10 @@ module Racc
 
   class Parser
 
-    Racc_Runtime_Version = '1.4.2'
+    Racc_Runtime_Version = '1.4.3'
     Racc_Runtime_Revision = '$Revision$'.split(/\s+/)[1]
 
-    Racc_Runtime_Core_Version_R = '1.4.2'
+    Racc_Runtime_Core_Version_R = '1.4.3'
     Racc_Runtime_Core_Revision_R = '$Revision$'.split(/\s+/)[1]
     begin
       require 'racc/cparse'

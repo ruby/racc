@@ -1,3 +1,7 @@
+Fri Nov 15 17:11:52 2002  Minero Aoki  <aamine@loveruby.net>
+
+	version 1.4.3.
+
 Fri Nov 15 17:08:01 2002  Minero Aoki  <aamine@loveruby.net>
 
 	* boot.rb, compiler.rb, grammar.rb, in.raccp.rb, iset.rb,

@@ -8,7 +8,7 @@ mount 'strscan'
 
 environ( 'rubyprog/racc' ) {
 
-  $version   = '1.4.2'
+  $version   = '1.4.3'
 
   $packaging = %w( single multi )
   $type      = 'ruby'
@@ -121,14 +121,17 @@ environ( 'rubyprog/raccrt' ) {
 
   $version = $<racc>.$version
 
-  $packaging   = %w( single )
-  $type        = 'ruby'
-  $package     = 'raccrt'
-  $instpath    = 'racc'
-  $topfile     =  nil
-  $license     = 'Ruby'
+  $packaging = %w( single )
+  $type      = 'ruby'
+  $package   = 'raccrt'
+  $instpath  = 'racc'
+  $topfile   =  nil
+  $license   = 'Ruby'
 
   $view_name = 'Racc Runtime'
+
+  $since     = 1999
+  $manual    = false
 
   $rb = %w( parser.rb )
 
