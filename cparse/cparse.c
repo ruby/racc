@@ -5,8 +5,7 @@
     Copyright (c) 1999-2001 Minero Aoki <aamine@loveruby.net>
   
     This library is free software.
-    You can distribute/modify this program under the terms of
-    the GNU Lesser General Public Lisence version 2 or later.
+    You can distribute/modify this program under the same terms of ruby.
 
     $Id$
 
