@@ -3,10 +3,9 @@
 #
 
 version  = 1.4.4
+wcdir    = $(HOME)/c
 siteroot = $(HOME)/var/i.loveruby.net/tree
 destdir  = $(siteroot)/ja/prog
-datadir  = $(HOME)/share
-wcdir    = $(HOME)/c
 
 default: all
 
@@ -17,14 +16,7 @@ update:
 	update-version --version=$(version) lib/racc/info.rb
 
 dist:
-	rm -rf tmp
-	mkdir tmp
-	cd tmp; cvs -Q export -r`echo V$(version) | tr . -` -d racc-$(version) racc
-	cd tmp/racc-$(version)/lib/racc; make
-	cp $(datadir)/setup.rb tmp/racc-$(version)
-	cp $(datadir)/LGPL tmp/racc-$(version)/COPYING
-	cd tmp; tar czf $(ardir)/racc-$(version).tar.gz racc-$(version)
-	rm -rf tmp
+	version=$(version) sh misc/dist.sh
 
 test:
 	cd test; ruby test.rb
@@ -32,3 +24,5 @@ test:
 
 import:
 	remove-cvsid amstd $(wcdir)/amstd/rubyloader.rb > lib/racc/rubyloader.rb
+
+site:

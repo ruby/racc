@@ -1,3 +1,9 @@
+Sun Oct 12 18:11:42 2003  Minero Aoki  <aamine@loveruby.net>
+
+	* Makefile (dist): split out misc/dist.sh.
+
+	* misc/dist.sh: new file.
+
 Sun Oct 12 17:18:47 2003  Minero Aoki  <aamine@loveruby.net>
 
 	* README.en: update documents.
