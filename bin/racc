@@ -76,6 +76,7 @@ Racc_Options = <<EOS
   x -s --super <super>      use <super> instead of Racc::Parser
   x -r --runtime <file>     use <file> instead of 'racc/parser'
   o -a --no-omit-actions  - never omit actions
+  x -  --omit-actions     - always omit actions
 
   o -v --verbose          - create <filename>.output file
   o -O --log-file <fname>   file name of verbose output [<fname>.output]
@@ -156,8 +157,7 @@ def get_options
     opt['--line-convert-all'] = false
   end
 
-  opt['--omit-action'] = true
-  opt['--omit-action'] = false if opt['--no-omit-action']
+  opt['--omit-actions'] = false if opt['--no-omit-actions']
 
   opt
 end
@@ -192,7 +192,7 @@ def set_flags__after_parse( racc, opt )
   # overwrite source's
   racc.debug_parser = opt['--debug']
   racc.convert_line = opt['--line-convert']
-  racc.omit_action  = opt['--omit-action']
+  racc.omit_action  = opt['--omit-actions'] unless opt['--omit-actions'] == nil
   if opt['-D'] or $DEBUG
     optd = (opt['-D'] || '')
     $stdout.sync = true

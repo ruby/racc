@@ -1,3 +1,8 @@
+Tue Jul 26 23:37:46 2005  Minero Aoki  <aamine@loveruby.net>
+
+	* bin/racc: --no-omit-actions did not work (This patch is
+	  contributed by OHKUBO Takuya).
+
 Sun Jan  2 11:48:19 2005  Minero Aoki  <aamine@loveruby.net>
 
 	* lib/racc/grammer.rb (once_writer): bug! needs argument.
