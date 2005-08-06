@@ -1,7 +1,6 @@
-
 require 'bitmap'
 
-map = Bitmap.new( 24 )
+map = Bitmap.new(24)
 p map
 
 puts '---- set'
@@ -22,15 +21,15 @@ puts '---- clear'
 map.clear
 p map
 
-puts '---- updor'
+puts '---- update'
 map.set 1
 map.set 3
 map.set 5
-m2 = Bitmap.new( 24 )
+m2 = Bitmap.new(24)
 m2.set 2
 m2.set 4
 m2.set 6
 m2.set 8
-m2.updor map
+m2.update map
 p map
 p m2
