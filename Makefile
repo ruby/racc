@@ -20,7 +20,7 @@ lib/racc/grammarfileparser.rb: misc/boot.rb lib/racc/grammarfileparser.rb.in
 	ruby -I./lib misc/boot.rb $@.in > $@
 
 extensions:
-	cd ext/racc/cparse && ruby extconf.rb && make
+	cd ext/racc/cparse && ruby extconf.rb && $(MAKE)
 
 doc:
 	mldoc-split --lang=ja doc/NEWS.rd.m > NEWS.ja
@@ -34,9 +34,11 @@ dist:
 	version=$(version) sh misc/dist.sh
 
 clean:
-	rm -f grammarfileparser.rb b.output
+	rm -f lib/racc/grammarfileparser.rb
+	rm -f misc/boot.rb.output
 	rm -rf doc.*
 	rm -f NEWS.*
+	cd ext/racc/cparse && $(MAKE) clean
 
 test:
 	cd test; ruby test.rb
