@@ -1,3 +1,7 @@
+Thu Sep 29 02:50:56 2005  Minero Aoki  <aamine@loveruby.net>
+
+	* lib/racc/.cvsignore: removed.
+
 Thu Sep 29 02:46:30 2005  Minero Aoki  <aamine@loveruby.net>
 
 	* Makefile: use .makeparams system.
