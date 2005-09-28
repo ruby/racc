@@ -1,6 +1,4 @@
-#
-# boot
-#
+# $Id$
 
 require 'racc/compat'
 require 'racc/info'
@@ -52,8 +50,8 @@ module Racc
 
 
     def _(rulestr, actstr)
-      nonterm, symlist = parse_rule_exp(rulestr)
-      lineno = /:(\d+)(?:\z|:)/.match(caller(1)[0])[1].to_i + 1
+      nonterm, symlist = *parse_rule_exp(rulestr)
+      lineno = caller(1)[0].split(':')[1].to_i + 1
       symlist.push UserAction.new(format_action(actstr), lineno)
       @ruletable.register_rule nonterm, symlist
     end
@@ -250,19 +248,6 @@ _"              |                                                        ", ''
       @ruletable.init
       @statetable.init
       @statetable.determine
-
-      File.open('grammarfileparser.rb', 'w') {|f|
-        File.foreach('grammarfileparser.rb.in') do |line|
-          if /STATE_TRANSITION_TABLE/ === line
-            CodeGenerator.new(self).output f
-          else
-            f.print line
-          end
-        end
-      }
-      File.open('b.output', 'w') {|f|
-        VerboseOutputter.new(self).output f
-      }
     end
 
   end
@@ -270,4 +255,15 @@ _"              |                                                        ", ''
 end   # module Racc
 
 
-Racc::Compiler.new.build ARGV.index('-g')
+c = Racc::Compiler.new
+c.build ARGV.delete('-g')
+File.foreach(ARGV[0]) do |line|
+  if /STATE_TRANSITION_TABLE/ =~ line
+    Racc::CodeGenerator.new(c).output $stdout
+  else
+    print line
+  end
+end
+File.open("#{__FILE__}.output", 'w') {|f|
+  Racc::VerboseOutputter.new(c).output f
+}

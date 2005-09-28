@@ -1,3 +1,17 @@
+Thu Sep 29 02:46:30 2005  Minero Aoki  <aamine@loveruby.net>
+
+	* Makefile: use .makeparams system.
+
+	* Makefile: unify lib/racc/Makefile.
+
+	* Makefile: new target lib/racc/grammarfileparser.rb.
+
+	* lib/racc/Makefile: unified by ./Makefile.
+
+	* lib/racc/boot: removed (moved under misc).
+
+	* misc/boot.rb: new file.
+
 Thu Sep 29 02:43:30 2005  Minero Aoki  <aamine@loveruby.net>
 
 	* setup.rb: new file.
