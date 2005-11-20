@@ -3,6 +3,9 @@
 # Rules for verious lists.
 # This file is just an example, you cannot compile this file.
 
+class ExampleOnly
+rule
+
 # a list, which minimum number of items is 0
 list0 :
           {
