@@ -1,18 +1,19 @@
-#!/usr/bin/ruby
+#!/usr/local/bin/ruby
 #
-# racc
+# $Id$
 #
-# Copyright (c) 1999-2003 Minero Aoki <aamine@loveruby.net>
+# Copyright (c) 1999-2005 Minero Aoki
 #
 # This program is free software.
 # You can distribute/modify this program under the terms of
-# the GNU Lesser General Public License version 2 or later.
+# the GNU LGPL, Lesser General Public License version 2.1.
+# For details of LGPL, see the file "COPYING".
 #
 
 require 'getoptlong'
 require 'racc/compiler'
 require 'racc/parser'
-require 'racc/rubyloader'
+require 'racc/parser-text'
 require 'racc/info'
 require 'racc/compat'
 
@@ -27,7 +28,7 @@ def racc_main
   rescue Racc::ParseError, Racc::ScanError, Racc::RaccError, Errno::ENOENT
     raise if racc.debug
     msg = $!.to_s
-    unless /\A\d/ === msg
+    unless /\A\d/ =~ msg
       msg[0,0] = ' '
     end
     $stderr.puts "#{File.basename $0}:#{srcfn}:" + msg
@@ -35,13 +36,13 @@ def racc_main
   end
 end
 
-def racc_main0( racc, srcfn, opt )
+def racc_main0(racc, srcfn, opt)
   srcstr = File.read(srcfn)
   set_flags__before_parse racc, opt
   if opt['-P']
     prof = pcompile(racc, srcstr, srcfn) {
-               set_flags__after_parse racc, opt
-           }
+      set_flags__after_parse racc, opt
+    }
   else
     racc.parse srcstr, srcfn
     if opt['--check-only']
@@ -55,9 +56,9 @@ def racc_main0( racc, srcfn, opt )
   report_profile prof if prof
   if opt['--verbose']
     output_fn = opt['--log-file'] ||
-                make_filename(opt['--output'] || srcfn, '.output')
+        make_filename(opt['--output'] || srcfn, '.output')
     File.open(output_fn, 'w') {|f|
-        racc.output f
+      racc.output f
     }
   end
   report_conflict racc, opt
@@ -162,7 +163,7 @@ def get_options
   opt
 end
 
-def usage( status, msg = nil )
+def usage(status, msg = nil)
   f = (status == 0 ? $stdout : $stderr)
   f.puts "#{File.basename $0}: #{msg}" if msg
   f.puts 'Usage: racc [options] <grammar file>'
@@ -183,12 +184,12 @@ end
 
 ##### compile ----------------------------------------------
 
-def set_flags__before_parse( racc, opt )
+def set_flags__before_parse(racc, opt)
   racc.verbose = opt['--output-status']
-  racc.d_parse = true if opt['-D'] and /p/ === opt['-D']
+  racc.d_parse = true if opt['-D'] and /p/ =~ opt['-D']
 end
 
-def set_flags__after_parse( racc, opt )
+def set_flags__after_parse(racc, opt)
   # overwrite source's
   racc.debug_parser = opt['--debug']
   racc.convert_line = opt['--line-convert']
@@ -197,17 +198,17 @@ def set_flags__after_parse( racc, opt )
     optd = (opt['-D'] || '')
     $stdout.sync = true
     racc.debug   = true
-    racc.d_rule  = true if /r/ === optd
-    racc.d_token = true if /t/ === optd
-    racc.d_state = true if /s/ === optd
-    racc.d_la    = true if /l/ === optd
-    racc.d_prec  = true if /c/ === optd
+    racc.d_rule  = true if /r/ =~ optd
+    racc.d_token = true if /t/ =~ optd
+    racc.d_state = true if /s/ =~ optd
+    racc.d_la    = true if /l/ =~ optd
+    racc.d_prec  = true if /c/ =~ optd
   end
 end
 
 ##### profile
 
-def pcompile( racc, srcstr, srcfn )
+def pcompile(racc, srcstr, srcfn)
   times = []
   times.push [ 'parse',   get_lap{ racc.parse(srcstr, srcfn) } ]
   yield
@@ -230,7 +231,7 @@ def current_utime
   end
 end
 
-def report_profile( prof )
+def report_profile(prof)
   f = $stderr
   whole = 0
   prof.each do |arr|
@@ -246,7 +247,7 @@ def report_profile( prof )
   f.printf "%-20s%s\n", 'total', pjust(whole,4,4)
 end
 
-def pjust( num, i, j )
+def pjust(num, i, j)
   m = /(\d+)(\.\d+)?/.match(num.to_s)
   str = m[1].rjust(i)
   str.concat m[2].ljust(j+1)[0,j+1] if m[2]
@@ -255,7 +256,7 @@ end
 
 ##### output -----------------------------------------------
 
-def write_table_file( racc, srcfn, opt )
+def write_table_file(racc, srcfn, opt)
   tabfn = opt['--output-file'] || make_filename(srcfn, '.tab.rb')
   RaccTableFile.new(tabfn, srcfn, opt['--line-convert']) {|f|
     f.shebang opt['--executable'] if opt['--executable']
@@ -272,26 +273,22 @@ def write_table_file( racc, srcfn, opt )
   File.chmod 0755, tabfn if opt['--executable']
 end
 
-def make_filename( fname, suffix )
+def make_filename(fname, suffix)
   fname.sub(/(?:\..*?)?\z/, suffix)
 end
 
 class RaccTableFile
 
-  def initialize( tabfn, srcfn, c )
+  def initialize(tabfn, srcfn, c)
     @tabfn = tabfn
     @srcfn = srcfn
     @convline = c
-
     @header_labels = %w( header prepare )
     @inner_labels  = %w( inner )
     @footer_labels = %w( footer driver )
-
     @is_top = false
     @uniq = {}
-
     init_user_code
-
     File.open(tabfn, 'w') {|f|
       @f = f
       yield self
@@ -305,7 +302,7 @@ class RaccTableFile
   RUBY_PATH = ::Config::CONFIG['bindir'] + '/' +
               ::Config::CONFIG['ruby_install_name']
 
-  def shebang( path )
+  def shebang(path)
     @f.print "#!#{path == 'ruby' ? RUBY_PATH : path}\n"
   end
 
@@ -317,13 +314,18 @@ class RaccTableFile
     @f.puts %q[#]
   end
 
-  def require( embed_p, parser_rb )
+  def require(embed_p, parser_rb)
     if embed_p
       @f.puts '#'
       @f.puts "# #{@tabfn}: generated by racc (runtime embedded)"
       @f.puts '#'
       is_top {
-        embed 'racc/parser.rb'
+        @f.puts %<###### racc/parser.rb begin>
+        @f.puts %<unless $".index 'racc/parser.rb'>
+        @f.puts %<$".push 'racc/parser.rb'>
+        add ::Racc::PARSER_TEXT, 'racc/parser.rb', 1
+        @f.puts %<end>
+        $f.puts %<###### racc/parser.rb end>
       }
       @f.puts
     else
@@ -333,7 +335,7 @@ class RaccTableFile
     end
   end
 
-  def parser_class( classname, superclass )
+  def parser_class(classname, superclass)
     @f.puts
     mods = classname.split('::')
     real = mods.pop
@@ -342,9 +344,7 @@ class RaccTableFile
       @f.puts
     end
     @f.puts "#{'  ' * mods.size}class #{real} < #{superclass}"
-
     yield
-
     @f.puts "#{'  ' * mods.size}end   \# class #{real}"
     mods.reverse.each_with_index do |m,i|
       @f.puts
@@ -352,7 +352,7 @@ class RaccTableFile
     end
   end
 
-  def header( conv )
+  def header(conv)
     is_top {
       add_part conv, @header_labels
     }
@@ -362,7 +362,7 @@ class RaccTableFile
     add_part @convline, @inner_labels
   end
 
-  def footer( conv )
+  def footer(conv)
     is_top {
       add_part conv, @footer_labels
     }
@@ -382,29 +382,17 @@ class RaccTableFile
   def check_dup_ucode
     [ @header_labels, @inner_labels, @footer_labels ].each do |names|
       codes = names.select {|n| @usercode[n] }
-      raise Racc::RaccError,
-            "'#{codes.join %<' and '>}' used at same time; must be only one"\
-          if codes.length > 1
+      if codes.length > 1
+        raise Racc::RaccError, "`#{codes.join(' and `)}' are exclusive"
+      end
     end
-  end
-
-  ###
-  ### embed
-  ###
-
-  def embed( rbfile )
-    @f.puts %Q[###### #{rbfile}]
-    @f.puts %Q[unless $".index '#{rbfile}']
-    @f.puts %Q[$".push '#{rbfile}']
-    add_file RubyLoader.find_feature(rbfile)
-    @f.puts %Q[end   # end of #{rbfile}]
   end
 
   ###
   ### part
   ###
 
-  def add_part( convp, names )
+  def add_part(convp, names)
     str, lineno, fnames = getent(names)
     convert_line(convp) {
       add str, @srcfn, lineno if str and not str.strip.empty?
@@ -414,11 +402,11 @@ class RaccTableFile
     end if fnames
   end
 
-  def getent( names )
+  def getent(names)
     names.map {|n| @usercode[n] }.compact[0]
   end
 
-  def convert_line( b )
+  def convert_line(b)
     save, @convline = @convline, b
     yield
     @convline = save
@@ -428,13 +416,13 @@ class RaccTableFile
   ### low level code
   ###
 
-  def add_file( fname )
+  def add_file(fname)
     File.open(fname) {|f|
       add f.read, fname, 1
     }
   end
 
-  def add( str, fn, lineno )
+  def add(str, fn, lineno)
     @f.puts
     if @convline
       surrounding_by_eval(fn, str, lineno) {
@@ -445,7 +433,7 @@ class RaccTableFile
     end
   end
 
-  def surrounding_by_eval( nm, str, lineno )
+  def surrounding_by_eval(nm, str, lineno)
     sep = makesep(nm, str)
     @f.print 'self.class.' if toplevel?
     @f.puts "module_eval <<'#{sep}', '#{nm}', #{lineno}"
@@ -463,13 +451,13 @@ class RaccTableFile
     @is_top
   end
 
-  def makesep( nm, str )
+  def makesep(nm, str)
     sep = uniqlabel(nm)
     sep *= 2 while str.index(sep)
     sep
   end
 
-  def uniqlabel( nm )
+  def uniqlabel(nm)
     ret = "..end #{nm} modeval..id"
     srand
     5.times do
@@ -484,14 +472,14 @@ end   # class RaccTableFile
 
 ##### report -----------------------------------------------
 
-def report_conflict( racc, opt )
+def report_conflict(racc, opt)
   sr = 0
   rr = 0
   racc.statetable.each do |st|
     sr += st.srconf.size if st.srconf
     rr += st.rrconf.size if st.rrconf
   end
-  if opt['-D'] and /o/ === opt['-D']
+  if opt['-D'] and /o/ =~ opt['-D']
     debugout {|f|
       f.print "ex#{racc.ruletable.expect}\n"
       f.print "sr#{sr}\n" if sr > 0
@@ -504,7 +492,7 @@ def report_conflict( racc, opt )
   $stderr.puts "#{rr} reduce/reduce conflicts" if rr > 0
 end
 
-def report_useless( racc, opt )
+def report_useless(racc, opt)
   nt = 0
   rl = 0
   racc.symboltable.each_nonterm do |t|
@@ -513,7 +501,7 @@ def report_useless( racc, opt )
   racc.ruletable.each do |r|
     rl += 1 if r.useless?
   end
-  if opt['-D'] and /o/ === opt['-D']
+  if opt['-D'] and /o/ =~ opt['-D']
     debugout('a') {|f|
       f.print "un#{nt}\n" if nt > 0
       f.print "ur#{rl}\n" if rl > 0
@@ -531,7 +519,7 @@ def report_useless( racc, opt )
   end
 end
 
-def debugout( flag = 'w', &block )
+def debugout(flag = 'w', &block)
   File.open("log/#{File.basename(ARGV[0])}", flag, &block)
 end
 

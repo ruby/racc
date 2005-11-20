@@ -1,3 +1,20 @@
+Mon Nov 21 00:14:21 2005  Minero Aoki  <aamine@loveruby.net>
+
+	* bin/racc: read racc/parser.rb from parser-text.rb.
+
+	* lib/racc/rubyloader.rb: no longer needed.
+
+	* lib/racc/pre-setup: new file.
+
+	* lib/racc/pre-setup: generate parser-text.rb.
+
+	* lib/racc/pre-setup: generate grammarfileparser.rb.
+
+	* misc/boot.rb: new method BootstrapCompiler.main.
+
+	* misc/boot.rb: new method BootstrapCompiler.generate, which is
+	  used from pre-setup.
+
 Mon Nov 21 00:09:04 2005  Minero Aoki  <aamine@loveruby.net>
 
 	* bin/racc2y: refactoring.

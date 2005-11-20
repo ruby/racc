@@ -5,21 +5,50 @@ require 'racc/info'
 require 'racc/grammar'
 require 'racc/state'
 require 'racc/output'
+require 'stringio'
 
 module Racc
 
   class State
+    undef sr_conflict
     def sr_conflict(*args)
       raise 'Racc boot script fatal: S/R conflict in build'
     end
 
+    undef rr_conflict
     def rr_conflict(*args)
       raise 'Racc boot script fatal: R/R conflict in build'
     end
   end
-      
 
-  class Compiler
+
+  class BootstrapCompiler
+
+    def BootstrapCompiler.main
+      c = Racc::BootstrapCompiler.new
+      c.build ARGV.delete('-g')
+      File.foreach(ARGV[0]) do |line|
+        if /STATE_TRANSITION_TABLE/ =~ line
+          Racc::CodeGenerator.new(c).output $stdout
+        else
+          print line
+        end
+      end
+      File.open("#{__FILE__}.output", 'w') {|f|
+        Racc::VerboseOutputter.new(c).output f
+      }
+    end
+
+    # called from lib/racc/pre-setup
+    def BootstrapCompiler.generate(infile)
+      c = Racc::BootstrapCompiler.new
+      c.build false
+      File.read(infile).sub(/STATE_TRANSITION_TABLE/) {
+        out = StringIO.new
+        Racc::CodeGenerator.new(c).output out
+        out.string
+      }
+    end
 
     def initialize
       @ruletable = nil
@@ -47,7 +76,6 @@ module Racc
     def d_state() false end
     def d_la()    false end
     def d_prec()  false end
-
 
     def _(rulestr, actstr)
       nonterm, symlist = *parse_rule_exp(rulestr)
@@ -254,16 +282,6 @@ _"              |                                                        ", ''
 
 end   # module Racc
 
-
-c = Racc::Compiler.new
-c.build ARGV.delete('-g')
-File.foreach(ARGV[0]) do |line|
-  if /STATE_TRANSITION_TABLE/ =~ line
-    Racc::CodeGenerator.new(c).output $stdout
-  else
-    print line
-  end
+if $0 == __FILE__
+  Racc::BootstrapCompiler.main
 end
-File.open("#{__FILE__}.output", 'w') {|f|
-  Racc::VerboseOutputter.new(c).output f
-}

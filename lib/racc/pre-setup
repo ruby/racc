@@ -1,5 +1,6 @@
 def bootstrap(target)
   return if File.exist?(srcfile(target))
+  $stderr.puts "generating #{target}..."
   $LOAD_PATH.unshift "#{srcdir_root()}/lib"
   load "#{srcdir_root()}/misc/boot.rb"
   File.open(target, 'w') {|f|
@@ -7,9 +8,10 @@ def bootstrap(target)
   }
 end
 
-def parser_text_rb(target)
+def generate_parser_text_rb(target)
   return if File.exist?(srcfile(target))
-  File.open('parser-text.rb', 'w') {|f|
+  $stderr.puts "generating #{target}..."
+  File.open(target, 'w') {|f|
     f.puts "module Racc"
     f.puts "  PARSER_TEXT = <<'__end_of_file__'"
     f.puts File.read(srcfile('parser.rb'))
@@ -19,4 +21,4 @@ def parser_text_rb(target)
 end
 
 bootstrap 'grammarfileparser.rb'
-parser_text_rb 'parser-text.rb'
+generate_parser_text_rb 'parser-text.rb'
