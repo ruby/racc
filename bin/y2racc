@@ -1,4 +1,4 @@
-#!/usr/bin/env ruby
+#!/usr/local/bin/ruby
 #
 # y2racc  --  yacc to racc converter
 #
@@ -7,6 +7,7 @@
 # This program is free software.
 # You can distribute/modify this program under the terms of
 # the GNU LGPL, Lesser General Public Lisence version 2.1.
+# For details of the GNU LGPL, see the file "COPYING".
 #
 
 require 'getopts'

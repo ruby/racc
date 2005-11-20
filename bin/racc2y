@@ -1,21 +1,21 @@
-#!/usr/bin/env ruby
+#!/usr/local/bin/ruby
 #
 # r2yacc  --  racc to yacc converter
 #
-# Copyright (c) 1999-2003 Minero Aoki <aamine@loveruby.net>
+# Copyright (c) 1999-2005 Minero Aoki
 #
 # This program is feee software.
 # You can distribute/modify this program under the terms of
-# the GNU Lesser General Public License version 2 or later.
+# the GNU LGPL, Lesser General Public License version 2.1.
+# For details of the LGPL, see the file "COPYING".
 #
 
 require 'getopts'
 require 'racc/compiler'
 
-
 RACC2Y_VERSION = '1.1.1'
 
-def usage( stat = 0 )
+def usage(stat = 0)
   $stderr.puts 'wrong option' unless stat == 0
   (stat == 0 ? $stdout : $stderr).print(<<EOS)
 Usage: racc2y [-AHIF] [-o outfile] raccfile
@@ -57,7 +57,6 @@ def main
   }
 end
 
-
 class Converter
 
   def initialize
@@ -80,11 +79,7 @@ class Converter
   def d_rule()  false end
   def d_state() false end
 
-  ###
-  ### parse
-  ###
-
-  def parse( str, fname )
+  def parse(str, fname)
     @fname = fname
     @parser.parse str
     @ruletable.init
@@ -94,11 +89,7 @@ class Converter
     @footer, = *u['footer']
   end
 
-  ###
-  ### output
-  ###
-
-  def output( f )
+  def output(f)
     rule = t = nil
 
     f.print(<<EOS)
@@ -134,7 +125,7 @@ EOS
     end
   end
 
-  def output_defs( f )
+  def output_defs(f)
     output_token f
     f.puts
     prec = getprecs
@@ -143,7 +134,7 @@ EOS
     end
   end
 
-  def output_token( f )
+  def output_token(f)
     f.puts '/* tokens */'
     anc = @symboltable.anchor
     err = @symboltable.error
@@ -180,7 +171,7 @@ EOS
     prec
   end
 
-  def output_prec( f, tab )
+  def output_prec(f, tab)
     f.puts '/* precedance table */'
     tab.each do |a|
       if a
@@ -195,7 +186,7 @@ EOS
   end
 
 
-  def output_grammer( f )
+  def output_grammer(f)
     f.puts '%%'
 
     targ   = nil
@@ -238,18 +229,18 @@ EOS
     f.puts "\n%%"
   end
 
-  def output_act( f, str, indent )
+  def output_act(f, str, indent)
     f.print ' ' * (indent + 4), "{\n"
     f.print ' ' * (indent + 6), str, "\n" unless $OPT_A
     f.print ' ' * (indent + 4), "}\n"
   end
 
-  def tok( t )
+  def tok(t)
     s = t.to_s
     s.gsub '"', "'"
   end
 
-end   # class R
+end
 
 
 main
