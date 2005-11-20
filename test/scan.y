@@ -1,4 +1,3 @@
-
 class P
 
 rule
@@ -49,12 +48,18 @@ end
     assert_equal 'some ', @pre_match
     assert_equal 'regexp', @matched
     assert_equal ' matches to this string', @post_match
-    assert_equal MatchingData, @m.type
+    assert_instance_of MatchingData, @m
   end
 
-  def assert_equal( ok, data )
-    unless ok == data then
+  def assert_equal(ok, data)
+    unless ok == data
       raise "expected <#{ok.inspect}> but is <#{data.inspect}>"
+    end
+  end
+
+  def assert_instance_of(klass, obj)
+    unless obj.instance_of?(klass)
+      raise "expected #{klass} but is #{obj.class}"
     end
   end
 

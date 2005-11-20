@@ -1,8 +1,4 @@
-#
 # Racc tester
-#
-
-require 'fileutils'
 
 class TestFailed < StandardError; end
 
@@ -46,7 +42,7 @@ def setup_dirs
   clean 'err'
 end
 
-def try( args, ok, exec = false )
+def try(args, ok, exec = false)
   targ = args[0].split('.')[0]
   testing(targ) {
     compile_test args, ok
@@ -58,7 +54,7 @@ def try( args, ok, exec = false )
   }
 end
 
-def compile_test( args, ok )
+def compile_test(args, ok)
   fname = args.shift
   n = fname.sub(/\.y\z/, '')
   args.push '-Oout/' + n
@@ -81,7 +77,7 @@ def compile_test( args, ok )
   end
 end
 
-def exec_test( file )
+def exec_test(file)
   ruby 'tab/' + file
 end
 
@@ -90,7 +86,7 @@ end
 @errors = []
 @target = nil
 
-def testing( name )
+def testing(name)
   return unless target?(name)
   @target = name
   $stderr.print '.'
@@ -105,7 +101,7 @@ def testing( name )
   end
 end
 
-def target?( name )
+def target?(name)
   ARGV.empty? or ARGV.include?(name)
 end
 
@@ -120,12 +116,13 @@ def report
   end
 end
 
-def assert_equal( expected, real )
-  raise TestFailed, "expected #{expected.inspect} but was #{real.inspect}"\
-      unless real == expected
+def assert_equal(expected, real)
+  unless real == expected
+    raise TestFailed, "expected #{expected.inspect} but was #{real.inspect}"
+  end
 end
 
-def assert_fail( file )
+def assert_fail(file)
   testing(file.split(/\./)[0]) {
     begin
       racc file
@@ -138,7 +135,7 @@ end
 
 $ruby = ENV['RUBY'] || 'ruby'
 
-def ruby( arg )
+def ruby(arg)
   cmd = "#{$ruby} #{arg}"
   str = "#{cmd} 2>> err/#{@target}"
   # $stderr.puts str
@@ -146,20 +143,24 @@ def ruby( arg )
 end
 
 $racc = 'racc'
-$racc += ' --no-extentions' if ENV['NORUBYEXT']
+# $racc += ' --no-extentions' if ENV['NORUBYEXT']
 
-def racc( arg )
+def racc(arg)
   ruby "-S #{$racc} #{arg}"
 end
 
-def clean( dir )
-  if File.file?('/bin/rm')
-    system "/bin/rm -r #{dir}"
-  else
-    FileUtils.rm_rf dir   # does not work on ruby 1.4.
+begin
+  require 'fileutils'
+  include FileUtils
+rescue LoadError
+  def rm_rf(path)
+    system "rm -rf '#{path}'"
   end
-  FileUtils.mkdir dir
 end
 
+def clean(dir)
+  rm_rf dir
+  Dir.mkdir dir
+end
 
 main

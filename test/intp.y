@@ -56,14 +56,14 @@ rule
 
   while_stmt: WHILE stmt DO EOL stmt_list END
                 {
-                  result = WhileNode.new( @fname, val[0][0],
-                                          val[1], val[4] )
+                  result = WhileNode.new(@fname, val[0][0],
+                                          val[1], val[4])
                 }
 
   defun     : DEF IDENT param EOL stmt_list END
                 {
-                  result = DefNode.new( @fname, val[0][0], val[1][1],
-                    Function.new(@fname, val[0][0], val[2], val[4]) )
+                  result = DefNode.new(@fname, val[0][0], val[1][1],
+                      Function.new(@fname, val[0][0], val[2], val[4]))
                 }
 
   param     : '(' name_list ')'
@@ -90,34 +90,29 @@ rule
 
   assign    : IDENT '=' expr
                 {
-                  result = AssignNode.new( @fname, val[0][0],
-                                           val[0][1], val[2] )
+                  result = AssignNode.new(@fname, val[0][0], val[0][1], val[2])
                 }
 
   expr      : expr '+' expr
                 {
-                  result = FuncallNode.new( @fname, val[0].lineno,
-                                            '+', [val[0], val[2]] )
+                  result = FuncallNode.new(@fname, val[0].lineno, '+', [val[0], val[2]])
                 }
             | expr '-' expr
                 {
-                  result = FuncallNode.new( @fname, val[0].lineno,
-                                            '-', [val[0], val[2]] )
+                  result = FuncallNode.new(@fname, val[0].lineno, '-', [val[0], val[2]])
                 }
             | expr '*' expr
                 {
-                  result = FuncallNode.new( @fname, val[0].lineno,
-                                            '*', [val[0], val[2]] )
+                  result = FuncallNode.new(@fname, val[0].lineno, '*', [val[0], val[2]])
                 }
             | expr '/' expr
                 {
-                  result = FuncallNode.new( @fname, val[0].lineno,
-                                            '/', [val[0], val[2]] )
+                  result = FuncallNode.new(@fname, val[0].lineno,
+                                            '/', [val[0], val[2]])
                 }
             | expr EQ expr
                 {
-                  result = FuncallNode.new( @fname, val[0].lineno,
-                                            '==', [val[0], val[2]] )
+                  result = FuncallNode.new(@fname, val[0].lineno, '==', [val[0], val[2]])
                 }
             | primary
 
@@ -128,46 +123,43 @@ rule
                 }
             | '-' expr  =UMINUS
                 {
-                  result = FuncallNode.new( @fname, val[0][0],
-                                            '-@', [val[1]] )
+                  result = FuncallNode.new(@fname, val[0][0], '-@', [val[1]])
                 }
 
   realprim  : IDENT
                 {
-                  result = VarRefNode.new( @fname, val[0][0],
-                                           val[0][1] )
+                  result = VarRefNode.new(@fname, val[0][0],
+                                           val[0][1])
                 }
             | NUMBER
                 {
-                  result = LiteralNode.new( @fname, *val[0] )
+                  result = LiteralNode.new(@fname, *val[0])
                 }
             | STRING
                 {
-                  result = StringNode.new( @fname, *val[0] )
+                  result = StringNode.new(@fname, *val[0])
                 }
             | TRUE
                 {
-                  result = LiteralNode.new( @fname, *val[0] )
+                  result = LiteralNode.new(@fname, *val[0])
                 }
             | FALSE
                 {
-                  result = LiteralNode.new( @fname, *val[0] )
+                  result = LiteralNode.new(@fname, *val[0])
                 }
             | NIL
                 {
-                  result = LiteralNode.new( @fname, *val[0] )
+                  result = LiteralNode.new(@fname, *val[0])
                 }
             | funcall
 
   funcall   : IDENT '(' args ')'
                 {
-                  result = FuncallNode.new( @fname, val[0][0],
-                                            val[0][1], val[2] )
+                  result = FuncallNode.new(@fname, val[0][0], val[0][1], val[2])
                 }
             | IDENT '(' ')'
                 {
-                  result = FuncallNode.new( @fname, val[0][0],
-                                            val[0][1], [] )
+                  result = FuncallNode.new(@fname, val[0][0], val[0][1], [])
                 }
 
   args      : expr
@@ -211,41 +203,37 @@ end
     'nil'   => nil
   }
 
-  def parse( f, fname )
+  def parse(f, fname)
     @q = []
     @fname = fname
     lineno = 1
-
     f.each do |line|
       line.strip!
-      until line.empty? do
+      until line.empty?
         case line
         when /\A\s+/, /\A\#.*/
           ;
         when /\A[a-zA-Z_]\w*/
           word = $&
-          @q.push [ RESERVED[word] || :IDENT,
-                    [lineno,
-                     RESERVED_V.key?(word) ? RESERVED_V[word] : word.intern]
-                  ]
+          @q.push [(RESERVED[word] || :IDENT),
+                   [lineno, RESERVED_V.key?(word) ? RESERVED_V[word] : word.intern]]
         when /\A\d+/
-          @q.push [ :NUMBER, [lineno, $&.to_i] ]
+          @q.push [:NUMBER, [lineno, $&.to_i]]
         when /\A"(?:[^"\\]+|\\.)*"/, /\A'(?:[^'\\]+|\\.)*'/
-          @q.push [ :STRING, [lineno, eval($&)] ]
+          @q.push [:STRING, [lineno, eval($&)]]
         when /\A==/
-          @q.push [ :EQ, [lineno, '=='] ]
+          @q.push [:EQ, [lineno, '==']]
         when /\A./
-          @q.push [ $&, [lineno, $&] ]
+          @q.push [$&, [lineno, $&]]
         else
           raise RuntimeError, 'must not happen'
         end
         line = $'
       end
-      @q.push [ :EOL, [lineno, nil] ]
+      @q.push [:EOL, [lineno, nil]]
       lineno += 1
     end
-    @q.push [ false, '$' ]
-
+    @q.push [false, '$']
     do_parse
   end
 
@@ -253,27 +241,23 @@ end
     @q.shift
   end
 
-  def on_error( t, v, values )
-    if v then
+  def on_error(t, v, values)
+    if v
       line = v[0]
       v = v[1]
     else
       line = 'last'
     end
-    raise Racc::ParseError,
-          "#{@fname}:#{line}: syntax error on #{v.inspect}"
+    raise Racc::ParseError, "#{@fname}:#{line}: syntax error on #{v.inspect}"
   end
 
 ---- footer
-#
 # intp/node.rb
-#
 
 module Intp
 
   class IntpError < StandardError; end
   class IntpArgumentError < IntpError; end
-
 
   class Core
 
@@ -288,24 +272,22 @@ module Intp
       @stack[-1]
     end
 
-    def define_function( fname, node )
-      if @ftab.key? fname then
-        raise IntpError, "function #{fname.id2name} defined twice"
-      end
-      @ftab[ fname ] = node
+    def define_function(fname, node)
+      raise IntpError, "function #{fname} defined twice" if @ftab.key?(fname)
+      @ftab[fname] = node
     end
 
-    def call_function_or( fname, args )
-      call_intp_function_or( fname, args ) do
-        call_ruby_toplevel_or( fname, args ) do
+    def call_function_or(fname, args)
+      call_intp_function_or(fname, args) {
+        call_ruby_toplevel_or(fname, args) {
           yield
-        end
-      end
+        }
+      }
     end
 
-    def call_intp_function_or( fname, args )
-      if func = @ftab[ fname ] then
-        frame = Frame.new( fname )
+    def call_intp_function_or(fname, args)
+      if func = @ftab[fname]
+        frame = Frame.new(fname)
         @stack.push frame
         func.call self, frame, args
         @stack.pop
@@ -314,8 +296,8 @@ module Intp
       end
     end
 
-    def call_ruby_toplevel_or( fname, args )
-      if @obj.respond_to? fname, true then
+    def call_ruby_toplevel_or(fname, args)
+      if @obj.respond_to? fname, true
         @obj.send fname, *args
       else
         yield
@@ -326,23 +308,23 @@ module Intp
 
   class Frame
 
-    def initialize( fname )
+    def initialize(fname)
       @fname = fname
       @lvars = {}
     end
 
     attr :fname
 
-    def lvar?( name )
+    def lvar?(name)
       @lvars.key? name
     end
     
-    def []( key )
-      @lvars[ key ]
+    def [](key)
+      @lvars[key]
     end
 
-    def []=( key, val )
-      @lvars[ key ] = val
+    def []=(key, val)
+      @lvars[key] = val
     end
 
   end
@@ -350,26 +332,26 @@ module Intp
 
   class Node
 
-    def initialize( fname, lineno )
+    def initialize(fname, lineno)
       @filename = fname
       @lineno = lineno
     end
 
-    attr :filename
-    attr :lineno
+    attr_reader :filename
+    attr_reader :lineno
 
-    def exec_list( intp, nodes )
+    def exec_list(intp, nodes)
       v = nil
-      nodes.each {|i| v = i.evaluate( intp ) }
+      nodes.each {|i| v = i.evaluate(intp) }
       v
     end
 
-    def intp_error!( msg )
+    def intp_error!(msg)
       raise IntpError, "in #{filename}:#{lineno}: #{msg}"
     end
 
     def inspect
-      "#{type.name}/#{lineno}"
+      "#{self.class.name}/#{lineno}"
     end
 
   end
@@ -377,7 +359,7 @@ module Intp
 
   class RootNode < Node
 
-    def initialize( tree )
+    def initialize(tree)
       super nil, nil
       @tree = tree
     end
@@ -391,13 +373,13 @@ module Intp
 
   class DefNode < Node
 
-    def initialize( file, lineno, fname, func )
+    def initialize(file, lineno, fname, func)
       super file, lineno
       @funcname = fname
       @funcobj = func
     end
 
-    def evaluate( intp )
+    def evaluate(intp)
       intp.define_function @funcname, @funcobj
     end
 
@@ -405,26 +387,25 @@ module Intp
 
   class FuncallNode < Node
 
-    def initialize( file, lineno, func, args )
+    def initialize(file, lineno, func, args)
       super file, lineno
       @funcname = func
       @args = args
     end
 
-    def evaluate( intp )
-      arg = @args.collect {|i| i.evaluate intp }
-
+    def evaluate(intp)
+      args = @args.map {|i| i.evaluate intp }
       begin
-        intp.call_intp_function_or( @funcname, arg ) do
-          if arg.empty? or not arg[0].respond_to? @funcname then
-            intp.call_ruby_toplevel_or( @funcname, arg ) do
+        intp.call_intp_function_or(@funcname, args) {
+          if args.empty? or not args[0].respond_to?(@funcname)
+            intp.call_ruby_toplevel_or(@funcname, args) {
               intp_error! "undefined function #{@funcname.id2name}"
-            end
+            }
           else
-            recv = arg.shift
-            recv.send @funcname, *arg
+            recv = args.shift
+            recv.send @funcname, *args
           end
-        end
+        }
       rescue IntpArgumentError, ArgumentError
         intp_error! $!.message
       end
@@ -434,19 +415,19 @@ module Intp
 
   class Function < Node
 
-    def initialize( file, lineno, params, body )
+    def initialize(file, lineno, params, body)
       super file, lineno
       @params = params
       @body = body
     end
 
-    def call( intp, frame, args )
-      unless args.size == @params.size then
+    def call(intp, frame, args)
+      unless args.size == @params.size
         raise IntpArgumentError,
           "wrong # of arg for #{frame.fname}() (#{args.size} for #{@params.size})"
       end
       args.each_with_index do |v,i|
-        frame[ @params[i] ] = v
+        frame[@params[i]] = v
       end
       exec_list intp, @body
     end
@@ -456,15 +437,15 @@ module Intp
 
   class IfNode < Node
 
-    def initialize( fname, lineno, cond, tstmt, fstmt )
+    def initialize(fname, lineno, cond, tstmt, fstmt)
       super fname, lineno
       @condition = cond
       @tstmt = tstmt
       @fstmt = fstmt
     end
 
-    def evaluate( intp )
-      if @condition.evaluate(intp) then
+    def evaluate(intp)
+      if @condition.evaluate(intp)
         exec_list intp, @tstmt
       else
         exec_list intp, @fstmt if @fstmt
@@ -475,14 +456,14 @@ module Intp
 
   class WhileNode < Node
 
-    def initialize( fname, lineno, cond, body )
+    def initialize(fname, lineno, cond, body)
       super fname, lineno
       @condition = cond
       @body = body
     end
 
-    def evaluate( intp )
-      while @condition.evaluate(intp) do
+    def evaluate(intp)
+      while @condition.evaluate(intp)
         exec_list intp, @body
       end
     end
@@ -492,32 +473,32 @@ module Intp
 
   class AssignNode < Node
 
-    def initialize( fname, lineno, vname, val )
+    def initialize(fname, lineno, vname, val)
       super fname, lineno
       @vname = vname
       @val = val
     end
 
-    def evaluate( intp )
-      intp.frame[ @vname ] = @val.evaluate( intp )
+    def evaluate(intp)
+      intp.frame[@vname] = @val.evaluate(intp)
     end
 
   end
 
   class VarRefNode < Node
 
-    def initialize( fname, lineno, vname )
+    def initialize(fname, lineno, vname)
       super fname, lineno
       @vname = vname
     end
 
-    def evaluate( intp )
-      if intp.frame.lvar? @vname then
-        intp.frame[ @vname ]
+    def evaluate(intp)
+      if intp.frame.lvar?(@vname)
+        intp.frame[@vname]
       else
-        intp.call_function_or( @vname, [] ) do
+        intp.call_function_or(@vname, []) {
           intp_error! "unknown method or local variable #{@vname.id2name}"
-        end
+        }
       end
     end
 
@@ -525,12 +506,12 @@ module Intp
 
   class StringNode < Node
 
-    def initialize( fname, lineno, str )
+    def initialize(fname, lineno, str)
       super fname, lineno
       @val = str
     end
 
-    def evaluate( intp )
+    def evaluate(intp)
       @val.dup
     end
 
@@ -538,12 +519,12 @@ module Intp
 
   class LiteralNode < Node
 
-    def initialize( fname, lineno, val )
+    def initialize(fname, lineno, val)
       super fname, lineno
       @val = val
     end
 
-    def evaluate( intp )
+    def evaluate(intp)
       @val
     end
 
@@ -551,20 +532,12 @@ module Intp
 
 end   # module Intp
 
-#
-# intp
-#
-
-# require 'intp/parser.rb'
-# require 'intp/node.rb'
-
-
 begin
   tree = nil
   fname = 'src.intp'
-  File.open( fname ) do |f|
-    tree = Intp::Parser.new.parse( f, fname )
-  end
+  File.open(fname) {|f|
+    tree = Intp::Parser.new.parse(f, fname)
+  }
   tree.evaluate
 rescue Racc::ParseError, Intp::IntpError, Errno::ENOENT
   raise ####
