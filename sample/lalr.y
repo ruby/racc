@@ -1,19 +1,17 @@
+# $Id$
 #
-# LALR grammer (not LL/SLR)
-#
+# This is LALR grammer, and not LL/SLR.
 
 class A
 rule
+  A : L '=' E
 
-A : L '=' E
+  L : i
+    | R '^' i
 
-L : i
-  | R '^' i
+  E : E '+' R
+    | R
+    | '@' L
 
-E : E '+' R
-  | R
-  | '@' L
-
-R : i
-
+  R : i
 end

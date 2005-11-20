@@ -1,9 +1,7 @@
+# $Id$
 #
-# array2.y
-#
-# converting Array like string into (Ruby's) Array, version 2.
-# using no_result_var and yield in scanner
-#
+# Converting Array-like string into Ruby's Array, version 2.
+# This grammer uses no_result_var.
 
 class ArrayParser2
   options no_result_var
@@ -13,6 +11,7 @@ rule
 
   contents: ITEM              { val }
           | contents ',' ITEM { val[0].push val[2]; val[0] }
+end
 
 ---- inner
 

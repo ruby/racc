@@ -1,9 +1,9 @@
+# $Id$
 #
-# racc syntax checker (does not work. use for check only)
-#
+# Racc syntax checker.  This grammer file generates
+# invalid ruby program, you cannot run this parser.
 
 class P
-
   token A B C
 
   convert
@@ -17,9 +17,7 @@ class P
   options omit_action_call
 
   start target
-
 rule
-
   target: A B C
             {
               print 'abc'
@@ -34,7 +32,6 @@ rule
   cont  : A c2 B c2 C
 
   c2    : C C C C C
-
 end
 
 ---- inner

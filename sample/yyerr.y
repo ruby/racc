@@ -1,8 +1,6 @@
+# $Id$
 #
-# yyerr.y
-#
-# error/yyerror/yyerrok/yyaccept test
-#
+# Test grammer file for error handling.
 
 class A
 rule
@@ -39,7 +37,7 @@ end
     [false, '$end']
   end
 
-  def on_error( *args )
+  def on_error(*args)
     $stderr.puts "on_error called: args=#{args.inspect}"
   end
 

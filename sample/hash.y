@@ -1,20 +1,16 @@
+# $Id$
 #
-# hash.y
-#
-# converting Hash-like string into (real) Hash
-#
+# Converting Hash-like string into Ruby's Hash.
 
 class HashParser
- options no_result_var
+  options no_result_var
 rule
-
-hash    : '{' contents '}'   { val[1] }
-        | '{' '}'            { Hash.new }
-         
-                # Racc can handle string over 2 bytes.
-contents: IDENT '=>' IDENT              { {val[0] => val[2]} }
-        | contents ',' IDENT '=>' IDENT { val[0][val[2]] = val[4]; val[0] }
-
+  hash    : '{' contents '}'   { val[1] }
+          | '{' '}'            { Hash.new }
+           
+                  # Racc can handle string over 2 bytes.
+  contents: IDENT '=>' IDENT              { {val[0] => val[2]} }
+          | contents ',' IDENT '=>' IDENT { val[0][val[2]] = val[4]; val[0] }
 end
 
 ---- inner

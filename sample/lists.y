@@ -1,9 +1,7 @@
+# $Id$
 #
-# lists.y
-#
-# verious lists.
-# This file is just an example, don't run it.
-#
+# Rules for verious lists.
+# This file is just an example, you cannot compile this file.
 
 # a list, which minimum number of items is 0
 list0 :
@@ -46,11 +44,11 @@ hash  : '{' hash_contents '}'
           }
 
 hash_contents
-      : item => item
+      : item "=>" item
           {
             result = { val[0] => val[2] }
           }
-      | hash_contents ',' item => item
+      | hash_contents ',' item "=>" item
           {
-            result[ val[2] ] = val[4]
+            result[val[2]] = val[4]
           }

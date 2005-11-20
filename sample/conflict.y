@@ -1,16 +1,15 @@
+# $Id$
 #
-# This grammer contains 1 s/r conflict and 1 r/r conflict
-#
+# Example of conflicted grammer.
+# This grammer contains 1 Shift/Reduce conflict and 1 Reduce/Reduce conflict.
 
 class A
 rule
+  target : outer
 
-target : outer
+  outer  :
+         | outer inner
 
-outer  :
-       | outer inner
-
-inner  :
-       | inner ITEM
-
+  inner  :
+         | inner ITEM
 end
