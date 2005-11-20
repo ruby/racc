@@ -1,3 +1,7 @@
+Sun Nov 20 23:46:42 2005  Minero Aoki  <aamine@loveruby.net>
+
+	* lib/racc/pre-setup: new file.
+
 Sun Nov 20 22:46:21 2005  Minero Aoki  <aamine@loveruby.net>
 
 	* COPYING: new file.

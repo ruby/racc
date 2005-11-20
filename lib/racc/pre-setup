@@ -1,0 +1,22 @@
+def bootstrap(target)
+  return if File.exist?(srcfile(target))
+  $LOAD_PATH.unshift "#{srcdir_root()}/lib"
+  load "#{srcdir_root()}/misc/boot.rb"
+  File.open(target, 'w') {|f|
+    f.print Racc::BootstrapCompiler.generate("#{target}.in")
+  }
+end
+
+def parser_text_rb(target)
+  return if File.exist?(srcfile(target))
+  File.open('parser-text.rb', 'w') {|f|
+    f.puts "module Racc"
+    f.puts "  PARSER_TEXT = <<'__end_of_file__'"
+    f.puts File.read(srcfile('parser.rb'))
+    f.puts "__end_of_file__"
+    f.puts "end"
+  }
+end
+
+bootstrap 'grammarfileparser.rb'
+parser_text_rb 'parser-text.rb'
