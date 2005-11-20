@@ -1,27 +1,40 @@
 = NEWS
 
+== 1.4.5 (2005-11-21)
+j
+  * [FEATURE CHANGE] --no-extensions オプションを削除
+  * [fix] racc パッケージのみで -E を使えるように修正
+  * [fix] --no-omit-actions が動作していなかったのを修正
+  * setup.rb 3.4.1.
+e
+  * [FEATURE CHANGE] --no-extensions option was removed.
+  * [fix] racc command should not depend on `raccrt' package.
+  * [fix] --no-omit-actions did not work.
+  * setup.rb 3.4.1.
+.
 == 1.4.4 (2003-10-12)
 j
   * Ruby 1.8.0 に対応するリリース。本体に変更はなし
-  * strscan, amstd の同梱を停止
+  * -all パッケージに strscan, amstd の同梱するのをやめた
   * setup.rb 3.2.1
 e
-  * document change only.
+  * document changed.
+  * -all packages does not include amstd and strscan.
+  * setup.rb 3.2.1.
 .
 
 == 1.4.3 (2002-11-14)
 j
-  * ruby 1.7 の警告を消した
+  * [fix] ruby 1.8 の警告を消した
 e
-  * reduce ruby 1.8 warnings.
+  * [fix] reduce ruby 1.8 warnings.
 .
 
 == 1.4.2 (2002-01-29)
 j
-  * 新しいオプション --no-extentions
+  * [new] 新しいオプション --no-extentions
 e
-  * new option --no-extentions
-  * refine cparse.c
+  * [new] new option --no-extentions
 .
 
 == 1.4.1 (2001-12-02)
