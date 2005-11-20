@@ -1,3 +1,7 @@
+Mon Nov 21 02:37:10 2005  Minero Aoki  <aamine@loveruby.net>
+
+	* version 1.4.5 released.
+
 Mon Nov 21 02:31:18 2005  Minero Aoki  <aamine@loveruby.net>
 
 	* bin/racc: shebang line should include file extension.
