@@ -1,7 +1,7 @@
 #
-# grammar.rb
+# $Id$
 #
-# Copyright (c) 1999-2004 Minero Aoki
+# Copyright (c) 1999-2005 Minero Aoki
 #
 # This program is free software.
 # You can distribute/modify this program under the terms of
@@ -11,6 +11,7 @@
 
 require 'racc/compat'
 require 'racc/iset'
+require 'racc/exception'
 
 module Racc
 
@@ -89,7 +90,7 @@ module Racc
       sym = arr.shift
       case sym
       when OrMark, UserAction, Prec
-        raise ParseError, "#{sym.lineno}: unexpected token #{sym.name}"
+        raise CompileError, "#{sym.lineno}: unexpected token #{sym.name}"
       end
       new = []
       arr.each do |i|
@@ -98,7 +99,7 @@ module Racc
           register_rule sym, new
           new = []
         when Prec
-          raise ParseError, "'=<prec>' used twice in one rule" if @sprec
+          raise CompileError, "'=<prec>' used twice in one rule" if @sprec
           @sprec = i.val
         else
           new.push i
@@ -114,12 +115,12 @@ module Racc
         targ = @prev_target
       end
 
-      if UserAction === list[-1]
+      if list.last.kind_of?(UserAction)
         act = list.pop
       else
         act = UserAction.new('', 0)
       end
-      list.map! {|t| (UserAction === t) ? embed_symbol(t) : t }
+      list.map! {|t| t.kind_of?(UserAction) ? embed_symbol(t) : t }
 
       reg_rule targ, list, act
       @start ||= targ
@@ -140,28 +141,28 @@ module Racc
 
     def end_register_rule
       @end_rule = true
-      raise RaccError, 'no rule in input' if @rules.empty?
+      raise CompileError, 'no rule in input' if @rules.empty?
     end
 
     def register_start(tok)
-      raise ParseError, "'start' defined twice'" if @start
+      raise CompileError, "'start' defined twice'" if @start
       @start = tok
     end
 
     def register_option(option)
       case option.sub(/\Ano_/, '')
       when 'omit_action_call'
-        @racc.omit_action = ((/\Ano_/ === option) ? false : true)
+        @racc.omit_action = ((/\Ano_/ =~ option) ? false : true)
       when 'result_var'
-        @racc.result_var = ((/\Ano_/ === option) ? false : true)
+        @racc.result_var = ((/\Ano_/ =~ option) ? false : true)
       else
-        raise ParseError, "unknown option '#{option}'"
+        raise CompileError, "unknown option '#{option}'"
       end
     end
 
     def expect(n = nil)
       return @expect unless n
-      raise ParseError, "'expect' exist twice" if @expect
+      raise CompileError, "'expect' exist twice" if @expect
       @expect = n
     end
 
@@ -426,7 +427,7 @@ module Racc
     end
 
     def ==(other)
-      Rule === other and @ident == other.ident
+      other.kind_of?(Rule) and @ident == other.ident
     end
 
     def [](idx)
@@ -515,7 +516,7 @@ module Racc
     private
     
     def ptr_bug!
-      bug! "pointer not exist: self: #{to_s}"
+      raise "racc: fatal: pointer not exist: self: #{to_s}"
     end
 
   end   # class LocationPointer
@@ -561,7 +562,7 @@ module Racc
 
     def register_prec(assoc, toks)
       if @end_prec
-        raise ParseError, "'prec' block is defined twice"
+        raise CompileError, "'prec' block is defined twice"
       end
       toks.push assoc
       @prec_table.push toks
@@ -588,7 +589,7 @@ module Racc
 
     def register_conv(tok, str)
       if @end_conv
-        raise ParseError, "'convert' block is defined twice"
+        raise CompileError, "'convert' block is defined twice"
       end
       tok.conv = str
     end
@@ -629,7 +630,7 @@ module Racc
         end
       end
       toks.each do |t|
-        unless String === t.value
+        unless t.value.kind_of?(String)
           $stderr.puts "racc warning: terminal #{t} used but not decleared"
         end
       end
@@ -706,7 +707,7 @@ module Racc
         nm = nm.id2name
         module_eval(<<-EOS)
           def #{nm}=(v)
-            bug! '@#{nm} != nil' unless @#{nm}.nil?
+            raise 'racc: fatal: @#{nm} != nil' unless @#{nm}.nil?
             @#{nm} = v
           end
         EOS
@@ -726,7 +727,7 @@ module Racc
     def nonterminal?() @nterm end
 
     def term=(t)
-      bug! unless @term.nil?
+      raise 'racc: fatal: term= called twice' unless @term.nil?
       @term = t
       @nterm = !t
     end

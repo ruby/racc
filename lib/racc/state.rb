@@ -1,7 +1,7 @@
 #
-# state.rb
+# $Id$
 #
-# Copyright (c) 1999-2004 Minero Aoki
+# Copyright (c) 1999-2005 Minero Aoki
 #
 # This program is free software.
 # You can distribute/modify this program under the terms of
@@ -10,10 +10,9 @@
 #
 
 require 'racc/iset'
+require 'racc/exception'
 
 module Racc
-
-  class RaccError < StandardError; end
 
   # A table of LALR states.
   class StateTable
@@ -101,8 +100,9 @@ module Racc
 
         # check infinite recursion
         if state.ident == dest.ident and state.closure.size == 1
-          raise RaccError, sprintf("Infinite recursion: state %d, with rule %d",
-                                   state.ident, state.ptrs[0].rule.ident)
+          raise CompileError,
+              sprintf("Infinite recursion: state %d, with rule %d",
+                      state.ident, state.ptrs[0].rule.ident)
         end
       end
     end
@@ -406,7 +406,7 @@ module Racc
         item.each_la(@symboltable) do |t|
           act = state.action[t]
           if act
-            Reduce === act or raise "Racc FATAL: #{act.class} in action table"
+            raise "racc: fatal: #{act.class} in action table" unless act.kind_of?(Reduce)
             #
             # can't resolve R/R conflict (on t).
             #   reduce with upper rule as default
@@ -431,14 +431,14 @@ module Racc
           # no conflict
           state.action[stok] = @actions.shift(goto)
         else
-          unless Reduce === act
+          unless act.kind_of?(Reduce)
             puts 'DEBUG -------------------------------'
             p stok
             p act
             state.action.each do |k,v|
               print k.inspect, ' ', v.inspect, "\n"
             end
-            raise "Racc FATAL: #{act.class} in action table"
+            raise "racc: fatal: #{act.class} in action table"
           end
 
           # conflict on stok
@@ -490,7 +490,7 @@ module Racc
 
       ret = if rprec == sprec
               ASSOC[rtok.assoc] or
-                  raise "Racc FATAL: #{rtok}.assoc is not Left/Right/Nonassoc"
+                  raise "racc: fatal: #{rtok}.assoc is not Left/Right/Nonassoc"
             else
               (rprec > sprec) ? (:Reduce) : (:Shift)
             end
@@ -520,9 +520,7 @@ module Racc
       arr = Array.new(@ruletable.size, 0)
       t = a = nil
       act.each do |t,a|
-        if Reduce === a
-          arr[a.ruleid] += 1
-        end
+        arr[a.ruleid] += 1 if a.kind_of?(Reduce)
       end
       i = arr.max
       s = i>0 ? arr.index(i) : nil
@@ -668,7 +666,7 @@ module Racc
         p rule
         p @rrules
         p @la_rules_i
-        raise 'Racc FATAL: cannot get reduce rule id'
+        raise 'racc: fatal: cannot get reduce rule id'
       end
     end
 
@@ -791,10 +789,10 @@ module Racc
       when Rule    then i = i.ident
       when Integer then ;
       else
-        raise "Racc FATAL: wrong class #{i.class} for reduce"
+        raise "racc: fatal: wrong class #{i.class} for reduce"
       end
 
-      r = @reduce[i] or raise "Racc FATAL: reduce action #{i.inspect} not exist"
+      r = @reduce[i] or raise "racc: fatal: reduce action #{i.inspect} not exist"
       r.incref
       r
     end
@@ -812,10 +810,10 @@ module Racc
       when State   then i = i.ident
       when Integer then ;
       else
-        raise "Racc FATAL: wrong class #{i.class} for shift"
+        raise "racc: fatal: wrong class #{i.class} for shift"
       end
 
-      @shift[i] or raise "Racc FATAL: shift action #{i} not exist"
+      @shift[i] or raise "racc: fatal: shift action #{i} does not exist"
     end
 
     def each_shift(&block)
@@ -868,7 +866,7 @@ module Racc
 
     def decref
       @refn -= 1
-      bug! 'act.refn < 0' if @refn < 0
+      raise 'racc: fatal: act.refn < 0' if @refn < 0
     end
   end
 

@@ -1,7 +1,7 @@
 #
-# iset.rb
+# $Id$
 #
-# Copyright (c) 1999-2004 Minero Aoki
+# Copyright (c) 1999-2005 Minero Aoki
 #
 # This program is free software.
 # You can distribute/modify this program under the terms of

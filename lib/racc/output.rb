@@ -1,7 +1,7 @@
 #
-# output.rb
+# $Id$
 #
-# Copyright (c) 1999-2004 Minero Aoki
+# Copyright (c) 1999-2005 Minero Aoki
 #
 # This program is free software.
 # You can distribute/modify this program under the terms of
@@ -247,7 +247,7 @@ module Racc
       when Accept then @actions.shift_n
       when Error  then @actions.reduce_n * -1
       else
-        raise "Racc FATAL: wrong act type #{act.class} in action table"
+        raise "racc: fatal: wrong act type #{act.class} in action table"
       end
     end
 
@@ -518,10 +518,10 @@ module_eval <<'.,.,', '%s', %d
       keys = acts.keys
       keys.sort! {|a,b| a.ident <=> b.ident }
 
-      [ Shift, Reduce, Error, Accept ].each do |type|
+      [ Shift, Reduce, Error, Accept ].each do |klass|
         keys.delete_if do |tok|
           act = acts[tok]
-          if type === act
+          if act.kind_of?(klass)
             outact f, tok, act
             if sr and c = sr.delete(tok)
               outsrconf f, c
@@ -540,7 +540,7 @@ module_eval <<'.,.,', '%s', %d
       rr.each {|tok, c| outrrconf f, c } if rr
 
       act = state.defact
-      if not Error === act or @debug
+      if not act.kind_of?(Error) or @debug
         outact f, '$default', act
       end
 
@@ -565,7 +565,7 @@ module_eval <<'.,.,', '%s', %d
       when Error
         f.printf "  %-12s  error\n", t.to_s
       else
-        raise "Racc FATAL: wrong act for outact: act=#{act}(#{act.class})"
+        raise "racc: fatal: wrong act for outact: act=#{act}(#{act.class})"
       end
     end
 

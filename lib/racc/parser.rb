@@ -30,10 +30,10 @@ module Racc
 
   class Parser
 
-    Racc_Runtime_Version = '1.4.4'
+    Racc_Runtime_Version = '1.4.5'
     Racc_Runtime_Revision = '$Revision$'.split[1]
 
-    Racc_Runtime_Core_Version_R = '1.4.4'
+    Racc_Runtime_Core_Version_R = '1.4.5'
     Racc_Runtime_Core_Revision_R = '$Revision$'.split[1]
     begin
       require 'racc/cparse'
@@ -248,7 +248,7 @@ module Racc
           when 2 # yyaccept
             return shift_n
           else
-            raise RuntimeError, '[Racc Bug] unknown jump code'
+            raise '[Racc Bug] unknown jump code'
           end
         end
 
@@ -297,7 +297,7 @@ module Racc
         return act
 
       else
-        raise RuntimeError, "[Racc Bug] unknown action #{act.inspect}"
+        raise "[Racc Bug] unknown action #{act.inspect}"
       end
 
       racc_next_state(@racc_state[-1], @racc_state) if @yydebug
@@ -430,7 +430,7 @@ module Racc
 
     def racc_token2str(tok)
       self.class::Racc_token_to_s_table[tok] or
-          raise RuntimeError, "[Racc Bug] can't convert token #{tok} to string"
+          raise "[Racc Bug] can't convert token #{tok} to string"
     end
 
     def token_to_str(t)

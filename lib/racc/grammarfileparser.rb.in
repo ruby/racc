@@ -13,6 +13,7 @@ require 'racc/compat'
 require 'racc/parser'
 require 'racc/grammarfilescanner'
 require 'racc/usercodeparser'
+require 'racc/exception'
 
 module Racc
 
@@ -50,7 +51,7 @@ module Racc
       else
         v = val.inspect
       end
-      raise ParseError, "#{@scanner.lineno}: unexpected token '#{v}'"
+      raise CompileError, "#{@scanner.lineno}: unexpected token '#{v}'"
     end
 
     STATE_TRANSITION_TABLE

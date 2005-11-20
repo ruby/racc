@@ -1,7 +1,7 @@
 #
-# compat.rb
+# $Id$
 #
-# Copyright (c) 1999-2004 Minero Aoki
+# Copyright (c) 1999-2005 Minero Aoki
 #
 # This program is free software.
 # You can distribute/modify this program under the terms of
@@ -29,8 +29,4 @@ unless File.respond_to?(:read)
   def File.read(filename)
     File.open(filename) {|f| return f.read }
   end
-end
-
-def bug!(msg)
-  raise '[Racc BUG] ' + msg
 end

@@ -10,6 +10,6 @@
 #
 
 module Racc
-  Version   = '1.4.5'
-  Copyright = 'Copyright (c) 1999-2005 Minero Aoki'
+  class Error < StandardError; end
+  class CompileError < Error; end
 end

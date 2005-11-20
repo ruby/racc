@@ -1,7 +1,7 @@
 #
-# grammarfilescanner.rb
+# $Id: 
 #
-# Copyright (c) 1999-2004 Minero Aoki
+# Copyright (c) 1999-2005 Minero Aoki
 #
 # This program is free software.
 # You can distribute/modify this program under the terms of
@@ -9,11 +9,10 @@
 # For details of the GNU LGPL, see the file "COPYING".
 #
 
+require 'racc/exception'
+
 module Racc
 
-  class ScanError < StandardError; end
-
-  
   class GrammarFileScanner
 
     def initialize(str)
@@ -48,10 +47,10 @@ module Racc
         until @line.empty?
           @line.sub!(/\A\s+/, '')
 
-          if /\A\#/ === @line
+          if /\A\#/ =~ @line
             break
 
-          elsif /\A\/\*/ === @line
+          elsif /\A\/\*/ =~ @line
             skip_comment
 
           elsif s = reads(/\A[a-zA-Z_]\w*/)
@@ -88,7 +87,7 @@ module Racc
       @lineno += 1
       @line = @lines[@lineno]
 
-      if not @line or /\A----/ === @line
+      if not @line or /\A----/ =~ @line
         @lines.clear
         @line = nil
         if @in_block
@@ -149,6 +148,8 @@ module Racc
       @line = m.post_match
       @in_block = nil
     end
+
+    $raccs_print_type = false
 
     def scan_action
       buf = ''
@@ -228,19 +229,19 @@ module Racc
             buf << ch << (pre = read(1))
 
           else
-            raise 'Racc FATAL: did not match'
+            raise 'racc: fatal: must not happen'
           end
         end
 
         buf << "\n"
       end while next_line()
 
-      raise 'Racc FATAL: scan finished before parse finished'
+      raise 'racc: fatal: scan finished before parser finished'
     end
 
     def literal_head?(pre, post)
-      (not pre or not /[a-zA-Z_0-9]/n === pre[-1,1]) and
-      not post.empty? and not /\A[\s\=]/n === post
+      (not pre or not /[a-zA-Z_0-9]/n =~ pre[-1,1]) and
+          not post.empty? and not /\A[\s\=]/n =~ post
     end
 
     def read(len)
@@ -290,11 +291,9 @@ module Racc
     end
 
     def scan_error!(msg)
-      raise ScanError, "#{lineno()}: #{msg}"
+      raise CompileError, "#{lineno()}: #{msg}"
     end
 
-    $raccs_print_type = false
-          
   end
 
 end   # module Racc
