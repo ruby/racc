@@ -1556,6 +1556,7 @@ class Installer
     path = [ "#{curr_srcdir()}/#{id}",
              "#{curr_srcdir()}/#{id}.rb" ].detect {|cand| File.file?(cand) }
     return unless path
+    $stderr.puts "invoking hook script #{path}" if verbose?
     begin
       instance_eval File.read(path), path, 1
     rescue
