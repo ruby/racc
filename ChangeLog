@@ -1,3 +1,13 @@
+Mon Nov 21 00:49:18 2005  Minero Aoki  <aamine@loveruby.net>
+
+	* Makefile: remove useless target `import'.
+
+	* Makefile: generate parser-text.rb.
+
+	* misc/dist.sh: setup.rb and COPYING is now in repository.
+
+	* misc/dist.sh: generate parser-text.rb.
+
 Mon Nov 21 00:14:21 2005  Minero Aoki  <aamine@loveruby.net>
 
 	* bin/racc: read racc/parser.rb from parser-text.rb.

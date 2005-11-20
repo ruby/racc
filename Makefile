@@ -1,12 +1,10 @@
-#
 # racc/Makefile
-#
 
-ident    = racc
-version  = 1.4.4
+ident   = racc
+version = 1.4.5
 include $(HOME)/.makeparams
 
-.PHONY: default all test doc update import site dist
+.PHONY: default all test doc update site dist bootstrap
 
 default: all
 
@@ -17,7 +15,15 @@ update:
 
 bootstrap: lib/racc/grammarfileparser.rb
 lib/racc/grammarfileparser.rb: misc/boot.rb lib/racc/grammarfileparser.rb.in
-	ruby -I./lib misc/boot.rb $@.in > $@
+	echo "# This file is autogenrated. DO NOT MODIFY!" > $@
+	ruby -I./lib misc/boot.rb $@.in >> $@
+
+lib/racc/parser-text.rb: lib/racc/parser.rb
+	echo "module Racc" > $@
+	echo "PARSER_TEXT = <<'__end_of_file__'" >> $@
+	cat lib/racc/parser.rb >> $@
+	echo "__end_of_file__" >> $@
+	echo "end" >> $@
 
 extensions:
 	cd ext/racc/cparse && ruby extconf.rb && $(MAKE)
@@ -31,20 +37,17 @@ doc:
 	compile-documents --lang=en --template=$(tmpldir)/manual.en doc doc.en
 
 dist:
-	version=$(version) sh misc/dist.sh
+	version=$(version) ardir=$(ardir) sh misc/dist.sh
 
 clean:
 	rm -f lib/racc/grammarfileparser.rb
 	rm -f misc/boot.rb.output
-	rm -rf doc.*
-	rm -f NEWS.*
+	rm -f lib/racc/parser-text.rb
+	rm -rf doc.* NEWS.*
 	cd ext/racc/cparse && $(MAKE) clean
 
 test:
 	cd test; ruby test.rb
-
-import:
-	remove-cvsid --id=amstd $(wcdir)/amstd/rubyloader.rb > lib/racc/rubyloader.rb
 
 site:
 	erb web/racc.ja.rhtml | wrap-html --template=$(tmpldir)/basic.ja | nkf -Ej > $(projdir_ja)/index.html
