@@ -1,7 +1,7 @@
 #
-# parser.rb
+# $Id$
 #
-# Copyright (c) 1999-2004 Minero Aoki
+# Copyright (c) 1999-2005 Minero Aoki
 #
 # This program is free software.
 # You can distribute/modify this program under the same terms of ruby.
@@ -9,8 +9,6 @@
 # As a special exception, when this code is copied by Racc
 # into a Racc output file, you may use that output file
 # without restriction.
-#
-# $Id$
 #
 
 unless defined?(NotImplementedError)
