@@ -8,7 +8,7 @@ include $(HOME)/.makeparams
 
 default: all
 
-all: update bootstrap extensions
+all: update bootstrap lib/racc/parser-text.rb extensions
 
 update:
 	update-version --version=$(version) lib/racc/info.rb lib/racc/parser.rb ext/racc/cparse/cparse.c
