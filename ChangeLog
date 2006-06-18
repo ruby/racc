@@ -1,3 +1,7 @@
+Mon Jun 19 02:35:59 2006  Minero Aoki  <aamine@loveruby.net>
+
+	* ext/racc/cparse/cparse.c: K&R -> ANSI C.
+
 Mon Nov 21 02:37:10 2005  Minero Aoki  <aamine@loveruby.net>
 
 	* version 1.4.5 released.
