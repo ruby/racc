@@ -2,7 +2,7 @@
 #
 # $Id$
 #
-# Copyright (c) 1999-2005 Minero Aoki
+# Copyright (c) 1999-2006 Minero Aoki
 #
 # This program is free software.
 # You can distribute/modify this program under the terms of
@@ -67,7 +67,8 @@ end
 ##### parse arg ------------------------------------------------
 
 Racc_Options = <<EOS
-  o -g --debug            - output parser for user level debugging
+  o -t --debug            - output parser for user level debugging
+  x -g -                  - ditto (obsolete)
   o -o --output-file <outfile>  file name of output [<fname>.tab.rb]
   o -e --executable <rubypath>  insert #! line in output ('ruby' to default)
   o -E --embedded         - output file which don't need runtime
@@ -190,7 +191,7 @@ end
 
 def set_flags__after_parse(racc, opt)
   # overwrite source's
-  racc.debug_parser = opt['--debug']
+  racc.debug_parser = opt['--debug'] || opt['-g']
   racc.convert_line = opt['--line-convert']
   racc.omit_action  = opt['--omit-actions'] unless opt['--omit-actions'] == nil
   if opt['-D'] or $DEBUG

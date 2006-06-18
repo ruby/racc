@@ -1,3 +1,8 @@
+Mon Jun 19 02:38:18 2006  Minero Aoki  <aamine@loveruby.net>
+
+	* bin/racc: -g option is now -t.  -g option is obsolete and is an
+	  alias of -t.
+
 Mon Jun 19 02:35:59 2006  Minero Aoki  <aamine@loveruby.net>
 
 	* ext/racc/cparse/cparse.c: K&R -> ANSI C.
