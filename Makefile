@@ -52,5 +52,5 @@ test:
 site:
 	erb web/racc.ja.rhtml | wrap-html --template=$(tmpldir)/basic.ja | nkf -Ej > $(projdir_ja)/index.html
 	erb web/racc.en.rhtml | wrap-html --template=$(tmpldir)/basic.en > $(projdir_en)/index.html
-	compile-documents --lang=ja --template=$(tmpldir)/basic.ja doc $(projdir_ja)
-	compile-documents --lang=en --template=$(tmpldir)/basic.en doc $(projdir_en)
+	compile-documents --lang=ja --template=$(tmpldir)/basic.ja doc $(projdir_ja)/doc
+	compile-documents --lang=en --template=$(tmpldir)/basic.en doc $(projdir_en)/doc
