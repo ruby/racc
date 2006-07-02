@@ -1,3 +1,5 @@
+# $Id$
+
 module Racc
 
   GenerationOptions = Struct.new(:debug_parser,
@@ -67,7 +69,8 @@ module Racc
       new(parse, rule, token, state, la, prec, conf)
     end
 
-    def initialize(parse = false, rule = false, token = false, state = false, la = false, prec = false, conf = false)
+    def initialize(parse = false, rule = false, token = false, state = false,
+                   la = false, prec = false, conf = false)
       @parse = parse
       @rule = rule
       @token = token
