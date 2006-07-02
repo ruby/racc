@@ -1,3 +1,8 @@
+Sun Jul  2 19:01:55 2006  Minero Aoki  <aamine@loveruby.net>
+
+	* ext/racc/cparse/cparse.c: must require version.h to get
+	  RUBY_VERSION_CODE.
+
 Sun Jul  2 18:33:32 2006  Minero Aoki  <aamine@loveruby.net>
 
 	* ext/racc/cparse/cparse.c: do not use rb_iterate to give a block

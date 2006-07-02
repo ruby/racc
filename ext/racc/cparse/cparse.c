@@ -12,6 +12,7 @@
 */
 
 #include "ruby.h"
+#include "version.h"
 
 /* -----------------------------------------------------------------------
                         Important Constants
@@ -188,7 +189,6 @@ static VALUE racc_yyparse _((VALUE parser, VALUE lexer, VALUE lexmid,
                              VALUE arg, VALUE sysdebug));
 
 static void call_lexer _((struct cparse_params *v));
-static VALUE lexer_iter _((VALUE data));
 static VALUE lexer_i _((VALUE block_args, VALUE data, VALUE self));
 
 static VALUE assert_array _((VALUE a));
@@ -698,7 +698,7 @@ reduce0(VALUE val, VALUE data, VALUE self)
 
     /* calculate transition state */
     if (RARRAY(v->state)->len == 0)
-        rb_raise(RaccBug, "state stack unexpected empty");
+        rb_raise(RaccBug, "state stack unexpectedly empty");
     k2 = num_to_long(LAST_I(v->state));
     k1 = num_to_long(reduce_to) - v->nt_base;
     D_printf("(goto) k1=%ld\n", k1);
