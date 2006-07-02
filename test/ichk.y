@@ -1,8 +1,4 @@
-#
-# racc tester
-#
-
-class Calcp
+class Calculator
 
   prechigh
     left '*' '/'
@@ -15,10 +11,11 @@ class Calcp
 
 rule
 
-  target : exp | /* none */ { result = 0 } ;
+  target : exp
+         | /* none */ { result = 0 }
 
   exp    : exp '+' exp { result += val[2]; a = 'plus' }
-         | exp '-' exp { result -= val[2]; "string test" }
+         | exp '-' exp { result -= val[2]; a = "string test" }
          | exp '*' exp { result *= val[2] }
          | exp '/' exp { result /= val[2] }
          | '(' { $emb = true } exp ')'
@@ -28,85 +25,78 @@ rule
              }
          | '-' NUMBER  { result = -val[1] }
          | NUMBER
-         ;
-
-end
 
 ----header
 
-class Number; end
+class Number
+end
 
 ----inner
 
-  def parse( src )
-    @src = src
+  def initialize
     @racc_debug_out = $stdout
+    @yydebug = false
+  end
+
+  def validate(expected, src)
+    result = parse(src)
+    unless result == expected
+      raise "test #{@test_number} fail"
+    end
+    @test_number += 1
+  end
+
+  def parse(src)
+    @src = src
+    @test_number = 1
     yyparse self, :scan
   end
 
-  def scan( &block )
-    @src.each &block
-  end
-
-  def initialize
-    @yydebug = true
+  def scan(&block)
+    @src.each(&block)
   end
 
 ----footer
 
-$parser = Calcp.new
-$test_number = 1
+calc = Calculator.new
 
-def chk( src, ans )
-  result = $parser.parse( src )
-  raise "test #{$test_number} fail" unless result == ans
-  $test_number += 1
-end
+calc.validate(9, [[Number, 9], nil])
 
-chk(
-  [ [Number, 9],
-    [false, '$'] ], 9
-)
+calc.validate(-3,
+    [[Number, 5],
+     ['*',   '*'],
+     [Number, 1],
+     ['-',   '*'],
+     [Number, 1],
+     ['*',   '*'],
+     [Number, 8],
+     nil])
 
-chk(
-  [ [Number, 5],
-    ['*',   '*'],
-    [Number, 1],
-    ['-',   '*'],
-    [Number, 1],
-    ['*',   '*'],
-    [Number, 8],
-    [false, '$'] ], -3
-)
+calc.validate(-1,
+    [[Number, 5],
+     ['+',   '+'],
+     [Number, 2],
+     ['-',   '-'],
+     [Number, 5],
+     ['+',   '+'],
+     [Number, 2],
+     ['-',   '-'],
+     [Number, 5],
+     nil])
 
-chk(
-  [ [Number, 5],
-    ['+',   '+'],
-    [Number, 2],
-    ['-',   '-'],
-    [Number, 5],
-    ['+',   '+'],
-    [Number, 2],
-    ['-',   '-'],
-    [Number, 5],
-    [false, '$'] ], -1
-)
+calc.validate(-4,
+    [['-',    'UMINUS'],
+     [Number, 4],
+     nil])
 
-chk(
-  [ ['-',    'UMINUS'],
-    [Number, 4],
-    [false, '$'] ], -4
-)
-
-chk(
-  [ [Number, 7],
-    ['*',   '*'],
-    ['(',   '('],
-    [Number, 4],
-    ['+',   '+'],
-    [Number, 3],
-    [')',   ')'],
-    ['-',   '-'],
-    [Number, 9],
-    [false, '$'] ], 40
-)
+calc.validate(40,
+    [[Number, 7],
+     ['*',   '*'],
+     ['(',   '('],
+     [Number, 4],
+     ['+',   '+'],
+     [Number, 3],
+     [')',   ')'],
+     ['-',   '-'],
+     [Number, 9],
+     nil])

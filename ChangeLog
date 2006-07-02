@@ -1,3 +1,7 @@
+Sun Jul  2 19:46:58 2006  Minero Aoki  <aamine@loveruby.net>
+
+	* test/ichk.y: update coding style.
+
 Sun Jul  2 19:01:55 2006  Minero Aoki  <aamine@loveruby.net>
 
 	* ext/racc/cparse/cparse.c: must require version.h to get
