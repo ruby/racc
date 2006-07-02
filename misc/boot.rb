@@ -1,15 +1,11 @@
 # $Id$
 
-require 'racc/compat'
-require 'racc/info'
-require 'racc/grammar'
-require 'racc/state'
-require 'racc/output'
+require 'racc'
 require 'stringio'
 
 module Racc
 
-  class State
+  class State   # reopen
     undef sr_conflict
     def sr_conflict(*args)
       raise 'Racc boot script fatal: S/R conflict in build'
@@ -24,73 +20,67 @@ module Racc
 
   class BootstrapCompiler
 
+    def BootstrapCompiler.new_generator(states)
+      generator = Racc::CodeGenerator.new(states)
+      generator.filename = __FILE__
+      generator.omit_action_call = true
+      generator.result_var = true
+      generator.convert_line = true
+      generator
+    end
+
     def BootstrapCompiler.main
-      c = Racc::BootstrapCompiler.new
-      c.build ARGV.delete('-g')
+      states = new().compile
       File.foreach(ARGV[0]) do |line|
         if /STATE_TRANSITION_TABLE/ =~ line
-          Racc::CodeGenerator.new(c).output $stdout
+          generator = new_generator(states)
+          generator.debug_parser = ARGV.delete('-g')
+          generator.parser_table $stdout
         else
           print line
         end
       end
       File.open("#{__FILE__}.output", 'w') {|f|
-        Racc::VerboseOutputter.new(c).output f
+        Racc::LogFileGenerator.new(states).output f
       }
     end
 
     # called from lib/racc/pre-setup
-    def BootstrapCompiler.generate(infile)
-      c = Racc::BootstrapCompiler.new
-      c.build false
-      File.read(infile).sub(/STATE_TRANSITION_TABLE/) {
+    def BootstrapCompiler.generate(template_file)
+      states = new().compile
+      File.read(template_file).sub(/STATE_TRANSITION_TABLE/) {
+        generator = new_generator(states)
         out = StringIO.new
-        Racc::CodeGenerator.new(c).output out
+        generator.parser_table out
         out.string
       }
     end
 
-    def initialize
-      @ruletable = nil
-      @symboltable = nil
-      @statetable = nil
+    def compile
+      @grammar = Grammar.new
+      @symboltable = @grammar.symboltable
+      define_grammar
+      states = States.init(@grammar)
+      states.determine
+      states
     end
 
-    attr_reader :ruletable
-    attr_reader :symboltable
-    attr_reader :statetable
-
-    def filename
-      '(boot.rb)'
-    end
-
-    def debug_parser() @dflag end
-    def convert_line() true end
-    def omit_action()  true end
-    def result_var()   true end
-
-    def debug()   false end
-    def d_parse() false end
-    def d_rule()  false end
-    def d_token() false end
-    def d_state() false end
-    def d_la()    false end
-    def d_prec()  false end
+    private
 
     def _(rulestr, actstr)
-      nonterm, symlist = *parse_rule_exp(rulestr)
+      target, symlist = *parse_rule_exp(rulestr)
       lineno = caller(1)[0].split(':')[1].to_i + 1
       symlist.push UserAction.new(format_action(actstr), lineno)
-      @ruletable.register_rule nonterm, symlist
+      @grammar.add target, symlist
     end
 
     def parse_rule_exp(str)
       tokens = str.strip.scan(/[\:\|]|'.'|\w+/)
-      nonterm = (tokens[0] == '|') ? nil : @symboltable.get(tokens.shift.intern)
+      target = (tokens[0] == '|') ? nil : @symboltable.get(tokens.shift.intern)
       tokens.shift   # discard ':' or '|'
-      return nonterm,
+      return target,
              tokens.map {|t|
-               @symboltable.get(if /\A'/ === t
+               @symboltable.get(if /\A'/ =~ t
                                 then eval(%Q<"#{t[1..-2]}">)
                                 else t.intern
                                 end)
@@ -102,27 +92,18 @@ module Racc
           .map {|line| line.sub(/\A {20}/, '') }.join('')
     end
 
-    def build(debugflag)
-      @dflag = debugflag
+    def define_grammar
 
-      @symboltable = SymbolTable.new(self)
-      @ruletable   = RuleTable.new(self)
-      @statetable  = StateTable.new(self)
-
-
-_"  xclass      : XCLASS class params XRULE rules opt_end                ",
-                   %{
-                        @ruletable.end_register_rule
-                    }
+_"  xclass      : XCLASS class params XRULE rules opt_end                ", ''
 
 _"  class       : rubyconst                                              ",
                    %{
-                        @class_name = val[0]
+                        @result.classname = val[0]
                     }
 _"              | rubyconst '<' rubyconst                                ",
                    %{
-                        @class_name = val[0]
-                        @super_class = val[2]
+                        @result.classname = val[0]
+                        @result.superclass = val[2]
                     }
 
 _"  rubyconst   : XSYMBOL                                                ",
@@ -144,21 +125,37 @@ _"  param_seg   : XCONV convdefs XEND                                    ",
 _"              | xprec                                                  ", ''
 _"              | XSTART symbol                                          ",
                    %{
-                        @ruletable.register_start val[1]
+                        @grammar.start_symbol = val[1]
                     }
 _"              | XTOKEN symbol_list                                     ",
                    %{
-                        @symboltable.register_token val[1]
+                        val[1].each do |sym|
+                          @symboltable.declare_terminal sym
+                        end
                     }
 _"              | XOPTION bare_symlist                                   ",
-                   %{
-                        val[1].each do |s|
-                          @ruletable.register_option s.to_s
+                   %q{
+                        val[1].each do |opt|
+                          case opt
+                          when 'result_var'
+                            @result.result_var = true
+                          when 'no_result_var'
+                            @result.result_var = false
+                          when 'omit_action_call'
+                            @result.omit_action_call = true
+                          when 'no_omit_action_call'
+                            @result.omit_action_call = false
+                          else
+                            raise CompileError, "unknown option: #{opt}"
+                          end
                         end
                     }
 _"              | XEXPECT DIGIT                                          ",
                    %{
-                        @ruletable.expect val[1]
+                        if @result.expect
+                          raise CompileError, "`expect' seen twice"
+                        end
+                        @result.expect = val[1]
                     }
 
 _"  convdefs    : symbol STRING                                          ",
@@ -216,9 +213,7 @@ _"              | STRING                                                 ",
 
 _"  rules       : rules_core                                             ",
                    %{
-                        unless result.empty?
-                          @ruletable.register_rule_from_array result
-                        end
+                        add_rule_block result  unless result.empty?
                     }
 _"              |                                                        ", ''
 
@@ -232,17 +227,13 @@ _"              | rules_core rule_item                                   ",
                     }
 _"              | rules_core ';'                                         ",
                    %{
-                        unless result.empty?
-                          @ruletable.register_rule_from_array result
-                        end
+                        add_rule_block result  unless result.empty?
                         result.clear
                     }
 _"              | rules_core ':'                                         ",
                    %{
                         pre = result.pop
-                        unless result.empty?
-                          @ruletable.register_rule_from_array result
-                        end
+                        add_rule_block result  unless result.empty?
                         result = [pre]
                     }
 
@@ -272,10 +263,6 @@ _"              | bare_symlist XSYMBOL                                   ",
 _"  opt_end     : XEND                                                   ", ''
 _"              |                                                        ", ''
 
-
-      @ruletable.init
-      @statetable.init
-      @statetable.determine
     end
 
   end

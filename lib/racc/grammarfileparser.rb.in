@@ -1,7 +1,7 @@
 #
 # $Id$
 #
-# Copyright (c) 1999-2005 Minero Aoki
+# Copyright (c) 1999-2006 Minero Aoki
 #
 # This program is free software.
 # You can distribute/modify this program under the terms of
@@ -13,28 +13,36 @@ require 'racc/compat'
 require 'racc/parser'
 require 'racc/grammarfilescanner'
 require 'racc/usercodeparser'
+require 'racc/grammar'
 require 'racc/exception'
 
 module Racc
 
   class GrammarFileParser < Parser
 
-    def initialize(racc)
-      @yydebug     = racc.d_parse && Racc_debug_parser
-      @ruletable   = racc.ruletable
-      @symboltable = racc.symboltable
+    Result = Struct.new(:filename,
+                        :lineno_base,
+                        :grammar,
+                        :result_var,
+                        :omit_action_call,
+                        :classname,
+                        :superclass,
+                        :expect)
 
-      @class_name = nil
-      @super_class = nil
+    def initialize(debug_flags)
+      @yydebug = debug_flags.parse && Racc_debug_parser
+      @grammar = Grammar.new
+      @symboltable = @grammar.symboltable
     end
 
-    attr_reader :class_name
-    attr_reader :super_class
-
-    def parse(str)
+    def parse(str, filename = '-', lineno_base = 0)
+      @filename = filename
+      @lineno_base = lineno_base
+      @result = Result.new(filename, lineno_base, @grammar, true, true)
       @scanner = GrammarFileScanner.new(str)
       @scanner.debug = @yydebug
       do_parse
+      @result
     end
 
     private
@@ -46,12 +54,38 @@ module Racc
     def on_error(tok, val, _values)
       if val.respond_to?(:id2name)
         v = val.id2name
-      elsif String === val
+      elsif val.kind_of?(String)
         v = val
       else
         v = val.inspect
       end
-      raise CompileError, "#{@scanner.lineno}: unexpected token '#{v}'"
+      raise CompileError, "#{location()}: unexpected token '#{v}'"
+    end
+
+    def location
+      "#{@filename}:#{@lineno_base + @scanner.lineno}"
+    end
+
+    def add_rule_block(list)
+      target = list.shift
+      case target
+      when OrMark, UserAction, Prec
+        raise CompileError, "#{target.lineno}: unexpected symbol #{target.name}"
+      end
+      curr = []
+      list.each do |i|
+        case i
+        when OrMark
+          @grammar.add target, curr
+          curr = []
+        when Prec
+          raise CompileError, "'=<prec>' used twice in one rule" if @sprec
+          @sprec = i.val
+        else
+          curr.push i
+        end
+      end
+      @grammar.add target, curr
     end
 
     STATE_TRANSITION_TABLE

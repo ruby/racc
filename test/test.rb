@@ -59,7 +59,7 @@ def compile_test(args, ok)
   n = fname.sub(/\.y\z/, '')
   args.push '-Oout/' + n
   args.push '-otab/' + n
-  args.unshift '-Dapo'
+  args.unshift '-Dpo'
   args.push fname
 
   racc args.join(' ')
@@ -142,8 +142,8 @@ def ruby(arg)
   system str or raise TestFailed, "'#{cmd}' failed"
 end
 
-$racc = 'racc'
-# $racc += ' --no-extentions' if ENV['NORUBYEXT']
+$racc = ENV['RACC'] || 'racc'
+#$racc += ' --no-extentions' if ENV['NORUBYEXT']
 
 def racc(arg)
   ruby "-S #{$racc} #{arg}"

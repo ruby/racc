@@ -1,3 +1,65 @@
+Mon Jul  3 04:34:32 2006  Minero Aoki  <aamine@loveruby.net>
+
+	* lib/racc/compiler.rb: do not export Grammar/SymbolTable/States.
+
+	* lib/racc/compiler.rb: make a new class for debug flags
+	  (Racc::DebugFlags).
+
+	* lib/racc/compiler.rb: removed.
+
+	* bin/racc: eliminate Racc::Compiler class.
+
+	* bin/racc: refactor profiling code.
+
+	* bin/racc: move file generation code to racc/generator.rb.
+
+	* misc/boot.rb: does not emulate Racc::Compiler interface.
+
+	* lib/racc.rb: new file to require whole generator.
+
+	* lib/racc/grammar.rb: class RuleTable -> Grammar.
+
+	* lib/racc/grammar.rb: Grammar.new does not acccept a Compiler.
+
+	* lib/racc/grammar.rb: refactoring.
+
+	* lib/racc/grammarfileparser.rb.in: GrammarFileParser.new does not
+	  accept a Compiler.
+
+	* lib/racc/grammarfileparser.rb.in: #parser takes more 2 args, a
+	  filename and a base line number.
+
+	* lib/racc/grammarfileparser.rb.in: refactoring.
+
+	* lib/racc/output.rb -> generate.rb
+
+	* lib/racc/generate.rb: class Formatter -> CodeGenerator.
+
+	* lib/racc/generate.rb: CodeGenerator.new does not accept a
+	  Compiler.
+
+	* lib/racc/generate.rb: a CodeGenerator got many parameters via
+	  setter method.
+
+	* lib/racc/generate.rb: class VerboseOutputter ->
+	  LogFileGenerator.
+
+	* lib/racc/generate.rb: LogFileGenerator.new does not accept a
+	  Compiler.
+
+	* lib/racc/generate.rb: refactoring.
+
+	* lib/racc/state.rb: class StateTable -> States.
+
+	* lib/racc/state.rb: States.new does not acccept a Compiler.
+
+	* lib/racc/state.rb: refactoring.
+
+	* test/test.rb: -Da is obsolete (I forgot what this flag is).
+
+	* test/test.rb: allow replacing racc via environment variable
+	  $RACC.
+
 Mon Jul  3 04:18:49 2006  Minero Aoki  <aamine@loveruby.net>
 
 	* Makefile: new task bootstrap-force.

@@ -1,7 +1,7 @@
 #
 # $Id$
 #
-# Copyright (c) 1999-2005 Minero Aoki
+# Copyright (c) 1999-2006 Minero Aoki
 #
 # This program is free software.
 # You can distribute/modify this program under the terms of
@@ -12,6 +12,7 @@
 require 'racc/compat'
 require 'racc/iset'
 require 'racc/exception'
+require 'forwardable'
 
 module Racc
 
@@ -62,109 +63,63 @@ module Racc
   end
 
 
-  class RuleTable
+  class Grammar
 
-    def initialize(racc)
-      @racc        = racc
-      @symboltable = racc.symboltable
-
-      @d_token = racc.d_token
-      @d_rule  = racc.d_rule
-      @d_state = racc.d_state
-
-      @rules   = []  # [Rule]
+    def initialize(debug_flags = DebugFlags.new)
+      @symboltable = SymbolTable.new
+      @debug_symbol = debug_flags.token
+      @rules   = []  # :: [Rule]
       @hashval = 4   # size of dummy rule
       @start   = nil
       @sprec   = nil
-      @emb     = 1
-      @expect  = nil
-
-      @end_rule = false
+      @embedded_action_seq = 1
+      @closed = false
     end
 
+    attr_reader :symboltable
+
     #
-    # register
+    # Registration
     #
 
-    def register_rule_from_array(arr)
-      sym = arr.shift
-      case sym
-      when OrMark, UserAction, Prec
-        raise CompileError, "#{sym.lineno}: unexpected token #{sym.name}"
-      end
-      new = []
-      arr.each do |i|
-        case i
-        when OrMark
-          register_rule sym, new
-          new = []
-        when Prec
-          raise CompileError, "'=<prec>' used twice in one rule" if @sprec
-          @sprec = i.val
-        else
-          new.push i
-        end
-      end
-      register_rule sym, new
-    end
-    
-    def register_rule(targ, list)
-      if targ
-        @prev_target = targ
+    def add(target, list)
+      if target
+        @prev_target = target
       else
-        targ = @prev_target
+        target = @prev_target
       end
-
       if list.last.kind_of?(UserAction)
         act = list.pop
       else
         act = UserAction.new('', 0)
       end
-      list.map! {|t| t.kind_of?(UserAction) ? embed_symbol(t) : t }
-
-      reg_rule targ, list, act
-      @start ||= targ
+      list.map! {|s| s.kind_of?(UserAction) ? embedded_action(s) : s }
+      add0 target, list, act
       @sprec = nil
     end
 
-    def reg_rule(targ, list, act)
-      @rules.push Rule.new(targ, list, act, @rules.size + 1, @hashval, @sprec)
-      @hashval += (list.size + 1)
-    end
-
-    def embed_symbol(act)
-      sym = @symboltable.get("@#{@emb}".intern, true)
-      @emb += 1
-      reg_rule sym, [], act
+    def embedded_action(act)
+      sym = @symboltable.get("@#{@embedded_action_seq}".intern, true)
+      @embedded_action_seq += 1
+      add0 sym, [], act
       sym
     end
+    private :embedded_action
 
-    def end_register_rule
-      @end_rule = true
-      raise CompileError, 'no rule in input' if @rules.empty?
+    def add0(target, list, act)
+      @rules.push Rule.new(target, list, act, @rules.size + 1, @hashval, @sprec)
+      @hashval += (list.size + 1)
     end
+    private :add0
 
-    def register_start(tok)
+    def start_symbol=(s)
       raise CompileError, "'start' defined twice'" if @start
-      @start = tok
+      @start = s
     end
 
-    def register_option(option)
-      case option.sub(/\Ano_/, '')
-      when 'omit_action_call'
-        @racc.omit_action = ((/\Ano_/ =~ option) ? false : true)
-      when 'result_var'
-        @racc.result_var = ((/\Ano_/ =~ option) ? false : true)
-      else
-        raise CompileError, "unknown option '#{option}'"
-      end
-    end
-
-    def expect(n = nil)
-      return @expect unless n
-      raise CompileError, "'expect' exist twice" if @expect
-      @expect = n
-    end
+    #
+    # Access
+    #
 
     attr_reader :start
 
@@ -194,11 +149,49 @@ module Racc
       "<Racc::RuleTable>"
     end
 
+    extend Forwardable
+
+    def_delegator "@symboltable", :each, :each_symbol
+    def_delegator "@symboltable", :each_terminal
+    def_delegator "@symboltable", :each_nonterminal
+
+    def symbols
+      @symboltable.to_a
+    end
+
+    def nonterminal_base
+      @symboltable.nt_base
+    end
+
+    def n_useless_nonterminals
+      n = 0
+      @symboltable.each_nonterminal do |sym|
+        n += 1 if sym.useless?
+      end
+      n
+    end
+
+    def n_useless_rules
+      n = 0
+      each do |r|
+        n += 1 if r.useless?
+      end
+      n
+    end
+
+    #
+    # Computation
+    #
+
     def init
+      @close = true
+      @start ||= @rules.first.target
+      raise CompileError, 'no rule in input' if @rules.empty?
+
       # add dummy rule
       #
       tmp = Rule.new(@symboltable.dummy,
-                     [ @start, @symboltable.anchor, @symboltable.anchor ],
+                     [@start, @symboltable.anchor, @symboltable.anchor],
                      UserAction.new('', 0),
                      0, 0, nil)
                     # id hash prec
@@ -250,7 +243,7 @@ module Racc
 
       # t.expand
       #
-      @symboltable.each_nonterm {|t| compute_expand t }
+      @symboltable.each_nonterminal {|t| compute_expand t }
 
       # t.nullable?, rule.nullable?
       #
@@ -262,31 +255,28 @@ module Racc
     end
 
     def compute_expand(t)
-      puts "expand> #{t.to_s}" if @d_token
+      puts "expand> #{t.to_s}" if @debug_symbol
       t.expand = _compute_expand(t, ISet.new, [])
-      puts "expand< #{t.to_s}: #{t.expand.to_s}" if @d_token
+      puts "expand< #{t.to_s}: #{t.expand.to_s}" if @debug_symbol
     end
 
-    def _compute_expand(t, ret, lock)
+    def _compute_expand(t, set, lock)
       if tmp = t.expand
-        ret.update tmp
-        return ret
+        set.update tmp
+        return set
       end
-
       tok = h = nil
-
-      ret.update_a t.heads
+      set.update_a t.heads
       t.heads.each do |ptr|
         tok = ptr.dereference
         if tok and tok.nonterminal?
           unless lock[tok.ident]
             lock[tok.ident] = true
-            _compute_expand tok, ret, lock
+            _compute_expand tok, set, lock
           end
         end
       end
-
-      ret
+      set
     end
 
     def compute_nullable
@@ -313,7 +303,6 @@ module Racc
             break
           end
         end
-
         rl.nullable?
       end
     end
@@ -335,7 +324,7 @@ module Racc
       t = del = save = nil
 
       @symboltable.each_terminal {|t| t.useless = false }
-      @symboltable.each_nonterm  {|t| t.useless = true }
+      @symboltable.each_nonterminal {|t| t.useless = true }
       @rules.each {|r| r.useless = true }
 
       r = @rules.dup
@@ -375,13 +364,13 @@ module Racc
       end
     end
 
-  end   # class RuleTable
+  end   # class Grammar
 
 
   class Rule
 
-    def initialize(targ, syms, act, rid, hval, prec)
-      @target  = targ
+    def initialize(target, syms, act, rid, hval, prec)
+      @target  = target
       @symbols = syms
       @action  = act.val
       @lineno  = act.lineno
@@ -526,7 +515,7 @@ module Racc
 
     include Enumerable
 
-    def initialize(racc)
+    def initialize
       @chk        = {}
       @symbols    = []    # [Sym]
       @token_list = nil
@@ -536,8 +525,8 @@ module Racc
       @end_prec = false
       
       @dummy  = get(:$start, true)
-      @anchor = get(:$end,   true)   # ID 0
-      @error  = get(:error, false)   # ID 1
+      @anchor = get(:$end,   true)   # Symbol ID = 0
+      @error  = get(:error, false)   # Symbol ID = 1
 
       @anchor.conv = 'false'
       @error.conv = 'Object.new'
@@ -548,31 +537,26 @@ module Racc
     attr_reader :error
 
     def get(val, dummy = false)
-      unless ret = @chk[val]
-        @chk[val] = ret = Sym.new(val, dummy)
-        @symbols.push ret
+      unless result = @chk[val]
+        @chk[val] = result = Sym.new(val, dummy)
+        @symbols.push result
       end
-      ret
+      result
     end
 
-    def register_token(toks)
-      @token_list ||= []
-      @token_list.concat toks
+    def declare_terminal(sym)
+      (@token_list ||= []).push sym
     end
 
     def register_prec(assoc, toks)
-      if @end_prec
-        raise CompileError, "'prec' block is defined twice"
-      end
+      raise CompileError, "'prec' block is defined twice" if @end_prec
       toks.push assoc
       @prec_table.push toks
     end
 
     def end_register_prec(rev)
       @end_prec = true
-
       return if @prec_table.empty?
-
       top = @prec_table.size - 1
       @prec_table.each_with_index do |toks, idx|
         ass = toks.pop
@@ -662,7 +646,7 @@ module Racc
       @symbols[@nt_base, @symbols.size - @nt_base]
     end
 
-    def each_nonterm(&block)
+    def each_nonterminal(&block)
       @nterms.each(&block)
     end
 

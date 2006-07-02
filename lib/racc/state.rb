@@ -1,7 +1,7 @@
 #
 # $Id$
 #
-# Copyright (c) 1999-2005 Minero Aoki
+# Copyright (c) 1999-2006 Minero Aoki
 #
 # This program is free software.
 # You can distribute/modify this program under the terms of
@@ -11,26 +11,35 @@
 
 require 'racc/iset'
 require 'racc/exception'
+require 'forwardable'
 
 module Racc
 
   # A table of LALR states.
-  class StateTable
+  class States
 
-    def initialize(racc)
-      @ruletable   = racc.ruletable
-      @symboltable = racc.symboltable
+    def States.init(grammar, debug_flags = DebugFlags.new)
+      s = new(grammar, debug_flags)
+      s.init
+      s
+    end
 
-      @d_state = racc.d_state
-      @d_la    = racc.d_la
-      @d_prec  = racc.d_prec
+    include Enumerable
+
+    def initialize(grammar, debug_flags = DebugFlags.new)
+      @grammar = grammar
+      @symboltable = grammar.symboltable
+      @d_state = debug_flags.state
+      @d_la    = debug_flags.la
+      @d_prec  = debug_flags.prec
 
       @states = []
       @statecache = {}
 
-      @actions = ActionTable.new(@ruletable, self)
+      @actions = ActionTable.new(@grammar, self)
     end
 
+    attr_reader :grammar
     attr_reader :actions
 
     def size
@@ -57,13 +66,29 @@ module Racc
       @states.each_index(&block)
     end
 
+    extend Forwardable
+
+    def_delegator "@actions", :shift_n
+    def_delegator "@actions", :reduce_n
+    def_delegator "@actions", :nt_base
+
+    def n_shift_reduce_conflicts
+      inject(0) {|sum, st| sum + st.n_shift_reduce_conflicts }
+    end
+
+    def n_reduce_reduce_conflicts
+      inject(0) {|sum, st| sum + st.n_reduce_reduce_conflicts }
+    end
+
     #
     # nfa
     #
 
     def init
+      @grammar.init
+
       # add state 0
-      core_to_state  [ @ruletable[0].ptrs[0] ]
+      core_to_state  [ @grammar[0].ptrs[0] ]
 
       cur = 0
       @gotos = []
@@ -505,7 +530,7 @@ module Racc
 
     def set_accept
       anch = @symboltable.anchor
-      init_state = @states[0].goto_table[@ruletable.start]
+      init_state = @states[0].goto_table[@grammar.start]
       targ_state = init_state.action[anch].goto_state
       acc_state  = targ_state.action[anch].goto_state
 
@@ -517,7 +542,7 @@ module Racc
     def pack(state)
       ### find most frequently used reduce rule
       act = state.action
-      arr = Array.new(@ruletable.size, 0)
+      arr = Array.new(@grammar.size, 0)
       t = a = nil
       act.each do |t,a|
         arr[a.ruleid] += 1 if a.kind_of?(Reduce)
@@ -703,7 +728,15 @@ module Racc
       end
     end
 
-  end   # State
+    def n_shift_reduce_conflicts
+      @srconf ? @srconf.size : 0
+    end
+
+    def n_reduce_reduce_conflicts
+      @rrconf ? @rrconf.size : 0
+    end
+
+  end   # class State
 
 
   #
@@ -760,7 +793,7 @@ module Racc
   class ActionTable
 
     def initialize(rt, st)
-      @ruletable = rt
+      @grammar = rt
       @statetable = st
 
       @reduce = []
@@ -770,7 +803,7 @@ module Racc
     end
 
     def init
-      @ruletable.each do |rule|
+      @grammar.each do |rule|
         @reduce.push Reduce.new(rule)
       end
       @statetable.each do |state|
