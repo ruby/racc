@@ -13,6 +13,10 @@ all: update bootstrap lib/racc/parser-text.rb extensions
 update:
 	update-version --version=$(version) lib/racc/info.rb lib/racc/parser.rb ext/racc/cparse/cparse.c
 
+bootstrap-force:
+	rm lib/racc/grammarfileparser.rb
+	$(MAKE) bootstrap
+
 bootstrap: lib/racc/grammarfileparser.rb
 lib/racc/grammarfileparser.rb: misc/boot.rb lib/racc/grammarfileparser.rb.in
 	echo "# This file is autogenrated. DO NOT MODIFY!" > $@

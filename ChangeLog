@@ -1,3 +1,7 @@
+Mon Jul  3 04:18:49 2006  Minero Aoki  <aamine@loveruby.net>
+
+	* Makefile: new task bootstrap-force.
+
 Sun Jul  2 19:46:58 2006  Minero Aoki  <aamine@loveruby.net>
 
 	* test/ichk.y: update coding style.
