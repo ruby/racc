@@ -12,7 +12,6 @@
 */
 
 #include "ruby.h"
-#include <stdio.h>
 
 /* -----------------------------------------------------------------------
                         Important Constants
@@ -39,8 +38,6 @@ static ID id_yydebug;
 static ID id_nexttoken;
 static ID id_onerror;
 static ID id_noreduce;
-static ID id_catch;
-static VALUE sym_raccjump;
 static ID id_errstatus;
 
 static ID id_d_shift;
@@ -54,9 +51,7 @@ static ID id_d_e_pop;
                               Utils
 ----------------------------------------------------------------------- */
 
-static ID value_to_id _((VALUE v));
-static inline long num_to_long _((VALUE n));
-
+/* For backward compatibility */
 #ifndef ID2SYM
 # define ID2SYM(i) ULONG2NUM(i)
 #endif
@@ -69,6 +64,12 @@ static inline long num_to_long _((VALUE n));
 #ifndef LONG2NUM
 #  define LONG2NUM(i) INT2NUM(i)
 #endif
+#if RUBY_VERSION_CODE >= 190
+#  define HAVE_RB_BLOCK_CALL 1
+#endif
+
+static ID value_to_id _((VALUE v));
+static inline long num_to_long _((VALUE n));
 
 static ID
 value_to_id(VALUE v)
@@ -203,7 +204,6 @@ static void extract_user_token _((struct cparse_params *v,
                                   VALUE block_args, VALUE *tok, VALUE *val));
 static void shift _((struct cparse_params* v, long act, VALUE tok, VALUE val));
 static int reduce _((struct cparse_params* v, long act));
-static VALUE catch_iter _((VALUE dummy));
 static VALUE reduce0 _((VALUE block_args, VALUE data, VALUE self));
 
 #ifdef DEBUG
@@ -250,12 +250,13 @@ racc_yyparse(VALUE parser, VALUE lexer, VALUE lexmid, VALUE arg, VALUE sysdebug)
     return v->retval;
 }
 
+#ifdef HAVE_RB_BLOCK_CALL
 static void
 call_lexer(struct cparse_params *v)
 {
-    rb_iterate(lexer_iter, v->value_v, lexer_i, v->value_v);
+    rb_block_call(v->lexer, v->lexmid, 0, NULL, lexer_i, v->value_v);
 }
-
+#else
 static VALUE
 lexer_iter(VALUE data)
 {
@@ -265,6 +266,13 @@ lexer_iter(VALUE data)
     rb_funcall(v->lexer, v->lexmid, 0);
     return Qnil;
 }
+
+static void
+call_lexer(struct cparse_params *v)
+{
+    rb_iterate(lexer_iter, v->value_v, lexer_i, v->value_v);
+}
+#endif
 
 static VALUE
 lexer_i(VALUE block_args, VALUE data, VALUE self)
@@ -623,15 +631,9 @@ reduce(struct cparse_params *v, long act)
 {
     VALUE code;
     v->ruleno = -act * 3;
-    code = rb_iterate(catch_iter, Qnil, reduce0, v->value_v);
+    code = rb_catch("racc_jump", reduce0, v->value_v);
     v->errstatus = num_to_long(rb_ivar_get(v->parser, id_errstatus));
     return NUM2INT(code);
-}
-
-static VALUE
-catch_iter(VALUE dummy)
-{
-    return rb_funcall(rb_mKernel, id_catch, 1, sym_raccjump);
 }
 
 static VALUE
@@ -641,7 +643,7 @@ reduce0(VALUE val, VALUE data, VALUE self)
     VALUE reduce_to, reduce_len, method_id;
     long len;
     ID mid;
-    VALUE tmp, tmp_t, tmp_v;
+    VALUE tmp, tmp_t = Qundef, tmp_v = Qundef;
     long i, k1, k2;
     VALUE goto_state;
 
@@ -773,9 +775,7 @@ Init_cparse(void)
     id_nexttoken    = rb_intern("next_token");
     id_onerror      = rb_intern("on_error");
     id_noreduce     = rb_intern("_reduce_none");
-    id_catch        = rb_intern("catch");
     id_errstatus    = rb_intern("@racc_error_status");
-    sym_raccjump    = ID2SYM(rb_intern("racc_jump"));
 
     id_d_shift       = rb_intern("racc_shift");
     id_d_reduce      = rb_intern("racc_reduce");
