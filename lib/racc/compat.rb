@@ -1,7 +1,7 @@
 #
 # $Id$
 #
-# Copyright (c) 1999-2005 Minero Aoki
+# Copyright (c) 1999-2006 Minero Aoki
 #
 # This program is free software.
 # You can distribute/modify this program under the terms of
@@ -9,9 +9,9 @@
 # For details of the GNU LGPL, see the file "COPYING".
 #
 
-unless [].respond_to?(:map!)
+unless Array.method_defined?(:map!)
   class Array
-    if [].respond_to?(:collect!)
+    if Array.method_defined?(:collect!)
       alias map! collect!
     else
       alias map! filter
@@ -19,14 +19,14 @@ unless [].respond_to?(:map!)
   end
 end
 
-unless [].respond_to?(:map)
+unless Enumerable.method_defined?(:map)
   module Enumerable
     alias map collect
   end
 end
 
 unless File.respond_to?(:read)
-  def File.read(filename)
-    File.open(filename) {|f| return f.read }
+  def File.read(path)
+    File.open(path) {|f| return f.read }
   end
 end

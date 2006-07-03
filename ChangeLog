@@ -1,3 +1,7 @@
+Tue Jul  4 02:14:48 2006  Minero Aoki  <aamine@loveruby.net>
+
+	* lib/racc/compat.rb: update coding style.
+
 Mon Jul  3 04:34:32 2006  Minero Aoki  <aamine@loveruby.net>
 
 	* lib/racc/compiler.rb: do not export Grammar/SymbolTable/States.
