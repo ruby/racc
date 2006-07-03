@@ -1,54 +1,15 @@
+#
 # $Id$
+#
+# Copyright (c) 1999-2006 Minero Aoki
+#
+# This program is free software.
+# You can distribute/modify this program under the terms of
+# the GNU LGPL, Lesser General Public License version 2.1.
+# For details of LGPL, see the file "COPYING".
+#
 
 module Racc
-
-  GenerationOptions = Struct.new(:debug_parser,
-                                 :omit_action_call,
-                                 :result_var,
-                                 :convert_line,
-                                 :filename,
-                                 :lineno_base,
-
-                                 # For Racc command
-                                 :convert_line_all,
-                                 :classname,
-                                 :superclass,
-                                 :make_executable,
-                                 :interpreter,
-                                 :embed_runtime,
-                                 :runtime)
-  class GenerationOptions   # reopen
-    def initialize
-      self.debug_parser = false
-      self.omit_action_call = true
-      self.result_var = true
-      self.convert_line = true
-      self.filename = nil
-      self.lineno_base = 0
-
-      self.convert_line_all = false
-      self.classname = nil
-      self.superclass = nil
-      self.make_executable = false
-      self.interpreter = nil
-      self.embed_runtime = false
-      self.runtime = nil
-    end
-
-    alias debug_parser?         debug_parser
-    alias omit_action_call?     omit_action_call
-    alias result_var?           result_var
-    alias convert_line?         convert_line
-    alias convert_line_all?     convert_line_all
-    alias make_executable?      make_executable
-    alias embed_runtime?        embed_runtime
-
-    private
-
-    def bool(x)
-      x ? true : false
-    end
-  end
 
   class DebugFlags
     def DebugFlags.parse_option_string(s)
