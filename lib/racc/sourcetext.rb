@@ -6,10 +6,9 @@
 # This program is free software.
 # You can distribute/modify this program under the terms of
 # the GNU LGPL, Lesser General Public License version 2.1.
-# For details of the GNU LGPL, see the file "COPYING".
+# For details of LGPL, see the file "COPYING".
 #
 
 module Racc
-  class Error < StandardError; end
-  class CompileError < Error; end
+  SourceText = Struct.new(:text, :filename, :lineno)
 end

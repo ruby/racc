@@ -1,3 +1,41 @@
+Tue Jul  4 02:24:27 2006  Minero Aoki  <aamine@loveruby.net>
+
+	* bin/racc: simplify report code.
+
+	* lib/racc/grammar.rb: introduce new methods for racc command.
+
+	* lib/racc/states.rb: ditto.
+
+	* lib/racc/generator.rb: class CodeGenerator ->
+	  ParserFileGenerator.
+
+	* lib/racc/generator.rb: new class ParserFileGenerator::Params.
+
+	* bin/racc: ditto.
+
+	* misc/boot.rb: ditto.
+
+	* lib/racc/grammarfileparser.rb.in: ditto.
+
+	* lib/racc/grammarfileparser.rb.in: merge grammarfilescanner.rb.
+
+	* lib/racc/grammarfilescanner.rb: removed.
+
+	* lib/racc/grammarfileparser.rb.in: parses user code blocks.
+
+	* lib/racc/usercodeparser.rb: removed.
+
+	* lib/racc/generator.rb: remove user code parsing code.
+
+	* lib/racc/grammarfileparser.rb.in: passes user code block by a
+	  SourceText object.
+
+	* lib/racc/generator.rb: ditto.
+
+	* lib/racc/sourcetext.rb: new file.
+
+	* lib/racc/generator.rb: introduce DSL to describe file contents.
+
 Tue Jul  4 02:15:36 2006  Minero Aoki  <aamine@loveruby.net>
 
 	* lib/racc/debugflags.rb: remove unused class GenerationOptions.

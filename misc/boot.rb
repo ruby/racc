@@ -20,22 +20,23 @@ module Racc
 
   class BootstrapCompiler
 
-    def BootstrapCompiler.new_generator(states)
-      generator = Racc::CodeGenerator.new(states)
-      generator.filename = __FILE__
-      generator.omit_action_call = true
-      generator.result_var = true
-      generator.convert_line = true
-      generator
+    def BootstrapCompiler.new_generator_params
+      params = ParserFileGenerator::Params.new
+      params.filename = __FILE__
+      params.omit_action_call = true
+      params.result_var = true
+      params.convert_line = true
+      params
     end
 
     def BootstrapCompiler.main
       states = new().compile
       File.foreach(ARGV[0]) do |line|
         if /STATE_TRANSITION_TABLE/ =~ line
-          generator = new_generator(states)
-          generator.debug_parser = ARGV.delete('-g')
-          generator.parser_table $stdout
+          params = new_generator_params()
+          params.debug_parser = ARGV.delete('-g')
+          gen = ParserFileGenerator.new(states, params)
+          gen.put_state_transition_table $stdout
         else
           print line
         end
@@ -49,9 +50,9 @@ module Racc
     def BootstrapCompiler.generate(template_file)
       states = new().compile
       File.read(template_file).sub(/STATE_TRANSITION_TABLE/) {
-        generator = new_generator(states)
+        params = new_generator_params()
         out = StringIO.new
-        generator.parser_table out
+        ParserFileGenerator.new(states, params).put_state_transition_table out
         out.string
       }
     end
@@ -98,12 +99,12 @@ _"  xclass      : XCLASS class params XRULE rules opt_end                ", ''
 
 _"  class       : rubyconst                                              ",
                    %{
-                        @result.classname = val[0]
+                        @result.params.classname = val[0]
                     }
 _"              | rubyconst '<' rubyconst                                ",
                    %{
-                        @result.classname = val[0]
-                        @result.superclass = val[2]
+                        @result.params.classname = val[0]
+                        @result.params.superclass = val[2]
                     }
 
 _"  rubyconst   : XSYMBOL                                                ",
@@ -138,13 +139,13 @@ _"              | XOPTION bare_symlist                                   ",
                         val[1].each do |opt|
                           case opt
                           when 'result_var'
-                            @result.result_var = true
+                            @result.params.result_var = true
                           when 'no_result_var'
-                            @result.result_var = false
+                            @result.params.result_var = false
                           when 'omit_action_call'
-                            @result.omit_action_call = true
+                            @result.params.omit_action_call = true
                           when 'no_omit_action_call'
-                            @result.omit_action_call = false
+                            @result.params.omit_action_call = false
                           else
                             raise CompileError, "unknown option: #{opt}"
                           end
@@ -152,10 +153,10 @@ _"              | XOPTION bare_symlist                                   ",
                     }
 _"              | XEXPECT DIGIT                                          ",
                    %{
-                        if @result.expect
+                        if @grammar.n_expected_srconflicts
                           raise CompileError, "`expect' seen twice"
                         end
-                        @result.expect = val[1]
+                        @grammar.n_expected_srconflicts = val[1]
                     }
 
 _"  convdefs    : symbol STRING                                          ",

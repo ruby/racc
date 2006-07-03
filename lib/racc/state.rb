@@ -72,12 +72,25 @@ module Racc
     def_delegator "@actions", :reduce_n
     def_delegator "@actions", :nt_base
 
-    def n_shift_reduce_conflicts
-      inject(0) {|sum, st| sum + st.n_shift_reduce_conflicts }
+    def should_report_srconflict?
+      srconflict_exist? and
+          (n_srconflicts() != @grammar.n_expected_srconflicts)
     end
 
-    def n_reduce_reduce_conflicts
-      inject(0) {|sum, st| sum + st.n_reduce_reduce_conflicts }
+    def srconflict_exist?
+      n_srconflicts() != 0
+    end
+
+    def n_srconflicts
+      @n_srconflicts ||= inject(0) {|sum, st| sum + st.n_srconflicts }
+    end
+
+    def rrconflict_exist?
+      n_rrconflicts() != 0
+    end
+
+    def n_rrconflicts
+      @n_rrconflicts ||= inject(0) {|sum, st| sum + st.n_rrconflicts }
     end
 
     #
@@ -728,11 +741,11 @@ module Racc
       end
     end
 
-    def n_shift_reduce_conflicts
+    def n_srconflicts
       @srconf ? @srconf.size : 0
     end
 
-    def n_reduce_reduce_conflicts
+    def n_rrconflicts
       @rrconf ? @rrconf.size : 0
     end
 

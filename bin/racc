@@ -64,7 +64,7 @@ def _main(path, options)
   src = File.read(path)
   filename = File.basename(path)
 
-  $stderr.puts 'parsing grammar file...' if verbose
+  $stderr.puts 'Parsing grammar file...' if verbose
   result = profiler.section('parse') {
     Racc::GrammarFileParser.new(debug_flags).parse(src, filename)
   }
@@ -73,53 +73,102 @@ def _main(path, options)
     exit 0
   end
 
-  $stderr.puts 'initializing state machine...' if verbose
+  $stderr.puts 'Initializing a state machine...' if verbose
   states = profiler.section('nfa') {
     Racc::States.init(result.grammar)
   }
 
-  $stderr.puts "resolving #{@statetable.size} states..." if verbose
+  $stderr.puts "Resolving #{@statetable.size} states..." if verbose
   profiler.section('dfa') {
     states.determine
   }
 
-  $stderr.puts 'creating table file...' if verbose
-  generator = Racc::CodeGenerator.new(states)
-  generator.result_var = result.result_var
-  generator.omit_action_call = result.omit_action_call
-  # Overwrites generator options given by a grammar file.
-  generator.debug_parser = true if (options['--debug'] || options['-g'])
-  generator.convert_line = true if options['--line-convert']
-  generator.omit_action_call = true if options['--omit-actions']
+  $stderr.puts 'Creating parser file...' if verbose
+  params = result.params.dup
+  # Overwrites parameters given by a grammar file with command line options.
+  params.superclass = options['--super'] if options['--super']
+  params.omit_action_call = true if options['--omit-actions']
   # From command line option
-  generator.filename = path
   if options['--executable']
-    generator.make_executable = true
-    generator.interpreter = options['--executable']
+    params.make_executable = true
+    params.interpreter = options['--executable']
   end
-  generator.convert_line_all = true if options['--line-convert-all']
-  generator.embed_runtime = true if options['--embed']
-  generator.runtime = options['--runtime']
-  generator.classname = result.classname
-  generator.superclass = options['--super'] || result.superclass || 'Racc::Parser'
-  tabfn = options['--output-file'] || make_filename(path, '.tab.rb')
-  generator.generate_parser_file tabfn
+  params.debug_parser = true if (options['--debug'] || options['-g'])
+  params.convert_line = true if options['--line-convert']
+  params.convert_line_all = true if options['--line-convert-all']
+  params.embed_runtime = true if options['--embed']
+  generator = Racc::ParserFileGenerator.new(states, params)
+  destpath = options['--output-file'] || make_filename(path, '.tab.rb')
+  generator.generate_parser_file destpath
 
   profiler.report if options['-P']
   if options['--verbose']
-    $stderr.puts 'creating log file...' if verbose
+    $stderr.puts 'Creating log file...' if verbose
     output_fn = options['--log-file'] ||
         make_filename(options['--output'] || filename, '.output')
     File.open(output_fn, 'w') {|f|
       Racc::LogFileGenerator.new(states, debug_flags).output f
     }
   end
-  report_conflict states, result.expect, debug_flags
-  report_useless result.grammar, debug_flags
+  if debug_flags.status_logging
+    log_useless states.grammar
+    log_conflict states
+  else
+    report_useless states.grammar
+    report_conflict states
+  end
 end
 
 def make_filename(path, suffix)
   path.sub(/(?:\..*?)?\z/, suffix)
+end
+
+def report_conflict(states)
+  if states.should_report_srconflict?
+    $stderr.puts "#{states.n_srconflicts} shift/reduce conflicts"
+  end
+  if states.rrconclict_exist?
+    $stderr.puts "#{states.n_rrconflicts} reduce/reduce conflicts"
+  end
+end
+
+def log_conflict(states)
+  logging('w') {|f|
+    f.puts "ex#{states.grammar.n_expected_srconflicts}"
+    if states.should_report_srconflict?
+      f.puts "sr#{states.n_srconflicts}"
+    end
+    if states.rrconflict_exist?
+      f.puts "rr#{states.n_rrconflicts}"
+    end
+  }
+end
+
+def report_useless(grammar)
+  if grammar.useless_nonterminal_exist?
+    $stderr.puts "#{grammar.n_useless_nonterminals} useless nonterminals"
+  end
+  if grammar.useless_rule_exist?
+    $stderr.puts "#{grammar.n_useless_rules} useless rules"
+  end
+  if grammar.start.useless?
+    $stderr.puts 'fatal: start symbol does not derive any sentence'
+  end
+end
+
+def log_useless(grammar)
+  logging('a') {|f|
+    if grammar.useless_nonterminal_exist?
+      f.puts "un#{grammar.n_useless_nonterminals}"
+    end
+    if grammar.useless_rule_exist?
+      f.puts "ur#{grammar.n_useless_rules}"
+    end
+  }
+end
+
+def logging(mode, &block)
+  File.open("log/#{File.basename(ARGV[0])}", mode, &block)
 end
 
 #
@@ -249,60 +298,14 @@ class RaccProfiler
     f.printf "%-20s%s\n", 'total', pjust(total,4,4)
   end
 
+  private
+
   def pjust(num, i, j)
     m = /(\d+)(\.\d+)?/.match(num.to_s)
     str = m[1].rjust(i)
     str.concat m[2].ljust(j+1)[0,j+1] if m[2]
     str
   end
-end
-
-#
-# Report
-#
-
-def report_conflict(states, expect, debug_flags)
-  sr = states.n_shift_reduce_conflicts
-  rr = states.n_reduce_reduce_conflicts
-  if debug_flags.status_logging
-    logging('w') {|f|
-      f.puts "ex#{expect}"
-      f.puts "sr#{sr}" if sr > 0
-      f.puts "rr#{rr}" if rr > 0
-    }
-    return
-  end
-  if (sr > 0 or expect) and sr != expect
-    $stderr.puts "#{sr} shift/reduce conflicts"
-  end
-  if rr > 0
-    $stderr.puts "#{rr} reduce/reduce conflicts"
-  end
-end
-
-def report_useless(grammar, debug_flags)
-  nt = grammar.n_useless_nonterminals
-  rl = grammar.n_useless_rules
-  if debug_flags.status_logging
-    logging('a') {|f|
-      f.puts "un#{nt}" if nt > 0
-      f.puts "ur#{rl}" if rl > 0
-    }
-    return
-  end
-  if nt > 0 or rl > 0
-    $stderr.printf "%s%s%s\n",
-                   nt > 0                 ? "#{nt} useless nonterminals" : '',
-                   ((nt > 0) && (rl > 0)) ? ' and '                     : '',
-                   rl > 0                 ? "#{rl} useless rules"        : ''
-  end
-  if grammar.start.useless?
-    $stderr.puts 'fatal: start symbol does not derive any sentence'
-  end
-end
-
-def logging(mode, &block)
-  File.open("log/#{File.basename(ARGV[0])}", mode, &block)
 end
 
 #

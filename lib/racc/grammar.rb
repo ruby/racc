@@ -73,10 +73,12 @@ module Racc
       @start   = nil
       @sprec   = nil
       @embedded_action_seq = 1
+      @n_expected_srconflicts = nil
       @closed = false
     end
 
     attr_reader :symboltable
+    attr_accessor :n_expected_srconflicts
 
     #
     # Registration
@@ -163,20 +165,34 @@ module Racc
       @symboltable.nt_base
     end
 
+    def useless_nonterminal_exist?
+      n_useless_nonterminals() != 0
+    end
+
     def n_useless_nonterminals
-      n = 0
-      @symboltable.each_nonterminal do |sym|
-        n += 1 if sym.useless?
-      end
-      n
+      @n_useless_nonterminals ||=
+          begin
+            n = 0
+            @symboltable.each_nonterminal do |sym|
+              n += 1 if sym.useless?
+            end
+            n
+          end
+    end
+
+    def useless_rule_exist?
+      n_useless_rules() != 0
     end
 
     def n_useless_rules
-      n = 0
-      each do |r|
-        n += 1 if r.useless?
-      end
-      n
+      @n_useless_rules ||=
+          begin
+            n = 0
+            each do |r|
+              n += 1 if r.useless?
+            end
+            n
+          end
     end
 
     #
