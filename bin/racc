@@ -10,9 +10,7 @@
 # For details of LGPL, see the file "COPYING".
 #
 
-require 'racc'
-require 'racc/grammarfileparser'
-require 'racc/parser'
+require 'racc/static'
 require 'getoptlong'
 
 def main
@@ -75,12 +73,12 @@ def _main(path, options)
 
   $stderr.puts 'Initializing a state machine...' if verbose
   states = profiler.section('nfa') {
-    Racc::States.init(result.grammar)
+    Racc::States.new(result.grammar).nfa
   }
 
   $stderr.puts "Resolving #{@statetable.size} states..." if verbose
   profiler.section('dfa') {
-    states.determine
+    states.dfa
   }
 
   $stderr.puts 'Creating parser file...' if verbose
@@ -127,7 +125,7 @@ def report_conflict(states)
   if states.should_report_srconflict?
     $stderr.puts "#{states.n_srconflicts} shift/reduce conflicts"
   end
-  if states.rrconclict_exist?
+  if states.rrconflict_exist?
     $stderr.puts "#{states.n_rrconflicts} reduce/reduce conflicts"
   end
 end

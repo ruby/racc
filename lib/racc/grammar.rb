@@ -11,119 +11,37 @@
 
 require 'racc/compat'
 require 'racc/iset'
+require 'racc/sourcetext'
+require 'racc/logfilegenerator'
 require 'racc/exception'
 require 'forwardable'
 
 module Racc
 
-  class UserAction
-    def initialize(str, lineno)
-      @val = (str.strip.empty? ? nil : str)
-      @lineno = lineno
-    end
-
-    attr_reader :val
-    attr_reader :lineno
-
-    def name
-      '{action}'
-    end
-
-    alias inspect name
-  end
-
-  class OrMark
-    def initialize(lineno)
-      @lineno = lineno
-    end
-
-    def name
-      '|'
-    end
-
-    alias inspect name
-
-    attr_reader :lineno
-  end
-
-  class Prec
-    def initialize(tok, lineno)
-      @val = tok
-      @lineno = lineno
-    end
-
-    def name
-      '='
-    end
-
-    alias inspect name
-
-    attr_reader :val
-    attr_reader :lineno
-  end
-
-
   class Grammar
+
+    def Grammar.define(&block)
+      g = new()
+      g.instance_eval(&block)
+      g
+    end
 
     def initialize(debug_flags = DebugFlags.new)
       @symboltable = SymbolTable.new
       @debug_symbol = debug_flags.token
       @rules   = []  # :: [Rule]
-      @hashval = 4   # size of dummy rule
       @start   = nil
-      @sprec   = nil
       @embedded_action_seq = 1
       @n_expected_srconflicts = nil
+      @prec_table = []
+      @prec_table_closed = false
       @closed = false
+      @states = nil
     end
-
-    attr_reader :symboltable
-    attr_accessor :n_expected_srconflicts
-
-    #
-    # Registration
-    #
-
-    def add(target, list)
-      if target
-        @prev_target = target
-      else
-        target = @prev_target
-      end
-      if list.last.kind_of?(UserAction)
-        act = list.pop
-      else
-        act = UserAction.new('', 0)
-      end
-      list.map! {|s| s.kind_of?(UserAction) ? embedded_action(s) : s }
-      add0 target, list, act
-      @sprec = nil
-    end
-
-    def embedded_action(act)
-      sym = @symboltable.get("@#{@embedded_action_seq}".intern, true)
-      @embedded_action_seq += 1
-      add0 sym, [], act
-      sym
-    end
-    private :embedded_action
-
-    def add0(target, list, act)
-      @rules.push Rule.new(target, list, act, @rules.size + 1, @hashval, @sprec)
-      @hashval += (list.size + 1)
-    end
-    private :add0
-
-    def start_symbol=(s)
-      raise CompileError, "'start' defined twice'" if @start
-      @start = s
-    end
-
-    #
-    # Access
-    #
 
     attr_reader :start
+    attr_reader :symboltable
+    attr_accessor :n_expected_srconflicts
 
     def [](x)
       @rules[x]
@@ -148,7 +66,7 @@ module Racc
     end
 
     def to_s
-      "<Racc::RuleTable>"
+      "<Racc::Grammar>"
     end
 
     extend Forwardable
@@ -157,8 +75,12 @@ module Racc
     def_delegator "@symboltable", :each_terminal
     def_delegator "@symboltable", :each_nonterminal
 
+    def intern(value)
+      @symboltable.intern(value)
+    end
+
     def symbols
-      @symboltable.to_a
+      @symboltable.symbols
     end
 
     def nonterminal_base
@@ -195,6 +117,157 @@ module Racc
           end
     end
 
+    def nfa
+      (@states ||= States.new(self)).nfa
+    end
+
+    def dfa
+      (@states ||= States.new(self)).dfa
+    end
+
+    alias states dfa
+
+    def state_transition_table
+      states().state_transition_table
+    end
+
+    def parser_class
+      states().state_transition_table.parser_class
+    end
+
+    def write_log(path)
+      File.open(path, 'w') {|f|
+        LogFileGenerator.new(states()).output f
+      }
+    end
+
+    #
+    # Registration
+    #
+
+    def add_from_list(target, list)
+      if target
+        @prev_target = target
+      else
+        target = @prev_target
+      end
+      if list.last.kind_of?(UserAction)
+        act = list.pop
+      else
+        act = UserAction.empty
+      end
+      list.map! {|s| s.kind_of?(UserAction) ? embedded_action(s) : s }
+      add Rule.new(target, list, act)
+    end
+
+    def embedded_action(act)
+      sym = @symboltable.intern("@#{@embedded_action_seq}".intern, true)
+      @embedded_action_seq += 1
+      add Rule.new(sym, [], act)
+      sym
+    end
+    private :embedded_action
+
+    def add(rule)
+      if @close
+        raise ArgumentError, "rule added after the Grammar closed"
+      end
+      @rules.push rule
+    end
+
+    def start_symbol=(s)
+      raise CompileError, "start symbol set twice'" if @start
+      @start = s
+    end
+
+    def declare_precedence(assoc, syms)
+      raise CompileError, "precedence table defined twice" if @prec_table_closed
+      @prec_table.push [assoc, syms]
+    end
+
+    def end_precedence_declaration(reverse)
+      @prec_table_closed = true
+      return if @prec_table.empty?
+      table = reverse ? @prec_table.reverse : @prec_table
+      table.each_with_index do |(assoc, syms), idx|
+        syms.each do |sym|
+          sym.assoc = assoc
+          sym.precedence = idx
+        end
+      end
+    end
+
+    #
+    # On-the-fly generation interface
+    #
+
+    def precedence_table(&block)
+      env = PrecedenceRegistrationEnv.new(self)
+      env.instance_eval(&block)
+      end_precedence_declaration env.reverse
+    end
+
+    class PrecedenceRegistrationEnv
+      def initialize(g)
+        @grammar = g
+        @prechigh_seen = false
+        @preclow_seen = false
+        @reverse = false
+      end
+
+      attr_reader :reverse
+
+      def prechigh
+        if @prechigh_seen
+          raise CompileError, "prechigh used twice"
+        end
+        @prechigh_seen = true
+      end
+
+      def preclow
+        if @preclow_seen
+          raise CompileError, "preclow used twice"
+        end
+        if @prechigh_seen
+          @reverse = true
+        end
+        @preclow_seen = true
+      end
+
+      def left(*syms)
+        @grammar.declare_precedence :Left, syms.map {|s| @grammar.intern(s) }
+      end
+
+      def right(*syms)
+        @grammar.declare_precedence :Right, syms.map {|s| @grammar.intern(s) }
+      end
+
+      def nonassoc(*syms)
+        @grammar.declare_precedence :Nonassoc, syms.map {|s| @grammar.intern(s)}
+      end
+    end
+
+    def rule(*symbols, &block)
+      Rule.new(nil, symbols.map {|s| intern(s) }, UserAction.proc(block))
+    end
+
+    def method_missing(mid, *args, &block)
+      unless mid.to_s[-1,1] == '='
+        super   # raises NoMethodError
+      end
+      target = intern(mid.to_s.chop.intern)
+      unless args.size == 1
+        raise ArgumentError, "too many arguments for #{mid} (#{args.size} for 1)"
+      end
+      rule = args.first
+      rule.target = target
+      add rule
+      rule.alternatives.each do |r|
+        r.target = target
+        add r
+      end
+    end
+
     #
     # Computation
     #
@@ -204,26 +277,35 @@ module Racc
       @start ||= @rules.first.target
       raise CompileError, 'no rule in input' if @rules.empty?
 
-      # add dummy rule
-      #
-      tmp = Rule.new(@symboltable.dummy,
-                     [@start, @symboltable.anchor, @symboltable.anchor],
-                     UserAction.new('', 0),
-                     0, 0, nil)
-                    # id hash prec
-      @rules.unshift tmp
+      # Adds dummy rule
+      r = Rule.new(@symboltable.dummy,
+                   [@start, @symboltable.anchor, @symboltable.anchor],
+                   UserAction.empty)
+      r.ident = 0
+      r.hash = 0
+      r.precedence = nil
+      @rules.unshift r
       @rules.freeze
 
-      rule = ptr = tmp = tok = t = nil
+      # Rule#ident
+      # LocationPointer#ident
+      @rules.each_with_index do |rule, idx|
+        rule.ident = idx
+      end
 
-      # t.heads
-      #
+      # Rule#hash
+      hashval = 4   # size of dummy rule
+      @rules.each do |rule|
+        rule.hash = hashval
+        hashval += (rule.size + 1)
+      end
+
+      # Sym#heads
       @rules.each do |rule|
         rule.target.heads.push rule.ptrs[0]
       end
 
-      # t.terminal?, self_null?
-      #
+      # Sym#terminal?, #self_null?
       @symboltable.each do |t|
         t.term = t.heads.empty?
         if t.terminal?
@@ -243,30 +325,26 @@ module Racc
 
       @symboltable.fix
 
-      # t.locate
-      #
+      # Sym#locate
       @rules.each do |rule|
-        tmp = nil
+        t = nil
         rule.ptrs.each do |ptr|
           unless ptr.reduce?
             tok = ptr.dereference
             tok.locate.push ptr
-            tmp = tok if tok.terminal?
+            t = tok if tok.terminal?
           end
         end
-        rule.set_prec tmp
+        rule.precedence = t
       end
 
-      # t.expand
-      #
+      # Sym#expand
       @symboltable.each_nonterminal {|t| compute_expand t }
 
-      # t.nullable?, rule.nullable?
-      #
+      # Sym#nullable?, Rule#nullable?
       compute_nullable
 
-      # t.useless?, rule.useless?
-      #
+      # Sym#useless?, Rule#useless?
       compute_useless
     end
 
@@ -298,67 +376,61 @@ module Racc
     def compute_nullable
       @rules.each       {|r| r.null = false }
       @symboltable.each {|t| t.null = false }
-
       r = @rules.dup
       s = @symboltable.nonterminals
-
       begin
         rs = r.size
         ss = s.size
-        check_r_nullable r
-        check_s_nullable s
+        check_rules_nullable r
+        check_symbols_nullable s
       end until rs == r.size and ss == s.size
     end
 
-    def check_r_nullable(r)
-      r.delete_if do |rl|
-        rl.null = true
-        rl.symbols.each do |t|
+    def check_rules_nullable(rules)
+      rules.delete_if do |rule|
+        rule.null = true
+        rule.symbols.each do |t|
           unless t.nullable?
-            rl.null = false
+            rule.null = false
             break
           end
         end
-        rl.nullable?
+        rule.nullable?
       end
     end
 
-    def check_s_nullable(s)
-      s.delete_if do |t|
-        t.heads.each do |ptr|
+    def check_symbols_nullable(symbols)
+      symbols.delete_if do |sym|
+        sym.heads.each do |ptr|
           if ptr.rule.nullable?
-            t.null = true
+            sym.null = true
             break
           end
         end
-        t.nullable?
+        sym.nullable?
       end
     end
 
     # FIXME: what means "useless"?
     def compute_useless
-      t = del = save = nil
-
-      @symboltable.each_terminal {|t| t.useless = false }
-      @symboltable.each_nonterminal {|t| t.useless = true }
-      @rules.each {|r| r.useless = true }
-
+      @symboltable.each_terminal {|sym| sym.useless = false }
+      @symboltable.each_nonterminal {|sym| sym.useless = true }
+      @rules.each {|rule| rule.useless = true }
       r = @rules.dup
       s = @symboltable.nonterminals
       begin
         rs = r.size
         ss = s.size
-        check_r_useless r
-        check_s_useless s
+        check_rules_useless r
+        check_symbols_useless s
       end until r.size == rs and s.size == ss
     end
     
-    def check_r_useless(r)
-      t = rule = nil
-      r.delete_if do |rule|
+    def check_rules_useless(rules)
+      rules.delete_if do |rule|
         rule.useless = false
-        rule.symbols.each do |t|
-          if t.useless?
+        rule.symbols.each do |sym|
+          if sym.useless?
             rule.useless = true
             break
           end
@@ -367,7 +439,7 @@ module Racc
       end
     end
 
-    def check_s_useless(s)
+    def check_symbols_useless(s)
       t = ptr = nil
       s.delete_if do |t|
         t.heads.each do |ptr|
@@ -385,40 +457,46 @@ module Racc
 
   class Rule
 
-    def initialize(target, syms, act, rid, hval, prec)
-      @target  = target
+    def initialize(target, syms, act)
+      @target = target
       @symbols = syms
-      @action  = act.val
-      @lineno  = act.lineno
-      @ident   = rid
-      @hash    = hval
-      @prec = @specified_prec = prec
+      @action = act
 
-      @null    = nil
+      @alternatives = []
+
+      @ident = nil
+      @hash = nil
+      @ptrs = nil
+      @precedence = nil
+      @specified_prec = nil
+      @null = nil
       @useless = nil
-
-      @ptrs = tmp = []
-      syms.each_with_index do |t,i|
-        tmp.push LocationPointer.new(self, i, t)
-      end
-      tmp.push LocationPointer.new(self, syms.size, nil)
     end
 
-    attr_reader :target
+    attr_accessor :target
     attr_reader :symbols
-
     attr_reader :action
-    attr_reader :lineno
 
-    attr_reader :ident
+    attr_accessor :ident
+
     attr_reader :hash
     attr_reader :ptrs
 
-    attr_reader :prec
+    def hash=(n)
+      @hash = n
+      ptrs = []
+      @symbols.each_with_index do |sym, idx|
+        ptrs.push LocationPointer.new(self, idx, sym)
+      end
+      ptrs.push LocationPointer.new(self, @symbols.size, nil)
+      @ptrs = ptrs
+    end
+
+    attr_reader :precedence
     attr_reader :specified_prec
 
-    def set_prec(t)
-      @prec ||= t
+    def precedence=(sym)
+      @precedence ||= sym
     end
 
     def nullable?() @null end
@@ -427,8 +505,15 @@ module Racc
     def useless?()  @useless end
     def useless=(u) @useless = u end
 
+    def |(rule)
+      @alternatives.push rule
+      self
+    end
+
+    attr_reader :alternatives
+
     def inspect
-      "#<rule #{@ident} (#{@target})>"
+      "#<Racc::Rule id=#{@ident} (#{@target})>"
     end
 
     def ==(other)
@@ -465,9 +550,91 @@ module Racc
 
   end   # class Rule
 
+
+  class UserAction
+
+    def UserAction.source_text(src)
+      new(src, nil)
+    end
+
+    def UserAction.proc(pr)
+      new(nil, pr)
+    end
+
+    def UserAction.empty
+      new(nil, nil)
+    end
+
+    private_class_method :new
+
+    def initialize(src, proc)
+      @source = src
+      @proc = proc
+    end
+
+    attr_reader :source
+    attr_reader :proc
+
+    def source?
+      not @proc
+    end
+
+    def proc?
+      not @source
+    end
+
+    def empty?
+      not @proc and not @source
+    end
+
+    def name
+      "{action type=#{@source || @proc || 'nil'}}"
+    end
+
+    alias inspect name
+
+  end
+
+
+  class OrMark
+
+    def initialize(lineno)
+      @lineno = lineno
+    end
+
+    def name
+      '|'
+    end
+
+    alias inspect name
+
+    attr_reader :lineno
+
+  end
+
+
+  class Prec
+
+    def initialize(tok, lineno)
+      @val = tok
+      @lineno = lineno
+    end
+
+    def name
+      '='
+    end
+
+    alias inspect name
+
+    attr_reader :val
+    attr_reader :lineno
+
+  end
+
+
   #
-  # A set of rule and position in it's rhs.
-  # Note that the number of pointers is more than rule's rhs array,
+  # A set of rule and position in it's RHS.
+  # Note that the number of pointers is more than rule's RHS array,
   # because pointer points right edge of the final symbol when reducing.
   #
   class LocationPointer
@@ -532,113 +699,32 @@ module Racc
     include Enumerable
 
     def initialize
-      @chk        = {}
-      @symbols    = []    # [Sym]
-      @token_list = nil
-      @prec_table = []
-
-      @end_conv = false
-      @end_prec = false
-      
-      @dummy  = get(:$start, true)
-      @anchor = get(:$end,   true)   # Symbol ID = 0
-      @error  = get(:error, false)   # Symbol ID = 1
-
-      @anchor.conv = 'false'
-      @error.conv = 'Object.new'
+      @symbols = []   # :: [Racc::Sym]
+      @cache   = {}   # :: {(String|Symbol) => Racc::Sym}
+      @dummy  = intern(:$start, true)
+      @anchor = intern(false, true)                   # Symbol ID = 0
+      @error  = intern(ErrorSymbolValue.new, false)   # Symbol ID = 1
     end
 
     attr_reader :dummy
     attr_reader :anchor
     attr_reader :error
 
-    def get(val, dummy = false)
-      unless result = @chk[val]
-        @chk[val] = result = Sym.new(val, dummy)
-        @symbols.push result
-      end
-      result
-    end
-
-    def declare_terminal(sym)
-      (@token_list ||= []).push sym
-    end
-
-    def register_prec(assoc, toks)
-      raise CompileError, "'prec' block is defined twice" if @end_prec
-      toks.push assoc
-      @prec_table.push toks
-    end
-
-    def end_register_prec(rev)
-      @end_prec = true
-      return if @prec_table.empty?
-      top = @prec_table.size - 1
-      @prec_table.each_with_index do |toks, idx|
-        ass = toks.pop
-        toks.each do |tok|
-          tok.assoc = ass
-          if rev
-            tok.prec = top - idx
-          else
-            tok.prec = idx
-          end
-        end
-      end
-    end
-
-    def register_conv(tok, str)
-      if @end_conv
-        raise CompileError, "'convert' block is defined twice"
-      end
-      tok.conv = str
-    end
-
-    def end_register_conv
-      @end_conv = true
-    end
-
-    def fix
-      #
-      # initialize table
-      #
-      term = []
-      nt = []
-      t = i = nil
-      @symbols.each do |t|
-        (t.terminal? ? term : nt).push t
-      end
-      @symbols = term + nt
-      @nt_base = term.size
-      @terms = terminals
-      @nterms = nonterminals
-
-      @symbols.each_with_index do |t, i|
-        t.ident = i
-      end
-
-      return unless @token_list
-
-      #
-      # check if decleared symbols are really terminal
-      #
-      toks = @symbols[2, @nt_base - 2]
-      @token_list.uniq!
-      @token_list.each do |t|
-        unless toks.delete t
-          $stderr.puts "racc warning: terminal #{t} decleared but not used"
-        end
-      end
-      toks.each do |t|
-        unless t.value.kind_of?(String)
-          $stderr.puts "racc warning: terminal #{t} used but not decleared"
-        end
-      end
-    end
-
     def [](id)
       @symbols[id]
     end
+
+    def intern(val, dummy = false)
+      @cache[val] ||=
+          begin
+            sym = Sym.new(val, dummy)
+            @symbols.push sym
+            sym
+          end
+    end
+
+    attr_reader :symbols
+    alias to_a symbols
 
     attr_reader :nt_base
 
@@ -666,40 +752,78 @@ module Racc
       @nterms.each(&block)
     end
 
+    def fix
+      # initialize table
+      term = []
+      nt = []
+      t = i = nil
+      @symbols.each do |t|
+        (t.terminal? ? term : nt).push t
+      end
+      @symbols = term + nt
+      @nt_base = term.size
+      @terms = terminals()
+      @nterms = nonterminals()
+
+      @symbols.each_with_index do |t, i|
+        t.ident = i
+      end
+
+      # check if decleared symbols are really terminal
+      if @symbols.any? {|s| s.should_terminal? }
+        @anchor.should_terminal
+        @error.should_terminal
+        terminals().reject {|t| t.should_terminal? }.each do |t|
+          raise CompileError, "terminal #{t} not declared as terminal"
+        end
+        nonterminals().select {|n| n.should_terminal? }.each do |n|
+          raise CompileError, "symbol #{n} declared as terminal but is not terminal"
+        end
+      end
+    end
+
   end   # class SymbolTable
+
+
+  class ErrorSymbolValue
+  end
 
 
   # Stands terminal and nonterminal symbols.
   class Sym
 
-    def initialize(val, dummy)
+    def initialize(value, dummyp)
       @ident = nil
-      @value = val
-      @dummy = dummy
+      @value = value
+      @dummyp = dummyp
 
       @term  = nil
       @nterm = nil
-      @conv  = nil
-      @prec  = nil
+      @should_terminal = false
+      @precedence = nil
+      case value
+      when Symbol
+        @to_s = value.to_s
+        @serialized = value.inspect
+      when String
+        @to_s = value.inspect
+        @serialized = value.dump
+      when false
+        @to_s = '$end'
+        @serialized = 'false'
+      when ErrorSymbolValue
+        @to_s = 'error'
+        @serialized = 'Object.new'
+      else
+        raise ArgumentError, "unknown symbol value: #{value.class}"
+      end
 
       @heads    = []
       @locate   = []
       @snull    = nil
       @null     = nil
       @expand   = nil
-
       @useless  = nil
-
-      # for human
-      @to_s = if @value.respond_to?(:id2name)
-              then @value.id2name
-              else @value.to_s.inspect
-              end
-      # for ruby source
-      @uneval = if @value.respond_to?(:id2name)
-                then ':' + @value.id2name
-                else @value.to_s.inspect
-                end
     end
 
     class << self
@@ -721,10 +845,17 @@ module Racc
 
     attr_reader :value
 
-    def dummy?() @dummy end
+    def dummy?
+      @dummyp
+    end
 
-    def terminal?()    @term end
-    def nonterminal?() @nterm end
+    def terminal?
+      @term
+    end
+
+    def nonterminal?
+      @nterm
+    end
 
     def term=(t)
       raise 'racc: fatal: term= called twice' unless @term.nil?
@@ -732,21 +863,25 @@ module Racc
       @nterm = !t
     end
 
-    attr_reader :conv
-
-    def conv=(str)
-      @conv = @uneval = str
+    def should_terminal
+      @should_terminal = true
     end
 
-    attr_accessor :prec
+    def should_terminal?
+      @should_terminal
+    end
+
+    def serialize
+      @serialized
+    end
+
+    attr_writer :serialized
+
+    attr_accessor :precedence
     attr_accessor :assoc
 
     def to_s
       @to_s.dup
-    end
-
-    def uneval
-      @uneval.dup
     end
 
     alias inspect to_s

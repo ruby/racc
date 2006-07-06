@@ -10,6 +10,7 @@
 #
 
 require 'racc/iset'
+require 'racc/statetransitiontable'
 require 'racc/exception'
 require 'forwardable'
 
@@ -17,12 +18,6 @@ module Racc
 
   # A table of LALR states.
   class States
-
-    def States.init(grammar, debug_flags = DebugFlags.new)
-      s = new(grammar, debug_flags)
-      s.init
-      s
-    end
 
     include Enumerable
 
@@ -32,11 +27,11 @@ module Racc
       @d_state = debug_flags.state
       @d_la    = debug_flags.la
       @d_prec  = debug_flags.prec
-
       @states = []
       @statecache = {}
-
       @actions = ActionTable.new(@grammar, self)
+      @nfa_computed = false
+      @dfa_computed = false
     end
 
     attr_reader :grammar
@@ -93,23 +88,36 @@ module Racc
       @n_rrconflicts ||= inject(0) {|sum, st| sum + st.n_rrconflicts }
     end
 
+    def state_transition_table
+      @state_transition_table ||= StateTransitionTable.generate(self.dfa)
+    end
+
     #
-    # nfa
+    # NFA (Non-deterministic Finite Automaton) Computation
     #
 
-    def init
+    public
+
+    def nfa
+      return self if @nfa_computed
+      compute_nfa
+      @nfa_computed = true
+      self
+    end
+
+    private
+
+    def compute_nfa
       @grammar.init
-
       # add state 0
       core_to_state  [ @grammar[0].ptrs[0] ]
-
+      # generate LALR states
       cur = 0
       @gotos = []
       while cur < @states.size
         generate_states @states[cur]   # state is added here
         cur += 1
       end
-
       @actions.init
     end
 
@@ -182,16 +190,27 @@ module Racc
     end
 
     #
-    # dfa
+    # DFA (Deterministic Finite Automaton) Generation
     #
 
-    def determine
-      la = lookahead
+    public
+
+    def dfa
+      return self if @dfa_computed
+      nfa
+      compute_dfa
+      @dfa_computed = true
+      self
+    end
+
+    private
+
+    def compute_dfa
+      la = lookahead()
       @states.each do |state|
-        state.set_la la
+        state.la = la
         resolve state
       end
-
       set_accept
       @states.each do |state|
         pack state
@@ -481,7 +500,7 @@ module Racc
 
           # conflict on stok
 
-          rtok = act.rule.prec
+          rtok = act.rule.precedence
           case do_resolve_sr(stok, rtok)
           when :Reduce
             # action is already set
@@ -514,17 +533,17 @@ module Racc
     def do_resolve_sr(stok, rtok)
       puts "resolve_sr: s/r conflict: rtok=#{rtok}, stok=#{stok}" if @d_prec
 
-      unless rtok and rtok.prec
+      unless rtok and rtok.precedence
         puts "resolve_sr: no prec for #{rtok}(R)" if @d_prec
         return :CantResolve
       end
-      rprec = rtok.prec
+      rprec = rtok.precedence
 
-      unless stok and stok.prec
+      unless stok and stok.precedence
         puts "resolve_sr: no prec for #{stok}(S)" if @d_prec
         return :CantResolve
       end
-      sprec = stok.prec
+      sprec = stok.precedence
 
       ret = if rprec == sprec
               ASSOC[rtok.assoc] or
@@ -708,9 +727,8 @@ module Racc
       end
     end
 
-    def set_la(la)
+    def la=(la)
       return unless @conflict
-
       i = @la_rules_i
       @ritems = r = []
       @rrules.each do |rule|

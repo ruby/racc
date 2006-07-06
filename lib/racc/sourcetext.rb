@@ -10,5 +10,25 @@
 #
 
 module Racc
-  SourceText = Struct.new(:text, :filename, :lineno)
+
+  class SourceText
+    def initialize(text, filename, lineno)
+      @text = text
+      @filename = filename
+      @lineno = lineno
+    end
+
+    attr_reader :text
+    attr_reader :filename
+    attr_reader :lineno
+
+    def to_s
+      "#<SourceText #{location()}>"
+    end
+
+    def location
+      "#{@filename}:#{@lineno}"
+    end
+  end
+
 end
