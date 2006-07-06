@@ -59,7 +59,7 @@ def compile_test(args, ok)
   n = fname.sub(/\.y\z/, '')
   args.push '-Oout/' + n
   args.push '-otab/' + n
-  args.unshift '-Dpo'
+  args.unshift '-Do'
   args.push fname
 
   racc args.join(' ')
