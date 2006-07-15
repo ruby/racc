@@ -194,8 +194,7 @@ static VALUE lexer_i _((VALUE block_args, VALUE data, VALUE self));
 static VALUE assert_array _((VALUE a));
 static long assert_integer _((VALUE n));
 static VALUE assert_hash _((VALUE h));
-static void initialize_params _((struct cparse_params *v,
-                                 VALUE parser, VALUE arg,
+static VALUE initialize_params _((VALUE vparams, VALUE parser, VALUE arg,
                                  VALUE lexer, VALUE lexmid));
 static void cparse_params_mark _((void *ptr));
 
@@ -218,12 +217,14 @@ static VALUE reduce0 _((VALUE block_args, VALUE data, VALUE self));
 static VALUE
 racc_cparse(VALUE parser, VALUE arg, VALUE sysdebug)
 {
-    struct cparse_params params;
-    struct cparse_params *v = &params;
+    volatile VALUE vparams;
+    struct cparse_params *v;
 
+    vparams = Data_Make_Struct(CparseParams, struct cparse_params,
+                               cparse_params_mark, -1, v);
     D_puts("starting cparse");
     v->sys_debug = RTEST(sysdebug);
-    initialize_params(v, parser, arg, Qnil, Qnil);
+    vparams = initialize_params(vparams, parser, arg, Qnil, Qnil);
     v->lex_is_iterator = Qfalse;
     parse_main(v, Qnil, Qnil, 0);
 
@@ -233,12 +234,14 @@ racc_cparse(VALUE parser, VALUE arg, VALUE sysdebug)
 static VALUE
 racc_yyparse(VALUE parser, VALUE lexer, VALUE lexmid, VALUE arg, VALUE sysdebug)
 {
-    struct cparse_params params;
-    struct cparse_params *v = &params;
+    volatile VALUE vparams;
+    struct cparse_params *v;
 
+    vparams = Data_Make_Struct(CparseParams, struct cparse_params,
+                               cparse_params_mark, -1, v);
     v->sys_debug = RTEST(sysdebug);
     D_puts("start C yyparse");
-    initialize_params(v, parser, arg, lexer, lexmid);
+    vparams = initialize_params(vparams, parser, arg, lexer, lexmid);
     v->lex_is_iterator = Qtrue;
     D_puts("params initialized");
     parse_main(v, Qnil, Qnil, 0);
@@ -311,12 +314,13 @@ assert_integer(VALUE n)
     return NUM2LONG(n);
 }
 
-static void
-initialize_params(struct cparse_params *v,
-                  VALUE parser, VALUE arg, VALUE lexer, VALUE lexmid)
+static VALUE
+initialize_params(VALUE vparams, VALUE parser, VALUE arg, VALUE lexer, VALUE lexmid)
 {
-    v->value_v = Data_Wrap_Struct(CparseParams, cparse_params_mark, 0, v);
+    struct cparse_params *v;
 
+    Data_Get_Struct(vparams, struct cparse_params, v);
+    v->value_v = vparams;
     v->parser = parser;
     v->lexer = lexer;
     if (! NIL_P(lexmid))
@@ -369,6 +373,8 @@ initialize_params(struct cparse_params *v,
     else {
         rb_iv_set(parser, "@tstack", Qnil);
     }
+
+    return vparams;
 }
 
 static void
@@ -376,6 +382,7 @@ cparse_params_mark(void *ptr)
 {
     struct cparse_params *v = (struct cparse_params*)ptr;
 
+    rb_gc_mark(v->value_v);
     rb_gc_mark(v->parser);
     rb_gc_mark(v->lexer);
     rb_gc_mark(v->action_table);

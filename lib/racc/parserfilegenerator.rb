@@ -9,6 +9,7 @@
 # For details of the GNU LGPL, see the file "COPYING".
 #
 
+require 'racc/compat'
 require 'racc/sourcetext'
 require 'racc/parser-text'
 require 'rbconfig'
@@ -295,13 +296,13 @@ module Racc
           racc_token_table,
           racc_shift_n,
           racc_reduce_n,
-          racc_use_result_var
-        ]
+          racc_use_result_var ]
       End
       line
       string_list 'Racc_token_to_s_table', table.token_to_s_table
       line
       line "Racc_debug_parser = #{table.debug_parser}"
+      line
       line '##### State transition tables end #####'
       actions
     end
@@ -356,7 +357,7 @@ module Racc
         @f.print sep; sep = ",\n"
         @f.print ns.map {|n| sprintf('%6s', n ? n.to_s : 'nil') }.join(',')
       end
-      line ']'
+      line ' ]'
     end
 
     def i_i_sym_list(name, table)
@@ -366,8 +367,7 @@ module Racc
         @f.print sep; sep = ",\n"
         @f.printf '  %d, %d, %s', len, target, mid.inspect
       end
-      line
-      line "]"
+      line " ]"
     end
 
     def sym_int_hash(name, h)
@@ -381,13 +381,13 @@ module Racc
     end
 
     def string_list(name, list)
-      sep = ""
+      sep = "  "
       line "#{name} = ["
       list.each do |s|
-        @f.print sep; sep = ",\n"
+        @f.print sep; sep = ",\n  "
         @f.print s.dump
       end
-      line ']'
+      line ' ]'
     end
 
     def actions
@@ -466,7 +466,7 @@ module Racc
     def unindent_auto(str)
       lines = str.to_a
       n = minimum_indent(lines)
-      lines.map {|line| detab(line).sub(indent_re(n), '').rstrip }.join("\n")
+      lines.map {|line| detab(line).sub(indent_re(n), '').rstrip + "\n" }.join('')
     end
 
     def minimum_indent(lines)

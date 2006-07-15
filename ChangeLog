@@ -1,3 +1,15 @@
+Sun Jul 16 05:07:12 2006  Minero Aoki  <aamine@loveruby.net>
+
+	* lib/racc/compat.rb: implement Enumerable#each_slice for Ruby
+	  1.8.
+
+	* lib/racc/parserfilegenerator.rb: better output.
+
+	* ext/racc/cparse/cparse.c: always use VALUE instead of struct
+	  cparse_params.
+
+	* ext/racc/cparse/cparse.c: mark params->value_v.
+
 Thu Jul  6 20:44:48 2006  Minero Aoki  <aamine@loveruby.net>
 
 	* lib/racc/grammar.rb: on-the-fly generator implemented.
