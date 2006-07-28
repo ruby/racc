@@ -1,3 +1,26 @@
+Sat Jul 29 03:17:20 2006  Minero Aoki  <aamine@loveruby.net>
+
+	* lib/racc/grammar.rb (Grammar#parser_class): write log file when
+	  $DEBUG=true.
+
+	* lib/racc/grammar.rb (Grammar.define): run block on a
+	  Racc::Grammar::DefinitionEnv object, instead of a Racc::Grammar
+	  object.
+
+	* lib/racc/grammar.rb (DefinitionEnv): new method #null.
+
+	* lib/racc/grammar.rb (DefinitionEnv): new method #many.
+
+	* lib/racc/grammar.rb (DefinitionEnv): new method #many1.
+
+	* lib/racc/grammar.rb (DefinitionEnv): new method #option.
+
+	* lib/racc/grammar.rb (DefinitionEnv): new method #seperated_by.
+
+	* lib/racc/grammar.rb (DefinitionEnv): new method #seperated_by1.
+
+	* lib/racc/grammar.rb (DefinitionEnv): new method #action.
+
 Sat Jul 29 03:13:22 2006  Minero Aoki  <aamine@loveruby.net>
 
 	* lib/racc/compat.rb: reduce warning.

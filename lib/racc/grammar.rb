@@ -20,12 +20,6 @@ module Racc
 
   class Grammar
 
-    def Grammar.define(&block)
-      g = new()
-      g.instance_eval(&block)
-      g
-    end
-
     def initialize(debug_flags = DebugFlags.new)
       @symboltable = SymbolTable.new
       @debug_symbol = debug_flags.token
@@ -132,6 +126,14 @@ module Racc
     end
 
     def parser_class
+      states   # cache
+      if $DEBUG
+        filename = caller(1).first.slice(/\A(.*?):/, 1) + ".output"
+        begin
+          write_log filename
+        rescue Errno::EPERM
+        end
+      end
       states().state_transition_table.parser_class
     end
 
@@ -169,10 +171,12 @@ module Racc
     private :embedded_action
 
     def add(rule)
-      if @close
-        raise ArgumentError, "rule added after the Grammar closed"
-      end
+      raise ArgumentError, "rule added after the Grammar closed" if @closed
       @rules.push rule
+    end
+
+    def added?(sym)
+      @rules.detect {|r| r.target == sym }
     end
 
     def start_symbol=(s)
@@ -198,13 +202,150 @@ module Racc
     end
 
     #
-    # On-the-fly generation interface
+    # Dynamic generation interface
     #
 
-    def precedence_table(&block)
-      env = PrecedenceRegistrationEnv.new(self)
+    def Grammar.define(&block)
+      env = DefinitionEnv.new
       env.instance_eval(&block)
-      end_precedence_declaration env.reverse
+      env.grammar
+    end
+
+    class DefinitionEnv
+      def initialize
+        @grammar = Grammar.new
+        @seqs = Hash.new(0)
+        @delayed = []
+      end
+
+      def grammar
+        flush_delayed
+        @grammar
+      end
+
+      def precedence_table(&block)
+        env = PrecedenceRegistrationEnv.new(@grammar)
+        env.instance_eval(&block)
+        @grammar.end_precedence_declaration env.reverse
+      end
+
+      def method_missing(mid, *args, &block)
+        unless mid.to_s[-1,1] == '='
+          super   # raises NoMethodError
+        end
+        target = @grammar.intern(mid.to_s.chop.intern)
+        unless args.size == 1
+          raise ArgumentError, "too many arguments for #{mid} (#{args.size} for 1)"
+        end
+        _add target, args.first
+      end
+
+      def _add(target, x)
+        case x
+        when Rule
+          x.each_rule do |rule|
+            rule.target = target
+            @grammar.add rule
+          end
+        when Symbol
+          dummy = @grammar.intern(x)
+          @delayed.each do |rule|
+            rule.replace dummy, target if rule.target == dummy
+          end
+        end
+        flush_delayed
+      end
+
+      def _delayed_add(rule)
+        @delayed.push rule
+      end
+
+      def flush_delayed
+        return if @delayed.empty?
+        @delayed.each do |rule|
+          @grammar.add rule
+        end
+        @delayed.clear
+      end
+
+      def seq(*symbols, &block)
+        Rule.new(nil, symbols.map {|s| @grammar.intern(s) },
+                 UserAction.proc(block))
+      end
+
+      def null(&block)
+        seq(&block)
+      end
+
+      def action(&block)
+        id = "@#{@seqs["action"] += 1}".intern
+        _delayed_add Rule.new(@grammar.intern(id), [], UserAction.proc(block))
+        id
+      end
+
+      alias _ action
+
+      def option(sym, &block)
+        _defmeta("option", sym, block) {|target|
+          seq() | seq(sym)
+        }
+      end
+
+      def many(sym, &block)
+        _defmeta("many", sym, block) {|target|
+          seq() | seq(target, sym) {|list, x| list.push x; list }
+        }
+      end
+
+      def many1(sym, &block)
+        _defmeta("many1", sym, block) {|target|
+            seq(sym) {|x| [x] }\
+          | seq(target, sym) {|list, x| list.push x; list }
+        }
+      end
+
+      def separated_by(sep, sym, &block)
+        option(separated_by1(sep, sym), &block)
+      end
+
+      def separated_by1(sep, sym, &block)
+        _defmeta("separated_by1", sym, block) {|target|
+            seq(sym) {|x| [x] }\
+          | seq(target, sep, sym) {|list, _, x| list.push x; list }
+        }
+      end
+
+      private
+
+      def _defmeta(type, id, action, &block)
+        if action
+          basename = "#{type}@#{id}-#{@seqs[type] += 1}"
+          retval = _wrap(basename, "#{basename}-base", action)
+          _regist("#{basename}-base", &block)
+          retval
+        else
+          _regist("#{type}@#{id}", &block)
+        end
+      end
+
+      def _regist(target_name)
+        target = target_name.intern
+        unless @grammar.added?(@grammar.intern(target))
+          yield(target).each_rule do |rule|
+            rule.target = @grammar.intern(target)
+            _delayed_add rule
+          end
+        end
+        target
+      end
+
+      def _wrap(target_name, sym, block)
+        target = target_name.intern
+        _delayed_add Rule.new(@grammar.intern(target),
+                              [@grammar.intern(sym.intern)],
+                              UserAction.proc(block))
+        target
+      end
     end
 
     class PrecedenceRegistrationEnv
@@ -217,14 +358,14 @@ module Racc
 
       attr_reader :reverse
 
-      def prechigh
+      def higher
         if @prechigh_seen
           raise CompileError, "prechigh used twice"
         end
         @prechigh_seen = true
       end
 
-      def preclow
+      def lower
         if @preclow_seen
           raise CompileError, "preclow used twice"
         end
@@ -247,37 +388,30 @@ module Racc
       end
     end
 
-    def rule(*symbols, &block)
-      Rule.new(nil, symbols.map {|s| intern(s) }, UserAction.proc(block))
-    end
-
-    def method_missing(mid, *args, &block)
-      unless mid.to_s[-1,1] == '='
-        super   # raises NoMethodError
-      end
-      target = intern(mid.to_s.chop.intern)
-      unless args.size == 1
-        raise ArgumentError, "too many arguments for #{mid} (#{args.size} for 1)"
-      end
-      rule = args.first
-      rule.target = target
-      add rule
-      rule.alternatives.each do |r|
-        r.target = target
-        add r
-      end
-    end
-
     #
     # Computation
     #
 
     def init
-      @close = true
+      @closed = true
       @start ||= @rules.first.target
       raise CompileError, 'no rule in input' if @rules.empty?
+      add_start_rule
+      @rules.freeze
+      fix_ident
+      fix_specified_prec
+      compute_hash
+      compute_heads
+      determine_terminals
+      compute_nullable_0
+      @symboltable.fix
+      compute_locate
+      @symboltable.each_nonterminal {|t| compute_expand t }
+      compute_nullable
+      compute_useless
+    end
 
-      # Adds dummy rule
+    def add_start_rule
       r = Rule.new(@symboltable.dummy,
                    [@start, @symboltable.anchor, @symboltable.anchor],
                    UserAction.empty)
@@ -285,47 +419,60 @@ module Racc
       r.hash = 0
       r.precedence = nil
       @rules.unshift r
-      @rules.freeze
+    end
 
-      # Rule#ident
-      # LocationPointer#ident
+    # Rule#ident
+    # LocationPointer#ident
+    def fix_ident
       @rules.each_with_index do |rule, idx|
         rule.ident = idx
       end
+    end
 
-      # Rule#hash
-      hashval = 4   # size of dummy rule
+    def fix_specified_prec
       @rules.each do |rule|
-        rule.hash = hashval
-        hashval += (rule.size + 1)
+        if rule.specified_prec
+          rule.specified_prec = intern(rule.specified_prec)
+        end
       end
+    end
 
-      # Sym#heads
+    # Rule#hash
+    def compute_hash
+      hash = 4   # size of dummy rule
+      @rules.each do |rule|
+        rule.hash = hash
+        hash += (rule.size + 1)
+      end
+    end
+
+    # Sym#heads
+    def compute_heads
       @rules.each do |rule|
         rule.target.heads.push rule.ptrs[0]
       end
+    end
 
-      # Sym#terminal?, #self_null?
-      @symboltable.each do |t|
-        t.term = t.heads.empty?
-        if t.terminal?
-          t.snull = false
-          next
-        end
-
-        tmp = false
-        t.heads.each do |ptr|
-          if ptr.reduce?
-            tmp = true
-            break
-          end
-        end
-        t.snull = tmp
+    # Sym#terminal?
+    def determine_terminals
+      @symboltable.each do |s|
+        s.term = s.heads.empty?
       end
+    end
 
-      @symboltable.fix
+    # Sym#self_null?
+    def compute_nullable_0
+      @symboltable.each do |s|
+        if s.terminal?
+          s.snull = false
+        else
+          s.snull = s.heads.any? {|loc| loc.reduce? }
+        end
+      end
+    end
 
-      # Sym#locate
+    # Sym#locate
+    def compute_locate
       @rules.each do |rule|
         t = nil
         rule.ptrs.each do |ptr|
@@ -337,17 +484,9 @@ module Racc
         end
         rule.precedence = t
       end
-
-      # Sym#expand
-      @symboltable.each_nonterminal {|t| compute_expand t }
-
-      # Sym#nullable?, Rule#nullable?
-      compute_nullable
-
-      # Sym#useless?, Rule#useless?
-      compute_useless
     end
 
+    # Sym#expand
     def compute_expand(t)
       puts "expand> #{t.to_s}" if @debug_symbol
       t.expand = _compute_expand(t, ISet.new, [])
@@ -373,6 +512,7 @@ module Racc
       set
     end
 
+    # Sym#nullable?, Rule#nullable?
     def compute_nullable
       @rules.each       {|r| r.null = false }
       @symboltable.each {|t| t.null = false }
@@ -411,6 +551,7 @@ module Racc
       end
     end
 
+    # Sym#useless?, Rule#useless?
     # FIXME: what means "useless"?
     def compute_useless
       @symboltable.each_terminal {|sym| sym.useless = false }
@@ -461,7 +602,6 @@ module Racc
       @target = target
       @symbols = syms
       @action = act
-
       @alternatives = []
 
       @ident = nil
@@ -476,6 +616,16 @@ module Racc
     attr_accessor :target
     attr_reader :symbols
     attr_reader :action
+
+    def |(node)
+      @alternatives.push node
+      self
+    end
+
+    def each_rule(&block)
+      yield self
+      @alternatives.each(&block)
+    end
 
     attr_accessor :ident
 
@@ -492,25 +642,26 @@ module Racc
       @ptrs = ptrs
     end
 
-    attr_reader :precedence
-    attr_reader :specified_prec
+    def precedence
+      @specified_prec || @precedence
+    end
 
     def precedence=(sym)
       @precedence ||= sym
     end
+
+    def prec(sym)
+      @specified_prec = sym
+      self
+    end
+
+    attr_accessor :specified_prec
 
     def nullable?() @null end
     def null=(n)    @null = n end
 
     def useless?()  @useless end
     def useless=(u) @useless = u end
-
-    def |(rule)
-      @alternatives.push rule
-      self
-    end
-
-    attr_reader :alternatives
 
     def inspect
       "#<Racc::Rule id=#{@ident} (#{@target})>"
@@ -548,6 +699,11 @@ module Racc
       @symbols.each(&block)
     end
 
+    def replace(src, dest)
+      @target = dest
+      @symbols = @symbols.map {|s| s == src ? dest : s }
+    end
+
   end   # class Rule
 
 
@@ -557,8 +713,11 @@ module Racc
       new(src, nil)
     end
 
-    def UserAction.proc(pr)
-      new(nil, pr)
+    def UserAction.proc(pr = nil, &block)
+      if pr and block
+        raise ArgumentError, "both of argument and block given"
+      end
+      new(nil, pr || block)
     end
 
     def UserAction.empty
