@@ -38,11 +38,11 @@ unless Enumerable.method_defined?(:each_slice)
       each do |x|
         buf.push x
         if buf.size == n
-          yield *buf
+          yield(*buf)
           buf.clear
         end
       end
-      yield *buf unless buf.empty?
+      yield(*buf) unless buf.empty?
     end
   end
 end
