@@ -1,3 +1,8 @@
+Sat Jul 29 04:30:33 2006  Minero Aoki  <aamine@loveruby.net>
+
+	* lib/racc/grammar.rb: allow '|' operation with meta rules
+	  (many, option...).
+
 Sat Jul 29 03:17:20 2006  Minero Aoki  <aamine@loveruby.net>
 
 	* lib/racc/grammar.rb (Grammar#parser_class): write log file when

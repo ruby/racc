@@ -242,15 +242,15 @@ module Racc
 
       def _add(target, x)
         case x
-        when Rule
-          x.each_rule do |rule|
-            rule.target = target
-            @grammar.add rule
-          end
-        when Symbol
-          dummy = @grammar.intern(x)
+        when Sym
           @delayed.each do |rule|
-            rule.replace dummy, target if rule.target == dummy
+            rule.replace x, target if rule.target == x
+          end
+          @grammar.symboltable.delete x
+        else
+          x.each_rule do |r|
+            r.target = target
+            @grammar.add r
           end
         end
         flush_delayed
@@ -268,9 +268,8 @@ module Racc
         @delayed.clear
       end
 
-      def seq(*symbols, &block)
-        Rule.new(nil, symbols.map {|s| @grammar.intern(s) },
-                 UserAction.proc(block))
+      def seq(*list, &block)
+        Rule.new(nil, list.map {|x| _intern(x) }, UserAction.proc(block))
       end
 
       def null(&block)
@@ -286,19 +285,19 @@ module Racc
       alias _ action
 
       def option(sym, &block)
-        _defmeta("option", sym, block) {|target|
+        _defmeta("option", _intern(sym), block) {|target|
           seq() | seq(sym)
         }
       end
 
       def many(sym, &block)
-        _defmeta("many", sym, block) {|target|
+        _defmeta("many", _intern(sym), block) {|target|
           seq() | seq(target, sym) {|list, x| list.push x; list }
         }
       end
 
       def many1(sym, &block)
-        _defmeta("many1", sym, block) {|target|
+        _defmeta("many1", _intern(sym), block) {|target|
             seq(sym) {|x| [x] }\
           | seq(target, sym) {|list, x| list.push x; list }
         }
@@ -309,23 +308,34 @@ module Racc
       end
 
       def separated_by1(sep, sym, &block)
-        _defmeta("separated_by1", sym, block) {|target|
+        _defmeta("separated_by1", _intern(sym), block) {|target|
             seq(sym) {|x| [x] }\
           | seq(target, sep, sym) {|list, _, x| list.push x; list }
         }
+      end
+
+      def _intern(x)
+        case x
+        when Symbol, String
+          @grammar.intern(x)
+        when Racc::Sym
+          x
+        else
+          raise TypeError, "wrong type #{x.class} (expected Symbol/String/Racc::Sym)"
+        end
       end
 
       private
 
       def _defmeta(type, id, action, &block)
         if action
-          basename = "#{type}@#{id}-#{@seqs[type] += 1}"
-          retval = _wrap(basename, "#{basename}-base", action)
-          _regist("#{basename}-base", &block)
-          retval
+          idbase = "#{type}@#{id}-#{@seqs[type] += 1}"
+          target = _wrap(idbase, "#{idbase}-core", action)
+          _regist("#{idbase}-core", &block)
         else
-          _regist("#{type}@#{id}", &block)
+          target = _regist("#{type}@#{id}", &block)
         end
+        @grammar.intern(target)
       end
 
       def _regist(target_name)
@@ -617,8 +627,12 @@ module Racc
     attr_reader :symbols
     attr_reader :action
 
-    def |(node)
-      @alternatives.push node
+    def |(x)
+      @alternatives.push x.rule
+      self
+    end
+
+    def rule
       self
     end
 
@@ -684,7 +698,7 @@ module Racc
     end
 
     def to_s
-      '#<rule#{@ident}>'
+      "#<rule#{@ident}>"
     end
 
     def accept?
@@ -885,6 +899,11 @@ module Racc
     attr_reader :symbols
     alias to_a symbols
 
+    def delete(sym)
+      @symbols.delete sym
+      @cache.delete sym.value
+    end
+
     attr_reader :nt_base
 
     def nt_max
@@ -1044,6 +1063,14 @@ module Racc
     end
 
     alias inspect to_s
+
+    def |(x)
+      rule() | x.rule
+    end
+
+    def rule
+      Rule.new(nil, [self], UserAction.empty)
+    end
 
     #
     # cache
