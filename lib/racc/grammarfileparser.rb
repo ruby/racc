@@ -20,9 +20,9 @@ module Racc
   grammar = Grammar.define {
     g = self
 
-    g.xclass      = seq(:XCLASS, :class, :params, :XRULE, :rules, option(:END))
+    g.class = seq(:CLASS, :cname, many(:param), :RULE, :rules, option(:END))
 
-    g.class       = seq(:rubyconst) {|name|
+    g.cname       = seq(:rubyconst) {|name|
                       @result.params.classname = name
                     }\
                   | seq(:rubyconst, "<", :rubyconst) {|c, _, s|
@@ -30,27 +30,30 @@ module Racc
                       @result.params.superclass = s
                     }
 
-    g.rubyconst   = separated_by1(:colon2, :XSYMBOL) {|syms|
+    g.rubyconst   = separated_by1(:colon2, :SYMBOL) {|syms|
                       syms.map {|s| s.to_s }.join('::')
                     }
 
     g.colon2 = seq(':', ':')
 
-    g.params = many(:param_seg)
-
-    g.param_seg   = seq(:XCONV, :convdefs, :XEND) {|*|
+    g.param       = seq(:CONV, many1(:convdef), :END) {|*|
                       #@grammar.end_convert_block   # FIXME
                     }\
-                  | seq(:xprec)\
-                  | seq(:XSTART, :symbol) {|_, sym|
+                  | seq(:PRECHIGH, many1(:precdef), :PRECLOW) {|*|
+                      @grammar.end_precedence_declaration true
+                    }\
+                  | seq(:PRECLOW, many1(:precdef), :PRECHIGH) {|*|
+                      @grammar.end_precedence_declaration false
+                    }\
+                  | seq(:START, :symbol) {|_, sym|
                       @grammar.start_symbol = sym
                     }\
-                  | seq(:XTOKEN, :symbol_list) {|_, syms|
+                  | seq(:TOKEN, :symbols) {|_, syms|
                       syms.each do |s|
                         s.should_terminal
                       end
                     }\
-                  | seq(:XOPTION, :bare_symlist) {|_, syms|
+                  | seq(:OPTION, :options) {|_, syms|
                       syms.each do |opt|
                         case opt
                         when 'result_var'
@@ -66,53 +69,40 @@ module Racc
                         end
                       end
                     }\
-                  | seq(:XEXPECT, :DIGIT) {|_, num|
+                  | seq(:EXPECT, :DIGIT) {|_, num|
                       if @grammar.n_expected_srconflicts
                         raise CompileError, "`expect' seen twice"
                       end
                       @grammar.n_expected_srconflicts = num
                     }
 
-    g.convdefs    = many1(:convdef)
-    
     g.convdef     = seq(:symbol, :STRING) {|sym, code|
                       sym.serialized = code
                     }
 
-    g.xprec       = seq(:XPRECHIGH, :preclines, :XPRECLOW) {|*|
-                      @grammar.end_precedence_declaration true
-                    }\
-                  | seq(:XPRECLOW, :preclines, :XPRECHIGH) {|*|
-                      @grammar.end_precedence_declaration false
-                    }
-
-    g.preclines   = many1(:precline)
-
-    g.precline    = seq(:XLEFT, :symbol_list) {|_, syms|
+    g.precdef     = seq(:LEFT, :symbols) {|_, syms|
                       @grammar.declare_precedence :Left, syms
                     }\
-                  | seq(:XRIGHT, :symbol_list) {|_, syms|
+                  | seq(:RIGHT, :symbols) {|_, syms|
                       @grammar.declare_precedence :Right, syms
                     }\
-                  | seq(:XNONASSOC, :symbol_list) {|_, syms|
+                  | seq(:NONASSOC, :symbols) {|_, syms|
                       @grammar.declare_precedence :Nonassoc, syms
                     }
 
-    g.symbol_list = seq(:symbol) {|sym|
+    g.symbols     = seq(:symbol) {|sym|
                       [sym]
                     }\
-                  | seq(:symbol_list, :symbol) {|list, sym|
+                  | seq(:symbols, :symbol) {|list, sym|
                       list.push sym
                       list
                     }\
-                  | seq(:symbol_list, "|")
+                  | seq(:symbols, "|")
 
-    g.symbol      = seq(:XSYMBOL) {|sym|
-                      @grammar.intern(sym)
-                    }\
-                  | seq(:STRING) {|str|
-                      @grammar.intern(str)
-                    }
+    g.symbol      = seq(:SYMBOL) {|sym| @grammar.intern(sym) }\
+                  | seq(:STRING) {|str| @grammar.intern(str) }
+
+    g.options     = many(:SYMBOL) {|syms| syms.map {|s| s.to_s } }
 
     g.rules       = option(:rules_core) {|list|
                       add_rule_block list  unless list.empty?
@@ -147,8 +137,6 @@ module Racc
                   | seq(:ACTION) {|src|
                       UserAction.source_text(src)
                     }
-
-    g.bare_symlist = many(:XSYMBOL) {|syms| syms.map {|s| s.to_s } }
   }
 
   GrammarFileParser = grammar.parser_class
@@ -172,14 +160,22 @@ module Racc
       attr_reader :params
     end
 
-    def initialize(debug_flags)
+    def GrammarFileParser.parse_file(filename)
+      parse(File.read(filename), filename, 1)
+    end
+
+    def GrammarFileParser.parse(src, filename = '-', lineno = 1)
+      new().parse(src, filename, lineno)
+    end
+
+    def initialize(debug_flags = DebugFlags.new)
       @yydebug = debug_flags.parse
     end
 
-    def parse(str, filename = '-', lineno = 1)
+    def parse(src, filename = '-', lineno = 1)
       @filename = filename
       @lineno = lineno
-      @scanner = GrammarFileScanner.new(str, @filename)
+      @scanner = GrammarFileScanner.new(src, @filename)
       @scanner.debug = @yydebug
       @grammar = Grammar.new
       @result = Result.new(@grammar)
@@ -235,6 +231,21 @@ module Racc
     # User Code Block
     #
 
+    def parse_user_code
+      line = @scanner.lineno
+      _, *blocks = *@scanner.epilogue.split(/^----/)
+      blocks.each do |block|
+        header, *body = block.to_a
+        label0, pathes = *header.sub(/\A-+/, '').split('=', 2)
+        label = canonical_label(label0)
+        (pathes ? pathes.strip.split(' ') : []).each do |path|
+          add_user_code label, SourceText.new(File.read(path), path, 1)
+        end
+        add_user_code label, SourceText.new(body.join(''), @filename, line + 1)
+        line += (1 + body.size)
+      end
+    end
+
     USER_CODE_LABELS = {
       'header'  => :header,
       'prepare' => :header,   # obsolete
@@ -243,31 +254,16 @@ module Racc
       'driver'  => :footer    # obsolete
     }
 
-    def parse_user_code
-      line = @scanner.lineno
-      _, *blocks = *@scanner.epilogue.split(/^----/)
-      blocks.each do |block|
-        header, *body = block.to_a
-        label0, pathes = *header.sub(/\A-+/, '').split('=', 2)
-        label = label0.to_s.strip.downcase.slice(/\w+/)
-        unless valid_label?(label)
-          raise CompileError, "unknown user code type: #{label.inspect}"
-        end
-        (pathes ? pathes.strip.split(' ') : []).each do |path|
-          add_user_code_block label, File.read(path), path, 1
-        end
-        add_user_code_block label, body.join(''), @filename, line + 1
-        line += (1 + body.size)
+    def canonical_label(src)
+      label = src.to_s.strip.downcase.slice(/\w+/)
+      unless USER_CODE_LABELS.key?(label)
+        raise CompileError, "unknown user code type: #{label.inspect}"
       end
+      label
     end
     
-    def add_user_code_block(label, text, file, line)
-      m = USER_CODE_LABELS[label]
-      @result.params.send(m).push SourceText.new(text, file, line)
-    end
-
-    def valid_label?(label)
-      USER_CODE_LABELS.key?(label)
+    def add_user_code(label, src)
+      @result.params.send(USER_CODE_LABELS[label]).push src
     end
 
   end
@@ -361,35 +357,35 @@ module Racc
     end
 
     ReservedWord = {
-      'right'    => :XRIGHT,
-      'left'     => :XLEFT,
-      'nonassoc' => :XNONASSOC,
-      'preclow'  => :XPRECLOW,
-      'prechigh' => :XPRECHIGH,
-      'token'    => :XTOKEN,
-      'convert'  => :XCONV,
-      'options'  => :XOPTION,
-      'start'    => :XSTART,
-      'expect'   => :XEXPECT,
-      'class'    => :XCLASS,
-      'rule'     => :XRULE,
-      'end'      => :XEND
+      'right'    => :RIGHT,
+      'left'     => :LEFT,
+      'nonassoc' => :NONASSOC,
+      'preclow'  => :PRECLOW,
+      'prechigh' => :PRECHIGH,
+      'token'    => :TOKEN,
+      'convert'  => :CONV,
+      'options'  => :OPTION,
+      'start'    => :START,
+      'expect'   => :EXPECT,
+      'class'    => :CLASS,
+      'rule'     => :RULE,
+      'end'      => :END
     }
 
     def atom_symbol(token)
       if token == 'end'
-        symbol = :XEND
+        symbol = :END
         @in_conv_blk = false
         @in_rule_blk = false
       else
         if @line_head and not @in_conv_blk and not @in_rule_blk
-          symbol = ReservedWord[token] || :XSYMBOL
+          symbol = ReservedWord[token] || :SYMBOL
         else
-          symbol = :XSYMBOL
+          symbol = :SYMBOL
         end
         case symbol
-        when :XRULE then @in_rule_blk = true
-        when :XCONV then @in_conv_blk = true
+        when :RULE then @in_rule_blk = true
+        when :CONV then @in_conv_blk = true
         end
       end
       @line_head = false

@@ -144,7 +144,7 @@ module Racc
     end
 
     #
-    # Registration
+    # Grammar Definition Interface
     #
 
     def add_from_list(target, list)
@@ -202,7 +202,7 @@ module Racc
     end
 
     #
-    # Dynamic generation interface
+    # Dynamic Generation Interface
     #
 
     def Grammar.define(&block)
@@ -224,7 +224,7 @@ module Racc
       end
 
       def precedence_table(&block)
-        env = PrecedenceRegistrationEnv.new(@grammar)
+        env = PrecedenceDefinitionEnv.new(@grammar)
         env.instance_eval(&block)
         @grammar.end_precedence_declaration env.reverse
       end
@@ -260,6 +260,10 @@ module Racc
         @delayed.push rule
       end
 
+      def _added?(sym)
+        @grammar.added?(sym) or @delayed.detect {|r| r.target == sym }
+      end
+
       def flush_delayed
         return if @delayed.empty?
         @delayed.each do |rule|
@@ -285,19 +289,20 @@ module Racc
       alias _ action
 
       def option(sym, &block)
-        _defmeta("option", _intern(sym), block) {|target|
+        _defmetasyntax("option", _intern(sym), block) {|target|
           seq() | seq(sym)
         }
       end
 
       def many(sym, &block)
-        _defmeta("many", _intern(sym), block) {|target|
-          seq() | seq(target, sym) {|list, x| list.push x; list }
+        _defmetasyntax("many", _intern(sym), block) {|target|
+            seq() { [] }\
+          | seq(target, sym) {|list, x| list.push x; list }
         }
       end
 
       def many1(sym, &block)
-        _defmeta("many1", _intern(sym), block) {|target|
+        _defmetasyntax("many1", _intern(sym), block) {|target|
             seq(sym) {|x| [x] }\
           | seq(target, sym) {|list, x| list.push x; list }
         }
@@ -308,7 +313,7 @@ module Racc
       end
 
       def separated_by1(sep, sym, &block)
-        _defmeta("separated_by1", _intern(sym), block) {|target|
+        _defmetasyntax("separated_by1", _intern(sym), block) {|target|
             seq(sym) {|x| [x] }\
           | seq(target, sep, sym) {|list, _, x| list.push x; list }
         }
@@ -327,7 +332,7 @@ module Racc
 
       private
 
-      def _defmeta(type, id, action, &block)
+      def _defmetasyntax(type, id, action, &block)
         if action
           idbase = "#{type}@#{id}-#{@seqs[type] += 1}"
           target = _wrap(idbase, "#{idbase}-core", action)
@@ -340,7 +345,7 @@ module Racc
 
       def _regist(target_name)
         target = target_name.intern
-        unless @grammar.added?(@grammar.intern(target))
+        unless _added?(@grammar.intern(target))
           yield(target).each_rule do |rule|
             rule.target = @grammar.intern(target)
             _delayed_add rule
@@ -358,7 +363,7 @@ module Racc
       end
     end
 
-    class PrecedenceRegistrationEnv
+    class PrecedenceDefinitionEnv
       def initialize(g)
         @grammar = g
         @prechigh_seen = false

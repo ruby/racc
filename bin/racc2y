@@ -1,8 +1,8 @@
 #!/usr/local/bin/ruby
 #
-# r2yacc  --  racc to yacc converter
+# $Id$
 #
-# Copyright (c) 1999-2005 Minero Aoki
+# Copyright (c) 1999-2006 Minero Aoki
 #
 # This program is feee software.
 # You can distribute/modify this program under the terms of
@@ -10,237 +10,186 @@
 # For details of the LGPL, see the file "COPYING".
 #
 
-require 'getopts'
-require 'racc/compiler'
-
-RACC2Y_VERSION = '1.1.1'
-
-def usage(stat = 0)
-  $stderr.puts 'wrong option' unless stat == 0
-  (stat == 0 ? $stdout : $stderr).print(<<EOS)
-Usage: racc2y [-AHIF] [-o outfile] raccfile
-    -o <file>  output file name  [y.<inputfile>]
-    -A         did not output actions
-    -H         output 'header'
-    -I         output 'inner'
-    -F         output 'footer'
-EOS
-  exit stat
-end
+require 'racc/grammarfileparser'
+require 'racc/info'
+require 'optparse'
 
 def main
-  getopts('AHIF', 'o:', 'version', 'help', 'copyright') or usage 1
-  if $OPT_version
-    puts "racc2y version #{RACC2Y_VERSION}"
+  @with_action = true
+  with_header = false
+  with_inner = false
+  with_footer = false
+  output = nil
+  parser = OptionParser.new
+  parser.banner = "Usage: #{File.basename($0)} [-AHIF] [-oFILENAME] GRAMMARFILE"
+  parser.on('-o', '--output=FILENAME', 'output file name [<input>.yacc]') {|name|
+    output = name
+  }
+  parser.on('-A', '--without-action', 'Does not include actions.') {
+    @with_action = false
+  }
+  parser.on('-H', '--with-header', 'Includes header part.') {
+    with_header = true
+  }
+  parser.on('-I', '--with-inner', 'Includes inner part.') {
+    with_inner = true
+  }
+  parser.on('-F', '--with-footer', 'Includes footer part.') {
+    with_footer = true
+  }
+  parser.on('--version', 'Prints version and quit.') {
+    puts "racc2y version #{Racc::Version}"
     exit 0
-  end
-  if $OPT_copyright
-    puts 'Copyright (c) 1999-2003 Minero Aoki'
+  }
+  parser.on('--copyright', 'Prints copyright and quit.') {
+    puts Racc::Copyright
     exit 0
-  end
-  usage 0 if $OPT_help
-  usage 1 unless ARGV.size == 1
-
-  fname = ARGV[0]
-  outf = $OPT_o || 'y.' + fname
+  }
+  parser.on('--help', 'Prints this message and quit.') {
+    puts parser.help
+    exit 1
+  }
   begin
-    str = nil
-    File.open(fname) {|f| str = f.read }
-  rescue Errno::ENOENT
-    $stderr.puts "#{File.basename $0}: no such file: #{fname}"
+    parser.parse!
+  rescue OptionParser::ParseError => err
+    $stderr.puts err.message
+    $stderr.puts parser.help
     exit 1
   end
-  conv = Converter.new
-  conv.parse str, fname
-  File.open(outf, 'w') {|f|
-    conv.output(f)
-  }
-end
-
-class Converter
-
-  def initialize
-    @symboltable = Racc::SymbolTable.new(self)
-    @ruletable   = Racc::RuleTable.new(self)
-    @parser      = Racc::GrammarFileParser.new(self)
-    @result_var = true
+  if ARGV.empty?
+    $stderr.puts "no input file"
+    exit 1
   end
-
-  attr_reader :ruletable
-  attr_reader :symboltable
-  attr_reader :parser
-
-  attr_accessor :result_var
-
-  def debug()   false end
-  def verbose() false end
-  def d_parse() false end
-  def d_token() false end
-  def d_rule()  false end
-  def d_state() false end
-
-  def parse(str, fname)
-    @fname = fname
-    @parser.parse str
-    @ruletable.init
-    u = Racc::GrammarFileParser.get_usercode(fname)
-    @header, = *u['header']
-    @inner,  = *u['inner']
-    @footer, = *u['footer']
+  unless ARGV.size == 1
+    $stderr.puts "too many inputs"
+    exit 1
   end
+  input = ARGV[0]
 
-  def output(f)
-    rule = t = nil
-
-    f.print(<<EOS)
-/*
-
-    generated from #{@fname} by racc2y version #{RACC2Y_VERSION}
-
-*/
-
-EOS
-    if $OPT_H and @header
-      f.puts '%{'
-      f.puts '/*---- header ----*/'
-      f.puts @header
-      f.puts '%}'
-      f.puts
-    end
-
-    output_defs f
-    output_grammer f
-
-    if $OPT_I and @inner
-      f.puts
-      f.puts '/*---- inner ----*/'
-      f.puts
-      f.puts @inner
-    end
-    if $OPT_F and @footer
-      f.puts
-      f.puts '/*---- footer ----*/'
-      f.puts
-      f.puts @footer
-    end
-  end
-
-  def output_defs(f)
-    output_token f
-    f.puts
-    prec = getprecs
-    unless prec.empty?
-      output_prec f, prec
-    end
-  end
-
-  def output_token(f)
-    f.puts '/* tokens */'
-    anc = @symboltable.anchor
-    err = @symboltable.error
-    total = 6
-    f.print '%token'
-    @symboltable.each do |t|
-      next unless t.terminal?
-      next if t.dummy?
-      next if t == err
-      next if t == anc
-
-      unless String === t.value
-        if total > 60
-          f.print "\n     "
-          total = 0
-        end
-        total += f.write(" #{tok t}")
-      end
-    end
-    f.puts
-  end
-
-  def getprecs
-    prec = []
-    @symboltable.each do |t|
-      next unless t.prec
-      if a = prec[t.prec]
-        a.push t
-      else
-        prec[t.prec] = [t.assoc, t]
-      end
-    end
-
-    prec
-  end
-
-  def output_prec(f, tab)
-    f.puts '/* precedance table */'
-    tab.each do |a|
-      if a
-        f.printf '%%%-8s', a.shift.id2name.downcase
-        a.each do |t|
-          f.print ' ', tok(t)
-        end
+  begin
+    result = Racc::GrammarFileParser.parse_file(input)
+    result.grammar.init
+    File.open(output || "#{input}.yacc", 'w') {|f|
+      f.puts "/* generated from #{input} */"
+      if with_header
         f.puts
-      end
-    end
-    f.puts
-  end
-
-
-  def output_grammer(f)
-    f.puts '%%'
-
-    targ   = nil
-    indent = 10
-    fmt    = "\n%-10s:"
-    emb    = []
-
-    @ruletable.each do |rule|
-      if rule.target.dummy?
-        emb.push rule.action if rule.action
-        next
-      end
-
-      if rule.target == targ
-        f.print ' ' * indent, '|'
-      else
-        targ = rule.target
-        f.printf fmt, tok(targ)
-      end
-      rule.symbols.each do |t|
-        if t.dummy?   # target of dummy rule for embedded action
-          f.puts
-          output_act f,
-                     emb.shift,
-                     indent
-          f.print ' ' * (indent + 1)
-        else
-          f.print ' ', tok(t)
-        end
-      end
-      if rule.specified_prec
-        f.print ' %prec ', tok(rule.specified_prec)
+        f.puts '%{'
+        print_user_codes f, result.params.header
+        f.puts '%}'
       end
       f.puts
-      if rule.action
-        output_act f, rule.action, indent
+      print_terminals f, result.grammar
+      f.puts
+      print_precedence_table f, precedence_table(result.grammar)
+      f.puts
+      f.puts '%%'
+      print_grammar f, result.grammar
+      f.puts '%%'
+      if with_inner
+        f.puts '/*---- inner ----*/'
+        print_user_codes f, result.params.inner
       end
-    end
-
-    f.puts "\n%%"
+      if with_footer
+        f.puts '/*---- footer ----*/'
+        print_user_codes f, result.params.footer
+      end
+    }
+  rescue SystemCallError => err
+    $stderr.puts err.message
+    exit 1
   end
-
-  def output_act(f, str, indent)
-    f.print ' ' * (indent + 4), "{\n"
-    f.print ' ' * (indent + 6), str, "\n" unless $OPT_A
-    f.print ' ' * (indent + 4), "}\n"
-  end
-
-  def tok(t)
-    s = t.to_s
-    s.gsub '"', "'"
-  end
-
 end
 
+def print_terminals(f, grammar)
+  init_indent = '%token'.size
+  f.print '%token'
+  columns = init_indent
+  grammar.symboltable.each_terminal do |t|
+    next unless t.terminal?
+    next if t.dummy?
+    next if t == grammar.symboltable.anchor
+    next if t == grammar.symboltable.error
+    unless t.value.kind_of?(String)
+      if columns > 60
+        f.puts
+        f.print ' ' * init_indent
+        columns = init_indent
+      end
+      columns += f.write(" #{yacc_symbol(t)}")
+    end
+  end
+  f.puts
+end
+
+def precedence_table(grammar)
+  table = []
+  grammar.symboltable.select {|sym| sym.precedence }.each do |sym|
+    (table[sym.prec] ||= [sym.assoc]).push sym
+  end
+  table.compact
+end
+
+def print_precedence_table(f, table)
+  return if table.empty?
+  f.puts '/* precedance table */'
+  table.each do |syms|
+    assoc = syms.shift
+    f.printf '%%%-8s ', assoc.to_s.downcase
+    f.puts syms.map {|s| yacc_symbol(s) }.join(' ')
+  end
+  f.puts
+end
+
+def print_grammar(f, grammar)
+  prev_target = nil
+  indent = 10
+  embactions = []
+  grammar.each do |rule|
+    if rule.target.dummy?
+      embactions.push rule.action  unless rule.action.empty?
+      next
+    end
+    if rule.target == prev_target
+      f.print ' ' * indent, '|'
+    else
+      prev_target = rule.target
+      f.printf "\n%-10s:", yacc_symbol(prev_target)
+    end
+    rule.symbols.each do |s|
+      if s.dummy?   # target of dummy rule for embedded action
+        f.puts
+        print_action f, embactions.shift, indent
+        f.print ' ' * (indent + 1)
+      else
+        f.print ' ', yacc_symbol(s)
+      end
+    end
+    if rule.specified_prec
+      f.print ' %prec ', yacc_symbol(rule.specified_prec)
+    end
+    f.puts
+    unless rule.action.empty?
+      print_action f, rule.action, indent
+    end
+  end
+end
+
+def print_action(f, action, indent)
+  return unless @with_action
+  f.print ' ' * (indent + 4), "{\n"
+  f.print ' ' * (indent + 6), action.source.text.strip, "\n"
+  f.print ' ' * (indent + 4) , "}\n"
+end
+
+def print_user_codes(f, srcs)
+  return if srcs.empty?
+  srcs.each do |src|
+    f.puts src.text
+  end
+end
+
+def yacc_symbol(s)
+  s.to_s.gsub('"', "'")
+end
 
 main

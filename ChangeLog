@@ -1,3 +1,20 @@
+Thu Aug  3 19:34:55 2006  Minero Aoki  <aamine@loveruby.net>
+
+	* bin/racc2y: getopts -> optparse.
+
+	* bin/racc2y: rewrite code for new generator.
+
+	* lib/racc/grammar.rb (_regist): did not check @delayed rules (it
+	  causes registering same dummy rules many times).
+
+	* lib/racc/grammarfileparser.rb: refactoring: simplify syntax.
+
+	* lib/racc/grammarfileparser.rb: new method
+	  GrammarFileParser.parse.
+
+	* lib/racc/grammarfileparser.rb: new method
+	  GrammarFileParser.parse_file.
+
 Sat Jul 29 04:51:42 2006  Minero Aoki  <aamine@loveruby.net>
 
 	* lib/racc/pre-setup: We need not make grammarfileparser.rb.
