@@ -1,3 +1,8 @@
+Fri Aug  4 01:02:36 2006  Minero Aoki  <aamine@loveruby.net>
+
+	* lib/racc/grammar.rb: #should_terminal should be called in
+	  #check_terminals.
+
 Fri Aug  4 00:44:56 2006  Minero Aoki  <aamine@loveruby.net>
 
 	* bin/racc: getopts -> optparse.

@@ -163,9 +163,6 @@ module Racc
     def declare_precedence(assoc, syms)
       raise CompileError, "precedence table defined twice" if @prec_table_closed
       @prec_table.push [assoc, syms]
-      syms.each do |s|
-        s.should_terminal
-      end
     end
 
     def end_precedence_declaration(reverse)
@@ -201,7 +198,7 @@ module Racc
         flush_delayed
         @grammar.each do |rule|
           if rule.specified_prec
-            rule.specified_prec = intern(rule.specified_prec)
+            rule.specified_prec = @grammar.intern(rule.specified_prec)
           end
         end
         @grammar.init
@@ -929,18 +926,20 @@ module Racc
     end
 
     def check_terminals
-      if @symbols.any? {|s| s.should_terminal? }
-        @anchor.should_terminal
-        @error.should_terminal
-        each_terminal do |t|
-          t.should_terminal if t.string_symbol?
-        end
-        terminals().reject {|t| t.should_terminal? }.each do |t|
-          raise CompileError, "terminal #{t} not declared as terminal"
-        end
-        nonterminals().select {|n| n.should_terminal? }.each do |n|
-          raise CompileError, "symbol #{n} declared as terminal but is not terminal"
-        end
+      return unless @symbols.any? {|s| s.should_terminal? }
+      @anchor.should_terminal
+      @error.should_terminal
+      each_terminal do |t|
+        t.should_terminal if t.string_symbol?
+      end
+      each do |s|
+        s.should_terminal if s.assoc
+      end
+      terminals().reject {|t| t.should_terminal? }.each do |t|
+        raise CompileError, "terminal #{t} not declared as terminal"
+      end
+      nonterminals().select {|n| n.should_terminal? }.each do |n|
+        raise CompileError, "symbol #{n} declared as terminal but is not terminal"
       end
     end
 
