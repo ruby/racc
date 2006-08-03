@@ -322,7 +322,7 @@ module Racc
       com  = ''
       ncom = ','
       co   = com
-      out.print 'clist = ['
+      @f.print 'clist = ['
       table.each do |i|
         buf << co << i.to_s; co = ncom
         if buf.size > 66
