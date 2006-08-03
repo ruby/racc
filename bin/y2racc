@@ -24,8 +24,7 @@ def main
   output = nil
   parser = OptionParser.new
   parser.banner = "Usage: #{File.basename($0)} [-Ahu] [-c <classname>] [-o <filename>] <input>"
-  parser.on('-o', '--output=FILENAME', 'output file name [<input>.yacc]') {|
-name|
+  parser.on('-o', '--output=FILENAME', 'output file name [<input>.racc]') {|name|
     output = name
   }
   parser.on('-c', '--classname=NAME', "Name of the parser class. [#{cname}]") {|name|
@@ -71,7 +70,7 @@ name|
 
   begin
     result = YaccFileParser.parse_file(input)
-    File.open(output, 'w') {|f|
+    File.open(output || "#{input}.racc", 'w') {|f|
       convert cname, result, f
     }
   rescue SystemCallError => err
