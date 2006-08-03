@@ -13,7 +13,7 @@ Racc README
 必要環境
 --------
 
-  *  ruby 1.6 以降
+  *  Ruby 1.8 以降
  (*) C コンパイラと make
 
 

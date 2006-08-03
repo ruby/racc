@@ -12,7 +12,7 @@ Racc README
 Requirement
 -----------
 
-  *  ruby version 1.6.x or later.
+  *  Ruby 1.8.x or later.
  (*) make and C compiler.
 
 
