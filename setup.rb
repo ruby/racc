@@ -1,7 +1,7 @@
 #
 # setup.rb
 #
-# Copyright (c) 2000-2005 Minero Aoki
+# Copyright (c) 2000-2006 Minero Aoki
 #
 # This program is free software.
 # You can distribute/modify this program under the terms of
@@ -296,13 +296,14 @@ class ConfigTable
     ALIASES.each do |ali, name|
       @table[ali] = @table[name]
     end
-    @items.freeze
-    @table.freeze
-    @options_re = /\A--(#{@table.keys.join('|')})(?:=(.*))?\z/
+  end
+
+  def options_re
+    /\A--(#{@table.keys.join('|')})(?:=(.*))?\z/
   end
 
   def parse_opt(opt)
-    m = @options_re.match(opt) or setup_rb_error "config: unknown option #{opt}"
+    m = options_re().match(opt) or setup_rb_error "config: unknown option #{opt}"
     m.to_a[1,2]
   end
 
@@ -751,7 +752,7 @@ end
 class ToplevelInstaller
 
   Version   = '3.4.1'
-  Copyright = 'Copyright (c) 2000-2005 Minero Aoki'
+  Copyright = 'Copyright (c) 2000-2006 Minero Aoki'
 
   TASKS = [
     [ 'all',      'do config, setup, then install' ],
@@ -1418,7 +1419,7 @@ class Installer
 
   def hookfiles
     %w( pre-%s post-%s pre-%s.rb post-%s.rb ).map {|fmt|
-      %w( config setup install clean ).map {|t| sprintf(fmt, t) }
+      %w( config setup install clean distclean ).map {|t| sprintf(fmt, t) }
     }.flatten
   end
 

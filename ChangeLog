@@ -1,3 +1,7 @@
+Thu Aug  3 19:35:34 2006  Minero Aoki  <aamine@loveruby.net>
+
+	* setup.rb: updated.
+
 Thu Aug  3 19:34:55 2006  Minero Aoki  <aamine@loveruby.net>
 
 	* bin/racc2y: getopts -> optparse.
