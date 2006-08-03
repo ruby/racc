@@ -25,7 +25,6 @@ module Racc
       @debug_symbol = debug_flags.token
       @rules   = []  # :: [Rule]
       @start   = nil
-      @embedded_action_seq = 1
       @n_expected_srconflicts = nil
       @prec_table = []
       @prec_table_closed = false
@@ -69,8 +68,8 @@ module Racc
     def_delegator "@symboltable", :each_terminal
     def_delegator "@symboltable", :each_nonterminal
 
-    def intern(value)
-      @symboltable.intern(value)
+    def intern(value, dummy = false)
+      @symboltable.intern(value, dummy)
     end
 
     def symbols
@@ -147,29 +146,6 @@ module Racc
     # Grammar Definition Interface
     #
 
-    def add_from_list(target, list)
-      if target
-        @prev_target = target
-      else
-        target = @prev_target
-      end
-      if list.last.kind_of?(UserAction)
-        act = list.pop
-      else
-        act = UserAction.empty
-      end
-      list.map! {|s| s.kind_of?(UserAction) ? embedded_action(s) : s }
-      add Rule.new(target, list, act)
-    end
-
-    def embedded_action(act)
-      sym = @symboltable.intern("@#{@embedded_action_seq}".intern, true)
-      @embedded_action_seq += 1
-      add Rule.new(sym, [], act)
-      sym
-    end
-    private :embedded_action
-
     def add(rule)
       raise ArgumentError, "rule added after the Grammar closed" if @closed
       @rules.push rule
@@ -187,6 +163,9 @@ module Racc
     def declare_precedence(assoc, syms)
       raise CompileError, "precedence table defined twice" if @prec_table_closed
       @prec_table.push [assoc, syms]
+      syms.each do |s|
+        s.should_terminal
+      end
     end
 
     def end_precedence_declaration(reverse)
@@ -220,6 +199,12 @@ module Racc
 
       def grammar
         flush_delayed
+        @grammar.each do |rule|
+          if rule.specified_prec
+            rule.specified_prec = intern(rule.specified_prec)
+          end
+        end
+        @grammar.init
         @grammar
       end
 
@@ -408,13 +393,13 @@ module Racc
     #
 
     def init
+      return if @closed
       @closed = true
-      @start ||= @rules.first.target
+      @start ||= @rules.map {|r| r.target }.detect {|sym| not sym.dummy? }
       raise CompileError, 'no rule in input' if @rules.empty?
       add_start_rule
       @rules.freeze
       fix_ident
-      fix_specified_prec
       compute_hash
       compute_heads
       determine_terminals
@@ -425,6 +410,8 @@ module Racc
       compute_nullable
       compute_useless
     end
+
+    private
 
     def add_start_rule
       r = Rule.new(@symboltable.dummy,
@@ -441,14 +428,6 @@ module Racc
     def fix_ident
       @rules.each_with_index do |rule, idx|
         rule.ident = idx
-      end
-    end
-
-    def fix_specified_prec
-      @rules.each do |rule|
-        if rule.specified_prec
-          rule.specified_prec = intern(rule.specified_prec)
-        end
       end
     end
 
@@ -775,7 +754,6 @@ module Racc
 
 
   class OrMark
-
     def initialize(lineno)
       @lineno = lineno
     end
@@ -787,26 +765,23 @@ module Racc
     alias inspect name
 
     attr_reader :lineno
-
   end
 
 
   class Prec
-
-    def initialize(tok, lineno)
-      @val = tok
+    def initialize(symbol, lineno)
+      @symbol = symbol
       @lineno = lineno
     end
 
     def name
-      '='
+      "=#{@symbol}"
     end
 
     alias inspect name
 
-    attr_reader :val
+    attr_reader :symbol
     attr_reader :lineno
-
   end
 
 
@@ -880,8 +855,8 @@ module Racc
       @symbols = []   # :: [Racc::Sym]
       @cache   = {}   # :: {(String|Symbol) => Racc::Sym}
       @dummy  = intern(:$start, true)
-      @anchor = intern(false, true)                   # Symbol ID = 0
-      @error  = intern(ErrorSymbolValue.new, false)   # Symbol ID = 1
+      @anchor = intern(false, true)     # Symbol ID = 0
+      @error  = intern(:error, false)   # Symbol ID = 1
     end
 
     attr_reader :dummy
@@ -936,26 +911,30 @@ module Racc
     end
 
     def fix
-      # initialize table
-      term = []
-      nt = []
-      t = i = nil
-      @symbols.each do |t|
-        (t.terminal? ? term : nt).push t
-      end
-      @symbols = term + nt
-      @nt_base = term.size
-      @terms = terminals()
-      @nterms = nonterminals()
+      terms, nterms = @symbols.partition {|s| s.terminal? }
+      @symbols = terms + nterms
+      @terms = terms
+      @nterms = nterms
+      @nt_base = terms.size
+      fix_ident
+      check_terminals
+    end
 
+    private
+
+    def fix_ident
       @symbols.each_with_index do |t, i|
         t.ident = i
       end
+    end
 
-      # check if decleared symbols are really terminal
+    def check_terminals
       if @symbols.any? {|s| s.should_terminal? }
         @anchor.should_terminal
         @error.should_terminal
+        each_terminal do |t|
+          t.should_terminal if t.string_symbol?
+        end
         terminals().reject {|t| t.should_terminal? }.each do |t|
           raise CompileError, "terminal #{t} not declared as terminal"
         end
@@ -966,10 +945,6 @@ module Racc
     end
 
   end   # class SymbolTable
-
-
-  class ErrorSymbolValue
-  end
 
 
   # Stands terminal and nonterminal symbols.
@@ -988,15 +963,19 @@ module Racc
       when Symbol
         @to_s = value.to_s
         @serialized = value.inspect
+        @string = false
       when String
         @to_s = value.inspect
         @serialized = value.dump
+        @string = true
       when false
         @to_s = '$end'
         @serialized = 'false'
+        @string = false
       when ErrorSymbolValue
         @to_s = 'error'
         @serialized = 'Object.new'
+        @string = false
       else
         raise ArgumentError, "unknown symbol value: #{value.class}"
       end
@@ -1052,6 +1031,10 @@ module Racc
 
     def should_terminal?
       @should_terminal
+    end
+
+    def string_symbol?
+      @string
     end
 
     def serialize

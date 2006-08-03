@@ -11,17 +11,92 @@
 #
 
 require 'racc/static'
-require 'getoptlong'
+require 'optparse'
 
 def main
-  options = parse_options()
-  usage 0 if options['--help']
-  if options['--version']
+  output = nil
+  debug_parser = false
+  make_logfile = false
+  logfilename = nil
+  make_executable = false
+  rubypath = nil
+  embed_runtime = false
+  debug_flags = Racc::DebugFlags.new
+  line_convert = true
+  line_convert_all = false
+  omit_action_call = true
+  superclass = nil
+  check_only = false
+  verbose = false
+  profiler = RaccProfiler.new(false)
+
+  parser = OptionParser.new
+  parser.banner = "Usage: #{File.basename($0)} [options] <input>"
+  parser.on('-o', '--output-file=PATH',
+            'output file name [<input>.tab.rb]') {|name|
+    output = name
+  }
+  parser.on('-t', '--debug', 'Outputs debugging parser.') {|fl|
+    debug_parser = fl
+  }
+  parser.on('-g', 'Equivalent to -t (obsolete).') {|fl|
+    $stderr.puts "racc -g is obsolete.  Use racc -t instead." if $VERBOSE
+    debug_parser = fl
+  }
+  parser.on('-v', '--verbose',
+            'Creates <filename>.output log file.') {|fl|
+    make_logfile = fl
+  }
+  parser.on('-O', '--log-file=PATH',
+            'Log file name [<input>.output]') {|path|
+    make_logfile = true
+    logfilename = path
+  }
+  parser.on('-e', '--executable [RUBYPATH]', 'Makes executable parser.') {|path|
+    executable = true
+    rubypath = (path == 'ruby' ? nil : path)
+  }
+  parser.on('-E', '--embedded', "Embeds Racc runtime in output.") {
+    embed_runtime = true
+  }
+  parser.on('--line-convert-all', 'Converts line numbers of user codes.') {
+    line_convert_all = true
+  }
+  parser.on('-l', '--no-line-convert', 'Never convert line numbers.') {
+    line_convert = false
+    line_convert_all = false
+  }
+  parser.on('-a', '--no-omit-actions', 'Never omit actions.') {
+    omit_action_call = false
+  }
+  parser.on('--superclass=CLASSNAME',
+            'Uses CLASSNAME instead of Racc::Parser.') {|name|
+    superclass = name
+  }
+  parser.on('--runtime=FEATURE',
+            "Uses FEATURE instead of 'racc/parser'") {|feat|
+    runtime = feature
+  }
+  parser.on('-C', '--check-only', 'Checks syntax and quit immediately.') {|fl|
+    check_only = fl
+  }
+  parser.on('-S', '--output-status', 'Outputs internal status time to time.') {
+    verbose = true
+  }
+  parser.on('-P', 'Enables generator profile') {
+    profiler = RaccProfiler.new(true)
+  }
+  parser.on('-D flags', "Flags for Racc debugging (do not use).") {|flags|
+    debug_flags = Racc::DebugFlags.parse_option_string(flags)
+  }
+  #parser.on('--no-extensions', 'Run Racc without any Ruby extension.') {
+  #  Racc.const_set :Racc_No_Extentions, true
+  #}
+  parser.on('--version', 'Prints version and quit.') {
     puts "racc version #{Racc::Version}"
     exit 0
-  end
-  # Racc.const_set :Racc_No_Extentions, options['--no-extensions']
-  if options['--runtime-version']
+  }
+  parser.on('--runtime-version', 'Prints runtime version and quit.') {
     printf "racc runtime version %s (rev. %s); %s\n",
            Racc::Parser::Racc_Runtime_Version,
            Racc::Parser::Racc_Runtime_Revision,
@@ -35,85 +110,95 @@ def main
                      Racc::Parser::Racc_Runtime_Core_Revision_C)
            end
     exit 0
-  end
-  if options['--copyright']
-    puts "racc version #{Racc::Version}"
-    puts "#{Racc::Copyright} <aamine@loveruby.net>"
+  }
+  parser.on('--copyright', 'Prints copyright and quit.') {
+    puts Racc::Copyright
     exit 0
-  end
-  usage(1, 'no grammar file given') if ARGV.empty?
-  usage(1, 'too many grammar files given') if ARGV.size > 1
-  path = ARGV[0]
+  }
+  parser.on('--help', 'Prints this message and quit.') {
+    puts parser.help
+    exit 1
+  }
   begin
-    _main path, options
-  rescue Racc::Error, Errno::ENOENT, Errno::EPERM => err
-    raise if $DEBUG or options['-D']
-    lineno = err.message.slice(/\A\d+:/).to_s
-    $stderr.puts "#{File.basename $0}: #{path}:#{lineno} #{err.message.strip}"
+    parser.parse!
+  rescue OptionParser::ParseError => err
+    $stderr.puts err.message
+    $stderr.puts parser.help
     exit 1
   end
-end
-
-def _main(path, options)
-  verbose = options['--output-status']
-  debug_flags = Racc::DebugFlags.parse_option_string(options['-D'] || '')
-  $stdout.sync = true if debug_flags.any?
-  profiler = RaccProfiler.new(options['-P'])
-  src = File.read(path)
-  filename = File.basename(path)
-
-  $stderr.puts 'Parsing grammar file...' if verbose
-  result = profiler.section('parse') {
-    Racc::GrammarFileParser.new(debug_flags).parse(src, filename)
-  }
-  if options['--check-only']
-    $stderr.puts 'syntax ok'
-    exit 0
+  if ARGV.empty?
+    $stderr.puts 'no input'
+    exit 1
   end
-
-  $stderr.puts 'Initializing a state machine...' if verbose
-  states = profiler.section('nfa') {
-    Racc::States.new(result.grammar).nfa
-  }
-
-  $stderr.puts "Resolving #{@statetable.size} states..." if verbose
-  profiler.section('dfa') {
-    states.dfa
-  }
-
-  $stderr.puts 'Creating parser file...' if verbose
-  params = result.params.dup
-  # Overwrites parameters given by a grammar file with command line options.
-  params.superclass = options['--super'] if options['--super']
-  params.omit_action_call = true if options['--omit-actions']
-  # From command line option
-  if options['--executable']
-    params.make_executable = true
-    params.interpreter = options['--executable']
+  if ARGV.size > 1
+    $stderr.puts 'too many input'
+    exit 1
   end
-  params.debug_parser = true if (options['--debug'] || options['-g'])
-  params.convert_line = true if options['--line-convert']
-  params.convert_line_all = true if options['--line-convert-all']
-  params.embed_runtime = true if options['--embed']
-  generator = Racc::ParserFileGenerator.new(states, params)
-  destpath = options['--output-file'] || make_filename(path, '.tab.rb')
-  generator.generate_parser_file destpath
+  input = ARGV[0]
 
-  profiler.report if options['-P']
-  if options['--verbose']
-    $stderr.puts 'Creating log file...' if verbose
-    output_fn = options['--log-file'] ||
-        make_filename(options['--output'] || filename, '.output')
-    File.open(output_fn, 'w') {|f|
-      Racc::LogFileGenerator.new(states, debug_flags).output f
+  begin
+    $stderr.puts 'Parsing grammar file...' if verbose
+    result = profiler.section('parse') {
+      parser = Racc::GrammarFileParser.new(debug_flags)
+      parser.parse(File.read(input), File.basename(input))
     }
-  end
-  if debug_flags.status_logging
-    log_useless states.grammar
-    log_conflict states
-  else
-    report_useless states.grammar
-    report_conflict states
+    if check_only
+      $stderr.puts 'syntax ok'
+      exit 0
+    end
+
+    $stderr.puts 'Generating LALR states...' if verbose
+    states = profiler.section('nfa') {
+      Racc::States.new(result.grammar).nfa
+    }
+
+    $stderr.puts "Resolving #{states.size} states..." if verbose
+    profiler.section('dfa') {
+      states.dfa
+    }
+
+    $stderr.puts 'Creating parser file...' if verbose
+    params = result.params.dup
+    # Overwrites parameters given by a grammar file with command line options.
+    params.superclass = superclass if superclass
+    params.omit_action_call = true if omit_action_call
+    # From command line option
+    if make_executable
+      params.make_executable = true
+      params.interpreter = rubypath
+    end
+    params.debug_parser = true if debug_parser
+    params.convert_line = true if line_convert
+    params.convert_line_all = true if line_convert_all
+    params.embed_runtime = true if embed_runtime
+    profiler.section('generation') {
+      generator = Racc::ParserFileGenerator.new(states, params)
+      generator.generate_parser_file(output || make_filename(input, '.tab.rb'))
+    }
+
+    if make_logfile
+      profiler.section('logging') {
+        $stderr.puts 'Creating log file...' if verbose
+        logfilename ||= make_filename(output || File.basename(input), '.output')
+        File.open(logfilename, 'w') {|f|
+          Racc::LogFileGenerator.new(states, debug_flags).output f
+        }
+      }
+    end
+    if debug_flags.status_logging
+      log_useless states.grammar
+      log_conflict states
+    else
+      report_useless states.grammar
+      report_conflict states
+    end
+
+    profiler.report
+  rescue Racc::Error, Errno::ENOENT, Errno::EPERM => err
+    raise if $DEBUG or debug_flags.any?
+    lineno = err.message.slice(/\A\d+:/).to_s
+    $stderr.puts "#{File.basename $0}: #{input}:#{lineno} #{err.message.strip}"
+    exit 1
   end
 end
 
@@ -169,92 +254,6 @@ def logging(mode, &block)
   File.open("log/#{File.basename(ARGV[0])}", mode, &block)
 end
 
-#
-# Command Line Option Processing
-#
-
-Racc_Options = <<EOS
-  o -t --debug            - Outputs parser for user-level debugging.
-  o -g -                  - Equivalent to -t (obsolete).
-  o -o --output-file <outfile>  The file name of output [<fname>.tab.rb]
-  o -e --executable <rubypath>  Inserts #! line in output (Use 'ruby' to default).
-  o -E --embedded         - Outputs a file which don't need Racc runtime.
-  x -r --runtime <file>     Uses <file> instead of 'racc/parser'
-  o -l --no-line-convert  - Never convert line numbers (for ruby<=1.4.3).
-  o -c --line-convert-all - Converts line numbers also header and footer.
-  x -s --super <super>      Uses <super> instead of Racc::Parser
-  o -a --no-omit-actions  - Never omit actions if we can.
-  x -  --omit-actions     - Always omit actions if we can.
-
-  o -v --verbose          - Creats <filename>.output log file.
-  o -O --log-file <fname>   The file name of log file [<fname>.output]
-
-  o -C --check-only       - Checks syntax and quit immediately.
-  o -S --output-status    - Outputs internal status time to time.
-  x -  --no-extentions    - Racc run without any Ruby extention.
-  o -  --version          - Prints version and quit.
-  o -  --runtime-version  - Prints runtime version and quit.
-  o -  --copyright        - Prints copyright and quit.
-  x -h --help             - Prints this message and quit.
-  x -P -                  - Reports profile.
-  x -D - <flags>            Sets (Racc's) debug flags
-EOS
-
-def parse_options
-  gl_args = Racc_Options.map {|line|
-              next if line.strip.empty?
-              disp, sopt, lopt, takearg, doc = line.strip.split(/\s+/, 5)
-              a = []
-              a.push lopt unless lopt == '-'
-              a.push sopt unless sopt == '-'
-              a.push takearg == '-' ?
-                     GetoptLong::NO_ARGUMENT : GetoptLong::REQUIRED_ARGUMENT
-              a
-            }.compact
-  getopt = GetoptLong.new(*gl_args)
-  getopt.quiet = true
-  opt = {}
-  begin
-    getopt.each do |name, arg|
-      raise GetoptLong::InvalidOption, "#{name} given twice" if opt.key?(name)
-      opt[name] = arg.empty?() ? true : arg
-    end
-  rescue GetoptLong::AmbigousOption, GetoptLong::InvalidOption,
-         GetoptLong::MissingArgument, GetoptLong::NeedlessArgument
-    usage 1, $!.message
-  end
-  opt['--line-convert'] = true
-  if opt['--no-line-convert']
-    opt['--line-convert'] = false
-    opt['--line-convert-all'] = false
-  end
-  opt['--omit-actions'] = false if opt['--no-omit-actions']
-  opt
-end
-
-def usage(status, msg = nil)
-  f = (status == 0 ? $stdout : $stderr)
-  f.puts "#{File.basename $0}: #{msg}" if msg
-  f.puts 'Usage: racc [options] <grammar file>'
-  f.puts 'Options:'
-  Racc_Options.each do |line|
-    next if line.strip.empty?
-    show_p, sopt, lopt, takearg, description = line.strip.split(/\s+/, 5)
-    next if show_p == 'x'
-    optdesc = [
-      [ (sopt == '-') ? nil : sopt,
-        (lopt == '-') ? nil : lopt ].compact.join(','),
-      (takearg == '-') ? nil : takearg
-    ].compact.join(' ')
-    f.printf "  %-27s %s\n", optdesc, description
-  end
-  exit status
-end
-
-#
-# Profile
-#
-
 class RaccProfiler
   def initialize(really)
     @really = really
@@ -279,24 +278,24 @@ class RaccProfiler
     end
   end
 
-  def cumulative_time
-    t = @log.inject(0) {|sum, i| sum + i }
-    t == 0 ? 0.01 : t
-  end
-
   def report
+    return unless @really
     f = $stderr
     total = cumulative_time()
     f.puts '--task-----------+--sec------+---%-'
-    @log.each do |arr|
-      name, time = arr
-      f.printf "%-19s %s %3d%%\n", name, pjust(time,4,4), (time/total * 100).to_i
+    @log.each do |name, time|
+      f.printf "%-19s %s %3d%%\n", name, pjust(time,4,4), (time/total*100).to_i
     end
     f.puts '-----------------+-----------+-----'
     f.printf "%-20s%s\n", 'total', pjust(total,4,4)
   end
 
   private
+
+  def cumulative_time
+    t = @log.inject(0) {|sum, (name, time)| sum + time }
+    t == 0 ? 0.01 : t
+  end
 
   def pjust(num, i, j)
     m = /(\d+)(\.\d+)?/.match(num.to_s)
@@ -305,9 +304,5 @@ class RaccProfiler
     str
   end
 end
-
-#
-# Application Entry Point
-#
 
 main

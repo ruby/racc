@@ -179,8 +179,10 @@ module Racc
       @scanner.debug = @yydebug
       @grammar = Grammar.new
       @result = Result.new(@grammar)
+      @embedded_action_seq = 0
       yyparse @scanner, :yylex
       parse_user_code
+      @result.grammar.init
       @result
     end
 
@@ -206,6 +208,7 @@ module Racc
     end
 
     def add_rule_block(list)
+      sprec = nil
       target = list.shift
       case target
       when OrMark, UserAction, Prec
@@ -215,16 +218,35 @@ module Racc
       list.each do |i|
         case i
         when OrMark
-          @grammar.add_from_list target, curr
+          add_rule target, curr, sprec
           curr = []
+          sprec = nil
         when Prec
-          raise CompileError, "'=<prec>' used twice in one rule" if @sprec
-          @sprec = i.val
+          raise CompileError, "'=<prec>' used twice in one rule" if sprec
+          sprec = i.symbol
         else
           curr.push i
         end
       end
-      @grammar.add_from_list target, curr
+      add_rule target, curr, sprec
+    end
+
+    def add_rule(target, list, sprec)
+      if list.last.kind_of?(UserAction)
+        act = list.pop
+      else
+        act = UserAction.empty
+      end
+      list.map! {|s| s.kind_of?(UserAction) ? embedded_action(s) : s }
+      rule = Rule.new(target, list, act)
+      rule.specified_prec = sprec
+      @grammar.add rule
+    end
+
+    def embedded_action(act)
+      sym = @grammar.intern("@#{@embedded_action_seq += 1}".intern, true)
+      @grammar.add Rule.new(sym, [], act)
+      sym
     end
 
     #
