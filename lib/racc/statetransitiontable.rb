@@ -185,20 +185,13 @@ module Racc
       all.push [arr, chkval, mkmapexp(arr), min, ptr.size - 1]
     end
 
-    unless defined?(RegexpError)
-      RegexpError = RegxpError
-    end
+    n = 2 ** 16
     begin
-      n = 2 ** 16
-      begin
-        Regexp.new("a{#{n}}")
-        RE_DUP_MAX = n
-      rescue RegexpError
-        n /= 2
-        retry
-      end
-      raise ArgumentError, 'dummy error to clear ruby_errinfo'
-    rescue ArgumentError
+      Regexp.compile("a{#{n}}")
+      RE_DUP_MAX = n
+    rescue RegexpError
+      n /= 2
+      retry
     end
 
     def mkmapexp(arr)

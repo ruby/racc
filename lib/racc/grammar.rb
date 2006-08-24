@@ -125,15 +125,29 @@ module Racc
     end
 
     def parser_class
-      states   # cache
+      states = states()   # cache
       if $DEBUG
-        filename = caller(1).first.slice(/\A(.*?):/, 1) + ".output"
+        srcfilename = caller(1).first.slice(/\A(.*?):/, 1)
         begin
-          write_log filename
+          write_log srcfilename + ".output"
         rescue Errno::EPERM
         end
+        report = lambda {|s| $stderr.puts "racc: #{srcfilename}: #{s}" }
+        if states.should_report_srconflict?
+          report["#{states.n_srconflicts} shift/reduce conflicts"]
+        end
+        if states.rrconflict_exist?
+          report["#{states.n_rrconflicts} reduce/reduce conflicts"]
+        end
+        g = states.grammar
+        if g.useless_nonterminal_exist?
+          report["#{g.n_useless_nonterminals} useless nonterminals"]
+        end
+        if g.useless_rule_exist?
+          report["#{g.n_useless_rules} useless rules"]
+        end
       end
-      states().state_transition_table.parser_class
+      states.state_transition_table.parser_class
     end
 
     def write_log(path)
