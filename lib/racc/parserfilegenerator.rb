@@ -464,7 +464,7 @@ module Racc
     end
 
     def unindent_auto(str)
-      lines = str.to_a
+      lines = str.lines
       n = minimum_indent(lines)
       lines.map {|line| detab(line).sub(indent_re(n), '').rstrip + "\n" }.join('')
     end

@@ -9,6 +9,24 @@
 # For details of the GNU LGPL, see the file "COPYING".
 #
 
+unless Object.method_defined?(:__send)
+  class Object
+    alias __send __send__
+  end
+end
+
+unless Object.method_defined?(:__send!)
+  class Object
+    alias __send! __send__
+  end
+end
+
+unless String.method_defined?(:lines)
+  class String
+    alias lines to_a
+  end
+end
+
 unless Array.method_defined?(:map!)
   class Array
     if Array.method_defined?(:collect!)

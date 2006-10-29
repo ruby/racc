@@ -10,6 +10,7 @@
 #
 
 require 'racc'
+require 'racc/compat'
 require 'racc/grammar'
 require 'racc/parserfilegenerator'
 require 'racc/sourcetext'
@@ -257,7 +258,7 @@ module Racc
       line = @scanner.lineno
       _, *blocks = *@scanner.epilogue.split(/^----/)
       blocks.each do |block|
-        header, *body = block.to_a
+        header, *body = block.lines
         label0, pathes = *header.sub(/\A-+/, '').split('=', 2)
         label = canonical_label(label0)
         (pathes ? pathes.strip.split(' ') : []).each do |path|
