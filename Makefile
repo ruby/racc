@@ -4,23 +4,14 @@ ident   = racc
 version = 1.4.5
 include $(HOME)/.makeparams
 
-.PHONY: default all test doc update site dist bootstrap
+.PHONY: default all test doc update site dist
 
 default: all
 
-all: update bootstrap lib/racc/parser-text.rb extensions
+all: update lib/racc/parser-text.rb extensions
 
 update:
 	update-version --version=$(version) lib/racc/info.rb lib/racc/parser.rb ext/racc/cparse/cparse.c
-
-bootstrap-force:
-	rm lib/racc/grammarfileparser.rb
-	$(MAKE) bootstrap
-
-bootstrap: lib/racc/grammarfileparser.rb
-lib/racc/grammarfileparser.rb: misc/boot.rb lib/racc/grammarfileparser.rb.in
-	echo "# This file is autogenrated. DO NOT MODIFY!" > $@
-	ruby -I./lib misc/boot.rb $@.in >> $@
 
 lib/racc/parser-text.rb: lib/racc/parser.rb
 	echo "module Racc" > $@
