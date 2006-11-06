@@ -1,3 +1,8 @@
+Tue Nov  7 07:13:47 2006  Minero Aoki  <aamine@loveruby.net>
+
+	* lib/racc/grammar.rb (Rule#prec): rule.prec{...} should set
+	  action.
+
 Tue Nov  7 06:38:57 2006  Minero Aoki  <aamine@loveruby.net>
 
 	* lib/racc/grammar.rb: system call error on writing log file
