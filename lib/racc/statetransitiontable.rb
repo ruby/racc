@@ -112,8 +112,8 @@ module Racc
       t.action_check = yycheck  = []
       t.action_default = yydefact = []
       t.action_pointer = yypact   = []
-      state = vec = min = max = i = nil
-      e1 = []; e2 = []
+      e1 = []
+      e2 = []
       states.each do |state|
         yydefact.push act2actid(state.defact)
         if state.action.empty?
@@ -174,7 +174,6 @@ module Racc
     def addent(all, arr, chkval, ptr)
       max = arr.size
       min = nil
-      item = idx = nil
       arr.each_with_index do |item, idx|
         if item
           min ||= idx

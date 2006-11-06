@@ -125,14 +125,11 @@ module Racc
       puts "dstate: #{state}" if @d_state
 
       table = {}
-      ptr = pt = s = g = nil
-
       state.closure.each do |ptr|
         if sym = ptr.dereference
           addsym table, sym, ptr.next
         end
       end
-
       table.each do |sym, core|
         puts "dstate: sym=#{sym} ncore=#{core}" if @d_state
 
@@ -222,12 +219,11 @@ module Racc
       #
       # lookahead algorithm ver.3 -- from bison 1.26
       #
-      state = goto = arr = ptr = st = rl = i = a = t = g = nil
 
       gotos = @gotos
       if @d_la
         puts "\n--- goto ---"
-        gotos.each_with_index {|g,i| print i, ' '; p g }
+        gotos.each_with_index {|g, i| print i, ' '; p g }
       end
 
       ### initialize_LA()
@@ -271,8 +267,8 @@ module Racc
       gotos.each do |goto|
         goto.symbol.heads.each do |ptr|
           path = record_path(goto.from_state, ptr.rule)
-          g = path[-1]
-          st = g ? g.to_state : goto.from_state
+          lastgoto = path.last
+          st = lastgoto ? lastgoto.to_state : goto.from_state
           if st.conflict?
             addrel lookback, st.rruleid(ptr.rule), goto
           end
@@ -354,7 +350,6 @@ module Racc
       vertices = []
       @infinity = n + 2
 
-      i = nil
       index.each_index do |i|
         if not index[i] and relation[i]
           traverse i, index, vertices, map, relation
@@ -366,7 +361,6 @@ module Racc
       vertices.push i
       index[i] = height = vertices.size
 
-      proci = nil
       if rp = relation[i]
         rp.each do |proci|
           unless index[proci]
@@ -425,7 +419,6 @@ module Racc
     end
 
     def each_t(tbl, set)
-      i = ii = idx = nil
       0.upto( set.size ) do |i|
         (0..7).each do |ii|
           if set[idx = i * 8 + ii] == 1
@@ -457,20 +450,18 @@ module Racc
     end
 
     def resolve_rr(state, r)
-      pt = t = act = item = nil
-
       r.each do |item|
         item.each_la(@symboltable) do |t|
           act = state.action[t]
           if act
-            raise "racc: fatal: #{act.class} in action table" unless act.kind_of?(Reduce)
-            #
-            # can't resolve R/R conflict (on t).
-            #   reduce with upper rule as default
-            #
+            unless act.kind_of?(Reduce)
+              raise "racc: fatal: #{act.class} in action table"
+            end
+            # Cannot resolve R/R conflict (on t).
+            # Reduce with upper rule as default.
             state.rr_conflict act.rule, item.rule, t
           else
-            # not conflict
+            # No conflict.
             state.action[t] = @actions.reduce(item.rule)
           end
         end
@@ -478,8 +469,6 @@ module Racc
     end
 
     def resolve_sr(state, s)
-      stok = rtok = goto = act = nil
-
       s.each do |stok|
         goto = state.goto_table[stok]
         act = state.action[stok]
@@ -575,18 +564,17 @@ module Racc
       ### find most frequently used reduce rule
       act = state.action
       arr = Array.new(@grammar.size, 0)
-      t = a = nil
-      act.each do |t,a|
-        arr[a.ruleid] += 1 if a.kind_of?(Reduce)
+      act.each do |t, a|
+        arr[a.ruleid] += 1  if a.kind_of?(Reduce)
       end
       i = arr.max
-      s = i>0 ? arr.index(i) : nil
+      s = (i > 0) ? arr.index(i) : nil
 
       ### set & delete default action
       if s
         r = @actions.reduce(s)
         if not state.defact or state.defact == r
-          act.delete_if {|t,a| a == r }
+          act.delete_if {|t, a| a == r }
           state.defact = r
         end
       else
@@ -595,7 +583,6 @@ module Racc
     end
 
     def check_useless
-      act = nil
       used = []
       @actions.each_reduce do |act|
         if not act or act.refn == 0
@@ -807,7 +794,6 @@ module Racc
 
     def each_la(tbl)
       la = @la
-      i = ii = idx = nil
       0.upto(la.size - 1) do |i|
         (0..7).each do |ii|
           if la[idx = i * 8 + ii] == 1

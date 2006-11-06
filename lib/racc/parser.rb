@@ -159,9 +159,6 @@ module Racc
       reduce_n,     use_result,   * = arg
 
       _racc_init_sysvars
-      tok = nil
-      act = nil
-      i = nil
       nerr = 0
 
       catch(:racc_end_parse) {

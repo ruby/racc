@@ -1,3 +1,23 @@
+Tue Nov  7 06:38:57 2006  Minero Aoki  <aamine@loveruby.net>
+
+	* lib/racc/grammar.rb: system call error on writing log file
+	  should be ignored.
+
+	* lib/racc/grammar.rb: never define lvar which have same name with
+	  block local variable.
+
+	* lib/racc/iset.rb: ditto.
+
+	* lib/racc/logfilegenerator.rb: ditto.
+
+	* lib/racc/parser.rb: ditto.
+
+	* lib/racc/state.rb: ditto.
+
+	* lib/racc/statetransitiontable.rb: ditto.
+
+	* test/test.rb: racc -c is obsolete, use --line-convert-all.
+
 Sun Oct 29 13:27:30 2006  Minero Aoki  <aamine@loveruby.net>
 
 	* lib/racc/grammarfileparser.rb: use String#lines instead of

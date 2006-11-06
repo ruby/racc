@@ -130,7 +130,7 @@ module Racc
         srcfilename = caller(1).first.slice(/\A(.*?):/, 1)
         begin
           write_log srcfilename + ".output"
-        rescue Errno::EPERM
+        rescue SystemCallError
         end
         report = lambda {|s| $stderr.puts "racc: #{srcfilename}: #{s}" }
         if states.should_report_srconflict?
@@ -586,7 +586,6 @@ module Racc
     end
 
     def check_symbols_useless(s)
-      t = ptr = nil
       s.delete_if do |t|
         t.heads.each do |ptr|
           unless ptr.rule.useless?

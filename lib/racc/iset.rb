@@ -47,7 +47,6 @@ module Racc
 
     def update_a(a)
       s = @set
-      i = nil
       a.each {|i| s[i.ident] = i }
     end
 

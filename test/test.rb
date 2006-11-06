@@ -11,7 +11,7 @@ def main
   try %w( normal.y                  ), []
   try %w( normal.y -vg              ), []
   try %w( chk.y    -vg              ), [], true
-  try %w( chk.y    -c               ), [], true
+  try %w( chk.y  --line-convert-all ), [], true
   try %w( echk.y   -E               ), [], true
   try %w( err.y                     ), [], true
   try %w( mailp.y                   ), []

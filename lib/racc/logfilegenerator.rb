@@ -45,7 +45,6 @@ module Racc
     end
 
     def output_useless(out)
-      rl = t = nil
       used = []
       @grammar.each do |rl|
         if rl.useless?
@@ -65,7 +64,6 @@ module Racc
     #
 
     def output_state(out)
-      ptr = nil
       out << "--------- State ---------\n"
 
       showall = @debug_flags.la || @debug_flags.state
