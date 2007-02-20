@@ -284,9 +284,9 @@ module Racc
 
       alias _ action
 
-      def option(sym, &block)
+      def option(sym, default = nil, &block)
         _defmetasyntax("option", _intern(sym), block) {|target|
-          seq() | seq(sym)
+          seq() { default } | seq(sym)
         }
       end
 
@@ -305,10 +305,7 @@ module Racc
       end
 
       def separated_by(sep, sym, &block)
-        _defmetasyntax("separated_by", _intern(sym), block) {|target|
-            seq() { [] }\
-          | seq(target, sep, sym) {|list, _, x| list.push x; list }
-        }
+        option(separated_by1(sep, sym), [], &block)
       end
 
       def separated_by1(sep, sym, &block)

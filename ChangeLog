@@ -1,3 +1,8 @@
+Tue Feb 20 18:45:45 2007  Minero Aoki  <aamine@loveruby.net>
+
+	* lib/racc/grammar.rb (separated_by): last commit was wrong.  use
+	  optional default return value of #option.
+
 Tue Feb 20 18:27:48 2007  Minero Aoki  <aamine@loveruby.net>
 
 	* lib/racc/grammar.rb (separated_by): return [] for empty list.
