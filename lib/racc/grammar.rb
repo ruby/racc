@@ -305,7 +305,10 @@ module Racc
       end
 
       def separated_by(sep, sym, &block)
-        option(separated_by1(sep, sym), &block)
+        _defmetasyntax("separated_by", _intern(sym), block) {|target|
+            seq() { [] }\
+          | seq(target, sep, sym) {|list, _, x| list.push x; list }
+        }
       end
 
       def separated_by1(sep, sym, &block)

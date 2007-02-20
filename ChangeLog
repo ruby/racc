@@ -1,3 +1,7 @@
+Tue Feb 20 18:27:48 2007  Minero Aoki  <aamine@loveruby.net>
+
+	* lib/racc/grammar.rb (separated_by): return [] for empty list.
+
 Tue Nov  7 07:13:47 2006  Minero Aoki  <aamine@loveruby.net>
 
 	* lib/racc/grammar.rb (Rule#prec): rule.prec{...} should set
