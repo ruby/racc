@@ -1,0 +1,73 @@
+require 'test/unit'
+require 'fileutils'
+
+module Racc
+  class TestCase < Test::Unit::TestCase
+    PROJECT_DIR = File.expand_path(File.join(File.dirname(__FILE__), '..'))
+
+    TEST_DIR = File.join(PROJECT_DIR, 'test')
+
+    RACC      = File.join(PROJECT_DIR, 'bin', 'racc')
+    OUT_DIR   = File.join(TEST_DIR, 'out')
+    TAB_DIR   = File.join(TEST_DIR, 'tab')
+    LOG_DIR   = File.join(TEST_DIR, 'log')
+    ERR_DIR   = File.join(TEST_DIR, 'err')
+    ASSET_DIR = File.join(TEST_DIR, 'assets')
+
+    INC = [
+      File.join(PROJECT_DIR, 'lib'),
+      File.join(PROJECT_DIR, 'ext'),
+    ].join(':')
+
+    undef :default_test
+
+    def setup
+      [OUT_DIR, TAB_DIR, LOG_DIR, ERR_DIR].each do |dir|
+        FileUtils.mkdir_p(dir)
+      end
+    end
+
+    def teardown
+      [OUT_DIR, TAB_DIR, LOG_DIR, ERR_DIR].each do |dir|
+        FileUtils.rm_rf(dir)
+      end
+    end
+
+    def assert_compile asset, args = []
+      args = ([args].flatten) + [
+        "#{ASSET_DIR}/#{asset}.y",
+        '-Do',
+        "-O#{OUT_DIR}/#{asset}",
+        "-o#{TAB_DIR}/#{asset}",
+      ]
+      racc "#{args.join(' ')}"
+    end
+
+    def assert_debugfile asset, ok
+      Dir.chdir(TEST_DIR) do
+        File.foreach("log/#{asset}.y") do |line|
+          line.strip!
+          case line
+          when /sr/ then assert_equal "sr#{ok[0]}", line
+          when /rr/ then assert_equal "rr#{ok[1]}", line
+          when /un/ then assert_equal "un#{ok[2]}", line
+          when /ur/ then assert_equal "ur#{ok[3]}", line
+          when /ex/ then assert_equal "ex#{ok[4]}", line
+          else
+            raise TestFailed, 'racc outputs unknown debug report???'
+          end
+        end
+      end
+    end
+
+    def racc arg
+      ruby "-S #{RACC} #{arg}"
+    end
+    
+    def ruby arg
+      Dir.chdir(TEST_DIR) do
+        assert(system("env ruby -I #{INC} #{arg}"))
+      end
+    end
+  end
+end
