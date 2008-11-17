@@ -34,6 +34,7 @@ module Racc
     end
 
     def assert_compile asset, args = []
+      asset = File.basename(asset, '.y')
       args = ([args].flatten) + [
         "#{ASSET_DIR}/#{asset}.y",
         '-Do',
@@ -44,8 +45,9 @@ module Racc
     end
 
     def assert_debugfile asset, ok
+      name = File.basename(asset, '.y')
       Dir.chdir(TEST_DIR) do
-        File.foreach("log/#{asset}.y") do |line|
+        File.foreach("log/#{name}.y") do |line|
           line.strip!
           case line
           when /sr/ then assert_equal "sr#{ok[0]}", line
@@ -57,6 +59,13 @@ module Racc
             raise TestFailed, 'racc outputs unknown debug report???'
           end
         end
+      end
+    end
+
+    def assert_exec file
+      file = File.basename(file, '.y')
+      Dir.chdir(TEST_DIR) do
+        ruby("tab/#{file}")
       end
     end
 

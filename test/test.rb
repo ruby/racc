@@ -4,8 +4,6 @@ class TestFailed < StandardError; end
 
 def main
   setup_dirs
-  try %w( syntax.y -v               ), [0,0,0,0,0]
-  try %w( percent.y                 ), [], true
   try %w( scan.y                    ), [], true
   try %w( newsyn.y                  ), []
   try %w( normal.y                  ), []
