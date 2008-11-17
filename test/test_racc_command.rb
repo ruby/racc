@@ -102,5 +102,20 @@ module Racc
       assert_debugfile 'intp.y', []
       assert_exec 'intp.y'
     end
+
+    def test_expect_y
+      assert_compile 'expect.y'
+      assert_debugfile 'expect.y', [1,0,0,0,1]
+    end
+
+    def test_nullbug1_y
+      assert_compile 'nullbug1.y'
+      assert_debugfile 'nullbug1.y', [0,0,0,0]
+    end
+
+    def test_nullbug2_y
+      assert_compile 'nullbug2.y'
+      assert_debugfile 'nullbug2.y', [0,0,0,0]
+    end
   end
 end
