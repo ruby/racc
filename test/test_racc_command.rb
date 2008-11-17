@@ -63,5 +63,15 @@ module Racc
       assert_compile 'conf.y', '-v'
       assert_debugfile 'conf.y', [4,1,1,2]
     end
+
+    def test_rrconf_y
+      assert_compile 'rrconf.y'
+      assert_debugfile 'rrconf.y', [1,1,0,0]
+    end
+
+    def test_useless_y
+      assert_compile 'useless.y'
+      assert_debugfile 'useless.y', [0,0,1,2]
+    end
   end
 end
