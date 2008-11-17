@@ -47,5 +47,21 @@ module Racc
       assert_debugfile 'echk.y', []
       assert_exec 'echk.y'
     end
+
+    def test_err_y
+      assert_compile 'err.y'
+      assert_debugfile 'err.y', []
+      assert_exec 'err.y'
+    end
+
+    def test_mailp_y
+      assert_compile 'mailp.y'
+      assert_debugfile 'mailp.y', []
+    end
+
+    def test_conf_y
+      assert_compile 'conf.y', '-v'
+      assert_debugfile 'conf.y', [4,1,1,2]
+    end
   end
 end
