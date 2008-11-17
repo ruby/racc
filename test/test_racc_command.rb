@@ -139,5 +139,17 @@ module Racc
       assert_compile 'noend.y'
       assert_debugfile 'noend.y', []
     end
+
+    def test_norule_y
+      assert_raises(RuntimeError) {
+        assert_compile 'norule.y'
+      }
+    end
+
+    def test_unterm_y
+      assert_raises(RuntimeError) {
+        assert_compile 'unterm.y'
+      }
+    end
   end
 end
