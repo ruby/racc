@@ -73,5 +73,34 @@ module Racc
       assert_compile 'useless.y'
       assert_debugfile 'useless.y', [0,0,1,2]
     end
+
+    def test_opt_y
+      assert_compile 'opt.y'
+      assert_debugfile 'opt.y', []
+      assert_exec 'opt.y'
+    end
+
+    def test_yyerr_y
+      assert_compile 'yyerr.y'
+      assert_debugfile 'yyerr.y', []
+      assert_exec 'yyerr.y'
+    end
+
+    def test_recv_y
+      assert_compile 'recv.y'
+      assert_debugfile 'recv.y', [5,10,1,4]
+    end
+
+    def test_ichk_y
+      assert_compile 'ichk.y'
+      assert_debugfile 'ichk.y', []
+      assert_exec 'ichk.y'
+    end
+
+    def test_intp_y
+      assert_compile 'intp.y'
+      assert_debugfile 'intp.y', []
+      assert_exec 'intp.y'
+    end
   end
 end
