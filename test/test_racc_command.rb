@@ -128,5 +128,16 @@ module Racc
       assert_debugfile 'nonass.y', []
       assert_exec 'nonass.y'
     end
+
+    def test_digraph_y
+      assert_compile 'digraph.y'
+      assert_debugfile 'digraph.y', []
+      assert_exec 'digraph.y'
+    end
+
+    def test_noend_y
+      assert_compile 'noend.y'
+      assert_debugfile 'noend.y', []
+    end
   end
 end
