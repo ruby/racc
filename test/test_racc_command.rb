@@ -117,5 +117,16 @@ module Racc
       assert_compile 'nullbug2.y'
       assert_debugfile 'nullbug2.y', [0,0,0,0]
     end
+
+    def test_firstline_y
+      assert_compile 'firstline.y'
+      assert_debugfile 'firstline.y', []
+    end
+
+    def test_nonass_y
+      assert_compile 'nonass.y'
+      assert_debugfile 'nonass.y', []
+      assert_exec 'nonass.y'
+    end
   end
 end
