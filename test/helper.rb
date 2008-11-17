@@ -75,7 +75,7 @@ module Racc
     
     def ruby arg
       Dir.chdir(TEST_DIR) do
-        assert(system("env ruby -I #{INC} #{arg}"))
+        assert(system("env ruby -I #{INC} #{arg} 2>>/tmp/out"))
       end
     end
   end

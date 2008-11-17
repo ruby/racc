@@ -23,5 +23,29 @@ module Racc
       assert_compile 'newsyn.y'
       assert_debugfile 'newsyn.y', []
     end
+
+    def test_normal_y
+      assert_compile 'normal.y'
+      assert_debugfile 'normal.y', []
+
+      assert_compile 'normal.y', '-vg'
+      assert_debugfile 'normal.y', []
+    end
+
+    def test_chk_y
+      assert_compile 'chk.y', '-vg'
+      assert_debugfile 'chk.y', []
+      assert_exec 'chk.y'
+
+      assert_compile 'chk.y', '--line-convert-all'
+      assert_debugfile 'chk.y', []
+      assert_exec 'chk.y'
+    end
+
+    def test_echk_y
+      assert_compile 'echk.y', '-E'
+      assert_debugfile 'echk.y', []
+      assert_exec 'echk.y'
+    end
   end
 end
