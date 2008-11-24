@@ -19,7 +19,9 @@ module Racc
       File.join(PROJECT_DIR, 'ext'),
     ].join(':')
 
-    undef :default_test
+    unless RUBY_VERSION >= '1.9'
+      undef :default_test
+    end
 
     def setup
       [OUT_DIR, TAB_DIR, LOG_DIR, ERR_DIR].each do |dir|
