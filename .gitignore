@@ -1,1 +1,4 @@
 *.swp
+*.o
+lib/racc/parser-text.rb
+Makefile

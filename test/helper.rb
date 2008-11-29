@@ -77,8 +77,9 @@ module Racc
     
     def ruby arg
       Dir.chdir(TEST_DIR) do
-        result = system("env ruby -I #{INC} #{arg} 2>>/tmp/out")
-        result ? assert(result) : raise
+        cmd = "#{ENV['_']} -I #{INC} #{arg} 2>>/tmp/out"
+        result = system(cmd)
+        result ? assert(result) : raise(cmd)
       end
     end
   end
