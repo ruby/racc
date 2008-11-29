@@ -427,7 +427,8 @@ module Racc
                         src.text, retval,
                       delim
           else
-            @f.printf unident_auto(<<-End),
+            src = remove_blank_lines(src0)
+            @f.printf unindent_auto(<<-End),
               def _reduce_%d(val, _values%s)
               %s%s
               end

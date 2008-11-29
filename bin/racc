@@ -167,10 +167,10 @@ def main
       params.make_executable = true
       params.interpreter = rubypath
     end
-    params.debug_parser = true if debug_parser
-    params.convert_line = true if line_convert
-    params.convert_line_all = true if line_convert_all
-    params.embed_runtime = true if embed_runtime
+    params.debug_parser = debug_parser
+    params.convert_line = line_convert
+    params.convert_line_all = line_convert_all
+    params.embed_runtime = embed_runtime
     profiler.section('generation') {
       generator = Racc::ParserFileGenerator.new(states, params)
       generator.generate_parser_file(output || make_filename(input, '.tab.rb'))
