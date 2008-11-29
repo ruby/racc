@@ -27,6 +27,12 @@ end
   }
 end
 
+namespace :test do
+  task :multi do
+    sh 'multiruby -S rake clean test'
+  end
+end
+
 task 'ext/racc/cparse/Makefile' do
   Dir.chdir('ext/racc/cparse') do
     ruby "extconf.rb"
