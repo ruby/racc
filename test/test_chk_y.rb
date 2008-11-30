@@ -1,7 +1,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__), 'helper'))
 
 module Racc
-  class TestParserFileGenerator < TestCase
+  class TestChkY < TestCase
     def setup
       file = File.join(ASSET_DIR, 'chk.y')
       @debug_flags = Racc::DebugFlags.parse_option_string('o')
@@ -36,6 +36,7 @@ module Racc
       generator = Racc::ParserFileGenerator.new(@states, @result.params.dup)
 
       fork { eval(generator.generate_parser) }
+      assert_equal 0, $?.exitstatus
       Process.wait
 
       grammar = @states.grammar

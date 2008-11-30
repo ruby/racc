@@ -48,7 +48,7 @@ end
     assert_equal 'some ', @pre_match
     assert_equal 'regexp', @matched
     assert_equal ' matches to this string', @post_match
-    assert_instance_of MatchingData, @m
+    assert_instance_of MatchData, @m
   end
 
   def assert_equal(ok, data)
