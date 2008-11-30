@@ -321,7 +321,7 @@ module Racc
       else
         yylex0 do |sym, tok|
           $stderr.printf "%7d %-10s %s\n", lineno(), sym.inspect, tok.inspect
-          yield sym, tok
+          yield [sym, tok]
         end
       end
     end
@@ -337,21 +337,21 @@ module Racc
           elsif /\A\/\*/ =~ @line
             skip_comment
           elsif s = reads(/\A[a-zA-Z_]\w*/)
-            yield atom_symbol(s), s.intern
+            yield [atom_symbol(s), s.intern]
           elsif s = reads(/\A\d+/)
-            yield :DIGIT, s.to_i
+            yield [:DIGIT, s.to_i]
           elsif ch = reads(/\A./)
             case ch
             when '"', "'"
-              yield :STRING, eval(scan_quoted(ch))
+              yield [:STRING, eval(scan_quoted(ch))]
             when '{'
               lineno = lineno()
-              yield :ACTION, SourceText.new(scan_action(), @filename, lineno)
+              yield [:ACTION, SourceText.new(scan_action(), @filename, lineno)]
             else
               if ch == '|'
                 @line_head = false
               end
-              yield ch, ch
+              yield [ch, ch]
             end
           else
           end
