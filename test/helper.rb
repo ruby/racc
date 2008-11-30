@@ -1,4 +1,5 @@
 require 'test/unit'
+require 'racc/static'
 require 'fileutils'
 
 module Racc

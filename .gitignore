@@ -1,4 +1,6 @@
 *.swp
 *.o
+*.bundle
+*.so
 lib/racc/parser-text.rb
 Makefile

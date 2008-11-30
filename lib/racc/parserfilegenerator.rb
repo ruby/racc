@@ -74,6 +74,17 @@ module Racc
       @params = params
     end
 
+    def generate_parser
+      string_io = StringIO.new
+
+      init_line_conversion_system
+      @f = string_io
+      parser_file
+
+      string_io.rewind
+      string_io.read
+    end
+
     def generate_parser_file(destpath)
       init_line_conversion_system
       File.open(destpath, 'w') {|f|
@@ -465,7 +476,7 @@ module Racc
     end
 
     def unindent_auto(str)
-      lines = str.lines
+      lines = str.to_a
       n = minimum_indent(lines)
       lines.map {|line| detab(line).sub(indent_re(n), '').rstrip + "\n" }.join('')
     end

@@ -21,9 +21,11 @@ unless Object.method_defined?(:__send!)
   end
 end
 
-unless String.method_defined?(:lines)
+unless String.method_defined?(:to_a)
   class String
-    alias lines to_a
+    def to_a
+      lines.to_a
+    end
   end
 end
 
