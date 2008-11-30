@@ -10,8 +10,10 @@ EXT = "ext/racc/cparse/cparse.#{kind}"
 
 [
   EXT,
-  'lib/racc/parser-text.rb'
-].each { |f| CLEAN << f }
+  'lib/racc/parser-text.rb',
+  'ext/racc/cparse/Makefile',
+  'ext/racc/cparse/*.o',
+].each { |f| Dir[f].each { |file| CLEAN << file } }
 
 file 'lib/racc/parser.rb'
 
