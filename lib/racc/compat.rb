@@ -38,31 +38,3 @@ unless Array.method_defined?(:map!)
     end
   end
 end
-
-unless Enumerable.method_defined?(:map)
-  module Enumerable
-    alias map collect
-  end
-end
-
-unless File.respond_to?(:read)
-  def File.read(path)
-    File.open(path) {|f| return f.read }
-  end
-end
-
-unless Enumerable.method_defined?(:each_slice)
-  module Enumerable
-    def each_slice(n)
-      buf = []
-      each do |x|
-        buf.push x
-        if buf.size == n
-          yield(*buf)
-          buf.clear
-        end
-      end
-      yield(*buf) unless buf.empty?
-    end
-  end
-end

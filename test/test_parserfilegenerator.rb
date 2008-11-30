@@ -14,8 +14,11 @@ module Racc
     def test_compile_chk_y
       generator = Racc::ParserFileGenerator.new(@states, @result.params.dup)
 
-      fork { eval(generator.generate_parser) }
+      fork {
+        eval(generator.generate_parser)
+      }
       Process.wait
+      assert_equal 0, $?.exitstatus
 
       grammar = @states.grammar
 

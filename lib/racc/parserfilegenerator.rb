@@ -9,6 +9,7 @@
 # For details of the GNU LGPL, see the file "COPYING".
 #
 
+require 'enumerator'
 require 'racc/compat'
 require 'racc/sourcetext'
 require 'racc/parser-text'
@@ -364,7 +365,7 @@ module Racc
     def serialize_integer_list_std(name, table)
       sep = ''
       line "#{name} = ["
-      table.each_slice(10) do |*ns|
+      table.each_slice(10) do |ns|
         @f.print sep; sep = ",\n"
         @f.print ns.map {|n| sprintf('%6s', n ? n.to_s : 'nil') }.join(',')
       end
