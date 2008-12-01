@@ -17,9 +17,6 @@ module Racc
       fork {
         eval(generator.generate_parser)
       }
-      File.open('/tmp/out.rb', 'wb') { |f|
-        f.write generator.generate_parser
-      }
       Process.wait
       assert_equal 0, $?.exitstatus
 
