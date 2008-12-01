@@ -186,9 +186,9 @@ module Racc
             ;
           end
 
-          while not (i = action_pointer[@racc_state[-1]]) or
-                not @racc_read_next or
-                @racc_t == 0   # $
+          while !(i = action_pointer[@racc_state[-1]]) ||
+                ! @racc_read_next ||
+                @racc_t == 0  # $
             unless i and i += @racc_t and
                    i >= 0 and
                    act = action_table[i] and

@@ -1,3 +1,4 @@
+$VERBOSE = true
 require 'test/unit'
 require 'racc/static'
 require 'fileutils'

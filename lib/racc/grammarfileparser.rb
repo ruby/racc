@@ -502,8 +502,8 @@ module Racc
     end
 
     def literal_head?(pre, post)
-      (not pre or not /[a-zA-Z_0-9]/n =~ pre[-1,1]) and
-          not post.empty? and not /\A[\s\=]/n =~ post
+      (!pre || /[a-zA-Z_0-9]/n !~ pre[-1,1]) &&
+          !post.empty? && /\A[\s\=]/n !~ post
     end
 
     def read(len)

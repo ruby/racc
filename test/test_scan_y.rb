@@ -1,7 +1,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__), 'helper'))
 
 module Racc
-  class TestChkY < TestCase
+  class TestScanY < TestCase
     def setup
       file = File.join(ASSET_DIR, 'scan.y')
       @debug_flags = Racc::DebugFlags.parse_option_string('o')

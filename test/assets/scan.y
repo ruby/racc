@@ -44,7 +44,7 @@ end
 
     assert_equal 'squote string', @sstring
     assert_equal 'dquote string', @dstring
-    assert_equal /some regexp with spaces/, @regexp
+    assert_equal(/some regexp with spaces/, @regexp)
     assert_equal 'some ', @pre_match
     assert_equal 'regexp', @matched
     assert_equal ' matches to this string', @post_match
