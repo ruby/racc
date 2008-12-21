@@ -1,5 +1,5 @@
 j
-<h1>Racc¥³¥Ş¥ó¥É¥ê¥Õ¥¡¥ì¥ó¥¹</h1>
+<h1>Raccã‚³ãƒãƒ³ãƒ‰ãƒªãƒ•ã‚¡ãƒ¬ãƒ³ã‚¹</h1>
 e
 <h1>Racc Command Reference</h1>
 .
@@ -22,7 +22,7 @@ racc [-o<var>filename</var>] [--output-file=<var>filename</var>]
 <dt><var>filename</var>
 <dd>
 j
-Racc¤ÎÊ¸Ë¡¥Õ¥¡¥¤¥ë¤ò»ØÄê¤·¤Ş¤¹¡£³ÈÄ¥»Ò¤Ë¤ÏÆÃ¤ËÀ©¸Â¤Ï¤¢¤ê¤Ş¤»¤ó¡£
+Raccã®æ–‡æ³•ãƒ•ã‚¡ã‚¤ãƒ«ã‚’æŒ‡å®šã—ã¾ã™ã€‚æ‹¡å¼µå­ã«ã¯ç‰¹ã«åˆ¶é™ã¯ã‚ã‚Šã¾ã›ã‚“ã€‚
 e
 Racc grammar file. Any extention is permitted.
 .
@@ -30,7 +30,7 @@ Racc grammar file. Any extention is permitted.
 <dt>-o<var>outfile</var>, --output-file=<var>outfile</var>
 <dd>
 j
-ºîÀ®¤¹¤ë¥¯¥é¥¹¤ò¤«¤­¤³¤à¥Õ¥¡¥¤¥ëÌ¾¤ò»ØÄê¤·¤Ş¤¹¡£¥Ç¥Õ¥©¥ë¥È¤Ï<filename>.tab.rb¤Ç¤¹¡£
+ä½œæˆã™ã‚‹ã‚¯ãƒ©ã‚¹ã‚’ã‹ãã“ã‚€ãƒ•ã‚¡ã‚¤ãƒ«åã‚’æŒ‡å®šã—ã¾ã™ã€‚ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã¯<filename>.tab.rbã§ã™ã€‚
 e
 A filename for output. default is &lt;filename&gt;.tab.rb
 .
@@ -38,9 +38,9 @@ A filename for output. default is &lt;filename&gt;.tab.rb
 <dt>-O<var>filename</var>, --log-file=<var>filename</var>
 <dd>
 j
--v ¥ª¥×¥·¥ç¥ó¤ò¤Ä¤±¤¿»ş¤ËÀ¸À®¤¹¤ë¥í¥°¥Õ¥¡¥¤¥ë¤ÎÌ¾Á°¤ò
-<var>filename</var> ¤ËÊÑ¹¹¤·¤Ş¤¹¡£
-¥Ç¥Õ¥©¥ë¥È¤Ï <var>filename</var>.output ¤Ç¤¹¡£
+-v ã‚ªãƒ—ã‚·ãƒ§ãƒ³ã‚’ã¤ã‘ãŸæ™‚ã«ç”Ÿæˆã™ã‚‹ãƒ­ã‚°ãƒ•ã‚¡ã‚¤ãƒ«ã®åå‰ã‚’
+<var>filename</var> ã«å¤‰æ›´ã—ã¾ã™ã€‚
+ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã¯ <var>filename</var>.output ã§ã™ã€‚
 e
 Place logging output in file <var>filename</var>.
 Default log file name is <var>filename</var>.output.
@@ -49,9 +49,9 @@ Default log file name is <var>filename</var>.output.
 <dt>-e<var>rubypath</var>, --executable=<var>rubypath</var>
 <dd>
 j
-¼Â¹Ô²ÄÇ½¥Õ¥¡¥¤¥ë¤òÀ¸À®¤·¤Ş¤¹¡£<var>rubypath</var>¤Ï Ruby ËÜÂÎ¤Î¥Ñ¥¹¤Ç¤¹¡£
-<var>rubypath</var>¤òÃ±¤Ë 'ruby' ¤Ë¤·¤¿»ş¤Ë¤Ï Racc ¤¬Æ°ºî¤·¤Æ¤¤¤ë
-Ruby ¤Î¥Ñ¥¹¤ò»ÈÍÑ¤·¤Ş¤¹¡£
+å®Ÿè¡Œå¯èƒ½ãƒ•ã‚¡ã‚¤ãƒ«ã‚’ç”Ÿæˆã—ã¾ã™ã€‚<var>rubypath</var>ã¯ Ruby æœ¬ä½“ã®ãƒ‘ã‚¹ã§ã™ã€‚
+<var>rubypath</var>ã‚’å˜ã« 'ruby' ã«ã—ãŸæ™‚ã«ã¯ Racc ãŒå‹•ä½œã—ã¦ã„ã‚‹
+Ruby ã®ãƒ‘ã‚¹ã‚’ä½¿ç”¨ã—ã¾ã™ã€‚
 e
 output executable file(mode 755). <var>path</var> is a path of ruby interpreter.
 .
@@ -59,7 +59,7 @@ output executable file(mode 755). <var>path</var> is a path of ruby interpreter.
 <dt>-v, --verbose
 <dd>
 j
-¥Õ¥¡¥¤¥ë "filename".output ¤Ë¾ÜºÙ¤Ê²òÀÏ¾ğÊó¤ò½ĞÎÏ¤·¤Ş¤¹¡£
+ãƒ•ã‚¡ã‚¤ãƒ« "filename".output ã«è©³ç´°ãªè§£ææƒ…å ±ã‚’å‡ºåŠ›ã—ã¾ã™ã€‚
 e
 verbose mode. create &lt;filename&gt;.output file, like yacc's y.output file.
 .
@@ -67,9 +67,9 @@ verbose mode. create &lt;filename&gt;.output file, like yacc's y.output file.
 <dt>-g, --debug
 <dd>
 j
-½ĞÎÏ¤¹¤ë¥³¡¼¥É¤Ë¥Ç¥Ğ¥Ã¥°ÍÑ¥³¡¼¥É¤ò²Ã¤¨¤Ş¤¹¡£-g ¤ò¤Ä¤±¤ÆÀ¸À®¤·¤¿¥Ñ¡¼¥µ¤Ç
-@yydebug ¤ò true ¤Ë¥»¥Ã¥È¤¹¤ë¤È¡¢¥Ç¥Ğ¥Ã¥°ÍÑ¤Î¥³¡¼¥É¤¬½ĞÎÏ¤µ¤ì¤Ş¤¹¡£<br>
--g ¤ò¤Ä¤±¤ë¤À¤±¤Ç¤Ï²¿¤â¤ª¤³¤ê¤Ş¤»¤ó¤Î¤ÇÃí°Õ¤·¤Æ¤¯¤À¤µ¤¤¡£
+å‡ºåŠ›ã™ã‚‹ã‚³ãƒ¼ãƒ‰ã«ãƒ‡ãƒãƒƒã‚°ç”¨ã‚³ãƒ¼ãƒ‰ã‚’åŠ ãˆã¾ã™ã€‚-g ã‚’ã¤ã‘ã¦ç”Ÿæˆã—ãŸãƒ‘ãƒ¼ã‚µã§
+@yydebug ã‚’ true ã«ã‚»ãƒƒãƒˆã™ã‚‹ã¨ã€ãƒ‡ãƒãƒƒã‚°ç”¨ã®ã‚³ãƒ¼ãƒ‰ãŒå‡ºåŠ›ã•ã‚Œã¾ã™ã€‚<br>
+-g ã‚’ã¤ã‘ã‚‹ã ã‘ã§ã¯ä½•ã‚‚ãŠã“ã‚Šã¾ã›ã‚“ã®ã§æ³¨æ„ã—ã¦ãã ã•ã„ã€‚
 e
 add debug code to parser class. To display debuggin information,
 use this '-g' option and set @yydebug true in parser class.
@@ -78,8 +78,8 @@ use this '-g' option and set @yydebug true in parser class.
 <dt>-E, --embedded
 <dd>
 j
-¥é¥ó¥¿¥¤¥à¥ë¡¼¥Á¥ó¤ò¤¹¤Ù¤Æ´Ş¤ó¤À¥³¡¼¥É¤òÀ¸À®¤·¤Ş¤¹¡£
-¤Ä¤Ş¤ê¡¢¤³¤Î¥ª¥×¥·¥ç¥ó¤ò¤Ä¤±¤ÆÀ¸À®¤·¤¿¥³¡¼¥É¤Ï Ruby ¤µ¤¨¤¢¤ì¤ĞÆ°¤­¤Ş¤¹¡£
+ãƒ©ãƒ³ã‚¿ã‚¤ãƒ ãƒ«ãƒ¼ãƒãƒ³ã‚’ã™ã¹ã¦å«ã‚“ã ã‚³ãƒ¼ãƒ‰ã‚’ç”Ÿæˆã—ã¾ã™ã€‚
+ã¤ã¾ã‚Šã€ã“ã®ã‚ªãƒ—ã‚·ãƒ§ãƒ³ã‚’ã¤ã‘ã¦ç”Ÿæˆã—ãŸã‚³ãƒ¼ãƒ‰ã¯ Ruby ã•ãˆã‚ã‚Œã°å‹•ãã¾ã™ã€‚
 e
 Output parser which doesn't need runtime files (racc/parser.rb).
 .
@@ -87,7 +87,7 @@ Output parser which doesn't need runtime files (racc/parser.rb).
 <dt>-C, --check-only
 <dd>
 j
-(Ê¸Ë¡¥Õ¥¡¥¤¥ë¤Î) Ê¸Ë¡¤Î¥Á¥§¥Ã¥¯¤À¤±¤ò¤·¤Æ½ªÎ»¤·¤Ş¤¹¡£
+(æ–‡æ³•ãƒ•ã‚¡ã‚¤ãƒ«ã®) æ–‡æ³•ã®ãƒã‚§ãƒƒã‚¯ã ã‘ã‚’ã—ã¦çµ‚äº†ã—ã¾ã™ã€‚
 e
 Check syntax of racc grammer file and quit.
 .
@@ -95,7 +95,7 @@ Check syntax of racc grammer file and quit.
 <dt>-S, --output-status
 <dd>
 j
-¿Ê¹Ô¾õ¶·¤òÃà°ìÊó¹ğ¤·¤Ş¤¹¡£
+é€²è¡ŒçŠ¶æ³ã‚’é€ä¸€å ±å‘Šã—ã¾ã™ã€‚
 e
 Print messages time to time while compiling.
 .
@@ -104,14 +104,14 @@ Print messages time to time while compiling.
 <dd>
 j
 <p>
-Ruby ¤Ç¤ÏÎã³°¤¬È¯À¸¤·¤¿»ş¤Î¥Õ¥¡¥¤¥ëÌ¾¤ä¹ÔÈÖ¹æ¤òÉ½¼¨¤·¤Æ¤¯¤ì¤Ş¤¹¤¬¡¢
-Racc ¤ÎÀ¸À®¤·¤¿¥Ñ¡¼¥µ¤Ï¡¢¥Ç¥Õ¥©¥ë¥È¤Ç¤Ï¤³¤Î¾ì¹ç¤Î¥Õ¥¡¥¤¥ëÌ¾¡¦¹ÔÈÖ¹æ¤ò
-Ê¸Ë¡¥Õ¥¡¥¤¥ë¤Ç¤Î¤â¤Î¤ËÃÖ¤­¤«¤¨¤Ş¤¹¡£¤³¤Î¥Õ¥é¥°¤Ï¤½¤Îµ¡Ç½¤ò¥ª¥Õ¤Ë¤·¤Ş¤¹¡£
+Ruby ã§ã¯ä¾‹å¤–ãŒç™ºç”Ÿã—ãŸæ™‚ã®ãƒ•ã‚¡ã‚¤ãƒ«åã‚„è¡Œç•ªå·ã‚’è¡¨ç¤ºã—ã¦ãã‚Œã¾ã™ãŒã€
+Racc ã®ç”Ÿæˆã—ãŸãƒ‘ãƒ¼ã‚µã¯ã€ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã§ã¯ã“ã®å ´åˆã®ãƒ•ã‚¡ã‚¤ãƒ«åãƒ»è¡Œç•ªå·ã‚’
+æ–‡æ³•ãƒ•ã‚¡ã‚¤ãƒ«ã§ã®ã‚‚ã®ã«ç½®ãã‹ãˆã¾ã™ã€‚ã“ã®ãƒ•ãƒ©ã‚°ã¯ãã®æ©Ÿèƒ½ã‚’ã‚ªãƒ•ã«ã—ã¾ã™ã€‚
 </p>
 <p>
-ruby 1.4.3 °ÊÁ°¤Î¥Ğ¡¼¥¸¥ç¥ó¤Ç¤Ï¥Ğ¥°¤Î¤¿¤á¤ËÄê¿ô¤Î»²¾È¤Ë¼ºÇÔ¤¹¤ë
-¾ì¹ç¤¬¤¢¤ë¤Î¤Ç¡¢Äê¿ô»²¾È¤Ë´Ø¤·¤Æ¤Ê¤Ë¤«¤ª¤«¤·¤¤¤³¤È¤¬¤ª¤³¤Ã¤¿¤é¤³¤Î¥Õ¥é¥°¤ò
-»î¤·¤Æ¤ß¤Æ¤¯¤À¤µ¤¤¡£
+ruby 1.4.3 ä»¥å‰ã®ãƒãƒ¼ã‚¸ãƒ§ãƒ³ã§ã¯ãƒã‚°ã®ãŸã‚ã«å®šæ•°ã®å‚ç…§ã«å¤±æ•—ã™ã‚‹
+å ´åˆãŒã‚ã‚‹ã®ã§ã€å®šæ•°å‚ç…§ã«é–¢ã—ã¦ãªã«ã‹ãŠã‹ã—ã„ã“ã¨ãŒãŠã“ã£ãŸã‚‰ã“ã®ãƒ•ãƒ©ã‚°ã‚’
+è©¦ã—ã¦ã¿ã¦ãã ã•ã„ã€‚
 </p>
 e
 turns off line number converting.
@@ -120,16 +120,16 @@ turns off line number converting.
 <dt>-c, --line-convert-all
 <dd>
 j
-¥¢¥¯¥·¥ç¥ó¤È inner ¤Ë²Ã¤¨ header footer ¤Î¹ÔÈÖ¹æ¤âÊÑ´¹¤·¤Ş¤¹¡£
-header ¤È footer ¤¬¤Ä¤Ê¤¬¤Ã¤Æ¤¤¤ë¤è¤¦¤Ê¾ì¹ç¤Ë¤Ï»È¤ï¤Ê¤¤¤Ç¤¯¤À¤µ¤¤¡£
+ã‚¢ã‚¯ã‚·ãƒ§ãƒ³ã¨ inner ã«åŠ ãˆ header footer ã®è¡Œç•ªå·ã‚‚å¤‰æ›ã—ã¾ã™ã€‚
+header ã¨ footer ãŒã¤ãªãŒã£ã¦ã„ã‚‹ã‚ˆã†ãªå ´åˆã«ã¯ä½¿ã‚ãªã„ã§ãã ã•ã„ã€‚
 e
 Convert line number of actions, inner, header and footer.
 .
 <dt>-a, --no-omit-actions
 <dd>
 j
-Á´¤Æ¤Î¥¢¥¯¥·¥ç¥ó¤ËÂĞ±ş¤¹¤ë¥á¥½¥Ã¥ÉÄêµÁ¤È¸Æ¤Ó½Ğ¤·¤ò¹Ô¤¤¤Ş¤¹¡£
-Îã¤¨¥¢¥¯¥·¥ç¥ó¤¬¾ÊÎ¬¤µ¤ì¤Æ¤¤¤Æ¤â¶õ¤Î¥á¥½¥Ã¥É¤òÀ¸À®¤·¤Ş¤¹¡£
+å…¨ã¦ã®ã‚¢ã‚¯ã‚·ãƒ§ãƒ³ã«å¯¾å¿œã™ã‚‹ãƒ¡ã‚½ãƒƒãƒ‰å®šç¾©ã¨å‘¼ã³å‡ºã—ã‚’è¡Œã„ã¾ã™ã€‚
+ä¾‹ãˆã‚¢ã‚¯ã‚·ãƒ§ãƒ³ãŒçœç•¥ã•ã‚Œã¦ã„ã¦ã‚‚ç©ºã®ãƒ¡ã‚½ãƒƒãƒ‰ã‚’ç”Ÿæˆã—ã¾ã™ã€‚
 e
 Call all actions, even if an action is empty.
 .
@@ -137,7 +137,7 @@ Call all actions, even if an action is empty.
 <dt>--version
 <dd>
 j
-Racc ¤Î¥Ğ¡¼¥¸¥ç¥ó¤ò½ĞÎÏ¤·¤Æ½ªÎ»¤·¤Ş¤¹¡£
+Racc ã®ãƒãƒ¼ã‚¸ãƒ§ãƒ³ã‚’å‡ºåŠ›ã—ã¦çµ‚äº†ã—ã¾ã™ã€‚
 e
 print Racc version and quit.
 .
@@ -145,14 +145,14 @@ print Racc version and quit.
 <dt>--copyright
 <dd>
 j
-Ãøºî¸¢É½¼¨¤ò½ĞÎÏ¤·¤Æ½ªÎ»¤·¤Ş¤¹¡£
+è‘—ä½œæ¨©è¡¨ç¤ºã‚’å‡ºåŠ›ã—ã¦çµ‚äº†ã—ã¾ã™ã€‚
 e
 Print copyright and quit.
 .
 <dt>--help
 <dd>
 j
-¥ª¥×¥·¥ç¥ó¤Î´ÊÃ±¤ÊÀâÌÀ¤ò½ĞÎÏ¤·¤Æ½ªÎ»¤·¤Ş¤¹¡£
+ã‚ªãƒ—ã‚·ãƒ§ãƒ³ã®ç°¡å˜ãªèª¬æ˜ã‚’å‡ºåŠ›ã—ã¦çµ‚äº†ã—ã¾ã™ã€‚
 e
 Print usage and quit.
 .

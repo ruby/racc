@@ -1,13 +1,13 @@
 j
-<h1>Racc ецб╝е╢е▐е╦ехевеы</h1>
-<p>е╨б╝е╕ечеє 1.4 ┬╨▒■</p>
+<h1>Racc уГжуГ╝уВ╢уГЮуГЛуГеуВвуГл</h1>
+<p>уГРуГ╝уВ╕уГзуГ│ 1.4 хп╛х┐Ь</p>
 <ul>
-<li><a href="usage.html">Racc д╬╗╚дд╩¤</a>
-<li><a href="command.html">racc е│е▐еєе╔еъе╒ебеьеєе╣</a>
-<li><a href="grammar.html">╡м┬зе╒ебедеы╩╕╦беъе╒ебеьеєе╣</a>
-<li><a href="parser.html">Parser епеще╣еъе╒ебеьеєе╣</a>
-<li><a href="debug.html">е╤б╝е╡д╬е╟е╨е├е░</a>
-<li><a href="NEWS.html">еъеъб╝е╣е╬б╝е╚</a>
+<li><a href="usage.html">Racc уБоф╜┐уБДцЦ╣</a>
+<li><a href="command.html">racc уВ│уГЮуГ│уГЙуГкуГХуВбуГмуГ│уВ╣</a>
+<li><a href="grammar.html">шжПхЙЗуГХуВбуВдуГлцЦЗц│ХуГкуГХуВбуГмуГ│уВ╣</a>
+<li><a href="parser.html">Parser уВпуГйуВ╣уГкуГХуВбуГмуГ│уВ╣</a>
+<li><a href="debug.html">уГСуГ╝уВ╡уБоуГЗуГРуГГуВ░</a>
+<li><a href="NEWS.html">уГкуГкуГ╝уВ╣уГОуГ╝уГИ</a>
 </ul>
 e
 <h1>Racc User Manual</h1>
