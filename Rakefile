@@ -4,7 +4,6 @@ require 'rake/rdoctask'
 require 'rake/testtask'
 require 'rake/clean'
 
-$: << File.expand_path(File.join(File.dirname(__FILE__), "lib"))
 require 'lib/racc/parser'
 
 kind = Config::CONFIG['DLEXT']
