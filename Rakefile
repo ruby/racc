@@ -9,5 +9,6 @@ require 'lib/racc/parser'
 require 'tasks/file'
 require 'tasks/gem'
 require 'tasks/test'
+require 'tasks/doc'
 
 task :default => :test
