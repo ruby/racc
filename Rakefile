@@ -94,6 +94,10 @@ Rake::TestTask.new do |t|
   t.verbose = true
 end
 
+Rake::GemPackageTask.new(spec) do |pkg|
+  pkg.need_tar = true
+end
+
 Rake::Task[:test].prerequisites << :build
 
 task :default => :test
