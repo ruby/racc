@@ -1,0 +1,20 @@
+= Debugging
+
+== Racc reported syntax error.
+
+Isn't there too many "end"?
+grammar of racc file is changed in v0.10.
+
+Racc does not use '%' mark, while yacc uses huge number of '%' marks..
+
+== Racc reported "XXXX conflicts".
+
+Try "racc -v xxxx.y".
+It causes producing racc's internal log file, xxxx.output.
+
+== Generated parsers does not work correctly
+
+Try "racc -g xxxx.y".
+This command let racc generate "debugging parser".
+Then set @yydebug=true in your parser.
+It produces a working log of your parser.
