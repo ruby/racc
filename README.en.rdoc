@@ -21,6 +21,12 @@
 
 == Installation
 
+  gem install:
+
+    $ gem install racc
+
+  setup.rb install:
+
   Type this in the top directory of the extracted archive:
 
     $ ruby setup.rb config
