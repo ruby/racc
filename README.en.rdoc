@@ -1,5 +1,9 @@
-Racc README
-===========
+= Racc
+
+* http://i.loveruby.net/en/projects/racc/
+* http://racc.rubyforge.org/
+
+== DESCRIPTION:
 
   Racc is a LALR(1) parser generator.
   It is written in Ruby itself, and generates Ruby program.
@@ -9,15 +13,13 @@ Racc README
   box.
 
 
-Requirement
------------
+== Requirement
 
   *  Ruby 1.8.x or later.
  (*) make and C compiler.
 
 
-Installation
-------------
+== Installation
 
   Type this in the top directory of the extracted archive:
 
@@ -43,8 +45,7 @@ Installation
     $ ruby setup.rb config --without-ext
 
 
-Testing Racc
-------------
+== Testing Racc
 
   Racc comes with simple calculator. To compile this, on shell:
 
@@ -59,8 +60,7 @@ Testing Racc
   and sample grammer files under 'sample/'.
 
 
-License
--------
+== License
 
   Racc is distributed under the terms of the GNU Lesser General
   Public License version 2. Note that you do NOT need to follow
@@ -68,8 +68,7 @@ License
   files under any licenses you want.
 
 
-Bug Reports
------------
+== Bug Reports
 
   Any kind of bug reports are welcome.
   If you find a bug of Racc, please email me. Your grammer file,

@@ -1,5 +1,9 @@
-Racc README
-===========
+= Racc
+
+* http://i.loveruby.net/en/projects/racc/
+* http://racc.rubyforge.org/
+
+== DESCRIPTION:
 
   Racc は LALR(1) パーサジェネレータです。
   yacc の Ruby 版に相当します。
@@ -10,15 +14,13 @@ Racc README
   対応させたい場合は racc -E で生成してください。
 
 
-必要環境
---------
+== 必要環境
 
   *  Ruby 1.8 以降
  (*) C コンパイラと make
 
 
-インストール
-------------
+== インストール
 
   パッケージのトップディレクトリで次のように入力してください。
   ($ は通常ユーザ、# はルートのプロンプトです)
@@ -46,8 +48,7 @@ Racc README
       $ ruby setup.rb config --without-ext
 
 
-テスト
-------
+== テスト
 
   sample/ 以下にいくつか Racc の文法ファイルのサンプルが用意
   してあります。動くのも動かないのもありますが、少なくとも
@@ -66,8 +67,7 @@ Racc README
   見てください。
 
 
-ライセンス
-----------
+== ライセンス
 
   このパッケージに付属するファイルの著作権は青木峰郎が保持します。
   ライセンスは GNU Lesser General Public License (LGPL) version 2
@@ -76,8 +76,7 @@ Racc README
   ください。
 
 
-バグなど
---------
+== バグなど
 
   Racc を使っていてバグらしき現象に遭遇したら、下記のアドレスまで
   メールをください。作者にはバグを修正する義務はありませんがその

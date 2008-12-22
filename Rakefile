@@ -10,5 +10,6 @@ require 'tasks/file'
 require 'tasks/gem'
 require 'tasks/test'
 require 'tasks/doc'
+require 'tasks/email'
 
 task :default => :test
