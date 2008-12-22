@@ -1,0 +1,74 @@
+= class Racc::Parser
+
+== Super Class
+
+Object
+
+== Instance Methods
+
+: do_parse -> Object
+    The entry point of parser. This method is used with #next_token.
+    If Racc wants to get token (and its value), calls next_token.
+
+      --
+      # Example
+      ---- inner
+        def parse
+          @q = [[1,1],
+                [2,2],
+                [3,3],
+                [false, '$']]
+          do_parse
+        end
+
+        def next_token
+          @q.shift
+        end
+      --
+
+: next_token -> [Symbol, Object]
+    [abstract method]
+
+    The method to fetch next token.  If you use #do_parse method,
+    you must implement #next_token.  The format of return value is
+    [TOKEN_SYMBOL, VALUE].  token-symbol is represented by Ruby's symbol
+    by default, e.g. :IDENT for 'IDENT'.  ";" (String) for ';'.
+
+    The final symbol (End of file) must be false.
+
+: yyparse( receiver, method_id )
+    The another entry point of parser.
+    If you use this method, you must implement RECEIVER#METHOD_ID method.
+
+    RECEIVER#METHOD_ID is a method to get next token.
+    It must 'yield's token, which format is [TOKEN-SYMBOL, VALUE].
+
+: on_error( error_token_id, error_value, value_stack )
+    This method is called when parse error is found.
+
+    ERROR_TOKEN_ID is an internal ID of token which caused error.
+    You can get string replesentation of this ID by calling
+    #token_to_str.
+
+    ERROR_VALUE is a value of error token.
+
+    value_stack is a stack of symbol values.
+    DO NOT MODIFY this object.
+
+    This method raises ParseError by default.
+
+    If this method returns, parsers enter "error recovering mode".
+
+: token_to_str( t ) -> String
+    Convert internal ID of token symbol to the string.
+
+: yyerror
+    Enter error recovering mode.
+    This method does not call #on_error.
+
+: yyerrok
+    Leave error recovering mode.
+
+: yyaccept
+    Exit parser.
+    Return value is Symbol_Value_Stack[0].

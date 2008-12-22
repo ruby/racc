@@ -1,0 +1,92 @@
+<h1>Usage</h1>
+
+<h2>Generating Parser Using Racc</h2>
+<p>
+To compile Racc grammar file, simply type:
+</p>
+<pre>
+$ racc parse.y
+</pre>
+<p>
+This creates ruby script file "parse.tab.y". -o option changes this.
+</p>
+
+<h2>Writing Racc Grammer File</h2>
+<p>
+If you want your own parser, you have to write grammar file.
+A grammar file contains name of parser class, grammar the parser can parse,
+user code, and any.<br>
+When writing grammar file, yacc's knowledge is helpful.
+If you have not use yacc, also racc is too difficult.
+</p>
+<p>
+Here's example of Racc grammar file.
+</p>
+<pre>
+class Calcparser
+rule
+  target: exp { print val[0] }
+
+  exp: exp '+' exp
+     | exp '*' exp
+     | '(' exp ')'
+     | NUMBER
+end
+</pre>
+<p>
+Racc grammar file is resembles to yacc file.
+But (of cource), action is Ruby code. yacc's $$ is 'result', $0, $1... is
+an array 'val', $-1, $-2... is an array '_values'.
+</p>
+<p>
+Then you must prepare parse entry method. There's two types of
+racc's parse method, 
+<a href="parser.html#Racc%3a%3aParser-do_parse"><code>do_parse</code></a> and
+<a href="parser.html#Racc%3a%3aParser-yyparse"><code>yyparse</code></a>.
+</p>
+<p>
+"do_parse()" is simple. it is yyparse() of yacc, and "next_token()" is
+yylex(). This method must returns an array like [TOKENSYMBOL, ITS_VALUE].
+EOF is [false, false].
+(token symbol is ruby symbol (got by String#intern) as default.
+ If you want to change this, see <a href="grammar.html#token">grammar reference</a>.
+</p>
+<p>
+"yyparse()" is little complecated, but useful. It does not use "next_token()",
+it gets tokens from any iterator. For example, "yyparse(obj, :scan)" causes
+calling obj#scan, and you can return tokens by yielding them from obj#scan.
+</p>
+<p>
+When debugging, "-v" or/and "-g" option is helpful.
+"-v" causes creating verbose log file (.output).
+"-g" causes creating "Verbose Parser".
+Verbose Parser prints internal status when parsing.
+But it is <em>not</em> automatic.
+You must use -g option and set @yydebug true to get output.
+-g option only creates verbose parser.
+</p>
+
+<h3>re-distributing Racc runtime</h3>
+<p>
+A parser, which is created by Racc, requires Racc runtime module;
+racc/parser.rb.
+</p>
+<p>
+Ruby 1.8.x comes with racc runtime module,
+you need NOT distribute racc runtime files.
+</p>
+<p>
+If you want to run your parsers on ruby 1.6,
+you need re-distribute racc runtime module with your parser.
+It can be done by using '-E' option:
+<pre>
+$ racc -E -omyparser.rb myparser.y
+</pre>
+<p>
+This command creates myparser.rb which `includes' racc runtime.
+Only you must do is to distribute your parser file (myparser.rb).
+</p>
+<p>
+Note: parser.rb is LGPL, but your parser is not.
+Your own parser is completely yours.
+</p>
