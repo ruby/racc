@@ -11,7 +11,7 @@
 
 */
 
-#include "ruby/ruby.h"
+#include <ruby.h>
 
 /* -----------------------------------------------------------------------
                         Important Constants
