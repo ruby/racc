@@ -580,6 +580,7 @@ puts $!.backtrace
         toks.each {|t| out.print ' ', racc_token2str(t) }
       end
       out.puts " --> #{racc_token2str(sim)}"
+
       racc_print_stacks tstack, vstack
       @racc_debug_out.puts
     end
