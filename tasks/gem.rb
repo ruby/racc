@@ -5,7 +5,7 @@ SPEC = Gem::Specification.new do |s|
   s.authors       << 'Aoki Minero'
   s.authors       << 'Aaron Patterson'
   s.email         = 'aaronp@rubyforge.org'
-  s.version       = Racc::Parser::Racc_Runtime_Version
+  s.version       = Racc::VERSION
   s.require_paths = Dir['{lib,ext}']
   s.extensions    = ['ext/racc/cparse/extconf.rb']
   s.files         = `git ls-files`.split("\n") + ['lib/racc/parser-text.rb']

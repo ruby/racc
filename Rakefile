@@ -4,7 +4,7 @@ require 'rake/rdoctask'
 require 'rake/testtask'
 require 'rake/clean'
 
-require 'lib/racc/parser'
+load './lib/racc/info.rb'
 
 require 'tasks/file'
 require 'tasks/gem'
@@ -13,3 +13,6 @@ require 'tasks/doc'
 require 'tasks/email'
 
 task :default => :test
+
+task :clean => :clobber_docs
+task :clean => :clobber_package

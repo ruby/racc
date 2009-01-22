@@ -11,6 +11,8 @@
 # without restriction.
 #
 
+require 'racc/info'
+
 unless defined?(NotImplementedError)
   NotImplementedError = NotImplementError
 end
@@ -30,10 +32,10 @@ module Racc
 
   class Parser
 
-    Racc_Runtime_Version = '1.4.6'
+    Racc_Runtime_Version = ::Racc::VERSION
     Racc_Runtime_Revision = '$Id$'
 
-    Racc_Runtime_Core_Version_R = '1.4.6'
+    Racc_Runtime_Core_Version_R = ::Racc::VERSION
     Racc_Runtime_Core_Revision_R = '$Id$'.split[1]
     begin
       require 'racc/cparse'

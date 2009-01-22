@@ -1,6 +1,14 @@
 = NEWS
 
-=== 1.4.6
+=== 1.4.7
+
+* Bugfixes
+
+  * consolidated all versions to Racc::VERSION.
+  * Made table generator explicitly use ::Array to avoid name collisions.
+  * Fixed up rake tasks for packaging.
+
+=== 1.4.6 (2008-12-21)
 
 * Bugfixes
 
