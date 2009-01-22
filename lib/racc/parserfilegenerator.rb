@@ -328,6 +328,7 @@ module Racc
     end
 
     def serialize_integer_list_compressed(name, table)
+      # TODO: this can be made a LOT more clean with a simple split/map
       sep  = "\n"
       nsep = ",\n"
       buf  = ''
@@ -351,7 +352,7 @@ module Racc
       line ' ]'
 
       @f.print(<<-End)
-        #{name} = arr = Array.new(#{table.size}, nil)
+        #{name} = arr = ::Array.new(#{table.size}, nil)
         idx = 0
         clist.each do |str|
           str.split(',', -1).each do |i|
