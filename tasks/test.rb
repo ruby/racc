@@ -4,7 +4,7 @@ namespace :test do
   end
 end
 
-Rake::TestTask.new do |t|
+Rake::TestTask.new :prototest do |t|
   %w[ ext lib ].each do |dir|
     t.libs << dir
   end
@@ -13,4 +13,13 @@ Rake::TestTask.new do |t|
   t.verbose = true
 end
 
-Rake::Task[:test].prerequisites << :build
+task :test => :build do
+  Rake::Task[:prototest].invoke
+end
+
+task "test:pure" => PTEXT do
+  ENV['PURERUBY'] = "1"
+  Rake::Task[:prototest].invoke
+end
+
+

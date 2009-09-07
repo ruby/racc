@@ -20,11 +20,23 @@ task :clean => :clobber_package
 begin
   require 'rcov/rcovtask'
   Rcov::RcovTask.new do |t|
+    ENV['PURERUBY'] = "1"
     t.test_files = FileList["test/test_*.rb"]
     t.verbose = true
     t.rcov_opts << "--no-color"
     t.rcov_opts << "--save coverage.info"
     t.rcov_opts << "-x ^/"
+  end
+  task "rcov" => PTEXT
+
+  # this is for my emacs rcov overlay stuff on emacswiki.
+  task :rcov_overlay do
+    path = ENV["FILE"]
+    rcov, eol = Marshal.load(File.read("coverage.info")).last[path], 1
+    puts rcov[:lines].zip(rcov[:coverage]).map { |line, coverage|
+      bol, eol = eol, eol + line.length
+      [bol, eol, "#ffcccc"] unless coverage
+    }.compact.inspect
   end
 rescue LoadError
 end

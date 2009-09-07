@@ -12,8 +12,13 @@
 require 'enumerator'
 require 'racc/compat'
 require 'racc/sourcetext'
-require 'racc/parser-text'
 require 'rbconfig'
+
+begin
+  require 'racc/parser-text'
+rescue LoadError
+  warn "warning: couldn't load racc/parser-text.rb"
+end
 
 module Racc
 

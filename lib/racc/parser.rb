@@ -38,6 +38,9 @@ module Racc
     Racc_Runtime_Core_Version_R = ::Racc::VERSION
     Racc_Runtime_Core_Revision_R = '$Id$'.split[1]
     begin
+      raise LoadError, "not loading cparse" if ENV['PURERUBY']
+      warn "loading cparse"
+
       require 'racc/cparse'
     # Racc_Runtime_Core_Version_C  = (defined in extention)
       Racc_Runtime_Core_Revision_C = Racc_Runtime_Core_Id_C.split[2]
@@ -54,6 +57,7 @@ module Racc
       Racc_Runtime_Core_Revision   = Racc_Runtime_Core_Revision_C
       Racc_Runtime_Type            = 'c'
     rescue LoadError
+      warn "using pure ruby racc engine"
       Racc_Main_Parsing_Routine    = :_racc_do_parse_rb
       Racc_YY_Parse_Method         = :_racc_yyparse_rb
       Racc_Runtime_Core_Version    = Racc_Runtime_Core_Version_R

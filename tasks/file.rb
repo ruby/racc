@@ -1,16 +1,17 @@
-kind = Config::CONFIG['DLEXT']
+kind  = Config::CONFIG['DLEXT']
+EXT   = "ext/racc/cparse/cparse.#{kind}"
+PTEXT = 'lib/racc/parser-text.rb'
 
-EXT = "ext/racc/cparse/cparse.#{kind}"
 [
   EXT,
-  'lib/racc/parser-text.rb',
+  PTEXT,
   'ext/racc/cparse/Makefile',
   'ext/racc/cparse/*.o',
 ].each { |f| Dir[f].each { |file| CLEAN << file } }
 
 file 'lib/racc/parser.rb'
 
-file 'lib/racc/parser-text.rb' => ['lib/racc/parser.rb'] do |t|
+file PTEXT => 'lib/racc/parser.rb' do |t|
   File.open(t.name, 'wb') { |file|
     file.write(<<-eorb)
 module Racc
@@ -34,4 +35,5 @@ task EXT => 'ext/racc/cparse/Makefile' do
   end
 end
 
-task :build => ['lib/racc/parser-text.rb', EXT]
+
+task :build => [PTEXT, EXT]
