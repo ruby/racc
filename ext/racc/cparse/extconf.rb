@@ -1,6 +1,8 @@
 # $Id$
 
-ENV["ARCHFLAGS"] = "-arch #{`uname -p` =~ /powerpc/ ? 'ppc' : 'i386'}"
+require 'rbconfig'
+
+ENV["ARCHFLAGS"] = Config::CONFIG["CFLAGS"].scan(/-arch \S+/).join(" ")
 
 require 'mkmf'
 
