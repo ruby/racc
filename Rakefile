@@ -20,14 +20,18 @@ task :clean => :clobber_package
 begin
   require 'rcov/rcovtask'
   Rcov::RcovTask.new do |t|
-    ENV['PURERUBY'] = "1"
     t.test_files = FileList["test/test_*.rb"]
     t.verbose = true
     t.rcov_opts << "--no-color"
     t.rcov_opts << "--save coverage.info"
     t.rcov_opts << "-x ^/"
   end
+  task "rcov" => :fuck_me
   task "rcov" => PTEXT
+
+  task :fuck_me do
+    ENV['PURERUBY'] = "1"
+  end
 
   # this is for my emacs rcov overlay stuff on emacswiki.
   task :rcov_overlay do
