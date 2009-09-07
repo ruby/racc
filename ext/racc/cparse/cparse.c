@@ -47,6 +47,21 @@ static ID id_d_read_token;
 static ID id_d_next_state;
 static ID id_d_e_pop;
 
+static ID id_action_table;
+static ID id_action_check;
+static ID id_action_default;
+static ID id_action_pointer;
+static ID id_goto_table;
+static ID id_goto_check;
+static ID id_goto_default;
+static ID id_goto_pointer;
+static ID id_nt_base;
+static ID id_reduce_table;
+static ID id_token_table;
+static ID id_shift_n;
+static ID id_reduce_n;
+static ID id_use_result;
+
 /* -----------------------------------------------------------------------
                               Utils
 ----------------------------------------------------------------------- */
@@ -180,9 +195,8 @@ struct cparse_params {
                         Parser Main Routines
 ----------------------------------------------------------------------- */
 
-static VALUE racc_cparse _((VALUE parser, VALUE arg, VALUE sysdebug));
-static VALUE racc_yyparse _((VALUE parser, VALUE lexer, VALUE lexmid,
-                             VALUE arg, VALUE sysdebug));
+static VALUE racc_cparse _((VALUE parser));
+static VALUE racc_yyparse _((VALUE parser, VALUE lexer, VALUE lexmid));
 
 static void call_lexer _((struct cparse_params *v));
 static VALUE lexer_i _((VALUE block_args, VALUE data, VALUE self));
@@ -190,7 +204,7 @@ static VALUE lexer_i _((VALUE block_args, VALUE data, VALUE self));
 static VALUE assert_array _((VALUE a));
 static long assert_integer _((VALUE n));
 static VALUE assert_hash _((VALUE h));
-static VALUE initialize_params _((VALUE vparams, VALUE parser, VALUE arg,
+static VALUE initialize_params _((VALUE vparams, VALUE parser,
                                  VALUE lexer, VALUE lexmid));
 static void cparse_params_mark _((void *ptr));
 
@@ -211,7 +225,7 @@ static VALUE reduce0 _((VALUE block_args, VALUE data, VALUE self));
 #endif
 
 static VALUE
-racc_cparse(VALUE parser, VALUE arg, VALUE sysdebug)
+racc_cparse(VALUE parser)
 {
     volatile VALUE vparams;
     struct cparse_params *v;
@@ -219,8 +233,8 @@ racc_cparse(VALUE parser, VALUE arg, VALUE sysdebug)
     vparams = Data_Make_Struct(CparseParams, struct cparse_params,
                                cparse_params_mark, -1, v);
     D_puts("starting cparse");
-    v->sys_debug = RTEST(sysdebug);
-    vparams = initialize_params(vparams, parser, arg, Qnil, Qnil);
+    v->sys_debug = Qtrue;
+    vparams = initialize_params(vparams, parser, Qnil, Qnil);
     v->lex_is_iterator = Qfalse;
     parse_main(v, Qnil, Qnil, 0);
 
@@ -228,16 +242,16 @@ racc_cparse(VALUE parser, VALUE arg, VALUE sysdebug)
 }
 
 static VALUE
-racc_yyparse(VALUE parser, VALUE lexer, VALUE lexmid, VALUE arg, VALUE sysdebug)
+racc_yyparse(VALUE parser, VALUE lexer, VALUE lexmid)
 {
     volatile VALUE vparams;
     struct cparse_params *v;
 
     vparams = Data_Make_Struct(CparseParams, struct cparse_params,
                                cparse_params_mark, -1, v);
-    v->sys_debug = RTEST(sysdebug);
+    v->sys_debug = Qfalse;
     D_puts("start C yyparse");
-    vparams = initialize_params(vparams, parser, arg, lexer, lexmid);
+    vparams = initialize_params(vparams, parser, lexer, lexmid);
     v->lex_is_iterator = Qtrue;
     D_puts("params initialized");
     parse_main(v, Qnil, Qnil, 0);
@@ -311,7 +325,7 @@ assert_integer(VALUE n)
 }
 
 static VALUE
-initialize_params(VALUE vparams, VALUE parser, VALUE arg, VALUE lexer, VALUE lexmid)
+initialize_params(VALUE vparams, VALUE parser, VALUE lexer, VALUE lexmid)
 {
     struct cparse_params *v;
 
@@ -322,47 +336,46 @@ initialize_params(VALUE vparams, VALUE parser, VALUE arg, VALUE lexer, VALUE lex
     if (! NIL_P(lexmid))
         v->lexmid = value_to_id(lexmid);
 
-    v->debug = RTEST(rb_ivar_get(parser, id_yydebug));
-
-    Check_Type(arg, T_ARRAY);
-    if (!(13 <= RARRAY_LEN(arg) && RARRAY_LEN(arg) <= 14))
-        rb_raise(RaccBug, "[Racc Bug] wrong arg.size %ld", RARRAY_LEN(arg));
-    v->action_table   = assert_array  (RARRAY_PTR(arg)[ 0]);
-    v->action_check   = assert_array  (RARRAY_PTR(arg)[ 1]);
-    v->action_default = assert_array  (RARRAY_PTR(arg)[ 2]);
-    v->action_pointer = assert_array  (RARRAY_PTR(arg)[ 3]);
-    v->goto_table     = assert_array  (RARRAY_PTR(arg)[ 4]);
-    v->goto_check     = assert_array  (RARRAY_PTR(arg)[ 5]);
-    v->goto_default   = assert_array  (RARRAY_PTR(arg)[ 6]);
-    v->goto_pointer   = assert_array  (RARRAY_PTR(arg)[ 7]);
-    v->nt_base        = assert_integer(RARRAY_PTR(arg)[ 8]);
-    v->reduce_table   = assert_array  (RARRAY_PTR(arg)[ 9]);
-    v->token_table    = assert_hash   (RARRAY_PTR(arg)[10]);
-    v->shift_n        = assert_integer(RARRAY_PTR(arg)[11]);
-    v->reduce_n       = assert_integer(RARRAY_PTR(arg)[12]);
-    if (RARRAY_LEN(arg) > 13) {
-        v->use_result_var = RTEST(RARRAY_PTR(arg)[13]);
-    }
-    else {
-        v->use_result_var = Qtrue;
-    }
-
-    v->tstack = v->debug ? NEW_STACK() : Qnil;
-    v->vstack = NEW_STACK();
-    v->state = NEW_STACK();
-    v->curstate = 0;
-    PUSH(v->state, INT2FIX(0));
-    v->t = INT2FIX(FINAL_TOKEN + 1);   /* must not init to FINAL_TOKEN */
-    v->nerr = 0;
-    v->errstatus = 0;
-    rb_ivar_set(parser, id_errstatus, LONG2NUM(v->errstatus));
-
-    v->retval = Qnil;
-    v->fin = 0;
-
+    v->debug           = RTEST(rb_ivar_get(parser, id_yydebug));
+    v->action_table    = rb_ivar_get(parser, id_action_table);
+    v->action_check    = rb_ivar_get(parser, id_action_check);
+    v->action_default  = rb_ivar_get(parser, id_action_default);
+    v->action_pointer  = rb_ivar_get(parser, id_action_pointer);
+    v->goto_table      = rb_ivar_get(parser, id_goto_table);
+    v->goto_check      = rb_ivar_get(parser, id_goto_check);
+    v->goto_default    = rb_ivar_get(parser, id_goto_default);
+    v->goto_pointer    = rb_ivar_get(parser, id_goto_pointer);
+    v->nt_base         = NUM2LONG(rb_ivar_get(parser, id_nt_base));
+    v->reduce_table    = rb_ivar_get(parser, id_reduce_table);
+    v->token_table     = rb_ivar_get(parser, id_token_table);
+    v->shift_n         = NUM2LONG(rb_ivar_get(parser, id_shift_n));
+    v->reduce_n        = NUM2LONG(rb_ivar_get(parser, id_reduce_n));
+    v->tstack          = v->debug ? NEW_STACK() : Qnil;
+    v->vstack          = NEW_STACK();
+    v->state           = NEW_STACK();
+    v->curstate        = 0;
+    v->t               = INT2FIX(FINAL_TOKEN + 1); // must not init to FINAL_TOKEN
+    v->nerr            = 0;
+    v->errstatus       = 0;
+    v->retval          = Qnil;
+    v->fin             = 0;
     v->lex_is_iterator = Qfalse;
 
+    v->use_result_var  = rb_ivar_get(parser, id_use_result);
+
+    /* if (RARRAY_LEN(arg) > 13) { */
+    /*     v->use_result_var = RTEST(RARRAY_PTR(arg)[13]); */
+    /* } */
+    /* else { */
+    /*     v->use_result_var = Qtrue; */
+    /* } */
+
+    PUSH(v->state, INT2FIX(0));
+
+    rb_ivar_set(parser, id_errstatus, LONG2NUM(v->errstatus));
+
     rb_iv_set(parser, "@vstack", v->vstack);
+
     if (v->debug) {
         rb_iv_set(parser, "@tstack", v->tstack);
     }
@@ -798,8 +811,8 @@ Init_cparse(void)
         Racc = rb_define_module("Racc");
         Parser = rb_define_class_under(Racc, "Parser", rb_cObject);
     }
-    rb_define_private_method(Parser, "_racc_do_parse_c", racc_cparse, 2);
-    rb_define_private_method(Parser, "_racc_yyparse_c", racc_yyparse, 4);
+    rb_define_private_method(Parser, "_racc_do_parse_c", racc_cparse, 0);
+    rb_define_private_method(Parser, "_racc_yyparse_c", racc_yyparse, 2);
     rb_define_const(Parser, "Racc_Runtime_Core_Version_C",
                     rb_str_new2(RACC_VERSION));
     rb_define_const(Parser, "Racc_Runtime_Core_Id_C",
@@ -821,4 +834,19 @@ Init_cparse(void)
     id_d_read_token  = rb_intern("racc_read_token");
     id_d_next_state  = rb_intern("racc_next_state");
     id_d_e_pop       = rb_intern("racc_e_pop");
+
+    id_action_table   = rb_intern("@action_table");
+    id_action_check   = rb_intern("@action_check");
+    id_action_default = rb_intern("@action_default");
+    id_action_pointer = rb_intern("@action_pointer");
+    id_goto_table     = rb_intern("@goto_table");
+    id_goto_check     = rb_intern("@goto_check");
+    id_goto_default   = rb_intern("@goto_default");
+    id_goto_pointer   = rb_intern("@goto_pointer");
+    id_nt_base        = rb_intern("@nt_base");
+    id_reduce_table   = rb_intern("@reduce_table");
+    id_token_table    = rb_intern("@token_table");
+    id_shift_n        = rb_intern("@shift_n");
+    id_reduce_n       = rb_intern("@reduce_n");
+    id_use_result     = rb_intern("@use_result");
 }
