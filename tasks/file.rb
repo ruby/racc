@@ -1,12 +1,12 @@
 kind  = Config::CONFIG['DLEXT']
-EXT   = "ext/racc/cparse/cparse.#{kind}"
+EXT   = "ext/racc/cparse.#{kind}"
 PTEXT = 'lib/racc/parser-text.rb'
 
 [
   EXT,
   PTEXT,
-  'ext/racc/cparse/Makefile',
-  'ext/racc/cparse/*.o',
+  'ext/racc/Makefile',
+  'ext/racc/*.o',
 ].each { |f| Dir[f].each { |file| CLEAN << file } }
 
 file 'lib/racc/parser.rb'
@@ -23,14 +23,14 @@ end
   }
 end
 
-task 'ext/racc/cparse/Makefile' do
-  Dir.chdir('ext/racc/cparse') do
+task 'ext/racc/Makefile' do
+  Dir.chdir('ext/racc') do
     ruby "extconf.rb"
   end
 end
 
-task EXT => 'ext/racc/cparse/Makefile' do
-  Dir.chdir('ext/racc/cparse') do
+task EXT => 'ext/racc/Makefile' do
+  Dir.chdir('ext/racc') do
     sh 'make'
   end
 end
