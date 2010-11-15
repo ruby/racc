@@ -222,9 +222,11 @@ module Racc
     #     def next_token
     #       @q.shift
     #     end
+    class_eval %{
     def do_parse
-      __send__(Racc_Main_Parsing_Routine, _racc_setup(), false)
+      #{Racc_Main_Parsing_Routine}(_racc_setup(), false)
     end
+    }
 
     # The method to fetch next token.
     # If you use #do_parse method, you must implement #next_token.
@@ -281,9 +283,11 @@ module Racc
     #
     # RECEIVER#METHOD_ID is a method to get next token.
     # It must 'yield' the token, which format is [TOKEN-SYMBOL, VALUE].
+    class_eval %{
     def yyparse(recv, mid)
-      __send__(Racc_YY_Parse_Method, recv, mid, _racc_setup(), false)
+      #{Racc_YY_Parse_Method}(recv, mid, _racc_setup(), true)
     end
+    }
 
     def _racc_yyparse_rb(recv, mid, arg, c_debug)
       action_table, action_check, action_default, action_pointer,
