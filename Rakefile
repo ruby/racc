@@ -95,6 +95,11 @@ else
 
 end
 
+task :test_pure do
+  ENV["PURERUBY"] = "1"
+  Rake.application[:test].invoke
+end
+
 task :test => :compile
 
 Hoe.add_include_dirs('.:lib/racc')
