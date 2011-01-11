@@ -14,6 +14,11 @@ require 'tasks/email'
 
 task :default => :test
 
+task :test_pure do
+  ENV["PURERUBY"] = "1"
+  Rake.application[:test].invoke
+end
+
 task :clean => :clobber_docs
 task :clean => :clobber_package
 
