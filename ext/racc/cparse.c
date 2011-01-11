@@ -204,6 +204,7 @@ static VALUE lexer_i _((VALUE block_args, VALUE data, VALUE self));
 static VALUE assert_array _((VALUE a));
 static long assert_integer _((VALUE n));
 static VALUE assert_hash _((VALUE h));
+static VALUE initialize _((VALUE self));
 static VALUE initialize_params _((VALUE vparams, VALUE parser,
                                  VALUE lexer, VALUE lexmid));
 static void cparse_params_mark _((void *ptr));
@@ -227,15 +228,10 @@ static VALUE reduce0 _((VALUE block_args, VALUE data, VALUE self));
 static VALUE
 racc_cparse(VALUE parser)
 {
-    volatile VALUE vparams;
+    volatile VALUE vparams = rb_iv_get(parser, "@vparams");
     struct cparse_params *v;
+    Data_Get_Struct(vparams, struct cparse_params, v);
 
-    vparams = Data_Make_Struct(CparseParams, struct cparse_params,
-                               cparse_params_mark, -1, v);
-    D_puts("starting cparse");
-    v->sys_debug = Qtrue;
-    vparams = initialize_params(vparams, parser, Qnil, Qnil);
-    v->lex_is_iterator = Qfalse;
     parse_main(v, Qnil, Qnil, 0);
 
     return v->retval;
@@ -322,6 +318,21 @@ static long
 assert_integer(VALUE n)
 {
     return NUM2LONG(n);
+}
+
+static VALUE
+initialize(VALUE self) {
+  volatile VALUE vparams;
+  struct cparse_params *v;
+
+  vparams = Data_Make_Struct(CparseParams, struct cparse_params,
+                             cparse_params_mark, -1, v);
+  rb_iv_set(self, "@vparams", vparams);
+
+  D_puts("starting cparse");
+  v->sys_debug = Qtrue;
+  vparams = initialize_params(vparams, self, Qnil, Qnil);
+  v->lex_is_iterator = Qfalse;
 }
 
 static VALUE
@@ -811,6 +822,9 @@ Init_cparse(void)
         Racc = rb_define_module("Racc");
         Parser = rb_define_class_under(Racc, "Parser", rb_cObject);
     }
+
+    rb_define_method(Parser, "initialize", (VALUE(*)(ANYARGS))initialize, 0);
+
     rb_define_private_method(Parser, "_racc_do_parse_c", racc_cparse, 0);
     rb_define_private_method(Parser, "_racc_yyparse_c", racc_yyparse, 2);
     rb_define_const(Parser, "Racc_Runtime_Core_Version_C",
