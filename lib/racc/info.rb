@@ -10,7 +10,7 @@
 #
 
 module Racc
-  Version   = '1.4.6'
-  VERSION = Version
+  VERSION   = '1.4.6'
+  Version = VERSION
   Copyright = 'Copyright (c) 1999-2006 Minero Aoki'
 end

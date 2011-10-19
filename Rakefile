@@ -1,15 +1,46 @@
-require 'rake'
-require 'rake/gempackagetask'
-require 'rake/rdoctask'
-require 'rake/testtask'
-require 'rake/clean'
+# -*- ruby -*-
 
-require 'lib/racc/parser'
+require 'rubygems'
+require 'hoe'
 
-require 'tasks/file'
-require 'tasks/gem'
-require 'tasks/test'
-require 'tasks/doc'
-require 'tasks/email'
+gem 'rake-compiler', '>= 0.4.1'
+require "rake/extensiontask"
 
-task :default => :test
+Hoe.plugin :debugging, :doofus, :git, :isolate
+
+Hoe.spec 'racc' do
+  developer 'Aaron Patterson', 'aaron@tenderlovemaking.com'
+
+  self.extra_rdoc_files  = Dir['*.rdoc']
+  self.history_file      = 'CHANGELOG.rdoc'
+  self.readme_file       = 'README.rdoc'
+  self.testlib           = :minitest
+
+  extra_dev_deps << ['rake-compiler', '>= 0.4.1']
+
+  self.spec_extras = {
+    :extensions            => ["ext/racc/extconf.rb"]
+  }
+
+  Rake::ExtensionTask.new "cparse", spec do |ext|
+    ext.lib_dir = File.join 'lib', 'racc'
+    ext.ext_dir = File.join 'ext', 'racc'
+  end
+end
+
+file 'lib/racc/parser-text.rb' => ['lib/racc/parser.rb'] do |t|
+  file = 'lib/racc/parser.rb'
+  File.open(t.name, 'wb') { |file|
+    file.write(<<-eorb)
+module Racc
+  PARSER_TEXT = <<'__end_of_file__'
+  #{File.read(file)}"
+__end_of_file__
+end
+    eorb
+  }
+end
+
+Hoe.add_include_dirs('.:lib/psych')
+
+task :compile => 'lib/racc/parser-text.rb'
