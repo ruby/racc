@@ -119,7 +119,7 @@ module Racc
       footer
     end
 
-    c = ::Config::CONFIG
+    c = ::RbConfig::CONFIG
     RUBY_PATH = "#{c['bindir']}/#{c['ruby_install_name']}#{c['EXEEXT']}"
 
     def shebang(path)
