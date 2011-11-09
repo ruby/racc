@@ -1,8 +1,9 @@
 require 'rake'
-require 'rake/gempackagetask'
-require 'rake/rdoctask'
+require 'rubygems/package_task'
 require 'rake/testtask'
 require 'rake/clean'
+
+include Rake::DSL
 
 load './lib/racc/info.rb'
 

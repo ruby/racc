@@ -32,6 +32,6 @@ namespace :gem do
   end
 end
 
-Rake::GemPackageTask.new(SPEC) do |pkg|
+Gem::PackageTask.new(SPEC) do |pkg|
   pkg.need_tar = true
 end
