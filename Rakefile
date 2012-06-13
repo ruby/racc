@@ -7,6 +7,12 @@ gem 'rake-compiler', '>= 0.4.1'
 require "rake/extensiontask"
 
 Hoe.plugin :debugging, :doofus, :git, :isolate
+$: << '.' # instead of require_relative for 1.8 compatibility
+require 'tasks/file'
+require 'tasks/gem'
+require 'tasks/test'
+require 'tasks/doc'
+require 'tasks/email'
 
 Hoe.spec 'racc' do
   developer 'Aaron Patterson', 'aaron@tenderlovemaking.com'
