@@ -6,6 +6,7 @@ require 'hoe'
 gem 'rake-compiler', '>= 0.4.1'
 
 Hoe.plugin :debugging, :doofus, :git, :isolate, :gemspec
+$: << '.' # instead of require_relative for 1.8 compatibility
 
 def java?
   /java/ === RUBY_PLATFORM
