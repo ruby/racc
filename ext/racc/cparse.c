@@ -353,6 +353,8 @@ initialize(VALUE self) {
   v->sys_debug = Qtrue;
   vparams = initialize_params(vparams, self, Qnil, Qnil);
   v->lex_is_iterator = Qfalse;
+
+  return self;
 }
 
 static VALUE
@@ -391,7 +393,7 @@ initialize_params(VALUE vparams, VALUE parser, VALUE lexer, VALUE lexmid)
         v->use_result_var = Qtrue;
     }
 
-    v->use_result_var  = rb_ivar_get(parser, id_use_result);
+    v->use_result_var  = NUM2INT(rb_ivar_get(parser, id_use_result));
 
     /* if (RARRAY_LEN(arg) > 13) { */
     /*     v->use_result_var = RTEST(RARRAY_PTR(arg)[13]); */
