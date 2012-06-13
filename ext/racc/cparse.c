@@ -329,6 +329,22 @@ initialize(VALUE self) {
                              cparse_params_mark, -1, v);
   rb_iv_set(self, "@vparams", vparams);
 
+  rb_ivar_set(self, id_yydebug,        Qnil);
+  rb_ivar_set(self, id_action_table,   Qnil);
+  rb_ivar_set(self, id_action_check,   Qnil);
+  rb_ivar_set(self, id_action_default, Qnil);
+  rb_ivar_set(self, id_action_pointer, Qnil);
+  rb_ivar_set(self, id_goto_table,     Qnil);
+  rb_ivar_set(self, id_goto_check,     Qnil);
+  rb_ivar_set(self, id_goto_default,   Qnil);
+  rb_ivar_set(self, id_goto_pointer,   Qnil);
+  rb_ivar_set(self, id_nt_base,        Qnil);
+  rb_ivar_set(self, id_reduce_table,   Qnil);
+  rb_ivar_set(self, id_token_table,    Qnil);
+  rb_ivar_set(self, id_shift_n,        Qnil);
+  rb_ivar_set(self, id_reduce_n,       Qnil);
+  rb_ivar_set(self, id_use_result,     Qnil);
+
   D_puts("starting cparse");
   v->sys_debug = Qtrue;
   vparams = initialize_params(vparams, self, Qnil, Qnil);
