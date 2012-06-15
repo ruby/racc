@@ -29,12 +29,13 @@ Hoe.spec 'racc' do
 end
 
 file 'lib/racc/parser-text.rb' => ['lib/racc/parser.rb'] do |t|
-  file = 'lib/racc/parser.rb'
-  File.open(t.name, 'wb') { |file|
-    file.write(<<-eorb)
+  source = 'lib/racc/parser.rb'
+
+  open(t.name, 'wb') { |io|
+    io.write(<<-eorb)
 module Racc
   PARSER_TEXT = <<'__end_of_file__'
-  #{File.read(file)}"
+#{File.read(source)}
 __end_of_file__
 end
     eorb
