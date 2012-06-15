@@ -302,7 +302,7 @@ module Racc
           c.funcall(:alias_method, "_reduce_#{rule.ident}", :_reduce_none)
         else
           c.funcall(:define_method, "_racc_action_#{rule.ident}", &rule.action.proc)
-          c.module_eval(s = <<-End, __FILE__, __LINE__ + 1)
+          c.module_eval(<<-End, __FILE__, __LINE__ + 1)
             def _reduce_#{rule.ident}(vals, vstack)
               _racc_action_#{rule.ident}(*vals)
             end

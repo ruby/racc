@@ -114,7 +114,7 @@ module Racc
       footer
     end
 
-    c = ::Config::CONFIG
+    c = ::RbConfig::CONFIG
     RUBY_PATH = "#{c['bindir']}/#{c['ruby_install_name']}#{c['EXEEXT']}"
 
     def shebang(path)
@@ -463,7 +463,7 @@ module Racc
     def remove_blank_lines(src)
       body = src.text.dup
       line = src.lineno
-      while m = body.slice!(/\A[ \t\f]*(?:\n|\r\n|\r)/)
+      while body.slice!(/\A[ \t\f]*(?:\n|\r\n|\r)/)
         line += 1
       end
       SourceText.new(body, src.filename, line)

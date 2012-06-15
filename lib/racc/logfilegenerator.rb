@@ -45,7 +45,6 @@ module Racc
     end
 
     def output_useless(out)
-      used = []
       @grammar.each do |rl|
         if rl.useless?
           out.printf "rule %d (%s) never reduced\n",
@@ -90,8 +89,6 @@ module Racc
     end
 
     def action_out(f, state)
-      r = ''
-      e = ''
       sr = state.srconf && state.srconf.dup
       rr = state.rrconf && state.rrconf.dup
       acts = state.action

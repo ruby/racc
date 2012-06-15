@@ -2,6 +2,7 @@ $VERBOSE = true
 require 'test/unit'
 require 'racc/static'
 require 'fileutils'
+require 'tempfile'
 
 module Racc
   class TestCase < Test::Unit::TestCase
@@ -76,12 +77,14 @@ module Racc
     def racc arg
       ruby "-S #{RACC} #{arg}"
     end
-    
+
     def ruby arg
       Dir.chdir(TEST_DIR) do
-        cmd = "#{ENV['_']} -I #{INC} #{arg} 2>>/tmp/out"
-        result = system(cmd)
-        result ? assert(result) : raise(cmd)
+        Tempfile.open 'test' do |io|
+          cmd = "#{ENV['_']} -I #{INC} #{arg} 2>#{io.path}"
+          result = system(cmd)
+          assert(result, io.read)
+        end
       end
     end
   end

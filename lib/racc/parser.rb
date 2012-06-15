@@ -105,13 +105,11 @@ module Racc
 
     def _racc_do_parse_rb(arg, in_debug)
       action_table, action_check, action_default, action_pointer,
-      goto_table,   goto_check,   goto_default,   goto_pointer,
-      nt_base,      reduce_table, token_table,    shift_n,
-      reduce_n,     use_result,   * = arg
+      _,            _,            _,              _,
+      _,            _,            token_table,    * = arg
 
       _racc_init_sysvars
       tok = act = i = nil
-      nerr = 0
 
       catch(:racc_end_parse) {
         while true
@@ -154,12 +152,10 @@ module Racc
 
     def _racc_yyparse_rb(recv, mid, arg, c_debug)
       action_table, action_check, action_default, action_pointer,
-      goto_table,   goto_check,   goto_default,   goto_pointer,
-      nt_base,      reduce_table, token_table,    shift_n,
-      reduce_n,     use_result,   * = arg
+      _,            _,            _,              _,
+      _,            _,            token_table,    * = arg
 
       _racc_init_sysvars
-      nerr = 0
 
       catch(:racc_end_parse) {
         until i = action_pointer[@racc_state[-1]]
@@ -208,10 +204,10 @@ module Racc
     ###
 
     def _racc_evalact(act, arg)
-      action_table, action_check, action_default, action_pointer,
-      goto_table,   goto_check,   goto_default,   goto_pointer,
-      nt_base,      reduce_table, token_table,    shift_n,
-      reduce_n,     use_result,   * = arg
+      action_table, action_check, _, action_pointer,
+      _,            _,            _, _,
+      _,            _,            _, shift_n,
+      reduce_n,     * = arg
       nerr = 0   # tmp
 
       if act > 0 and act < shift_n
@@ -303,10 +299,11 @@ module Racc
     end
 
     def _racc_do_reduce(arg, act)
-      action_table, action_check, action_default, action_pointer,
-      goto_table,   goto_check,   goto_default,   goto_pointer,
-      nt_base,      reduce_table, token_table,    shift_n,
-      reduce_n,     use_result,   * = arg
+      _,          _,            _,            _,
+      goto_table, goto_check,   goto_default, goto_pointer,
+      nt_base,    reduce_table, _,            _,
+      _,          use_result,   * = arg
+
       state = @racc_state
       vstack = @racc_vstack
       tstack = @racc_tstack

@@ -503,7 +503,7 @@ module Racc
         set.update tmp
         return set
       end
-      tok = h = nil
+      tok = nil
       set.update_a t.heads
       t.heads.each do |ptr|
         tok = ptr.dereference
