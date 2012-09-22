@@ -14,7 +14,7 @@
 require 'racc/info'
 
 unless defined?(NotImplementedError)
-  NotImplementedError = NotImplementError
+  NotImplementedError = NotImplementError # :nodoc:
 end
 
 module Racc
@@ -24,10 +24,12 @@ unless defined?(::ParseError)
   ParseError = Racc::ParseError
 end
 
+# Racc is a LALR(1) parser generator.
+# It is written in Ruby itself, and generates Ruby programs.
 module Racc
 
   unless defined?(Racc_No_Extentions)
-    Racc_No_Extentions = false
+    Racc_No_Extentions = false # :nodoc:
   end
 
   class Parser
@@ -48,11 +50,11 @@ module Racc
         raise LoadError, 'selecting ruby version of racc runtime core'
       end
 
-      Racc_Main_Parsing_Routine    = :_racc_do_parse_c
-      Racc_YY_Parse_Method         = :_racc_yyparse_c
-      Racc_Runtime_Core_Version    = Racc_Runtime_Core_Version_C
-      Racc_Runtime_Core_Revision   = Racc_Runtime_Core_Revision_C
-      Racc_Runtime_Type            = 'c'
+      Racc_Main_Parsing_Routine    = :_racc_do_parse_c # :nodoc:
+      Racc_YY_Parse_Method         = :_racc_yyparse_c # :nodoc:
+      Racc_Runtime_Core_Version    = Racc_Runtime_Core_Version_C # :nodoc:
+      Racc_Runtime_Core_Revision   = Racc_Runtime_Core_Revision_C # :nodoc:
+      Racc_Runtime_Type            = 'c' # :nodoc:
     rescue LoadError
       Racc_Main_Parsing_Routine    = :_racc_do_parse_rb
       Racc_YY_Parse_Method         = :_racc_yyparse_rb
@@ -61,11 +63,9 @@ module Racc
       Racc_Runtime_Type            = 'ruby'
     end
 
-    def Parser.racc_runtime_type
+    def Parser.racc_runtime_type # :nodoc:
       Racc_Runtime_Type
     end
-
-    private
 
     def _racc_setup
       @yydebug = false unless self.class::Racc_debug_parser
@@ -93,14 +93,33 @@ module Racc
       @racc_error_status = 0
     end
 
-    ###
-    ### do_parse
-    ###
-
+    # The entry point of the parser. This method is used with #next_token.
+    # If Racc wants to get token (and its value), calls next_token.
+    #
+    # Example:
+    #     def parse
+    #       @q = [[1,1],
+    #             [2,2],
+    #             [3,3],
+    #             [false, '$']]
+    #       do_parse
+    #     end
+    #
+    #     def next_token
+    #       @q.shift
+    #     end
     def do_parse
       __send__(Racc_Main_Parsing_Routine, _racc_setup(), false)
     end
 
+    # The method to fetch next token.
+    # If you use #do_parse method, you must implement #next_token.
+    #
+    # The format of return value is [TOKEN_SYMBOL, VALUE].
+    # +token-symbol+ is represented by Ruby's symbol by default, e.g. :IDENT
+    # for 'IDENT'.  ";" (String) for ';'.
+    #
+    # The final symbol (End of file) must be false.
     def next_token
       raise NotImplementedError, "#{self.class}\#next_token is not defined"
     end
@@ -144,10 +163,11 @@ module Racc
       }
     end
 
-    ###
-    ### yyparse
-    ###
-
+    # Another entry point for the parser.
+    # If you use this method, you must implement RECEIVER#METHOD_ID method.
+    #
+    # RECEIVER#METHOD_ID is a method to get next token.
+    # It must 'yield' the token, which format is [TOKEN-SYMBOL, VALUE].
     def yyparse(recv, mid)
       __send__(Racc_YY_Parse_Method, recv, mid, _racc_setup(), true)
     end
@@ -342,27 +362,43 @@ module Racc
       goto_default[k1]
     end
 
+    # This method is called when a parse error is found.
+    #
+    # ERROR_TOKEN_ID is an internal ID of token which caused error.
+    # You can get string representation of this ID by calling
+    # #token_to_str.
+    #
+    # ERROR_VALUE is a value of error token.
+    #
+    # value_stack is a stack of symbol values.
+    # DO NOT MODIFY this object.
+    #
+    # This method raises ParseError by default.
+    #
+    # If this method returns, parsers enter "error recovering mode".
     def on_error(t, val, vstack)
       raise ParseError, sprintf("\nparse error on value %s (%s)",
                                 val.inspect, token_to_str(t) || '?')
     end
 
+    # Enter error recovering mode.
+    # This method does not call #on_error.
     def yyerror
       throw :racc_jump, 1
     end
 
+    # Exit parser.
+    # Return value is Symbol_Value_Stack[0].
     def yyaccept
       throw :racc_jump, 2
     end
 
+    # Leave error recovering mode.
     def yyerrok
       @racc_error_status = 0
     end
 
-    #
-    # for debugging output
-    #
-
+    # For debugging output
     def racc_read_token(t, tok, val)
       @racc_debug_out.print 'read    '
       @racc_debug_out.print tok.inspect, '(', racc_token2str(t), ') '
@@ -385,7 +421,6 @@ module Racc
         toks.each {|t| out.print ' ', racc_token2str(t) }
       end
       out.puts " --> #{racc_token2str(sim)}"
-          
       racc_print_stacks tstack, vstack
       @racc_debug_out.puts
     end
@@ -429,6 +464,7 @@ module Racc
           raise "[Racc Bug] can't convert token #{tok} to string"
     end
 
+    # Convert internal ID of token symbol to the string.
     def token_to_str(t)
       self.class::Racc_token_to_s_table[t]
     end
