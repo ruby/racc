@@ -81,7 +81,7 @@ module Racc
     def ruby arg
       Dir.chdir(TEST_DIR) do
         Tempfile.open 'test' do |io|
-          cmd = "#{ENV['_']} -I #{INC} #{arg} 2>#{io.path}"
+          cmd = "#{ENV['_'] || Gem.ruby} -I #{INC} #{arg} 2>#{io.path}"
           result = system(cmd)
           assert(result, io.read)
         end
