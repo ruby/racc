@@ -39,7 +39,7 @@ rdoc/en/debug.en.rdoc
 rdoc/en/grammar.en.rdoc
 rdoc/en/index.en.html
 rdoc/en/parser.en.rdoc
-rdoc/en/usage.en.html
+rdoc/en/usage.en.rdoc
 rdoc/ja/NEWS.ja.rdoc
 rdoc/ja/command.ja.html
 rdoc/ja/debug.ja.rdoc
