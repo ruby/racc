@@ -18,9 +18,13 @@ Hoe.spec 'racc' do
 
   extra_dev_deps << ['rake-compiler', '>= 0.4.1']
 
-  self.spec_extras = {
-    :extensions            => ["ext/racc/extconf.rb"]
-  }
+  if RUBY_PLATFORM =~ /java/
+    self.spec_extras = { :platform => 'java' }
+  else
+    self.spec_extras = {
+      :extensions            => ["ext/racc/extconf.rb"]
+    }
+  end
 
   Rake::ExtensionTask.new "cparse", spec do |ext|
     ext.lib_dir = File.join 'lib', 'racc'
