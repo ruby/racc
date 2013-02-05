@@ -1,6 +1,4 @@
-#
-# $Id$
-#
+#--
 # Copyright (c) 1999-2006 Minero Aoki
 #
 # This program is free software.
@@ -9,7 +7,7 @@
 # As a special exception, when this code is copied by Racc
 # into a Racc output file, you may use that output file
 # without restriction.
-#
+#++
 
 require 'racc/info'
 
