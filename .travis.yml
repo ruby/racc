@@ -1,0 +1,11 @@
+language: ruby
+rvm:
+  - 1.9.2
+  - 1.9.3
+  - ruby-head
+before_script:
+  - gem install isolate
+  - gem install hoe
+  - gem install rake-compiler
+script: rake compile
+script: rake isolate test
