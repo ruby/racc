@@ -1,7 +1,7 @@
 # $Id$
 #
 # Converting Array-like string into Ruby's Array, version 2.
-# This grammer uses no_result_var.
+# This grammar uses no_result_var.
 
 class ArrayParser2
   options no_result_var
