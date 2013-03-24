@@ -63,7 +63,7 @@
 
   ... Does it works?
   For details of Racc, see HTML documents placed under 'doc.en/'
-  and sample grammer files under 'sample/'.
+  and sample grammar files under 'sample/'.
 
 
 == License
@@ -77,7 +77,7 @@
 == Bug Reports
 
   Any kind of bug reports are welcome.
-  If you find a bug of Racc, please email me. Your grammer file,
+  If you find a bug of Racc, please email me. Your grammar file,
   debug output genereted by "racc -g", are helpful.
 
 

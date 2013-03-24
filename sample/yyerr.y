@@ -1,6 +1,6 @@
 # $Id$
 #
-# Test grammer file for error handling.
+# Test grammar file for error handling.
 
 class A
 rule
