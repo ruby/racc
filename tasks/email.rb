@@ -1,3 +1,5 @@
+#encoding: utf-8
+
 class EmailTask
   def initialize language, readme, changelog
     @language   = language

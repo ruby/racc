@@ -7,11 +7,11 @@ include Rake::DSL
 
 load './lib/racc/info.rb'
 
-require 'tasks/file'
-require 'tasks/gem'
-require 'tasks/test'
-require 'tasks/doc'
-require 'tasks/email'
+load './tasks/file.rb'
+load './tasks/gem.rb'
+load './tasks/test.rb'
+load './tasks/doc.rb'
+load './tasks/email.rb'
 
 task :default => :test
 

@@ -1,4 +1,4 @@
-kind  = Config::CONFIG['DLEXT']
+kind  = RbConfig::CONFIG['DLEXT']
 EXT   = "ext/racc/cparse.#{kind}"
 PTEXT = 'lib/racc/parser-text.rb'
 

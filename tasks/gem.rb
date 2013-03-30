@@ -15,10 +15,15 @@ SPEC = Gem::Specification.new do |s|
   s.rubyforge_project = s.name
   s.executables   = s.files.grep(/^bin/) { |f| File.basename(f) }
   s.bindir        = "bin"
-  s.description = <<EOF
+  s.description   = <<EOF
 Racc is a LALR(1) parser generator.
 It is written in Ruby itself, and generates Ruby program.
 EOF
+end
+
+SPEC_JAVA = SPEC.dup.tap do |s|
+  s.platform      = Gem::Platform.new('java')
+  s.extensions    = []
 end
 
 namespace :gem do
@@ -33,5 +38,9 @@ namespace :gem do
 end
 
 Gem::PackageTask.new(SPEC) do |pkg|
+  pkg.need_tar = true
+end
+
+Gem::PackageTask.new(SPEC_JAVA) do |pkg|
   pkg.need_tar = true
 end
