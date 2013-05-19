@@ -41,7 +41,7 @@ end
 #          [--version] [--copyright] [--help] <var>grammarfile</var>
 #
 # [+filename+]
-#   Racc grammar file. Any extention is permitted.
+#   Racc grammar file. Any extension is permitted.
 # [-o+outfile+, --output-file=+outfile+]
 #   A filename for output. default is <+filename+>.tab.rb
 # [-O+filename+, --log-file=+filename+]
