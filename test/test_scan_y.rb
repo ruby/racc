@@ -14,11 +14,10 @@ module Racc
     def test_compile
       generator = Racc::ParserFileGenerator.new(@states, @result.params.dup)
 
-      fork {
-        eval(generator.generate_parser)
+      # it generates valid ruby
+      assert Module.new {
+        self.class_eval(generator.generate_parser)
       }
-      Process.wait
-      assert_equal 0, $?.exitstatus
 
       grammar = @states.grammar
 
@@ -35,9 +34,10 @@ module Racc
 
       generator = Racc::ParserFileGenerator.new(@states, @result.params.dup)
 
-      fork { eval(generator.generate_parser) }
-      assert_equal 0, $?.exitstatus
-      Process.wait
+      # it generates valid ruby
+      assert Module.new {
+        self.class_eval(generator.generate_parser)
+      }
 
       grammar = @states.grammar
 
