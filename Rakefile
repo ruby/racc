@@ -1,53 +1,51 @@
-require 'rake'
-require 'rubygems/package_task'
-require 'rake/testtask'
-require 'rake/clean'
+# -*- ruby -*-
 
-include Rake::DSL
+require 'rubygems'
+require 'hoe'
 
-load './lib/racc/info.rb'
+gem 'rake-compiler', '>= 0.4.1'
+require "rake/extensiontask"
 
-require 'tasks/file'
-require 'tasks/gem'
-require 'tasks/test'
-require 'tasks/doc'
-require 'tasks/email'
+Hoe.plugin :debugging, :doofus, :git, :isolate
 
-task :default => :test
+Hoe.spec 'racc' do
+  developer 'Aaron Patterson', 'aaron@tenderlovemaking.com'
 
-task :test_pure do
-  ENV["PURERUBY"] = "1"
-  Rake.application[:test].invoke
+  self.extra_rdoc_files  = Dir['*.rdoc']
+  self.history_file      = 'ChangeLog'
+  self.readme_file       = 'README.rdoc'
+  self.testlib           = :testunit
+
+  extra_dev_deps << ['rake-compiler', '>= 0.4.1']
+
+  if RUBY_PLATFORM =~ /java/
+    self.spec_extras = { :platform => 'java' }
+  else
+    self.spec_extras = {
+      :extensions            => ["ext/racc/extconf.rb"]
+    }
+  end
+
+  Rake::ExtensionTask.new "cparse", spec do |ext|
+    ext.lib_dir = File.join 'lib', 'racc'
+    ext.ext_dir = File.join 'ext', 'racc'
+  end
 end
 
-task :clean => :clobber_docs
-task :clean => :clobber_package
+file 'lib/racc/parser-text.rb' => ['lib/racc/parser.rb'] do |t|
+  source = 'lib/racc/parser.rb'
 
-begin
-  require 'rcov/rcovtask'
-  Rcov::RcovTask.new do |t|
-    t.test_files = FileList["test/test_*.rb"]
-    t.verbose = true
-    t.rcov_opts << "--no-color"
-    t.rcov_opts << "--save coverage.info"
-    t.rcov_opts << "-x ^/"
-  end
-  task "rcov" => :fuck_me
-  task "rcov" => PTEXT
-
-  task :fuck_me do
-    ENV['PURERUBY'] = "1"
-  end
-
-  # this is for my emacs rcov overlay stuff on emacswiki.
-  task :rcov_overlay do
-    path = ENV["FILE"]
-    rcov, eol = Marshal.load(File.read("coverage.info")).last[path], 1
-    puts rcov[:lines].zip(rcov[:coverage]).map { |line, coverage|
-      bol, eol = eol, eol + line.length
-      [bol, eol, "#ffcccc"] unless coverage
-    }.compact.inspect
-  end
-rescue LoadError
+  open(t.name, 'wb') { |io|
+    io.write(<<-eorb)
+module Racc
+  PARSER_TEXT = <<'__end_of_file__'
+#{File.read(source)}
+__end_of_file__
+end
+    eorb
+  }
 end
 
+Hoe.add_include_dirs('.:lib/racc')
+
+task :compile => 'lib/racc/parser-text.rb'

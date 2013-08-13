@@ -1,3 +1,3 @@
 require 'mkmf'
 
-create_makefile 'racc/cparse/cparse'
+create_makefile 'racc/cparse'

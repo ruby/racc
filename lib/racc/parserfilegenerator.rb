@@ -325,8 +325,57 @@ module Racc
     end
 
     def integer_list(name, table)
-      lines = table.inspect.split(/((?:\w+, ){15})/).reject { |s| s.empty? }
-      line "#{name} = #{lines.join("\n")}"
+      if table.size > 2000
+        serialize_integer_list_compressed name, table
+      else
+        serialize_integer_list_std name, table
+      end
+    end
+
+    def serialize_integer_list_compressed(name, table)
+      # TODO: this can be made a LOT more clean with a simple split/map
+      sep  = "\n"
+      nsep = ",\n"
+      buf  = ''
+      com  = ''
+      ncom = ','
+      co   = com
+      @f.print 'clist = ['
+      table.each do |i|
+        buf << co << i.to_s; co = ncom
+        if buf.size > 66
+          @f.print sep; sep = nsep
+          @f.print "'", buf, "'"
+          buf = ''
+          co = com
+        end
+      end
+      unless buf.empty?
+        @f.print sep
+        @f.print "'", buf, "'"
+      end
+      line ' ]'
+
+      @f.print(<<-End)
+        #{name} = arr = ::Array.new(#{table.size}, nil)
+        idx = 0
+        clist.each do |str|
+          str.split(',', -1).each do |i|
+            arr[idx] = i.to_i unless i.empty?
+            idx += 1
+          end
+        end
+      End
+    end
+
+    def serialize_integer_list_std(name, table)
+      sep = ''
+      line "#{name} = ["
+      table.each_slice(10) do |ns|
+        @f.print sep; sep = ",\n"
+        @f.print ns.map {|n| sprintf('%6s', n ? n.to_s : 'nil') }.join(',')
+      end
+      line ' ]'
     end
 
     def i_i_sym_list(name, table)
@@ -419,7 +468,7 @@ module Racc
     def remove_blank_lines(src)
       body = src.text.dup
       line = src.lineno
-      while m = body.slice!(/\A[ \t\f]*(?:\n|\r\n|\r)/)
+      while body.slice!(/\A[ \t\f]*(?:\n|\r\n|\r)/)
         line += 1
       end
       SourceText.new(body, src.filename, line)
