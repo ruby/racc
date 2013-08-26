@@ -540,8 +540,12 @@ module Racc
     #
     # If this method returns, parsers enter "error recovering mode".
     def on_error(t, val, vstack)
-      raise ParseError, sprintf("\nparse error on value %s (%s)",
-                                val.inspect, token_to_str(t) || '?')
+      errcontext = (@ss.pre_match[-10..-1] || @ss.pre_match) +
+                    @ss.matched + @ss.post_match[0..9]
+      raise ParseError, sprintf("\nparse error on value %s (%s) " +
+                                "around \"%s\"",
+                                val.inspect, token_to_str(t) || '?',
+                                errcontext)
     end
 
     # Enter error recovering mode.
