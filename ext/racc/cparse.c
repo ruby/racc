@@ -17,7 +17,7 @@
                         Important Constants
 ----------------------------------------------------------------------- */
 
-#define RACC_VERSION "1.4.9"
+#define RACC_VERSION "1.4.11"
 
 #define DEFAULT_TOKEN -1
 #define ERROR_TOKEN    1
@@ -78,6 +78,10 @@ static ID id_use_result;
 #endif
 #ifndef LONG2NUM
 #  define LONG2NUM(i) INT2NUM(i)
+#endif
+
+#ifndef rb_ary_subseq
+#  define rb_ary_subseq(ary, beg, len) rb_ary_new4(len, RARRAY_PTR(ary) + beg)
 #endif
 
 static ID value_to_id _((VALUE v));
