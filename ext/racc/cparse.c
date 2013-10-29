@@ -65,6 +65,10 @@ static ID id_d_e_pop;
 #  define LONG2NUM(i) INT2NUM(i)
 #endif
 
+#ifndef rb_ary_subseq
+#  define rb_ary_subseq(ary, beg, len) rb_ary_new4(len, RARRAY_PTR(ary) + beg)
+#endif
+
 static ID value_to_id _((VALUE v));
 static inline long num_to_long _((VALUE n));
 
