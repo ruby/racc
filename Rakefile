@@ -3,12 +3,12 @@
 require 'rubygems'
 require 'hoe'
 
-gem 'rake-compiler', '>= 0.4.1'
-require "rake/extensiontask"
+# gem 'rake-compiler', '>= 0.4.1'
+# require "rake/extensiontask"
 
-Hoe.plugin :debugging, :doofus, :git, :isolate
+Hoe.plugin :debugging, :doofus, :git, :isolate, :compiler
 
-Hoe.spec 'racc' do
+hoespec = Hoe.spec 'racc' do
   developer 'Aaron Patterson', 'aaron@tenderlovemaking.com'
 
   self.extra_rdoc_files  = Dir['*.rdoc']
@@ -16,20 +16,17 @@ Hoe.spec 'racc' do
   self.readme_file       = 'README.rdoc'
   self.testlib           = :testunit
 
-  extra_dev_deps << ['rake-compiler', '>= 0.4.1']
+  dependency 'rake-compiler', '>= 0.4.1', :developer
 
   if RUBY_PLATFORM =~ /java/
     self.spec_extras = { :platform => 'java' }
-  else
-    self.spec_extras = {
-      :extensions            => ["ext/racc/extconf.rb"]
-    }
   end
+end
 
-  Rake::ExtensionTask.new "cparse", spec do |ext|
-    ext.lib_dir = File.join 'lib', 'racc'
-    ext.ext_dir = File.join 'ext', 'racc'
-  end
+task :racc => :isolate
+Rake::ExtensionTask.new :racc, hoespec.spec do |ext|
+  ext.lib_dir = File.join 'lib', 'racc'
+  ext.ext_dir = File.join 'ext', 'racc'
 end
 
 file 'lib/racc/parser-text.rb' => ['lib/racc/parser.rb'] do |t|
