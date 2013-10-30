@@ -24,10 +24,6 @@ hoespec = Hoe.spec 'racc' do
 end
 
 task :racc => :isolate
-Rake::ExtensionTask.new :racc, hoespec.spec do |ext|
-  ext.lib_dir = File.join 'lib', 'racc'
-  ext.ext_dir = File.join 'ext', 'racc'
-end
 
 file 'lib/racc/parser-text.rb' => ['lib/racc/parser.rb'] do |t|
   source = 'lib/racc/parser.rb'
