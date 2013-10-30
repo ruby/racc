@@ -65,7 +65,7 @@ static ID id_d_e_pop;
 #  define LONG2NUM(i) INT2NUM(i)
 #endif
 
-#ifndef rb_ary_subseq
+#ifndef HAVE_RB_ARY_SUBSEQ
 #  define rb_ary_subseq(ary, beg, len) rb_ary_new4(len, RARRAY_PTR(ary) + beg)
 #endif
 
