@@ -8,7 +8,7 @@ require "rake/extensiontask"
 
 Hoe.plugin :debugging, :doofus, :git, :isolate
 
-Hoe.spec 'racc' do
+hoe = Hoe.spec 'racc' do
   developer 'Aaron Patterson', 'aaron@tenderlovemaking.com'
 
   self.extra_rdoc_files  = Dir['*.rdoc']
@@ -17,6 +17,7 @@ Hoe.spec 'racc' do
   self.testlib           = :testunit
 
   extra_dev_deps << ['rake-compiler', '>= 0.4.1']
+  extra_dev_deps << ['minitest', '~> 4.7']
 
   if RUBY_PLATFORM =~ /java/
     self.spec_extras = { :platform => 'java' }
@@ -31,6 +32,8 @@ Hoe.spec 'racc' do
     ext.ext_dir = File.join 'ext', 'racc'
   end
 end
+
+hoe.test_prelude = 'gem "minitest", "~> 4.7"'
 
 file 'lib/racc/parser-text.rb' => ['lib/racc/parser.rb'] do |t|
   source = 'lib/racc/parser.rb'
