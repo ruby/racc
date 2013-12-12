@@ -49,6 +49,8 @@ end
   }
 end
 
+task :test => :compile
+
 Hoe.add_include_dirs('.:lib/racc')
 
 task :compile => 'lib/racc/parser-text.rb'
