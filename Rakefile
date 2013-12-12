@@ -14,7 +14,7 @@ hoe = Hoe.spec 'racc' do
   self.extra_rdoc_files  = Dir['*.rdoc']
   self.history_file      = 'ChangeLog'
   self.readme_file       = 'README.rdoc'
-  self.testlib           = :testunit
+  self.testlib           = :minitest
 
   extra_dev_deps << ['rake-compiler', '>= 0.4.1']
   extra_dev_deps << ['minitest', '~> 4.7']

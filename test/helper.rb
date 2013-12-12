@@ -1,11 +1,11 @@
 $VERBOSE = true
-require 'test/unit'
+require 'minitest/autorun'
 require 'racc/static'
 require 'fileutils'
 require 'tempfile'
 
 module Racc
-  class TestCase < Test::Unit::TestCase
+  class TestCase < MiniTest::Unit::TestCase
     PROJECT_DIR = File.expand_path(File.join(File.dirname(__FILE__), '..'))
 
     TEST_DIR = File.join(PROJECT_DIR, 'test')
@@ -21,10 +21,6 @@ module Racc
       File.join(PROJECT_DIR, 'lib'),
       File.join(PROJECT_DIR, 'ext'),
     ].join(':')
-
-    unless RUBY_VERSION >= '1.9'
-      undef :default_test
-    end
 
     def setup
       [OUT_DIR, TAB_DIR, LOG_DIR, ERR_DIR].each do |dir|
