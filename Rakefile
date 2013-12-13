@@ -25,6 +25,8 @@ hoe = Hoe.spec 'racc' do
     self.spec_extras[:extensions] = %w[ext/racc/extconf.rb]
   end
 
+  clean_globs << "lib/#{self.name}/*.{so,bundle,dll}" # from hoe/compiler
+
   Rake::ExtensionTask.new "cparse", spec do |ext|
     ext.lib_dir = File.join 'lib', 'racc'
     ext.ext_dir = File.join 'ext', 'racc'
