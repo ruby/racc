@@ -789,7 +789,7 @@ reduce0(VALUE val, VALUE data, VALUE self)
 ----------------------------------------------------------------------- */
 
 void
-Init_racc(void)
+Init_cparse(void)
 {
     VALUE Racc, Parser;
     ID id_racc = rb_intern("Racc");
