@@ -80,7 +80,7 @@ static ID id_use_result;
 #  define LONG2NUM(i) INT2NUM(i)
 #endif
 
-#ifndef rb_ary_subseq
+#ifndef HAVE_RB_ARY_SUBSEQ
 #  define rb_ary_subseq(ary, beg, len) rb_ary_new4(len, RARRAY_PTR(ary) + beg)
 #endif
 
@@ -396,7 +396,7 @@ initialize_params(VALUE vparams, VALUE parser, VALUE lexer, VALUE lexmid)
     v->fin             = 0;
     v->lex_is_iterator = Qfalse;
 
-    v->use_result_var  = rb_ivar_get(parser, id_use_result);
+    v->use_result_var  = NUM2INT(rb_ivar_get(parser, id_use_result));
 
     PUSH(v->state, INT2FIX(0));
 

@@ -1,3 +1,5 @@
 require 'mkmf'
 
-create_makefile 'racc/racc'
+have_func('rb_ary_subseq')
+
+create_makefile 'racc/cparse'

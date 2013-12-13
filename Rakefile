@@ -8,22 +8,27 @@ require 'hoe'
 
 Hoe.plugin :debugging, :doofus, :git, :isolate, :compiler
 
-hoespec = Hoe.spec 'racc' do
+hoe = Hoe.spec 'racc' do
   developer 'Aaron Patterson', 'aaron@tenderlovemaking.com'
+  license "MIT"
 
   self.extra_rdoc_files  = Dir['*.rdoc']
   self.history_file      = 'ChangeLog'
   self.readme_file       = 'README.rdoc'
-  self.testlib           = :testunit
 
   dependency 'rake-compiler', '>= 0.4.1', :developer
+  dependency 'minitest',      '~> 4.7',   :developer # stick to stdlib's version
 
   if RUBY_PLATFORM =~ /java/
-    self.spec_extras = { :platform => 'java' }
+    self.spec_extras[:platform]   = 'java'
+  else
+    self.spec_extras[:extensions] = %w[ext/racc/extconf.rb]
   end
 end
 
 task :racc => :isolate
+
+hoe.test_prelude = 'gem "minitest", "~> 4.7"'
 
 file 'lib/racc/parser-text.rb' => ['lib/racc/parser.rb'] do |t|
   source = 'lib/racc/parser.rb'
@@ -38,6 +43,8 @@ end
     eorb
   }
 end
+
+task :test => :compile
 
 Hoe.add_include_dirs('.:lib/racc')
 
