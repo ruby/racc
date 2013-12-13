@@ -16,7 +16,8 @@ module Racc
 
       # it generates valid ruby
       assert Module.new {
-        self.class_eval(generator.generate_parser)
+        parser = generator.generate_parser
+        self.class_eval(parser)
       }
 
       grammar = @states.grammar

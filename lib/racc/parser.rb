@@ -270,8 +270,7 @@ module Racc
     #       @q.shift
     #     end
     def do_parse
-      _racc_setup
-      __send__ Racc_Main_Parsing_Routine
+      __send__(Racc_Main_Parsing_Routine, _racc_setup(), false)
     end
 
     # The method to fetch next token.
@@ -287,10 +286,6 @@ module Racc
     end
 
     def _racc_do_parse_rb(arg, in_debug)
-      action_table, action_check, action_default, action_pointer,
-      _,            _,            _,              _,
-      _,            _,            token_table,    * = arg
-
       _racc_init_sysvars
       tok = act = i = nil
 
@@ -335,11 +330,7 @@ module Racc
       __send__ Racc_YY_Parse_Method, recv, mid
     end
 
-    def _racc_yyparse_rb(recv, mid, arg, c_debug)
-      action_table, action_check, action_default, action_pointer,
-      _,            _,            _,              _,
-      _,            _,            token_table,    * = arg
-
+    def _racc_yyparse_rb(recv, mid)
       _racc_init_sysvars
 
       catch(:racc_end_parse) {
@@ -388,11 +379,7 @@ module Racc
     ### common
     ###
 
-    def _racc_evalact(act, arg)
-      action_table, action_check, _, action_pointer,
-      _,            _,            _, _,
-      _,            _,            _, shift_n,
-      reduce_n,     * = arg
+    def _racc_evalact(act)
       nerr = 0   # tmp
 
       if act > 0 and act < @shift_n
@@ -483,12 +470,7 @@ module Racc
       nil
     end
 
-    def _racc_do_reduce(arg, act)
-      _,          _,            _,            _,
-      goto_table, goto_check,   goto_default, goto_pointer,
-      nt_base,    reduce_table, _,            _,
-      _,          use_result,   * = arg
-
+    def _racc_do_reduce(act)
       state = @racc_state
       vstack = @racc_vstack
       tstack = @racc_tstack
