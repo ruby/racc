@@ -21,14 +21,6 @@ unless Object.method_defined?(:__send!)
   end
 end
 
-unless String.method_defined?(:to_a)
-  class String
-    def to_a
-      lines.to_a
-    end
-  end
-end
-
 unless Array.method_defined?(:map!)
   class Array
     if Array.method_defined?(:collect!)
