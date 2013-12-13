@@ -10,21 +10,19 @@ Hoe.plugin :debugging, :doofus, :git, :isolate
 
 hoe = Hoe.spec 'racc' do
   developer 'Aaron Patterson', 'aaron@tenderlovemaking.com'
+  license "MIT"
 
   self.extra_rdoc_files  = Dir['*.rdoc']
   self.history_file      = 'ChangeLog'
   self.readme_file       = 'README.rdoc'
-  self.testlib           = :testunit
 
-  extra_dev_deps << ['rake-compiler', '>= 0.4.1']
-  extra_dev_deps << ['minitest', '~> 4.7']
+  dependency 'rake-compiler', '>= 0.4.1', :developer
+  dependency 'minitest',      '~> 4.7',   :developer # stick to stdlib's version
 
   if RUBY_PLATFORM =~ /java/
-    self.spec_extras = { :platform => 'java' }
+    self.spec_extras[:platform]   = 'java'
   else
-    self.spec_extras = {
-      :extensions            => ["ext/racc/extconf.rb"]
-    }
+    self.spec_extras[:extensions] = %w[ext/racc/extconf.rb]
   end
 
   Rake::ExtensionTask.new "cparse", spec do |ext|
@@ -48,6 +46,8 @@ end
     eorb
   }
 end
+
+task :test => :compile
 
 Hoe.add_include_dirs('.:lib/racc')
 
