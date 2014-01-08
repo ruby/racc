@@ -1,9 +1,9 @@
-*.swp
-*.o
 *.bundle
+*.o
 *.so
-lib/racc/parser-text.rb
+*.swp
+/.gemtest
 Makefile
+lib/racc/parser-text.rb
 tags
 tmp
-/.gemtest
