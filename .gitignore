@@ -3,6 +3,7 @@
 *.so
 *.swp
 /.gemtest
+/pkg
 Makefile
 lib/racc/parser-text.rb
 tags
