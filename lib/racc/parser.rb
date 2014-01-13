@@ -192,7 +192,12 @@ module Racc
     Racc_Runtime_Core_Version_R = ::Racc::VERSION
     Racc_Runtime_Core_Revision_R = '$Id$'.split[1]
     begin
-      require 'racc/cparse'
+      if RUBY_ENGINE == 'jruby'
+        require 'ext/racc-cparse.jar'
+        com.headius.racc.Cparse.new.load(JRuby.runtime, false)
+      else
+        require 'racc/cparse'
+      end
     # Racc_Runtime_Core_Version_C  = (defined in extention)
       Racc_Runtime_Core_Revision_C = Racc_Runtime_Core_Id_C.split[2]
       unless new.respond_to?(:_racc_do_parse_c, true)
