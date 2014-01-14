@@ -8,3 +8,5 @@ Makefile
 lib/racc/parser-text.rb
 tags
 tmp
+target
+ext/racc-cparse.jar
