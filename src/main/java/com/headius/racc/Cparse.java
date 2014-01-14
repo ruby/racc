@@ -13,13 +13,19 @@ import org.jruby.RubyObject;
 import org.jruby.RubySymbol;
 import org.jruby.anno.JRubyMethod;
 import org.jruby.exceptions.JumpException;
+import org.jruby.internal.runtime.methods.AttrReaderMethod;
+import org.jruby.internal.runtime.methods.AttrWriterMethod;
+import org.jruby.internal.runtime.methods.CallConfiguration;
 import org.jruby.runtime.Arity;
 import org.jruby.runtime.Block;
 import org.jruby.runtime.BlockCallback;
 import org.jruby.runtime.CallBlock19;
+import org.jruby.runtime.CallSite;
 import org.jruby.runtime.Helpers;
+import org.jruby.runtime.MethodIndex;
 import org.jruby.runtime.ObjectAllocator;
 import org.jruby.runtime.ThreadContext;
+import org.jruby.runtime.Visibility;
 import org.jruby.runtime.builtin.IRubyObject;
 import org.jruby.runtime.load.Library;
 
@@ -42,18 +48,30 @@ public class Cparse implements Library {
     private RubyClass RaccBug;
     private RubyClass CparseParams;
 
-    private RubySymbol id_yydebug;
-    private RubySymbol id_nexttoken;
-    private RubySymbol id_onerror;
-    private RubySymbol id_noreduce;
-    private RubySymbol id_errstatus;
+    private static final String ID_YYDEBUG = "@yydebug";
+    private static final String ID_NEXTTOKEN = "next_token";
+    private static final String ID_ONERROR = "on_error";
+    private static final String ID_NOREDUCE = "_reduce_none";
+    private static final String ID_ERRSTATUS = "@racc_error_status";
 
-    private RubySymbol id_d_shift;
-    private RubySymbol id_d_reduce;
-    private RubySymbol id_d_accept;
-    private RubySymbol id_d_read_token;
-    private RubySymbol id_d_next_state;
-    private RubySymbol id_d_e_pop;
+    private static final String ID_D_SHIFT = "racc_shift";
+    private static final String ID_D_REDUCE = "racc_reduce";
+    private static final String ID_D_ACCEPT = "racc_accept";
+    private static final String ID_D_READ_TOKEN = "racc_read_token";
+    private static final String ID_D_NEXT_STATE = "racc_next_state";
+    private static final String ID_D_E_POP = "racc_e_pop";
+
+    private RubySymbol sym_noreduce;
+    private CallSite call_nexttoken;
+    private CallSite call_onerror;
+    private CallSite call_d_shift;
+    private CallSite call_d_reduce;
+    private CallSite call_d_accept;
+    private CallSite call_d_read_token;
+    private CallSite call_d_next_state;
+    private CallSite call_d_e_pop;
+    private AttrWriterMethod set_errstatus;
+    private AttrReaderMethod get_errstatus;
 
     private static RubySymbol value_to_id(ThreadContext context, IRubyObject v) {
         if (!(v instanceof RubySymbol)) {
@@ -63,7 +81,7 @@ public class Cparse implements Library {
     }
 
     private static int num_to_int(IRubyObject n) {
-        return (int)n.convertToInteger().getLongValue();
+        return assert_integer(n);
     }
 
     private static IRubyObject AREF(ThreadContext context, IRubyObject s, int idx) {
@@ -117,10 +135,12 @@ public class Cparse implements Library {
             Ruby runtime = context.runtime;
             this.parser = parser;
             this.lexer = lexer;
-            if (!lexmid.isNil())
+            if (!lexmid.isNil()) {
                 this.lexmid = value_to_id(context, lexmid);
+                this.call_lexmid = MethodIndex.getFunctionalCallSite(this.lexmid.toString());
+            }
 
-            this.debug           = parser.getInstanceVariable(id_yydebug.toString()).isTrue();
+            this.debug           = parser.getInstanceVariable(ID_YYDEBUG).isTrue();
 
             RubyArray argAry = arg.convertToArray();
             if (!(13 <= argAry.size() && argAry.size() <= 14)) {
@@ -153,7 +173,7 @@ public class Cparse implements Library {
             this.t               = runtime.newFixnum(TokenType.FINAL.id + 1); // must not init to FINAL_TOKEN
             this.nerr            = 0;
             this.errstatus       = 0;
-            parser.setInstanceVariable(id_errstatus.toString(), RubyNumeric.int2fix(runtime, this.errstatus));
+            set_errstatus.call(context, parser, parser.getMetaClass(), ID_ERRSTATUS, RubyNumeric.int2fix(runtime, this.errstatus));
 
             this.retval          = context.nil;
             this.fin             = 0;
@@ -211,8 +231,8 @@ public class Cparse implements Library {
         private static final int ERROR_POP = 9;
         private static final int TRANSIT = 9;
 
-        private void SHIFT(Ruby runtime, int act, IRubyObject tok, IRubyObject val) {
-            shift(runtime, act, tok, val);
+        private void SHIFT(ThreadContext context, int act, IRubyObject tok, IRubyObject val) {
+            shift(context, act, tok, val);
         }
 
         private int REDUCE(ThreadContext context, int act) {
@@ -246,7 +266,7 @@ public class Cparse implements Library {
                         tmp = AREF(context, this.action_pointer, this.curstate);
                         if (tmp.isNil()) {branch = NOTFOUND; continue BRANCH;}
                         D_puts("(act) pointer[k1] ok");
-                        i = (int)tmp.convertToInteger().getLongValue();
+                        i = assert_integer(tmp);
 
                         D_printf("read_next=%d\n", read_next);
                         if (read_next && (this.t != vFINAL_TOKEN)) {
@@ -257,12 +277,12 @@ public class Cparse implements Library {
                                 return;
 
                                 // remainder of case duplicated from here for RESUME case
-//                                D_puts(this, "resumed");
-//                                i = this.i;  /* load i */
+                                //D_puts(this, "resumed");
+                                //i = this.i;  /* load i */
                             }
                             else {
                                 D_puts("next_token");
-                                tmp = this.parser.callMethod(context, id_nexttoken.toString());
+                                tmp = call_nexttoken.call(context, this.parser, this.parser);
                                 IRubyObject[] tokVal = {tok, val};
                                 extract_user_token(context, tmp, tokVal);
                                 tok = tokVal[0];
@@ -273,10 +293,9 @@ public class Cparse implements Library {
                             if (this.t.isNil()) {
                                 this.t = vERROR_TOKEN;
                             }
-                            D_printf("(act) t(k2)=%ld\n", this.t.convertToInteger().getLongValue());
+                            D_printf("(act) t(k2)=%ld\n", assert_integer(this.t));
                             if (this.debug) {
-                                this.parser.callMethod(context, id_d_read_token.toString(),
-                                        new IRubyObject[]{this.t, tok, val});
+                                call_d_read_token.call(context, this.parser, this.parser, this.t, tok, val);
                             }
                         }
 
@@ -291,28 +310,27 @@ public class Cparse implements Library {
                             if (this.t.isNil()) {
                                 this.t = vERROR_TOKEN;
                             }
-                            D_printf("(act) t(k2)=%ld\n", this.t.convertToInteger().getLongValue());
+                            D_printf("(act) t(k2)=%ld\n", assert_integer(this.t));
                             if (this.debug) {
-                                this.parser.callMethod(context, id_d_read_token.toString(),
-                                        new IRubyObject[]{this.t, tok, val});
+                                call_d_read_token.call(context, this.parser, this.parser, this.t, tok, val);
                             }
                         }
 
                         read_next = false;
 
-                        i += (int)this.t.convertToInteger().getLongValue();
+                        i += assert_integer(this.t);
                         D_printf("(act) i=%ld\n", i);
                         if (i < 0) {branch = NOTFOUND; continue BRANCH;}
 
                         act_value = AREF(context, this.action_table, i);
                         if (act_value.isNil()) {branch = NOTFOUND; continue BRANCH;}
-                        act = (int)act_value.convertToInteger().getLongValue();
+                        act = assert_integer(act_value);
                         D_printf("(act) table[i]=%ld\n", act);
 
                         tmp = AREF(context, this.action_check, i);
                         if (tmp.isNil()) {branch = NOTFOUND; continue BRANCH;}
-                        if ((int)tmp.convertToInteger().getLongValue() != this.curstate) {branch = NOTFOUND; continue BRANCH;}
-                        D_printf("(act) check[i]=%ld\n", (int)tmp.convertToInteger().getLongValue());
+                        if (assert_integer(tmp) != this.curstate) {branch = NOTFOUND; continue BRANCH;}
+                        D_printf("(act) check[i]=%ld\n", assert_integer(tmp));
 
                         D_puts("(act) found");
 
@@ -323,7 +341,7 @@ public class Cparse implements Library {
                     case NOTFOUND:
                         D_puts("(act) not found: use default");
                         act_value = AREF(context, this.action_default, this.curstate);
-                        act = (int)act_value.convertToInteger().getLongValue();
+                        act = assert_integer(act_value);
                         branch = ACT_FIXED; continue BRANCH;
 
                     case HANDLE_ACT:
@@ -331,9 +349,9 @@ public class Cparse implements Library {
                             D_puts("shift");
                             if (this.errstatus > 0) {
                                 this.errstatus--;
-                                this.parser.setInstanceVariable(id_errstatus.toString(), runtime.newFixnum(this.errstatus));
+                                set_errstatus.call(context, this.parser, this.parser.getMetaClass(), ID_ERRSTATUS, runtime.newFixnum(this.errstatus));
                             }
-                            SHIFT(runtime, act, this.t, val);
+                            SHIFT(context, act, this.t, val);
                             read_next = true;
                         }
                         else if (act < 0 && act > -(this.reduce_n)) {
@@ -354,15 +372,14 @@ public class Cparse implements Library {
                     case ERROR_RECOVERED:
 
                         if (this.debug) {
-                            this.parser.callMethod(context, id_d_next_state.toString(),
-                                    new IRubyObject[]{runtime.newFixnum(this.curstate), this.state});
+                            call_d_next_state.call(context, this.parser, this.parser, runtime.newFixnum(this.curstate), this.state);
                         }
                         branch = 0; continue BRANCH;
 
                     /* not reach */
 
                     case ACCEPT:
-                        if (this.debug) this.parser.callMethod(context, id_d_accept.toString());
+                        if (this.debug) call_d_accept.call(context, this.parser, this.parser);
                         this.retval = this.vstack.eltOk(0);
                         this.fin = CP_FIN_ACCEPT;
                         return;
@@ -371,8 +388,7 @@ public class Cparse implements Library {
                         D_printf("error detected, status=%ld\n", this.errstatus);
                         if (this.errstatus == 0) {
                             this.nerr++;
-                            this.parser.callMethod(context, id_onerror.toString(),
-                                    new IRubyObject[]{this.t, val, this.vstack});
+                            call_onerror.call(context, this.parser, this.parser, this.t, val, this.vstack);
                         }
 
                     case USER_YYERROR:
@@ -385,7 +401,7 @@ public class Cparse implements Library {
                             read_next = true;
                         }
                         this.errstatus = 3;
-                        this.parser.setInstanceVariable(id_errstatus.toString(), runtime.newFixnum(this.errstatus));
+                        set_errstatus.call(context, this.parser, this.parser.getMetaClass(), ID_ERRSTATUS, runtime.newFixnum(this.errstatus));
 
                         /* check if we can shift/reduce error token */
                         D_printf("(err) k1=%ld\n", this.curstate);
@@ -400,7 +416,7 @@ public class Cparse implements Library {
                                     if (tmp.isNil()) {branch2 = ERROR_POP; continue BRANCH2;}
                                     D_puts("(err) pointer[k1] ok");
 
-                                    i = (int)tmp.convertToInteger().getLongValue() + TokenType.ERROR.id;
+                                    i = assert_integer(tmp) + TokenType.ERROR.id;
                                     D_printf("(err) i=%ld\n", i);
                                     if (i < 0) {branch2 = ERROR_POP; continue BRANCH2;}
 
@@ -409,7 +425,7 @@ public class Cparse implements Library {
                                         D_puts("(err) table[i] == nil");
                                         branch2 = ERROR_POP; continue BRANCH2;
                                     }
-                                    act = (int)act_value.convertToInteger().getLongValue();
+                                    act = assert_integer(act_value);
                                     D_printf("(err) table[i]=%ld\n", act);
 
                                     tmp = AREF(context, this.action_check, i);
@@ -417,7 +433,7 @@ public class Cparse implements Library {
                                         D_puts("(err) check[i] == nil");
                                         branch2 = ERROR_POP; continue BRANCH2;
                                     }
-                                    if ((int)tmp.convertToInteger().getLongValue() != this.curstate) {
+                                    if (assert_integer(tmp) != this.curstate) {
                                         D_puts("(err) check[i] != k1");
                                         branch2 = ERROR_POP; continue BRANCH2;
                                     }
@@ -435,11 +451,10 @@ public class Cparse implements Library {
                                     }
                                     POP(context, this.state);
                                     POP(context, this.vstack);
-                                    this.curstate = (int)LAST_I(context, this.state).convertToInteger().getLongValue();
+                                    this.curstate = assert_integer(LAST_I(context, this.state));
                                     if (this.debug) {
                                         POP(context, this.tstack);
-                                        this.parser.callMethod(context, id_d_e_pop.toString(),
-                                                new IRubyObject[]{this.state, this.tstack, this.vstack});
+                                        call_d_e_pop.call(context, this.parser, this.parser, this.state, this.tstack, this.vstack);
                                     }
                             }
                         }
@@ -447,7 +462,7 @@ public class Cparse implements Library {
                         /* shift/reduce error token */
                         if (act > 0 && act < this.shift_n) {
                             D_puts("e shift");
-                            SHIFT(runtime, act, runtime.newFixnum(TokenType.ERROR.id), val);
+                            SHIFT(context, act, runtime.newFixnum(TokenType.ERROR.id), val);
                         }
                         else if (act < 0 && act > -(this.reduce_n)) {
                             D_puts("e reduce");
@@ -465,15 +480,14 @@ public class Cparse implements Library {
             }
         }
 
-        private void shift(Ruby runtime, int act, IRubyObject tok, IRubyObject val) {
+        private void shift(ThreadContext context, int act, IRubyObject tok, IRubyObject val) {
             PUSH(vstack, val);
             if (debug) {
                 PUSH(tstack, tok);
-                parser.callMethod(id_d_shift.toString(),
-                        new IRubyObject[]{tok, tstack, vstack});
+                call_d_shift.call(context, this.parser, this.parser, tok, tstack, vstack);
             }
             curstate = act;
-            PUSH(state, runtime.newFixnum(curstate));
+            PUSH(state, context.runtime.newFixnum(curstate));
         }
 
         private int reduce(ThreadContext context, int act) {
@@ -484,11 +498,11 @@ public class Cparse implements Library {
             try {
                 context.pushCatch(rbContinuation.getContinuation());
                 code = reduce0(context);
-                errstatus = (int)parser.getInstanceVariable(id_errstatus.toString()).convertToInteger().getLongValue();
+                errstatus = assert_integer(get_errstatus.call(context, parser, parser.getMetaClass(), ID_ERRSTATUS));
             } finally {
                 context.popCatch();
             }
-            return (int)code.convertToInteger().getLongValue();
+            return assert_integer(code);
         }
 
         private IRubyObject reduce0(ThreadContext context) {
@@ -504,7 +518,7 @@ public class Cparse implements Library {
             reduce_len = this.reduce_table.entry(this.ruleno);
             reduce_to  = this.reduce_table.entry(this.ruleno+1);
             method_id  = this.reduce_table.entry(this.ruleno+2);
-            len = (int)reduce_len.convertToInteger().getLongValue();
+            len = assert_integer(reduce_len);
             mid = value_to_id(context, method_id);
 
             int branch = 0;
@@ -515,13 +529,13 @@ public class Cparse implements Library {
                         /* call action */
                         if (len == 0) {
                             tmp = context.nil;
-                            if (mid != id_noreduce)
+                            if (mid != sym_noreduce)
                                 tmp_v = runtime.newArray();
                             if (this.debug)
                                 tmp_t = runtime.newArray();
                         }
                         else {
-                            if (mid != id_noreduce) {
+                            if (mid != sym_noreduce) {
                                 tmp_v = GET_TAIL(context, this.vstack, len);
                                 tmp = ((RubyArray)tmp_v).entry(0);
                             }
@@ -535,14 +549,12 @@ public class Cparse implements Library {
                             }
                             CUT_TAIL(context, this.state, len);
                         }
-                        if (mid != id_noreduce) {
+                        if (mid != sym_noreduce) {
                             if (this.use_result_var) {
-                                tmp = this.parser.callMethod(mid.toString(),
-                                        new IRubyObject[]{tmp_v, this.vstack, tmp});
+                                tmp = Helpers.invoke(context, this.parser, mid.toString(), tmp_v, this.vstack, tmp);
                             }
                             else {
-                                tmp = this.parser.callMethod(mid.toString(),
-                                        new IRubyObject[]{tmp_v, this.vstack});
+                                tmp = Helpers.invoke(context, this.parser, mid.toString(), tmp_v, this.vstack);
                             }
                         }
 
@@ -550,22 +562,21 @@ public class Cparse implements Library {
                         PUSH(this.vstack, tmp);
                         if (this.debug) {
                             PUSH(this.tstack, reduce_to);
-                            this.parser.callMethod(id_d_reduce.toString(),
-                                    new IRubyObject[]{tmp_t, reduce_to, this.tstack, this.vstack});
+                            call_d_reduce.call(context, this.parser, this.parser, tmp_t, reduce_to, this.tstack, this.vstack);
                         }
 
                         /* calculate transition state */
                         if (state.size() == 0)
                             throw runtime.newRaiseException(RaccBug, "state stack unexpectedly empty");
-                        k2 = (int)LAST_I(context, this.state).convertToInteger().getLongValue();
-                        k1 = (int)reduce_to.convertToInteger().getLongValue() - this.nt_base;
+                        k2 = assert_integer(LAST_I(context, this.state));
+                        k1 = assert_integer(reduce_to) - this.nt_base;
                         D_printf("(goto) k1=%ld\n", k1);
                         D_printf("(goto) k2=%ld\n", k2);
 
                         tmp = AREF(context, this.goto_pointer, k1);
                         if (tmp.isNil()) {branch = NOTFOUND; continue BRANCH;}
 
-                        i = (int)tmp.convertToInteger().getLongValue() + k2;
+                        i = assert_integer(tmp) + k2;
                         D_printf("(goto) i=%ld\n", i);
                         if (i < 0) {branch = NOTFOUND; continue BRANCH;}
 
@@ -591,8 +602,8 @@ public class Cparse implements Library {
 
                     case TRANSIT:
                         PUSH(this.state, goto_state);
-                        this.curstate = (int)goto_state.convertToInteger().getLongValue();
-                        return runtime.newFixnum(0);
+                        this.curstate = assert_integer(goto_state);
+                        return RubyFixnum.zero(runtime);
 
                     case NOTFOUND:
                         D_puts("(goto) not found: use default");
@@ -626,6 +637,7 @@ public class Cparse implements Library {
         boolean lex_is_iterator;
         IRubyObject lexer;           /* scanner object */
         RubySymbol lexmid;          /* name of scanner method (must be an iterator) */
+        CallSite call_lexmid;       /* call site for scanner method */
 
         /* State transition tables (immutable)
            Data structure is from Dragon Book 4.9 */
@@ -677,7 +689,7 @@ public class Cparse implements Library {
     }
 
     private static int assert_integer(IRubyObject i) {
-        return (int)i.convertToInteger().getLongValue();
+        return assert_integer(i);
     }
 
     public class Parser extends RubyObject {
@@ -725,7 +737,7 @@ public class Cparse implements Library {
         private void call_lexer(ThreadContext context, final CparseParams v) {
             final int frame = context.getFrameJumpTarget();
             try {
-                Helpers.invoke(context, v.lexer, v.lexmid.toString(), CallBlock19.newCallClosure(v, v.getMetaClass(), Arity.ONE_ARGUMENT, new BlockCallback() {
+                v.call_lexmid.call(context, v.lexer, v.lexer, CallBlock19.newCallClosure(v, v.getMetaClass(), Arity.ONE_ARGUMENT, new BlockCallback() {
                     @Override
                     public IRubyObject call(ThreadContext context, IRubyObject[] args, Block block) {
                         Ruby runtime = context.getRuntime();
@@ -773,19 +785,19 @@ public class Cparse implements Library {
         });
 
         RaccBug = runtime.getRuntimeError();
+        sym_noreduce = runtime.newSymbol(ID_NOREDUCE);
+        call_nexttoken = MethodIndex.getFunctionalCallSite(ID_NEXTTOKEN);
+        call_onerror = MethodIndex.getFunctionalCallSite(ID_ONERROR);
+        call_d_shift = MethodIndex.getFunctionalCallSite(ID_D_SHIFT);
+        call_d_reduce = MethodIndex.getFunctionalCallSite(ID_D_REDUCE);
+        call_d_accept = MethodIndex.getFunctionalCallSite(ID_D_ACCEPT);
+        call_d_read_token = MethodIndex.getFunctionalCallSite(ID_D_READ_TOKEN);
+        call_d_next_state = MethodIndex.getFunctionalCallSite(ID_D_NEXT_STATE);
+        call_d_e_pop = MethodIndex.getFunctionalCallSite(ID_D_E_POP);
 
-        id_yydebug      = runtime.newSymbol("@yydebug");
-        id_nexttoken    = runtime.newSymbol("next_token");
-        id_onerror      = runtime.newSymbol("on_error");
-        id_noreduce     = runtime.newSymbol("_reduce_none");
-        id_errstatus    = runtime.newSymbol("@racc_error_status");
-
-        id_d_shift       = runtime.newSymbol("racc_shift");
-        id_d_reduce      = runtime.newSymbol("racc_reduce");
-        id_d_accept      = runtime.newSymbol("racc_accept");
-        id_d_read_token  = runtime.newSymbol("racc_read_token");
-        id_d_next_state  = runtime.newSymbol("racc_next_state");
-        id_d_e_pop       = runtime.newSymbol("racc_e_pop");
+        // hacky utility for caching instance var accessor
+        set_errstatus = new AttrWriterMethod(parser, Visibility.PUBLIC, CallConfiguration.FrameNoneScopeNone, ID_ERRSTATUS);
+        get_errstatus = new AttrReaderMethod(parser, Visibility.PUBLIC, CallConfiguration.FrameNoneScopeNone, ID_ERRSTATUS);
 
         vDEFAULT_TOKEN      = runtime.newFixnum(TokenType.DEFAULT.id);
         vERROR_TOKEN      = runtime.newFixnum(TokenType.ERROR.id);
