@@ -689,7 +689,7 @@ public class Cparse implements Library {
     }
 
     private static int assert_integer(IRubyObject i) {
-        return assert_integer(i);
+        return (int)i.convertToInteger().getLongValue();
     }
 
     public class Parser extends RubyObject {
