@@ -27,9 +27,11 @@ hoe = Hoe.spec 'racc' do
 
   clean_globs << "lib/#{self.name}/*.{so,bundle,dll}" # from hoe/compiler
 
-  Rake::ExtensionTask.new "cparse", spec do |ext|
-    ext.lib_dir = File.join 'lib', 'racc'
-    ext.ext_dir = File.join 'ext', 'racc'
+  if RUBY_ENGINE != 'jruby'
+    Rake::ExtensionTask.new "cparse", spec do |ext|
+      ext.lib_dir = File.join 'lib', 'racc'
+      ext.ext_dir = File.join 'ext', 'racc'
+    end
   end
 end
 
@@ -47,8 +49,6 @@ end
   }
 end
 
-task :test => :compile
-
 if RUBY_ENGINE == 'jruby'
   file 'ext/racc-cparse.jar' do
     system 'mvn package'
@@ -61,8 +61,10 @@ if RUBY_ENGINE == 'jruby'
   task :clean_mvn do
     system 'mvn clean'
   end
+else
+  task :compile => 'lib/racc/parser-text.rb'
 end
 
-Hoe.add_include_dirs('.:lib/racc')
+task :test => :compile
 
-task :compile => 'lib/racc/parser-text.rb'
+Hoe.add_include_dirs('.:lib/racc')
