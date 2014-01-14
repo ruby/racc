@@ -20,6 +20,7 @@
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.1</version>
         <configuration>
           <encoding>utf-8</encoding>
           <debug>true</debug>
@@ -33,7 +34,14 @@
           <source>1.6</source>
           <target>1.6</target>
           <useIncrementalCompilation>false</useIncrementalCompilation>
-          <outputFileName>ext/racc-cparse.jar</outputFileName>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>2.3.2</version>
+        <configuration>
+          <finalName>ext/racc-cparse</finalName>
         </configuration>
       </plugin>
     </plugins>

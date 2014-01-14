@@ -49,6 +49,20 @@ end
 
 task :test => :compile
 
+if RUBY_ENGINE == 'jruby'
+  file 'ext/racc-cparse.jar' do
+    system 'mvn package'
+  end
+
+  task :compile => 'ext/racc-cparse.jar'
+
+  task :clean => :clean_mvn
+
+  task :clean_mvn do
+    system 'mvn clean'
+  end
+end
+
 Hoe.add_include_dirs('.:lib/racc')
 
 task :compile => 'lib/racc/parser-text.rb'
