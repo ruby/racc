@@ -51,7 +51,7 @@ end
 
 if RUBY_ENGINE == 'jruby'
   file 'ext/racc-cparse.jar' do
-    system 'mvn package'
+    sh 'mvn package'
   end
 
   task :compile => ['ext/racc-cparse.jar', 'lib/racc/parser-text.rb']
