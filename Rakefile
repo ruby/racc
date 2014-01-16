@@ -50,11 +50,11 @@ end
 end
 
 if RUBY_ENGINE == 'jruby'
-  file 'ext/racc-cparse.jar' do
+  file 'lib/racc/cparse.jar' do
     sh 'mvn package'
   end
 
-  task :compile => ['ext/racc-cparse.jar', 'lib/racc/parser-text.rb']
+  task :compile => ['lib/racc/cparse.jar', 'lib/racc/parser-text.rb']
 
   task :clean => :clean_mvn
 

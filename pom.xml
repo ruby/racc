@@ -41,8 +41,8 @@
         <artifactId>maven-jar-plugin</artifactId>
         <version>2.3.2</version>
         <configuration>
-          <finalName>racc-cparse</finalName>
-          <outputDirectory>ext</outputDirectory>
+          <finalName>cparse</finalName>
+          <outputDirectory>lib/racc</outputDirectory>
         </configuration>
       </plugin>
     </plugins>
