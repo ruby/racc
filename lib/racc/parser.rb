@@ -193,7 +193,7 @@ module Racc
     Racc_Runtime_Core_Revision_R = '$Id$'.split[1]
     begin
       if RUBY_ENGINE == 'jruby'
-        require 'ext/racc-cparse.jar'
+        require 'racc-cparse.jar'
         com.headius.racc.Cparse.new.load(JRuby.runtime, false)
       else
         require 'racc/cparse'
@@ -213,6 +213,8 @@ module Racc
       Racc_Runtime_Core_Revision   = Racc_Runtime_Core_Revision_C # :nodoc:
       Racc_Runtime_Type            = 'c' # :nodoc:
     rescue LoadError
+puts $!
+puts $!.backtrace
       Racc_Main_Parsing_Routine    = :_racc_do_parse_rb
       Racc_YY_Parse_Method         = :_racc_yyparse_rb
       Racc_Runtime_Core_Version    = Racc_Runtime_Core_Version_R
