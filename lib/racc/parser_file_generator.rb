@@ -154,8 +154,8 @@ module Racc
       cref_pop
       indent; line "end   \# class #{classid}"
       mods.reverse_each do |mod|
-        indent; line "end   \# module #{mod}"
         cref_pop
+        indent; line "end   \# module #{mod}"
       end
     end
 
