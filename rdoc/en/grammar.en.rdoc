@@ -65,7 +65,7 @@ It is written between the reserved words 'rule' and 'end' and its syntax is as f
   puts val[1] }
 --
 However, you cannot use some of Ruby syntax inside action,
-for instance, you cannot use '%' string, here document, '%r' regexp.
+for instance, you cannot use '%' string, here document, or '%r' regexp.
 
 The return value of an action is the left-hand side (lhs) value of the rule.
 This is $$ in yacc.
@@ -73,13 +73,13 @@ The way to return the value depends on the option you set.
 By default, the 'result' local variable (this is val[0] by default) represents
 the left-hand side value, thus the value stored in the 'result' variable
 by the end of the action would be the left-hand side value.
-Otherwise, you can explicitly 'return' the return value.
+Otherwise, you can explicitly 'return' the value desired.
 Alternatively, when you set no_result_var option via options,
-the lhs value is the value of the last statement in the action block (as the
-same as Ruby methods).
+the lhs value is the value of the last statement in the action block (same as
+Ruby methods).
 
-In whichever way, you can omit actions.
-When it is omitted, the left-hand side value is always val[0].
+In any case, you can omit actions.
+When an action is omitted, the left-hand side value is always val[0].
 
 Here is an example of whole grammar block.
 --
@@ -97,7 +97,7 @@ rule
   startdesig: START TOKEN
 --
 
-You can use following special local variables inside actions.
+You can use the following special local variables inside actions.
 The symbols surrounded by parentheses are how they are represented when using
 yacc.
 
@@ -112,30 +112,30 @@ This is generated every time, so you can freely modify or discard it.
 
   * _values (...$-2,$-1,$0)
 
-A stack of values used by the Racc core.
-DO NOT MODIFY this stack unless you know what you are doing.
+A stack of values used by the Racc.
+DO NOT MODIFY the _values stack unless you know what you are doing.
 
 There is also a special form of action which is called embedded action.
-It is an action which can be written wherever you like in the middle of the
+An embedded action can be written wherever you like in the middle of the
 token sequence.
-Here is an example of the embedded action.
+Here is an example of the embedded action:
 ---
 target: A B { puts 'test test' } C D { normal action }
 ---
 
 When a rule is written like this,
-the action written between B and C is executed at the moment just after both A
-and B are found.
-An embedded action itself has its value. That is, in the following example,
+the action written between B and C is executed immediately after both A and B
+are found.
+An embedded action itself has a value, as you can see in the following example:
 --
 target: A { result = 1 } B { p val[1] }
 --
-when the last action block { p val[1] }  is executed,
+When the last action block { p val[1] } is executed,
 it shows 1 that is the value of the embedded action and not the value of B.
 
-In its effect, writing an embedded action is the same as adding a nonterminal
-symbol whose rule is empty. The above example and the following code mean
-completely the same.
+In effect, writing an embedded action is the same as adding a nonterminal
+symbol whose rule is empty. The above example and the following code are
+equivalent.
 --
 target  : A nonterm B { p val[1] }
 nonterm : /* empty rule */ { result = 1 }
@@ -146,25 +146,27 @@ nonterm : /* empty rule */ { result = 1 }
 
 When there's a shift/reduce conflict on a token,
 sometimes the conflict can be eliminated by defining operator precedences.
-The famous examples of such case are arithmetic operators and if-else syntax.
+A famous example of such a case are arithmetic operators and if-else syntax.
 
-It does not mean setting operator precedences is necessary to resolve conflicts
-because usually it can also be solved by changing the way to construct rules.
-However, using operator precedence results in the simpler grammar in most cases.
+This doesn't mean setting operator precedence is necessary to resolve conflicts
+because usually it can also be solved by changing the way rules are
+constructed.
+However, in most cases using operator precedence results in more simple grammar
+syntax.
 
-When shift/reduce conflicts occur, Racc first investigate whether the precedence
-is set on the rule. The precedence of a rule is equal to the precedence of the
-last terminal symbol of the rule.
+When shift/reduce conflicts occur, Racc first investigates whether or not the
+precedence is set on the rule. The precedence of a rule is equal to the
+precedence of the last terminal symbol of the rule.
 For instance,
 --
 target: TERM_A nonterm_a TERM_B nonterm_b
 --
 the precedence of this rule is the precedence of TERM_B.
-If not any precedence is set on TERM_B,
-Racc would consider that it could not solve the conflict by precedence
-and report "Shift/Reduce conflict".
+If no precedence is set on TERM_B,
+Racc would be unable to solve the conflict by precedence and report
+"Shift/Reduce conflict".
 
-This is how to designate the operator precedences:
+Here we can see how to designate operator precedence:
 --
 prechigh
   nonassoc '++'
@@ -175,39 +177,38 @@ preclow
 --
 
 The token written in the line closer to prechigh has the higher precedence.
-You can also write this upside-down, that is, writing preclow above and prechigh
-at the bottom.
+You can also write this in reverse order, such as defining preclow before
+prechigh at the bottom.
 
 Left, right and nonassoc represent associativity.
-When a confliction occurs between the operators whose precedences are the same
-their associativities are used to decide whether shift or reduce.
+When a conflict occurs between operators whose precedence is equal, their
+associativity is used to decide whether to shift or reduce.
 
 For instance, think of the following case:
 --
 a - b - c
 --
 
-When - is left-associative, this is interpreted as follows:
+When the "-" operator is left-associative this is interpreted as follows:
 --
 (a - b) - c
 --
-Arithmetic operators are usually left-associative.
+Note: arithmetic operators are usually left-associative.
 
 On the other hand,
-if - is right-associative, it is interpreted as follows:
+if the "-" operator is right-associative it is interpreted as follows:
 --
 a - (b - c)
 --
 
 When an operator is not allowed to be written in succession like this in the
 first place, it is nonassoc.
-++ in C language and unary minus are nonassoc.
+Note: in the C language "++", "unary" and "minus" are nonassoc.
 
 The left, right, nonassoc are %left, %right and %nonassoc in yacc.
 
-
-By the way, as described, usually the precedence of the rule to be reduced is
-the precedence of the last token. (the term 'token' used here means the terminal
+By the way, the precedence of the rule to be reduced is usually the precedence
+of the last token. (The term "token" is used here to represent the terminal
 symbol.) But sometimes we want to change the precedence of a particular token
 only inside a particular rule. For example, the precedence of unary minus must
 be higher than the precedence of minus for subtraction.
@@ -238,7 +239,7 @@ precedence of UMINUS and higher than the precedence of '*', as we intended.
 By explicitly declaring tokens,
 you can avoid many meaningless bugs, especially typos.
 If a declared token does not exist or an existing token is not declared,
-Racc outputs warnings.  Declaration syntax is:
+Racc outputs warnings. Such as:
 --
 token TOKEN_NAME AND_IS_THIS
       ALSO_THIS_IS AGAIN_AND_AGAIN THIS_IS_LAST
@@ -250,10 +251,10 @@ cause errors but only warnings.
 
 Please notice that you can write the declaration spanning over multiple lines.
 
-Racc do have the reserved words but they are considered as the reserved words
-only when they are written at the beginning of the line. Therefore, for instance,
-prechigh can also be used as a symbol. However, for an abyssal reason, no matter
-what we do, we cannot use 'end' as a symbol.
+Racc does have the reserved words but they are only considered as reserved
+words when they are written at the beginning of the line. Therefore, for
+instance, prechigh can also be used as a symbol. However, for an abyssal
+reason, no matter what we do, we cannot use 'end' as a symbol.
 
 
 == Options
@@ -268,12 +269,12 @@ Currently, the options you can write here are:
   * omit_action_call
   * no_omit_action_call
 
-To omit or not to omit empty action call or not.
+Whether to omit or allow empty action calls.
 
   * result_var
   * no_result_var
 
-To use or not to use local variable "result"
+Whether or not to allow the use of a local variable "result".
 
 
 == expect
@@ -281,9 +282,9 @@ To use or not to use local variable "result"
 Racc has bison's "expect" directive.
 
 A practical parser usually contains non-harmful shift/reduce conflicts.
-It is ok for the person who wrote the grammar because he or she knows it,
-however, if racc reports "conflicts" after a user processed the grammar file,
-he or she might be anxious.
+It's acceptable for the author of the grammar because they already know about
+it. However, if Racc reports "conflicts" after a user processed the grammar
+file, they might be anxious.
 In that case, you can declare the expected number of the conflicts to suppress
 the warning message.
 
@@ -301,13 +302,12 @@ When you declared the expected number of shift/reduce conflicts as 3 like the
 above code, the number of conflicts should exactly be 3.
 If it was not 3 (even it was zero), racc would print the warning message.
 
-Besides,
-you could not suppress the warning message for reduce/reduce conflict.
+Besides, you could not suppress the warning message for reduce/reduce conflict.
 
 
 == Converting Token Symbol
 
-Token symbols are, by default:
+Token symbols abide by the following rules:
 
   * naked token string in racc file (TOK, XFILE, this_is_token, ...)
     --&gt; symbol (:TOK, :XFILE, :this_is_token, ...)
@@ -315,7 +315,7 @@ Token symbols are, by default:
     --&gt; same string (':', '.', '(', ...)
 
 This can be inconvenient when you already have a scanner returning values in a
-different form. In that case, you can change this using "convert" block.
+different form. In that case, you can change this using a "convert" block.
 
 Here is an example:
 --
@@ -326,8 +326,7 @@ end
 --
 
 By default, the value of the token symbol PLUS is :PLUS.
-But when there's the above definition, it becomes PlusClass.
-
+However, when interpreting the above definition it becomes PlusClass.
 
 We can use all ruby values as token symbol values
 except 'false' and 'nil'.
@@ -344,7 +343,7 @@ end
 
 == Start Rule
 
-In order to create a parser, you need to tell racc which rule is the first rule.
+In order to create a parser, you need to tell Racc the first rule to start.
 The start rule is a way to write it explicitly.
 
 --
@@ -354,7 +353,7 @@ This is usually omitted and in that case,
 the start rule is the first rule in the file.
 This statement will not be used forever, I think.
 
-This is '%start' in yacc.
+In yacc, this is '%start'.
 
 == User Code Block
 
@@ -377,6 +376,6 @@ Format of user code is like this:
      :
      :
 --
-If four '-' exist on line head,
-racc treats it as the beginning of a user code block.
+If four '-' exist on line head, Racc treats this case as the beginning of a
+user code block.
 A name of user code must be one word.
