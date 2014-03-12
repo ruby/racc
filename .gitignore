@@ -9,4 +9,5 @@ lib/racc/parser-text.rb
 tags
 tmp
 target
-lib/racc/cparse.jar
+lib/racc/cparse-jruby.jar
+racc.gemspec

@@ -4,11 +4,17 @@ require 'rubygems'
 require 'hoe'
 
 gem 'rake-compiler', '>= 0.4.1'
-require "rake/extensiontask"
 
-Hoe.plugin :debugging, :doofus, :git, :isolate
+Hoe.plugin :debugging, :doofus, :git, :isolate, :gemspec
 
-hoe = Hoe.spec 'racc' do
+def java?
+  /java/ === RUBY_PLATFORM
+end
+def jruby?
+  'jruby' == RUBY_ENGINE
+end
+
+HOE = Hoe.spec 'racc' do
   developer 'Aaron Patterson', 'aaron@tenderlovemaking.com'
   license "MIT"
 
@@ -19,20 +25,27 @@ hoe = Hoe.spec 'racc' do
   dependency 'rake-compiler', '>= 0.4.1', :developer
   dependency 'minitest',      '~> 4.7',   :developer # stick to stdlib's version
 
-  if RUBY_PLATFORM =~ /java/
+  if java?
     self.spec_extras[:platform]   = 'java'
   else
     self.spec_extras[:extensions] = %w[ext/racc/extconf.rb]
   end
 
-  clean_globs << "lib/#{self.name}/*.{so,bundle,dll}" # from hoe/compiler
+  self.clean_globs << "lib/#{self.name}/*.{so,bundle,dll,jar}" # from hoe/compiler
 
-  if RUBY_ENGINE != 'jruby'
-    Rake::ExtensionTask.new "cparse", spec do |ext|
-      ext.lib_dir = File.join 'lib', 'racc'
-      ext.ext_dir = File.join 'ext', 'racc'
-    end
-  end
+end
+
+def add_file_to_gem relative_path
+  target_path = File.join gem_build_path, relative_path
+  target_dir = File.dirname(target_path)
+  mkdir_p target_dir unless File.directory?(target_dir)
+  rm_f target_path
+  safe_ln relative_path, target_path
+  HOE.spec.files += [relative_path]
+end
+
+def gem_build_path
+  File.join 'pkg', HOE.spec.full_name
 end
 
 file 'lib/racc/parser-text.rb' => ['lib/racc/parser.rb'] do |t|
@@ -49,20 +62,37 @@ end
   }
 end
 
-if RUBY_ENGINE == 'jruby'
-  file 'lib/racc/cparse.jar' do
-    sh 'mvn package'
+unless jruby?
+  # MRI
+  require "rake/extensiontask"
+  Rake::ExtensionTask.new "cparse", HOE.spec do |ext|
+    ext.lib_dir = File.join 'lib', 'racc'
+    ext.ext_dir = File.join 'ext', 'racc'
   end
 
-  task :compile => ['lib/racc/cparse.jar', 'lib/racc/parser-text.rb']
-
-  task :clean => :clean_mvn
-
-  task :clean_mvn do
-    system 'mvn clean'
-  end
-else
   task :compile => 'lib/racc/parser-text.rb'
+  #
+else
+  # JRUBY
+  require "rake/javaextensiontask"
+  Rake::JavaExtensionTask.new("cparse", HOE.spec) do |ext|
+    jruby_home = RbConfig::CONFIG['prefix']
+    ext.lib_dir = File.join 'lib', 'racc'
+    ext.ext_dir = File.join 'ext', 'racc'
+    # source/target jvm
+    ext.source_version = '1.6'
+    ext.target_version = '1.6'
+    jars = ["#{jruby_home}/lib/jruby.jar"] + FileList['lib/*.jar']
+    ext.classpath = jars.map { |x| File.expand_path x }.join( ':' )
+    ext.name = 'cparse-jruby'
+  end
+
+  task :compile => ['lib/racc/parser-text.rb']
+
+  task gem_build_path => [:compile] do
+    add_file_to_gem 'lib/racc/cparse-jruby.jar'
+  end
+
 end
 
 task :test => :compile

@@ -13,11 +13,11 @@ ext/racc/MANIFEST
 ext/racc/cparse.c
 ext/racc/depend
 ext/racc/extconf.rb
+ext/racc/com/headius/racc/Cparse.java
 fastcache/extconf.rb
 fastcache/fastcache.c
 lib/racc.rb
 lib/racc/compat.rb
-lib/racc/cparse.jar
 lib/racc/debugflags.rb
 lib/racc/exception.rb
 lib/racc/grammar.rb

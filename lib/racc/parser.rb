@@ -193,7 +193,7 @@ module Racc
     Racc_Runtime_Core_Revision_R = '$Id$'.split[1]
     begin
       if RUBY_ENGINE == 'jruby'
-        require 'racc-cparse.jar'
+        require 'racc/cparse-jruby.jar'
         com.headius.racc.Cparse.new.load(JRuby.runtime, false)
       else
         require 'racc/cparse'
