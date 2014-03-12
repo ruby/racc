@@ -193,7 +193,7 @@ When the "-" operator is left-associative this is interpreted as follows:
 --
 (a - b) - c
 --
-Note: arithmetic operators are usually left-associative.
+For instance, arithmetic operators are usually left-associative.
 
 On the other hand,
 if the "-" operator is right-associative it is interpreted as follows:
@@ -202,8 +202,8 @@ a - (b - c)
 --
 
 When an operator is not allowed to be written in succession like this in the
-first place, it is nonassoc.
-Note: in the C language "++", "unary" and "minus" are nonassoc.
+first place, it is nonassoc. For instance, the "++" operator in the C language
+and unary minus are nonassoc.
 
 The left, right, nonassoc are %left, %right and %nonassoc in yacc.
 
