@@ -3,9 +3,12 @@ def generate_parser_text_rb(target)
   $stderr.puts "generating #{target}..."
   File.open(target, 'w') {|f|
     f.puts "module Racc"
-    f.puts "  PARSER_TEXT = <<'__end_of_file__'"
+    f.puts "  INFO_TEXT = <<'__end_of_info__'"
+    f.puts File.read(srcfile('info.rb'))
+    f.puts "__end_of_info__"
+    f.puts "  PARSER_TEXT = <<'__end_of_parser__'"
     f.puts File.read(srcfile('parser.rb'))
-    f.puts "__end_of_file__"
+    f.puts "__end_of_parser__"
     f.puts "end"
   }
 end
