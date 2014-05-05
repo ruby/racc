@@ -259,22 +259,29 @@ reason, no matter what we do, we cannot use 'end' as a symbol.
 
 == Options
 
-You can write some of the options for racc command in your racc file as their
-default values.
+There are some options you can write in your racc grammar file.
+The syntax is:
 --
 options OPTION OPTION ...
 --
-Currently, the options you can write here are:
 
-  * omit_action_call
-  * no_omit_action_call
+The currently available options are:
 
-Whether to omit or allow empty action calls.
+  * [no_]omit_action_call
 
-  * result_var
-  * no_result_var
+This is `omit_action_call` by default, which uses the `_reduce_none` action
+when the action is empty.
+This behavior can be changed to `no_omit_action_call` by specifying the
+'--no-omit-actions' command line option of the racc command.
+Also, you can set this to `no_omit_action_call` in your grammar file so that
+each particular action is defined even when it is empty.
 
-Whether or not to allow the use of a local variable "result".
+  * [no_]result_var
+
+This is `result_var` by default, which makes the `result` special variable
+available in each action block. As also described in the Grammar Block section,
+when this is `no_result_var`, the value of the last statement in each action
+block is used as the lhs value.
 
 
 == expect

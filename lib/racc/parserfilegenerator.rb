@@ -264,7 +264,7 @@ module Racc
     private
 
     def state_transition_table
-      table = @states.state_transition_table
+      table = @states.state_transition_table(@params)
       table.use_result_var = @params.result_var?
       table.debug_parser = @params.debug_parser?
 

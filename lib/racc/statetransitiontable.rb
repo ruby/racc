@@ -67,9 +67,10 @@ module Racc
 
   class StateTransitionTableGenerator
 
-    def initialize(states)
+    def initialize(states, params=nil)
       @states = states
       @grammar = states.grammar
+      @params = params || ParserFileGenerator::Params.new
     end
 
     def generate
@@ -91,7 +92,7 @@ module Racc
         next if idx == 0
         t.push rule.size
         t.push rule.target.ident
-        t.push(if rule.action.empty?   # and @params.omit_action_call?
+        t.push(if rule.action.empty? and @params.omit_action_call?
                then :_reduce_none
                else "_reduce_#{idx}".intern
                end)
