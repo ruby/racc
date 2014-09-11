@@ -11,7 +11,7 @@ def java?
   /java/ === RUBY_PLATFORM
 end
 def jruby?
-  'jruby' == RUBY_ENGINE
+  Object.const_defined?(:RUBY_ENGINE) and 'jruby' == RUBY_ENGINE
 end
 
 HOE = Hoe.spec 'racc' do
