@@ -17,7 +17,7 @@
                         Important Constants
 ----------------------------------------------------------------------- */
 
-#define RACC_VERSION "1.4.12"
+#define RACC_VERSION "1.4.13"
 
 #define DEFAULT_TOKEN -1
 #define ERROR_TOKEN    1
