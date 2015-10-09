@@ -70,8 +70,6 @@ public class Cparse implements Library {
     private CallSite call_d_read_token;
     private CallSite call_d_next_state;
     private CallSite call_d_e_pop;
-    private AttrWriterMethod set_errstatus;
-    private AttrReaderMethod get_errstatus;
 
     private static RubySymbol value_to_id(ThreadContext context, IRubyObject v) {
         if (!(v instanceof RubySymbol)) {
@@ -173,7 +171,7 @@ public class Cparse implements Library {
             this.t               = runtime.newFixnum(TokenType.FINAL.id + 1); // must not init to FINAL_TOKEN
             this.nerr            = 0;
             this.errstatus       = 0;
-            set_errstatus.call(context, parser, parser.getMetaClass(), ID_ERRSTATUS, RubyNumeric.int2fix(runtime, this.errstatus));
+            this.parser.setInstanceVariable(ID_ERRSTATUS, runtime.newFixnum(this.errstatus));
 
             this.retval          = context.nil;
             this.fin             = 0;
@@ -349,7 +347,7 @@ public class Cparse implements Library {
                             D_puts("shift");
                             if (this.errstatus > 0) {
                                 this.errstatus--;
-                                set_errstatus.call(context, this.parser, this.parser.getMetaClass(), ID_ERRSTATUS, runtime.newFixnum(this.errstatus));
+                                this.parser.setInstanceVariable(ID_ERRSTATUS, runtime.newFixnum(this.errstatus));
                             }
                             SHIFT(context, act, this.t, val);
                             read_next = true;
@@ -401,7 +399,7 @@ public class Cparse implements Library {
                             read_next = true;
                         }
                         this.errstatus = 3;
-                        set_errstatus.call(context, this.parser, this.parser.getMetaClass(), ID_ERRSTATUS, runtime.newFixnum(this.errstatus));
+                        this.parser.setInstanceVariable(ID_ERRSTATUS, runtime.newFixnum(this.errstatus));
 
                         /* check if we can shift/reduce error token */
                         D_printf("(err) k1=%ld\n", this.curstate);
@@ -498,7 +496,7 @@ public class Cparse implements Library {
             try {
                 context.pushCatch(rbContinuation.getContinuation());
                 code = reduce0(context);
-                errstatus = assert_integer(get_errstatus.call(context, parser, parser.getMetaClass(), ID_ERRSTATUS));
+                errstatus = assert_integer(parser.getInstanceVariable(ID_ERRSTATUS));
             } finally {
                 context.popCatch();
             }
@@ -800,10 +798,6 @@ public class Cparse implements Library {
         call_d_read_token = MethodIndex.getFunctionalCallSite(ID_D_READ_TOKEN);
         call_d_next_state = MethodIndex.getFunctionalCallSite(ID_D_NEXT_STATE);
         call_d_e_pop = MethodIndex.getFunctionalCallSite(ID_D_E_POP);
-
-        // hacky utility for caching instance var accessor
-        set_errstatus = new AttrWriterMethod(parser, Visibility.PUBLIC, CallConfiguration.FrameNoneScopeNone, ID_ERRSTATUS);
-        get_errstatus = new AttrReaderMethod(parser, Visibility.PUBLIC, CallConfiguration.FrameNoneScopeNone, ID_ERRSTATUS);
 
         vDEFAULT_TOKEN      = runtime.newFixnum(TokenType.DEFAULT.id);
         vERROR_TOKEN      = runtime.newFixnum(TokenType.ERROR.id);
