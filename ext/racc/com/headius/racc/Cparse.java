@@ -734,8 +734,14 @@ public class Cparse implements Library {
             return v.retval;
         }
 
+        private class LexerUnroll extends RuntimeException {
+            public Throwable fillInStackTrace() {
+                return this;
+            }
+        }
+
         private void call_lexer(ThreadContext context, final CparseParams v) {
-            final int frame = context.getFrameJumpTarget();
+            final LexerUnroll lexerUnroll = new LexerUnroll();
             try {
                 v.call_lexmid.call(context, v.lexer, v.lexer, CallBlock19.newCallClosure(v, v.getMetaClass(), Arity.ONE_ARGUMENT, new BlockCallback() {
                     @Override
@@ -748,14 +754,14 @@ public class Cparse implements Library {
                         v.extract_user_token(context, args[0], tokVal);
                         v.parse_main(context, tokVal[0], tokVal[1], true);
                         if (v.fin != 0 && v.fin != CP_FIN_ACCEPT) {
-                            throw new JumpException.BreakJump(frame, context.nil);
+                            throw lexerUnroll;
                         }
 
                         return context.nil;
                     }
                 }, context));
-            } catch (JumpException.BreakJump bj) {
-                if (bj.getTarget() == frame) {
+            } catch (LexerUnroll maybeOurs) {
+                if (maybeOurs == lexerUnroll) {
                     return;
                 }
             }
