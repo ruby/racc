@@ -179,6 +179,7 @@ end
 # Note: parser.rb is LGPL, but your parser is not.
 # Your own parser is completely yours.
 module Racc
+
   unless defined?(Racc_No_Extentions)
     Racc_No_Extentions = false # :nodoc:
   end
@@ -191,10 +192,12 @@ module Racc
     Racc_Runtime_Core_Version_R = ::Racc::VERSION
     Racc_Runtime_Core_Revision_R = '$Id$'.split[1]
     begin
-      raise LoadError, "not loading cparse" if ENV['PURERUBY']
-      warn "loading cparse"
-
-      require 'racc/cparse'
+      if Object.const_defined?(:RUBY_ENGINE) and RUBY_ENGINE == 'jruby'
+        require 'racc/cparse-jruby.jar'
+        com.headius.racc.Cparse.new.load(JRuby.runtime, false)
+      else
+        require 'racc/cparse'
+      end
     # Racc_Runtime_Core_Version_C  = (defined in extention)
       Racc_Runtime_Core_Revision_C = Racc_Runtime_Core_Id_C.split[2]
       unless new.respond_to?(:_racc_do_parse_c, true)
@@ -210,6 +213,8 @@ module Racc
       Racc_Runtime_Core_Revision   = Racc_Runtime_Core_Revision_C # :nodoc:
       Racc_Runtime_Type            = 'c' # :nodoc:
     rescue LoadError
+puts $!
+puts $!.backtrace
       Racc_Main_Parsing_Routine    = :_racc_do_parse_rb
       Racc_YY_Parse_Method         = :_racc_yyparse_rb
       Racc_Runtime_Core_Version    = Racc_Runtime_Core_Version_R
@@ -230,13 +235,6 @@ module Racc
       end
       arg = self.class::Racc_arg
       arg[13] = true if arg.size < 14
-
-      # TODO: clean up
-      @action_table, @action_check, @action_default, @action_pointer,
-      @goto_table,   @goto_check,   @goto_default,   @goto_pointer,
-      @nt_base,      @reduce_table, @token_table,    @shift_n,
-      @reduce_n,     @use_result,   * = arg
-
       arg
     end
 
@@ -286,19 +284,23 @@ module Racc
     end
 
     def _racc_do_parse_rb(arg, in_debug)
+      action_table, action_check, action_default, action_pointer,
+      _,            _,            _,              _,
+      _,            _,            token_table,    * = arg
+
       _racc_init_sysvars
       tok = act = i = nil
 
       catch(:racc_end_parse) {
         while true
-          if i = @action_pointer[@racc_state[-1]]
+          if i = action_pointer[@racc_state[-1]]
             if @racc_read_next
               if @racc_t != 0   # not EOF
                 tok, @racc_val = next_token()
                 unless tok      # EOF
                   @racc_t = 0
                 else
-                  @racc_t = (@token_table[tok] or 1)   # error token
+                  @racc_t = (token_table[tok] or 1)   # error token
                 end
                 racc_read_token(@racc_t, tok, @racc_val) if @yydebug
                 @racc_read_next = false
@@ -306,14 +308,14 @@ module Racc
             end
             i += @racc_t
             unless i >= 0 and
-                   act = @action_table[i] and
-                   @action_check[i] == @racc_state[-1]
-              act = @action_default[@racc_state[-1]]
+                   act = action_table[i] and
+                   action_check[i] == @racc_state[-1]
+              act = action_default[@racc_state[-1]]
             end
           else
-            act = @action_default[@racc_state[-1]]
+            act = action_default[@racc_state[-1]]
           end
-          while act = _racc_evalact(act)
+          while act = _racc_evalact(act, arg)
             ;
           end
         end
@@ -326,16 +328,19 @@ module Racc
     # RECEIVER#METHOD_ID is a method to get next token.
     # It must 'yield' the token, which format is [TOKEN-SYMBOL, VALUE].
     def yyparse(recv, mid)
-      _racc_setup
-      __send__ Racc_YY_Parse_Method, recv, mid
+      __send__(Racc_YY_Parse_Method, recv, mid, _racc_setup(), false)
     end
 
-    def _racc_yyparse_rb(recv, mid)
+    def _racc_yyparse_rb(recv, mid, arg, c_debug)
+      action_table, action_check, action_default, action_pointer,
+      _,            _,            _,              _,
+      _,            _,            token_table,    * = arg
+
       _racc_init_sysvars
 
       catch(:racc_end_parse) {
-        until i = @action_pointer[@racc_state[-1]]
-          while act = _racc_evalact(@action_default[@racc_state[-1]])
+        until i = action_pointer[@racc_state[-1]]
+          while act = _racc_evalact(action_default[@racc_state[-1]], arg)
             ;
           end
         end
@@ -343,31 +348,31 @@ module Racc
           unless tok
             @racc_t = 0
           else
-            @racc_t = (@token_table[tok] or 1)   # error token
+            @racc_t = (token_table[tok] or 1)   # error token
           end
           @racc_val = val
           @racc_read_next = false
 
           i += @racc_t
           unless i >= 0 and
-                 act = @action_table[i] and
-                 @action_check[i] == @racc_state[-1]
-            act = @action_default[@racc_state[-1]]
+                 act = action_table[i] and
+                 action_check[i] == @racc_state[-1]
+            act = action_default[@racc_state[-1]]
           end
-          while act = _racc_evalact(act)
+          while act = _racc_evalact(act, arg)
             ;
           end
 
-          while !(i = @action_pointer[@racc_state[-1]]) ||
+          while !(i = action_pointer[@racc_state[-1]]) ||
                 ! @racc_read_next ||
                 @racc_t == 0  # $
             unless i and i += @racc_t and
                    i >= 0 and
-                   act = @action_table[i] and
-                   @action_check[i] == @racc_state[-1]
-              act = @action_default[@racc_state[-1]]
+                   act = action_table[i] and
+                   action_check[i] == @racc_state[-1]
+              act = action_default[@racc_state[-1]]
             end
-            while act = _racc_evalact(act)
+            while act = _racc_evalact(act, arg)
               ;
             end
           end
@@ -379,10 +384,14 @@ module Racc
     ### common
     ###
 
-    def _racc_evalact(act)
+    def _racc_evalact(act, arg)
+      action_table, action_check, _, action_pointer,
+      _,            _,            _, _,
+      _,            _,            _, shift_n,
+      reduce_n,     * = arg
       nerr = 0   # tmp
 
-      if act > 0 and act < @shift_n
+      if act > 0 and act < shift_n
         #
         # shift
         #
@@ -397,40 +406,40 @@ module Racc
           racc_shift @racc_t, @racc_tstack, @racc_vstack
         end
 
-      elsif act < 0 and act > -@reduce_n
+      elsif act < 0 and act > -reduce_n
         #
         # reduce
         #
         code = catch(:racc_jump) {
-          @racc_state.push _racc_do_reduce(act)
+          @racc_state.push _racc_do_reduce(arg, act)
           false
         }
         if code
           case code
           when 1 # yyerror
             @racc_user_yyerror = true   # user_yyerror
-            return -@reduce_n
+            return -reduce_n
           when 2 # yyaccept
-            return @shift_n
+            return shift_n
           else
             raise '[Racc Bug] unknown jump code'
           end
         end
 
-      elsif act == @shift_n
+      elsif act == shift_n
         #
         # accept
         #
         racc_accept if @yydebug
         throw :racc_end_parse, @racc_vstack[0]
 
-      elsif act == -@reduce_n
+      elsif act == -reduce_n
         #
         # error
         #
         case @racc_error_status
         when 0
-          unless @racc_user_yerror # HACK: arg[21]    # user_yyerror
+          unless arg[21]    # user_yyerror
             nerr += 1
             on_error @racc_t, @racc_val, @racc_vstack
           end
@@ -443,11 +452,11 @@ module Racc
         @racc_user_yyerror = false
         @racc_error_status = 3
         while true
-          if i = @action_pointer[@racc_state[-1]]
+          if i = action_pointer[@racc_state[-1]]
             i += 1   # error token
             if  i >= 0 and
-                (act = @action_table[i]) and
-                @action_check[i] == @racc_state[-1]
+                (act = action_table[i]) and
+                action_check[i] == @racc_state[-1]
               break
             end
           end
@@ -470,15 +479,20 @@ module Racc
       nil
     end
 
-    def _racc_do_reduce(act)
+    def _racc_do_reduce(arg, act)
+      _,          _,            _,            _,
+      goto_table, goto_check,   goto_default, goto_pointer,
+      nt_base,    reduce_table, _,            _,
+      _,          use_result,   * = arg
+
       state = @racc_state
       vstack = @racc_vstack
       tstack = @racc_tstack
 
       i = act * -3
-      len       = @reduce_table[i]
-      reduce_to = @reduce_table[i+1]
-      method_id = @reduce_table[i+2]
+      len       = reduce_table[i]
+      reduce_to = reduce_table[i+1]
+      method_id = reduce_table[i+2]
       void_array = []
 
       tmp_t = tstack[-len, len] if @yydebug
@@ -488,7 +502,7 @@ module Racc
       state[-len, len]  = void_array
 
       # tstack must be updated AFTER method call
-      if @use_result
+      if use_result
         vstack.push __send__(method_id, tmp_v, vstack, tmp_v[0])
       else
         vstack.push __send__(method_id, tmp_v, vstack)
@@ -497,14 +511,14 @@ module Racc
 
       racc_reduce(tmp_t, reduce_to, tstack, vstack) if @yydebug
 
-      k1 = reduce_to - @nt_base
-      if i = @goto_pointer[k1]
+      k1 = reduce_to - nt_base
+      if i = goto_pointer[k1]
         i += state[-1]
-        if i >= 0 and (curstate = @goto_table[i]) and @goto_check[i] == k1
+        if i >= 0 and (curstate = goto_table[i]) and goto_check[i] == k1
           return curstate
         end
       end
-      @goto_default[k1]
+      goto_default[k1]
     end
 
     # This method is called when a parse error is found.
@@ -566,6 +580,7 @@ module Racc
         toks.each {|t| out.print ' ', racc_token2str(t) }
       end
       out.puts " --> #{racc_token2str(sim)}"
+
       racc_print_stacks tstack, vstack
       @racc_debug_out.puts
     end
@@ -615,4 +630,5 @@ module Racc
     end
 
   end
+
 end

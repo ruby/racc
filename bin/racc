@@ -161,7 +161,7 @@ def main
     params = result.params.dup
     # Overwrites parameters given by a grammar file with command line options.
     params.superclass = superclass if superclass
-    params.omit_action_call = false unless omit_action_call
+    params.omit_action_call = true if omit_action_call
     # From command line option
     if make_executable
       params.make_executable = true

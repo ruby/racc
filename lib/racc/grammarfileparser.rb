@@ -258,7 +258,7 @@ module Racc
       line = @scanner.lineno
       _, *blocks = *@scanner.epilogue.split(/^----/)
       blocks.each do |block|
-        header, *body = block.to_a
+        header, *body = block.lines.to_a
         label0, pathes = *header.sub(/\A-+/, '').split('=', 2)
         label = canonical_label(label0)
         (pathes ? pathes.strip.split(' ') : []).each do |path|

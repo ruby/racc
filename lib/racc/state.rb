@@ -88,8 +88,8 @@ module Racc
       @n_rrconflicts ||= inject(0) {|sum, st| sum + st.n_rrconflicts }
     end
 
-    def state_transition_table(params=nil)
-      @state_transition_table ||= StateTransitionTable.generate(self.dfa, params)
+    def state_transition_table
+      @state_transition_table ||= StateTransitionTable.generate(self.dfa)
     end
 
     #
