@@ -54,7 +54,7 @@
 
   Racc comes with simple calculator. To compile this, on shell:
 
-      $ racc -o calc calc.y
+      $ racc -o calc sample/calc.y
 
   This process costs few seconds (or less). Then type:
 
