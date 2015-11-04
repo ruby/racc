@@ -77,7 +77,11 @@ module Racc
     def ruby arg
       Dir.chdir(TEST_DIR) do
         Tempfile.open 'test' do |io|
-          cmd = "#{ENV['_'] || Gem.ruby} -I #{INC} #{arg} 2>#{io.path}"
+          executable = ENV['_'] || Gem.ruby
+          if File.basename(executable) == 'bundle'
+            executable = executable.dup << ' exec ruby'
+          end
+          cmd = "#{executable} -I #{INC} #{arg} 2>#{io.path}"
           result = system(cmd)
           assert(result, io.read)
         end
