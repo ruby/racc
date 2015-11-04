@@ -5,7 +5,7 @@ require 'fileutils'
 require 'tempfile'
 
 module Racc
-  class TestCase < MiniTest::Unit::TestCase
+  class TestCase < Minitest::Test
     PROJECT_DIR = File.expand_path(File.join(File.dirname(__FILE__), '..'))
 
     TEST_DIR = File.join(PROJECT_DIR, 'test')
