@@ -5,7 +5,7 @@ require 'hoe'
 
 gem 'rake-compiler', '>= 0.4.1'
 
-Hoe.plugin :debugging, :doofus, :git, :isolate, :gemspec
+Hoe.plugin :debugging, :doofus, :git, :gemspec, :bundler
 $: << '.' # instead of require_relative for 1.8 compatibility
 
 def java?
@@ -23,8 +23,16 @@ HOE = Hoe.spec 'racc' do
   self.history_file      = 'ChangeLog'
   self.readme_file       = 'README.rdoc'
 
+  dependency 'rake',          '~> 10.4',  :developer
   dependency 'rake-compiler', '>= 0.4.1', :developer
   dependency 'minitest',      '~> 4.7',   :developer # stick to stdlib's version
+
+  dependency 'hoe',           '~> 3.14',  :developer
+  dependency 'hoe-debugging', '~> 1.2',   :developer
+  dependency 'hoe-doofus',    '~> 1.0',   :developer
+  dependency 'hoe-git',       '~> 1.6',   :developer
+  dependency 'hoe-gemspec',   '~> 1.0',   :developer
+  dependency 'hoe-bundler',   '~> 1.2',   :developer
 
   if java?
     self.spec_extras[:platform]   = 'java'

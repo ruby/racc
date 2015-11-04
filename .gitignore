@@ -11,3 +11,8 @@ target
 lib/racc/cparse-jruby.jar
 racc.gemspec
 TAGS
+
+# For Bundler
+.bundle
+Gemfile.lock
+Gemfile.local
