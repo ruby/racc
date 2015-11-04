@@ -277,7 +277,7 @@ module Racc
       end
 
       def action(&block)
-        id = "@#{@seqs["action"] += 1}".intern
+        id = "@#{@seqs["action"] += 1}".to_sym
         _delayed_add Rule.new(@grammar.intern(id), [], UserAction.proc(block))
         id
       end
@@ -340,7 +340,7 @@ module Racc
       end
 
       def _regist(target_name)
-        target = target_name.intern
+        target = target_name.to_sym
         unless _added?(@grammar.intern(target))
           yield(target).each_rule do |rule|
             rule.target = @grammar.intern(target)
@@ -351,9 +351,9 @@ module Racc
       end
 
       def _wrap(target_name, sym, block)
-        target = target_name.intern
+        target = target_name.to_sym
         _delayed_add Rule.new(@grammar.intern(target),
-                              [@grammar.intern(sym.intern)],
+                              [@grammar.intern(sym.to_sym)],
                               UserAction.proc(block))
         target
       end

@@ -248,7 +248,7 @@ module Racc
     end
 
     def embedded_action(act)
-      sym = @grammar.intern("@#{@embedded_action_seq += 1}".intern, true)
+      sym = @grammar.intern("@#{@embedded_action_seq += 1}".to_sym, true)
       @grammar.add Rule.new(sym, [], act)
       sym
     end
@@ -340,7 +340,7 @@ module Racc
           elsif /\A\/\*/ =~ @line
             skip_comment
           elsif s = reads(/\A[a-zA-Z_]\w*/)
-            yield [atom_symbol(s), s.intern]
+            yield [atom_symbol(s), s.to_sym]
           elsif s = reads(/\A\d+/)
             yield [:DIGIT, s.to_i]
           elsif ch = reads(/\A./)

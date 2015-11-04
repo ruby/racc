@@ -93,7 +93,7 @@ module Racc
         t.push rule.target.ident
         t.push(if rule.action.empty?   # and @params.omit_action_call?
                then :_reduce_none
-               else "_reduce_#{idx}".intern
+               else "_reduce_#{idx}".to_sym
                end)
       end
       t

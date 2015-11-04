@@ -121,7 +121,7 @@ end
 # It's yyparse() of yacc, and Racc::Parser#next_token is yylex().
 # This method must returns an array like [TOKENSYMBOL, ITS_VALUE].
 # EOF is [false, false].
-# (TOKENSYMBOL is a Ruby symbol (taken from String#intern) by default.
+# (TOKENSYMBOL is a Ruby symbol (taken from String#to_sym) by default.
 # If you want to change this, see the grammar reference.
 #
 # Racc::Parser#yyparse is little complicated, but useful.
