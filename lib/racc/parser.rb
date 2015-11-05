@@ -311,7 +311,6 @@ puts $!.backtrace
             act = action_default[@racc_state[-1]]
           end
           while act = _racc_evalact(act, arg)
-            ;
           end
         end
       }
@@ -336,7 +335,6 @@ puts $!.backtrace
       catch(:racc_end_parse) {
         until i = action_pointer[@racc_state[-1]]
           while act = _racc_evalact(action_default[@racc_state[-1]], arg)
-            ;
           end
         end
         recv.__send__(mid) do |tok, val|
@@ -355,7 +353,6 @@ puts $!.backtrace
             act = action_default[@racc_state[-1]]
           end
           while act = _racc_evalact(act, arg)
-            ;
           end
 
           while !(i = action_pointer[@racc_state[-1]]) ||
@@ -368,7 +365,6 @@ puts $!.backtrace
               act = action_default[@racc_state[-1]]
             end
             while act = _racc_evalact(act, arg)
-              ;
             end
           end
         end
