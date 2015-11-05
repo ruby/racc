@@ -166,15 +166,9 @@ module Racc
     end
 
     def addent(all, arr, chkval, ptr)
-      max = arr.size
-      min = nil
-      arr.each_with_index do |item, idx|
-        if item
-          min ||= idx
-        end
-      end
+      min = arr.index { |item| item }
       ptr.push(-7777)    # mark
-      arr = arr[min...max]
+      arr = arr.drop(min)
       all.push [arr, chkval, mkmapexp(arr), min, ptr.size - 1]
     end
 
