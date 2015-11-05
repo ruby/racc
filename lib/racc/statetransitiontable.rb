@@ -90,11 +90,7 @@ module Racc
     end
 
     def token_table(grammar)
-      h = {}
-      grammar.symboltable.terminals.each do |t|
-        h[t] = t.ident
-      end
-      h
+      Hash[grammar.symboltable.terminals.map { |t| [t, t.ident]}]
     end
 
     def gen_action_tables(t, states)
