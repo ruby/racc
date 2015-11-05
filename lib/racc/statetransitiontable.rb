@@ -50,11 +50,7 @@ module Racc
     end
 
     def token_value_table
-      h = {}
-      token_table().each do |sym, i|
-        h[sym.value] = i
-      end
-      h
+      Hash[token_table.map { |sym, i| [sym.value, i]}]
     end
   end
 
