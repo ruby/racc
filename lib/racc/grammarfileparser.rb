@@ -10,7 +10,6 @@
 #
 
 require 'racc'
-require 'racc/compat'
 require 'racc/grammar'
 require 'racc/parserfilegenerator'
 require 'racc/sourcetext'

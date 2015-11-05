@@ -9,7 +9,6 @@
 # For details of the GNU LGPL, see the file "COPYING".
 #
 
-require 'racc/compat'
 require 'racc/sourcetext'
 require 'racc/logfilegenerator'
 require 'racc/exception'
