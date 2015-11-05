@@ -201,6 +201,17 @@ module Racc
       env.grammar
     end
 
+    # Implements `Grammar.define` DSL
+    # Methods are DSL 'keywords' which can be used in a `Grammar.define` block
+    #
+    # Key method is `#seq`, which creates a `Rule` (effectively, RHS of a rule in a BNF grammar)
+    # (`Rule` objects can be combined using `#|`, similar to how alternative derivations for a
+    # non-terminal are separated by | in a BNF grammar)
+    #
+    # The other key method is `#method_missing`, which is used to register rules like so:
+    #
+    #     self.nonterminal_name = seq(:token, :another_token) | seq(:something_else)
+    #
     class DefinitionEnv
       def initialize
         @grammar = Grammar.new
@@ -225,6 +236,8 @@ module Racc
         @grammar.end_precedence_declaration env.reverse
       end
 
+      # Intercept calls to `self.non_terminal = ...`, and use them to register
+      # a new rule
       def method_missing(mid, *args, &block)
         unless mid.to_s[-1,1] == '='
           super   # raises NoMethodError
@@ -268,10 +281,12 @@ module Racc
         @delayed.clear
       end
 
+      # Basic method for creating a new `Rule`.
       def seq(*list, &block)
         Rule.new(nil, list.map {|x| _intern(x) }, UserAction.proc(block))
       end
 
+      # Create a null `Rule` (one with an empty RHS)
       def null(&block)
         seq(&block)
       end
@@ -284,12 +299,16 @@ module Racc
 
       alias _ action
 
+      # Create a `Rule` which can either be null (like an empty RHS in a BNF grammar),
+      # in which case the action will return `default`, or which can match a single
+      # `sym` token.
       def option(sym, default = nil, &block)
         _defmetasyntax("option", _intern(sym), block) {|target|
           seq() { default } | seq(sym)
         }
       end
 
+      # Create a `Rule` which matches 0 or more `sym` tokens in a row.
       def many(sym, &block)
         _defmetasyntax("many", _intern(sym), block) {|target|
             seq() { [] }\
@@ -297,6 +316,7 @@ module Racc
         }
       end
 
+      # Create a `Rule` which matches 1 or more `sym` tokens in a row.
       def many1(sym, &block)
         _defmetasyntax("many1", _intern(sym), block) {|target|
             seq(sym) {|x| [x] }\
@@ -603,9 +623,9 @@ module Racc
   class Rule
 
     def initialize(target, syms, act)
-      @target = target
-      @symbols = syms
-      @action = act
+      @target = target # LHS of rule (may be `nil` if not yet known)
+      @symbols = syms  # RHS of rule
+      @action = act    # run this code when reducing
       @alternatives = []
 
       @ident = nil
@@ -800,11 +820,9 @@ module Racc
     attr_reader :lineno
   end
 
-
-  #
-  # A set of rule and position in it's RHS.
-  # Note that the number of pointers is more than rule's RHS array,
-  # because pointer points right edge of the final symbol when reducing.
+  # A set of rules and positions in their RHS.
+  # Note that the number of pointers is more than the rule's RHS array,
+  # because pointer points to the right edge of the final symbol when reducing.
   #
   class LocationPointer
 

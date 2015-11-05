@@ -781,8 +781,7 @@ module Racc
     end
   end
 
-
-  # LALR item.  A set of rule and its lookahead tokens.
+  # LALR item. A set of rules and its lookahead tokens.
   class Item
     def initialize(rule, la)
       @rule = rule
@@ -804,9 +803,8 @@ module Racc
     end
   end
 
-
-  # The table of LALR actions. Actions are either of
-  # Shift, Reduce, Accept and Error.
+  # The table of LALR actions. Actions are either
+  # Shift, Reduce, Accept, or Error.
   class ActionTable
 
     def initialize(rt, st)
