@@ -10,7 +10,6 @@
 #
 
 require 'racc/compat'
-require 'racc/iset'
 require 'racc/sourcetext'
 require 'racc/logfilegenerator'
 require 'racc/exception'
@@ -514,17 +513,17 @@ module Racc
     # Sym#expand
     def compute_expand(t)
       puts "expand> #{t.to_s}" if @debug_symbol
-      t.expand = _compute_expand(t, ISet.new, [])
+      t.expand = _compute_expand(t, {}, [])
       puts "expand< #{t.to_s}: #{t.expand.to_s}" if @debug_symbol
     end
 
     def _compute_expand(t, set, lock)
       if tmp = t.expand
-        set.update tmp
-        return set
+        return set.update(tmp)
       end
+
       tok = nil
-      set.update_a t.heads
+      t.heads.each { |ptr| set[ptr.ident] = ptr }
       t.heads.each do |ptr|
         tok = ptr.dereference
         if tok and tok.nonterminal?

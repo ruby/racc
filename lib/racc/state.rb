@@ -9,7 +9,6 @@
 # For details of the GNU LGPL, see the file "COPYING".
 #
 
-require 'racc/iset'
 require 'racc/statetransitiontable'
 require 'racc/exception'
 require 'forwardable'
@@ -124,16 +123,16 @@ module Racc
     def generate_states(state)
       puts "dstate: #{state}" if @d_state
 
-      table = {}
+      table = Hash.new { |h,k| h[k] = {} }
       state.closure.each do |ptr|
         if sym = ptr.dereference
-          addsym table, sym, ptr.next
+          table[sym][ptr.next.ident] = ptr.next
         end
       end
       table.each do |sym, core|
         puts "dstate: sym=#{sym} ncore=#{core}" if @d_state
 
-        dest = core_to_state(core.to_a)
+        dest = core_to_state(core.values)
         state.goto_table[sym] = dest
         id = sym.nonterminal?() ? @gotos.size : nil
         g = Goto.new(id, sym, state, dest)
@@ -148,13 +147,6 @@ module Racc
                       state.ident, state.ptrs[0].rule.ident)
         end
       end
-    end
-
-    def addsym(table, sym, ptr)
-      unless s = table[sym]
-        table[sym] = s = ISet.new
-      end
-      s.add ptr
     end
 
     def core_to_state(core)
@@ -653,14 +645,14 @@ module Racc
     alias eql? ==
 
     def make_closure(core)
-      set = ISet.new
+      set = {}
       core.each do |ptr|
-        set.add ptr
+        set[ptr.ident] = ptr
         if t = ptr.dereference and t.nonterminal?
-          set.update_a t.expand
+          t.expand.values.each { |i| set[i.ident] = i }
         end
       end
-      set.to_a
+      set.sort_by { |k, v| k }.map { |k, v| v }
     end
 
     def check_la(la_rules)
