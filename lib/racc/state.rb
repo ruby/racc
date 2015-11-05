@@ -606,8 +606,8 @@ module Racc
       @ritems = nil
       @action = {}
       @defact = nil
-      @rrconf = nil
-      @srconf = nil
+      @rrconf = Hash.new { |h,k| h[k] = [] }
+      @srconf = Hash.new { |h,k| h[k] = [] }
 
       @closure = make_closure(@core)
     end
@@ -717,33 +717,19 @@ module Racc
     end
 
     def rr_conflict(high, low, ctok)
-      c = RRconflict.new(@ident, high, low, ctok)
-
-      @rrconf ||= {}
-      if a = @rrconf[ctok]
-        a.push c
-      else
-        @rrconf[ctok] = [c]
-      end
+      @rrconf[ctok] << RRconflict.new(@ident, high, low, ctok)
     end
 
     def sr_conflict(shift, reduce)
-      c = SRconflict.new(@ident, shift, reduce)
-
-      @srconf ||= {}
-      if a = @srconf[shift]
-        a.push c
-      else
-        @srconf[shift] = [c]
-      end
+      @srconf[shift] << SRconflict.new(@ident, shift, reduce)
     end
 
     def n_srconflicts
-      @srconf ? @srconf.size : 0
+      @srconf.size
     end
 
     def n_rrconflicts
-      @rrconf ? @rrconf.size : 0
+      @rrconf.size
     end
 
   end   # class State
