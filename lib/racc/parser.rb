@@ -9,13 +9,8 @@
 # As a special exception, when this code is copied by Racc
 # into a Racc output file, you may use that output file
 # without restriction.
-#
 
 require 'racc/info'
-
-unless defined?(NotImplementedError)
-  NotImplementedError = NotImplementError # :nodoc:
-end
 
 module Racc
   class ParseError < StandardError; end
