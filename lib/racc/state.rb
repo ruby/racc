@@ -8,6 +8,7 @@
 require 'racc/statetransitiontable'
 require 'racc/exception'
 require 'forwardable'
+require 'set'
 
 module Racc
 
@@ -639,14 +640,14 @@ module Racc
     alias eql? ==
 
     def make_closure(core)
-      set = {}
+      set = Set.new
       core.each do |ptr|
-        set[ptr.ident] = ptr
+        set.add(ptr)
         if t = ptr.dereference and t.nonterminal?
-          t.expand.values.each { |i| set[i.ident] = i }
+          t.expand.each { |i| set.add(i) }
         end
       end
-      set.sort_by { |k, v| k }.map { |k, v| v }
+      set.sort_by(&:ident)
     end
 
     def check_la(la_rules)
