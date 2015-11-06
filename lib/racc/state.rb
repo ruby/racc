@@ -106,7 +106,7 @@ module Racc
     def compute_nfa
       @grammar.init
       # add state 0
-      core_to_state  [ @grammar[0].ptrs[0] ]
+      core_to_state  Set[@grammar[0].ptrs[0]]
       # generate LALR states
       @gotos = []
       @states.each do |state|
@@ -118,16 +118,16 @@ module Racc
     def generate_states(state)
       puts "dstate: #{state}" if @d_state
 
-      table = Hash.new { |h,k| h[k] = {} }
+      table = Hash.new { |h,k| h[k] = Set.new }
       state.closure.each do |ptr|
         if sym = ptr.dereference
-          table[sym][ptr.next.ident] = ptr.next
+          table[sym].add(ptr.next)
         end
       end
       table.each do |sym, core|
         puts "dstate: sym=#{sym} ncore=#{core}" if @d_state
 
-        dest = core_to_state(core.values)
+        dest = core_to_state(core)
         state.goto_table[sym] = dest
         id = sym.nonterminal?() ? @gotos.size : nil
         g = Goto.new(id, sym, state, dest)
@@ -145,20 +145,17 @@ module Racc
     end
 
     def core_to_state(core)
-      #
       # convert CORE to a State object.
       # If matching state does not exist, create it and add to the table.
-      #
 
-      k = fingerprint(core)
-      unless dest = @statecache[k]
+      unless dest = @statecache[core]
         # not registered yet
         dest = State.new(@states.size, core)
         @states.push dest
 
-        @statecache[k] = dest
+        @statecache[core] = dest
 
-        puts "core_to_state: create state   ID #{dest.ident}" if @d_state
+        puts "core_to_state: create state ID #{dest.ident}" if @d_state
       else
         if @d_state
           puts "core_to_state: dest is cached ID #{dest.ident}"
@@ -169,13 +166,7 @@ module Racc
       dest
     end
 
-    def fingerprint(arr)
-      arr.map {|i| i.ident }.pack('L*')
-    end
-
-    #
     # DFA (Deterministic Finite Automaton) Generation
-    #
 
     public
 
