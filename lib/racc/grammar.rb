@@ -823,13 +823,12 @@ module Racc
   # because pointer points to the right edge of the final symbol when reducing.
   #
   class LocationPointer
-
     def initialize(rule, i, sym)
       @rule   = rule
       @index  = i
-      @symbol = sym
+      @symbol = sym # Sym which immediately follows this position in RHS
+                    # or nil if it points to the end of RHS
       @ident  = @rule.hash + i
-      @reduce = sym.nil?
     end
 
     attr_reader :rule
@@ -840,12 +839,10 @@ module Racc
 
     attr_reader :ident
     alias hash ident
-    attr_reader :reduce
-    alias reduce? reduce
 
     def to_s
       sprintf('(%d,%d %s)',
-              @rule.ident, @index, (reduce?() ? '#' : @symbol.to_s))
+              @rule.ident, @index, (reduce? ? '#' : @symbol.to_s))
     end
 
     alias inspect to_s
@@ -868,6 +865,10 @@ module Racc
 
     def before(len)
       @rule.ptrs[@index - len] or ptr_bug!
+    end
+
+    def reduce?
+      @symbol.nil?
     end
 
     private
