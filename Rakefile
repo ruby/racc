@@ -34,6 +34,8 @@ HOE = Hoe.spec 'racc' do
   dependency 'hoe-gemspec',   '~> 1.0',   :developer
   dependency 'hoe-bundler',   '~> 1.2',   :developer
 
+  dependency 'rubocop',       '~> 0.34',  :developer
+
   if java?
     self.spec_extras[:platform]   = 'java'
   else
@@ -110,5 +112,10 @@ task :test_pure do
 end
 
 task :test => :compile
+
+require 'rubocop/rake_task'
+RuboCop::RakeTask.new(:rubocop) do |task|
+  task.options = ['-a', '-D']
+end
 
 Hoe.add_include_dirs('.:lib/racc')

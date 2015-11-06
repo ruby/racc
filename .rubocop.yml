@@ -1,0 +1,12 @@
+AllCops:
+  Exclude:
+    - Gemfile
+
+Lint/AssignmentInCondition:
+  Enabled: false
+
+Style/Semicolon:
+  Enabled: false
+
+Style/TrivialAccessors:
+  AllowPredicates: true
