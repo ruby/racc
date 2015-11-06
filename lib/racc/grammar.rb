@@ -361,7 +361,6 @@ module Racc
       compute_hash
       compute_heads
       determine_terminals
-      compute_nullable_0
       @symboltable.fix
       compute_locate
       @symboltable.each_nonterminal {|t| compute_expand t }
@@ -409,17 +408,6 @@ module Racc
     def determine_terminals
       @symboltable.each do |s|
         s.term = s.heads.empty?
-      end
-    end
-
-    # Sym#self_null?
-    def compute_nullable_0
-      @symboltable.each do |s|
-        if s.terminal?
-          s.snull = false
-        else
-          s.snull = s.heads.any? {|loc| loc.reduce? }
-        end
       end
     end
 
@@ -925,7 +913,6 @@ module Racc
 
       @heads   = [] # RHS of rules which can reduce to this Sym
       @locate  = [] # all rules which have this Sym on their RHS
-      @snull   = nil
       @null    = nil
       @expand  = nil
       @useless = nil
@@ -1012,12 +999,6 @@ module Racc
 
     attr_reader :heads
     attr_reader :locate
-
-    def self_null?
-      @snull
-    end
-
-    once_writer :snull
 
     def nullable?
       @null
