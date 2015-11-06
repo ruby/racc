@@ -742,7 +742,7 @@ module Racc
     alias inspect to_s
 
     def eql?(ot)
-      @hash == ot.hash
+      hash == ot.hash
     end
 
     alias == eql?
