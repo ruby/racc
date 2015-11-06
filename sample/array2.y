@@ -1,5 +1,3 @@
-# $Id$
-#
 # Converting Array-like string into Ruby's Array, version 2.
 # This grammar uses no_result_var.
 

@@ -1,5 +1,3 @@
-# $Id$
-#
 # Very simple calculater.
 
 class Calcp
@@ -21,8 +19,6 @@ rule
      | NUMBER
 end
 
----- header
-# $Id$
 ---- inner
   
   def parse(str)

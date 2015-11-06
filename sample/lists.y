@@ -1,5 +1,3 @@
-# $Id$
-#
 # Rules for verious lists.
 # This file is just an example, you cannot compile this file.
 
