@@ -277,8 +277,6 @@ module Racc
         id
       end
 
-      alias _ action
-
       # Create a `Rule` which can either be null (like an empty RHS in a BNF grammar),
       # in which case the action will return `default`, or which can match a single
       # `sym` token.
