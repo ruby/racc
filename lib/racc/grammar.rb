@@ -766,8 +766,6 @@ module Racc
       @rule.ptrs[@index + 1] or ptr_bug!
     end
 
-    alias increment next
-
     def before(len)
       @rule.ptrs[@index - len] or ptr_bug!
     end
