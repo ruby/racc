@@ -699,10 +699,6 @@ module Racc
       not @proc
     end
 
-    def proc?
-      not @source
-    end
-
     def empty?
       not @proc and not @source
     end
