@@ -722,7 +722,6 @@ module Racc
       @index  = i
       @symbol = sym # Sym which immediately follows this position in RHS
                     # or nil if it points to the end of RHS
-      @ident  = @rule.hash + i
     end
 
     attr_reader :rule
@@ -731,8 +730,9 @@ module Racc
 
     alias dereference symbol
 
-    attr_reader :ident
-    alias hash ident
+    def hash
+      @rule.hash + @index
+    end
 
     def to_s
       sprintf('(%d,%d %s)',
