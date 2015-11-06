@@ -210,12 +210,6 @@ module Racc
         @grammar
       end
 
-      def precedence_table(&block)
-        env = PrecedenceDefinitionEnv.new(@grammar)
-        env.instance_eval(&block)
-        @grammar.end_precedence_declaration env.reverse
-      end
-
       # Intercept calls to `self.non_terminal = ...`, and use them to register
       # a new rule
       def method_missing(mid, *args, &block)
@@ -348,46 +342,6 @@ module Racc
                               [@grammar.intern(sym.to_sym)],
                               UserAction.proc(block))
         target
-      end
-    end
-
-    class PrecedenceDefinitionEnv
-      def initialize(g)
-        @grammar = g
-        @prechigh_seen = false
-        @preclow_seen = false
-        @reverse = false
-      end
-
-      attr_reader :reverse
-
-      def higher
-        if @prechigh_seen
-          raise CompileError, "prechigh used twice"
-        end
-        @prechigh_seen = true
-      end
-
-      def lower
-        if @preclow_seen
-          raise CompileError, "preclow used twice"
-        end
-        if @prechigh_seen
-          @reverse = true
-        end
-        @preclow_seen = true
-      end
-
-      def left(*syms)
-        @grammar.declare_precedence :Left, syms.map {|s| @grammar.intern(s) }
-      end
-
-      def right(*syms)
-        @grammar.declare_precedence :Right, syms.map {|s| @grammar.intern(s) }
-      end
-
-      def nonassoc(*syms)
-        @grammar.declare_precedence :Nonassoc, syms.map {|s| @grammar.intern(s)}
       end
     end
 
