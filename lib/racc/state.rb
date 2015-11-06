@@ -111,11 +111,9 @@ module Racc
       # add state 0
       core_to_state  [ @grammar[0].ptrs[0] ]
       # generate LALR states
-      cur = 0
       @gotos = []
-      while cur < @states.size
-        generate_states @states[cur]   # state is added here
-        cur += 1
+      @states.each do |state|
+        generate_states(state)
       end
       @actions.init
     end
