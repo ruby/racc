@@ -128,7 +128,7 @@ def main
     exit 1
   end
   if ARGV.size > 1
-    $stderr.puts 'too many input'
+    $stderr.puts 'too many inputs'
     exit 1
   end
   input = ARGV[0]
