@@ -271,12 +271,6 @@ module Racc
         seq(&block)
       end
 
-      def action(&block)
-        id = "@#{@seqs["action"] += 1}".to_sym
-        _delayed_add Rule.new(@grammar.intern(id), [], UserAction.proc(block))
-        id
-      end
-
       # Create a `Rule` which can either be null (like an empty RHS in a BNF grammar),
       # in which case the action will return `default`, or which can match a single
       # `sym` token.
