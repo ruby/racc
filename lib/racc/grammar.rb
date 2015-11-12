@@ -79,14 +79,7 @@ module Racc
     end
 
     def n_useless_nonterminals
-      @n_useless_nonterminals ||=
-          begin
-            n = 0
-            @symboltable.each_nonterminal do |sym|
-              n += 1 if sym.useless?
-            end
-            n
-          end
+      @n_useless_nonterminals ||= @symboltable.nonterminals.count(&:useless?)
     end
 
     def useless_rule_exist?
@@ -94,14 +87,7 @@ module Racc
     end
 
     def n_useless_rules
-      @n_useless_rules ||=
-          begin
-            n = 0
-            each do |r|
-              n += 1 if r.useless?
-            end
-            n
-          end
+      @n_useless_rules ||= @rules.count(&:useless?)
     end
 
     def nfa
