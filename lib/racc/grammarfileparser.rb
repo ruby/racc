@@ -182,34 +182,41 @@ module Racc
 
     def add_rule_block(list)
       return if list.empty?
-
-      sprec = nil
       target = list.shift
 
-      case target
-      when OrMark, UserAction, Prec
+      if target.is_a?(OrMark) || target.is_a?(UserAction) || target.is_a?(Prec)
         fail(CompileError, "#{target.lineno}: unexpected symbol #{target.name}")
       end
 
-      curr = []
-      list.each do |i|
-        case i
-        when OrMark
-          add_rule(target, curr, sprec)
-          curr = []
-          sprec = nil
-        when Prec
-          fail(CompileError, "'=<prec>' used twice in one rule") if sprec
-          sprec = i.symbol
+      split_array(list) { |obj| obj.is_a?(OrMark) }.each do |rule_items|
+        sprec, rule_items = rule_items.partition { |obj| obj.is_a?(Prec) }
+        if sprec.empty?
+          add_rule(target, rule_items)
+        elsif sprec.one?
+          add_rule(target, rule_items, sprec.first.symbol)
         else
-          curr.push(i)
+          fail(CompileError, "'=<prec>' used twice in one rule")
         end
       end
-
-      add_rule(target, curr, sprec)
     end
 
-    def add_rule(target, list, sprec)
+    def split_array(array)
+      chunk, index = [], 0
+      results = [chunk]
+      while index < array.size
+        obj = array[index]
+        if yield obj
+          chunk = []
+          results << chunk
+        else
+          chunk << obj
+        end
+        index += 1
+      end
+      results
+    end
+
+    def add_rule(target, list, prec = nil)
       if list.last.kind_of?(UserAction)
         act = list.pop
       else
@@ -217,7 +224,7 @@ module Racc
       end
       list.map! {|s| s.kind_of?(UserAction) ? embedded_action(s) : s }
       rule = Rule.new(target, list, act)
-      rule.specified_prec = sprec
+      rule.specified_prec = prec
       @grammar.add rule
     end
 
