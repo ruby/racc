@@ -571,7 +571,7 @@ module Racc
     def check_useless
       used = []
       @actions.each_reduce do |act|
-        if not act or act.refn == 0
+        if act.refn == 0
           act.rule.useless = true
         else
           t = act.rule.target
