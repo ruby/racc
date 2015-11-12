@@ -322,34 +322,43 @@ module Racc
 
       private
 
+      # the passed block will define a `Rule` (which may be chained with
+      # 'alternative' `Rule`s)
+      # make all of those rules reduce to a (newly generated) nonterminal,
+      # executing `action` when they do so,
+      # and return the newly generated nonterminal
       def _defmetasyntax(type, id, action, &block)
         if action
-          idbase = "#{type}@#{id}-#{@seqs[type] += 1}"
-          target = _wrap(idbase, "#{idbase}-core", action)
-          _regist("#{idbase}-core", &block)
+          idbase = :"#{type}@#{id}-#{@seqs[type] += 1}"
+          _regist(:"#{idbase}-core", &block)
+          _wrap(idbase, :"#{idbase}-core", action)
         else
-          target = _regist("#{type}@#{id}", &block)
+          _regist(:"#{type}@#{id}", &block)
         end
-        @grammar.intern(target)
       end
 
-      def _regist(target_name)
-        target = target_name.to_sym
-        unless _added?(@grammar.intern(target))
+      def _regist(target)
+        sym = @grammar.intern(target)
+        unless _added?(sym)
           yield(target).each_rule do |rule|
-            rule.target = @grammar.intern(target)
-            _delayed_add rule
+            rule.target = sym
+            _delayed_add(rule)
           end
         end
-        target
+        sym
       end
 
-      def _wrap(target_name, sym, block)
-        target = target_name.to_sym
-        _delayed_add Rule.new(@grammar.intern(target),
-                              [@grammar.intern(sym.to_sym)],
+      # create a rule which reduces wrapped -> wrapper and executes an
+      # action at the same time
+      # (this is a way to make sure an action is executed everytime a
+      # reduction is done using a particular generated rule)
+      def _wrap(wrapper, wrapped, block)
+        wrapped = @grammar.intern(wrapped)
+        wrapper = @grammar.intern(wrapper)
+        _delayed_add Rule.new(wrapper,
+                              [wrapped],
                               UserAction.proc(block))
-        target
+        wrapper
       end
     end
 
