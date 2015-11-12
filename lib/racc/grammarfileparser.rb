@@ -191,15 +191,8 @@ module Racc
       @scanner.scan
     end
 
-    def on_error(tok, val, _values)
-      if val.respond_to?(:id2name)
-        v = val.id2name
-      elsif val.kind_of?(String)
-        v = val
-      else
-        v = val.inspect
-      end
-      raise CompileError, "#{location()}: unexpected token '#{v}'"
+    def on_error(_tok, val, _values)
+      fail CompileError, "#{location}: unexpected token #{val.inspect}"
     end
 
     def location
