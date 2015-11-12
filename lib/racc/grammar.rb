@@ -1055,6 +1055,9 @@ module Racc
       @serialized
     end
 
+    # some tokens are written one way in the grammar, but the actual value
+    # expected from the lexer is different
+    # you can set this up using a 'convert' block
     attr_writer :serialized
 
     attr_accessor :precedence
