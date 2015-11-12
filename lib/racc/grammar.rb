@@ -460,42 +460,26 @@ module Racc
       set
     end
 
-    # Sym#nullable?, Rule#nullable?
+    # Sym#nullable?
+    # Can an empty sequence of tokens reduce to this nonterminal?
+    # (Can it be produced out of "nothing"?)
     def compute_nullable
-      @rules.each       {|r| r.null = false }
-      @symboltable.each {|t| t.null = false }
-      r = @rules.dup
-      s = @symboltable.nonterminals
-      begin
-        rs = r.size
-        ss = s.size
-        check_rules_nullable r
-        check_symbols_nullable s
-      end until rs == r.size and ss == s.size
-    end
+      @symboltable.each { |t| t.null = false }
 
-    def check_rules_nullable(rules)
-      rules.delete_if do |rule|
-        rule.null = true
-        rule.symbols.each do |t|
-          unless t.nullable?
-            rule.null = false
-            break
-          end
+      worklist = []
+      @symboltable.nonterminals.each do |sym|
+        if sym.heads.any?(&:reduce?)
+          sym.null = true
+          worklist.concat(sym.locate)
         end
-        rule.nullable?
       end
-    end
 
-    def check_symbols_nullable(symbols)
-      symbols.delete_if do |sym|
-        sym.heads.each do |ptr|
-          if ptr.rule.nullable?
-            sym.null = true
-            break
-          end
+      until worklist.empty?
+        rule = worklist.shift.rule
+        if !rule.target.nullable? && rule.symbols.all?(&:nullable?)
+          rule.target.null = true
+          worklist.concat(rule.target.locate)
         end
-        sym.nullable?
       end
     end
 
@@ -539,7 +523,6 @@ module Racc
       @ptrs = nil
       @precedence = nil
       @specified_prec = nil
-      @null = nil
       @useless = nil
     end
 
@@ -597,11 +580,13 @@ module Racc
 
     attr_accessor :specified_prec
 
-    def nullable?() @null end
-    def null=(n)    @null = n end
+    def useless?
+      @useless
+    end
 
-    def useless?()  @useless end
-    def useless=(u) @useless = u end
+    def useless=(u)
+      @useless = u
+    end
 
     def inspect
       "#<Racc::Rule id=#{@ident} (#{@target})>"
