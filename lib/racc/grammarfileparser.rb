@@ -353,6 +353,7 @@ module Racc
       @lineno += 1
       @line = @lines[@lineno]
       if not @line or /\A----/ =~ @line
+        # class block is over, user code blocks follow
         @epilogue = @lines.join("\n")
         @lines.clear
         @line = nil
