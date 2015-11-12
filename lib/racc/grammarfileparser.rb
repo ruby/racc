@@ -178,9 +178,11 @@ module Racc
       @result = Result.new(@grammar, @filename)
 
       @embedded_action_seq = 0
+
       yyparse @scanner, :yylex
 
       parse_user_code
+
       @result.grammar.init
       @result
     end
@@ -241,9 +243,7 @@ module Racc
       sym
     end
 
-    #
     # User Code Block
-    #
 
     def parse_user_code
       line = @scanner.lineno
