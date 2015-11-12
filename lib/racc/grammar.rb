@@ -406,8 +406,9 @@ module Racc
     def init
       return if @closed
       @closed = true
-      @start ||= @rules.map {|r| r.target }.detect {|sym| not sym.dummy? }
-      raise CompileError, 'no rule in input' if @rules.empty?
+      # if 'start' nonterminal was not explicitly set, just take the first one
+      @start ||= @rules.map(&:target).detect { |sym| !sym.dummy? }
+      fail CompileError, 'no rule in input' if @rules.empty?
       add_start_rule
       @rules.freeze
       fix_ident
@@ -867,11 +868,19 @@ module Racc
     include Enumerable
 
     def initialize
-      @symbols = []   # :: [Racc::Sym]
-      @cache   = {}   # :: {(String|Symbol) => Racc::Sym}
-      @dummy  = intern(:$start, true)
-      @anchor = intern(false, true)     # Symbol ID = 0
-      @error  = intern(:error, false)   # Symbol ID = 1
+      @symbols = [] # all Syms used in a grammar
+      @cache   = {} # map of String/Symbol name -> Sym
+
+      # 'dummy' and 'anchor' are used to make sure the parser runs over ALL the
+      # input tokens before concluding that the parse was successful
+      # an 'anchor' token is appended to the end of the token stream, and a
+      # 'dummy rule' is automatically added which reduces [start node, anchor]
+      # to 'dummy'
+      # only if the parse ends in 'dummy', is it considered successful
+
+      @dummy   = intern(:$start, true)
+      @anchor  = intern(false, true)   # Symbol ID = 0
+      @error   = intern(:error, false) # Symbol ID = 1
     end
 
     attr_reader :dummy
@@ -994,12 +1003,12 @@ module Racc
         raise ArgumentError, "unknown symbol value: #{value.class}"
       end
 
-      @heads    = []
-      @locate   = []
-      @snull    = nil
-      @null     = nil
-      @expand   = nil
-      @useless  = nil
+      @heads   = [] # RHS of rules which can reduce to this Sym
+      @locate  = [] # all rules which have this Sym on their RHS
+      @snull   = nil
+      @null    = nil
+      @expand  = nil
+      @useless = nil
     end
 
     class << self
