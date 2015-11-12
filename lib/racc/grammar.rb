@@ -883,20 +883,17 @@ module Racc
     end
 
     def intern(val, dummy = false)
-      @cache[val] ||=
-          begin
-            sym = Sym.new(val, dummy)
-            @symbols.push sym
-            sym
-          end
+      @cache[val] ||= begin
+        Sym.new(val, dummy).tap { |sym| @symbols.push(sym) }
+      end
     end
 
     attr_reader :symbols
     alias to_a symbols
 
     def delete(sym)
-      @symbols.delete sym
-      @cache.delete sym.value
+      @symbols.delete(sym)
+      @cache.delete(sym.value)
     end
 
     attr_reader :nt_base
