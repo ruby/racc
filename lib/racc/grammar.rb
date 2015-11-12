@@ -499,47 +499,30 @@ module Racc
       end
     end
 
-    # Sym#useless?, Rule#useless?
-    # FIXME: what means "useless"?
+    # Sym#useless?
+    # A 'useless' Sym is a nonterminal which can never be part of a valid parse
+    # tree, because there is no sequence of rules by which that nonterminal
+    # could eventually reduce down to the 'start' node
     def compute_useless
-      @symboltable.each_terminal {|sym| sym.useless = false }
-      @symboltable.each_nonterminal {|sym| sym.useless = true }
-      @rules.each {|rule| rule.useless = true }
-      r = @rules.dup
-      s = @symboltable.nonterminals
-      begin
-        rs = r.size
-        ss = s.size
-        check_rules_useless r
-        check_symbols_useless s
-      end until r.size == rs and s.size == ss
-    end
+      @symboltable.each_terminal { |sym| sym.useless = false }
+      @symboltable.each_nonterminal { |sym| sym.useless = true }
 
-    def check_rules_useless(rules)
-      rules.delete_if do |rule|
-        rule.useless = false
+      @symboltable.error.useless = false
+      @symboltable.dummy.useless = false
+      @symboltable.anchor.useless = false
+      @start.useless = false
+      worklist = @start.heads.dup # all RHS of rules which reduce to 'start' NT
+
+      until worklist.empty?
+        rule = worklist.shift.rule
         rule.symbols.each do |sym|
           if sym.useless?
-            rule.useless = true
-            break
+            sym.useless = false
+            worklist.concat(sym.heads)
           end
         end
-        not rule.useless?
       end
     end
-
-    def check_symbols_useless(s)
-      s.delete_if do |t|
-        t.heads.each do |ptr|
-          unless ptr.rule.useless?
-            t.useless = false
-            break
-          end
-        end
-        not t.useless?
-      end
-    end
-
   end   # class Grammar
 
 
