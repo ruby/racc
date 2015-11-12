@@ -761,44 +761,24 @@ module Racc
       not @proc and not @source
     end
 
-    def name
+    def to_s
       "{action type=#{@source || @proc || 'nil'}}"
     end
 
-    alias inspect name
+    alias inspect to_s
 
   end
 
-
-  class OrMark
-    def initialize(lineno)
-      @lineno = lineno
-    end
-
-    def name
+  class OrMark < Struct.new(:lineno)
+    def to_s
       '|'
     end
-
-    alias inspect name
-
-    attr_reader :lineno
   end
 
-
-  class Prec
-    def initialize(symbol, lineno)
-      @symbol = symbol
-      @lineno = lineno
-    end
-
-    def name
+  class Prec < Struct.new(:symbol, :lineno)
+    def to_s
       "=#{@symbol}"
     end
-
-    alias inspect name
-
-    attr_reader :symbol
-    attr_reader :lineno
   end
 
   # A set of rules and positions in their RHS.

@@ -204,7 +204,7 @@ module Racc
       target = list.shift
       case target
       when OrMark, UserAction, Prec
-        raise CompileError, "#{target.lineno}: unexpected symbol #{target.name}"
+        raise CompileError, "#{target.lineno}: unexpected symbol #{target}"
       end
       curr = []
       list.each do |i|
