@@ -524,6 +524,13 @@ module Racc
       @precedence = nil
       @specified_prec = nil
       @useless = nil
+
+      ptrs = []
+      @symbols.each_with_index do |sym, idx|
+        ptrs.push LocationPointer.new(self, idx, sym)
+      end
+      ptrs.push LocationPointer.new(self, @symbols.size, nil)
+      @ptrs = ptrs
     end
 
     attr_accessor :target
@@ -551,12 +558,6 @@ module Racc
 
     def hash=(n)
       @hash = n
-      ptrs = []
-      @symbols.each_with_index do |sym, idx|
-        ptrs.push LocationPointer.new(self, idx, sym)
-      end
-      ptrs.push LocationPointer.new(self, @symbols.size, nil)
-      @ptrs = ptrs
     end
 
     def precedence
