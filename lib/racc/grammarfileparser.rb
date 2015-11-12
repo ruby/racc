@@ -359,7 +359,7 @@ module Racc
         @line = nil
         if @in_block
           @lineno -= 1
-          scan_error! sprintf('unterminated %s', @in_block)
+          scan_error!(sprintf('unterminated %s', @in_block))
         end
         false
       else
@@ -406,7 +406,7 @@ module Racc
     end
 
     def skip_comment
-      @in_block = 'comment'
+      @in_block = :comment
       until m = /\*\//.match(@line)
         next_line
       end
@@ -420,7 +420,7 @@ module Racc
       buf = ''
       nest = 1
       pre = nil
-      @in_block = 'action'
+      @in_block = :action
       begin
         pre = nil
         if s = reads(/\A\s+/)
