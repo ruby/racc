@@ -275,14 +275,14 @@ module Racc
 
       # Create a `Rule` which can either be null (like an empty RHS in a BNF grammar),
       # in which case the action will return `default`, or which can match a single
-      # `sym` token.
+      # `sym`.
       def option(sym, default = nil, &block)
         _defmetasyntax("option", _intern(sym), block) {|target|
           seq() { default } | seq(sym)
         }
       end
 
-      # Create a `Rule` which matches 0 or more `sym` tokens in a row.
+      # Create a `Rule` which matches 0 or more instance of `sym` in a row.
       def many(sym, &block)
         _defmetasyntax("many", _intern(sym), block) {|target|
             seq() { [] }\
@@ -290,7 +290,7 @@ module Racc
         }
       end
 
-      # Create a `Rule` which matches 1 or more `sym` tokens in a row.
+      # Create a `Rule` which matches 1 or more instances of `sym` in a row.
       def many1(sym, &block)
         _defmetasyntax("many1", _intern(sym), block) {|target|
             seq(sym) {|x| [x] }\
@@ -298,10 +298,14 @@ module Racc
         }
       end
 
+      # Create a `Rule` which matches 0 or more instances of `sym`, separated
+      # by `sep`.
       def separated_by(sep, sym, &block)
         option(separated_by1(sep, sym), [], &block)
       end
 
+      # Create a `Rule` which matches 1 or more instances of `sym`, separated
+      # by `sep`.
       def separated_by1(sep, sym, &block)
         _defmetasyntax("separated_by1", _intern(sym), block) {|target|
             seq(sym) {|x| [x] }\
@@ -324,9 +328,14 @@ module Racc
 
       # the passed block will define a `Rule` (which may be chained with
       # 'alternative' `Rule`s)
-      # make all of those rules reduce to a (newly generated) nonterminal,
+      # make all of those rules reduce to a placeholder nonterminal,
       # executing `action` when they do so,
-      # and return the newly generated nonterminal
+      # and return the newly generated placeholder
+      #
+      # (when the placeholder is associated with a "real" nonterminal using the
+      # `self.non_terminal = ...` syntax, we will go through all the generated
+      # rules and rewrite the placeholder to the "real" nonterminal)
+      #
       def _defmetasyntax(type, id, action, &block)
         if action
           idbase = :"#{type}@#{id}-#{@seqs[type] += 1}"
