@@ -22,6 +22,4 @@ rule
 /* end */
 end
 
----- driver
-
-  # driver is old name
+---- footer

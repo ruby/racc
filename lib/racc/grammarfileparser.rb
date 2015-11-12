@@ -269,10 +269,8 @@ module Racc
 
     USER_CODE_LABELS = {
       'header'  => :header,
-      'prepare' => :header,   # obsolete
       'inner'   => :inner,
       'footer'  => :footer,
-      'driver'  => :footer    # obsolete
     }
 
     def canonical_label(src)
