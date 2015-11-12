@@ -29,7 +29,7 @@ module Racc
 
     attr_reader :start
     attr_reader :symboltable
-    attr_accessor :n_expected_srconflicts
+    attr_reader :n_expected_srconflicts
 
     def [](x)
       @rules[x]
@@ -89,6 +89,13 @@ module Racc
 
     def n_useless_rules
       @n_useless_rules ||= @rules.count(&:useless?)
+    end
+
+    def n_expected_srconflicts=(value)
+      if @n_expected_srconflicts
+        raise CompileError, "'expect' seen twice"
+      end
+      @n_expected_srconflicts = value
     end
 
     def nfa

@@ -13,43 +13,42 @@ require 'stringio'
 
 module Racc
 
-  grammar = Grammar.define {
+  grammar = Grammar.define do
     g = self
 
     g.class = seq(:CLASS, :cname, many(:param), :RULE, :rules, option(:END))
 
-    g.cname       = seq(:rubyconst) {|name|
+    g.cname       = seq(:rubyconst) { |name|
                       @result.params.classname = name
-                    }\
-                  | seq(:rubyconst, "<", :rubyconst) {|c, _, s|
+                    } \
+                  | seq(:rubyconst, "<", :rubyconst) { |c, _, s|
                       @result.params.classname = c
                       @result.params.superclass = s
                     }
 
-    g.rubyconst   = separated_by1(:colon2, :SYMBOL) {|syms|
-                      syms.map {|s| s.to_s }.join('::')
+    g.rubyconst   = separated_by1(:colon2, :SYMBOL) { |syms|
+                      syms.map(&:to_s).join('::')
                     }
 
     g.colon2 = seq(':', ':')
 
-    g.param       = seq(:CONV, many1(:convdef), :END) {|*|
+    g.param       = seq(:CONV, many1(:convdef), :END) { |*|
                       #@grammar.end_convert_block   # FIXME
-                    }\
-                  | seq(:PRECHIGH, many1(:precdef), :PRECLOW) {|*|
-                      @grammar.end_precedence_declaration true
-                    }\
-                  | seq(:PRECLOW, many1(:precdef), :PRECHIGH) {|*|
-                      @grammar.end_precedence_declaration false
-                    }\
-                  | seq(:START, :symbol) {|_, sym|
+                    } \
+                  | seq(:PRECHIGH, many1(:precdef), :PRECLOW) { |*|
+                      @grammar.end_precedence_declaration(true)
+                    } \
+                  | seq(:PRECLOW, many1(:precdef), :PRECHIGH) { |*|
+                      @grammar.end_precedence_declaration(false)
+                    } \
+                  | seq(:START, :symbol) { |_, sym|
                       @grammar.start_symbol = sym
-                    }\
-                  | seq(:TOKEN, :symbols) {|_, syms|
-                      syms.each do |s|
-                        s.should_terminal
-                      end
-                    }\
-                  | seq(:OPTION, :options) {|_, syms|
+                    } \
+                  | seq(:TOKEN, :symbols) { |_, syms|
+                      syms.each { |s| s.should_terminal }
+                    } \
+                  | seq(:OPTION, :options) { |_, syms|
+                      # TODO: pull setting of options into a separate methods
                       syms.each do |opt|
                         case opt
                         when 'result_var'
@@ -64,76 +63,56 @@ module Racc
                           raise CompileError, "unknown option: #{opt}"
                         end
                       end
-                    }\
-                  | seq(:EXPECT, :DIGIT) {|_, num|
-                      if @grammar.n_expected_srconflicts
-                        raise CompileError, "`expect' seen twice"
-                      end
+                    } \
+                  | seq(:EXPECT, :DIGIT) { |_, num|
                       @grammar.n_expected_srconflicts = num
                     }
 
-    g.convdef     = seq(:symbol, :STRING) {|sym, code|
-                      sym.serialized = code
-                    }
+    g.convdef     = seq(:symbol, :STRING) { |sym, code| sym.serialized = code }
 
-    g.precdef     = seq(:LEFT, :symbols) {|_, syms|
+    g.precdef     = seq(:LEFT, :symbols) { |_, syms|
                       @grammar.declare_precedence :Left, syms
-                    }\
-                  | seq(:RIGHT, :symbols) {|_, syms|
+                    } \
+                  | seq(:RIGHT, :symbols) { |_, syms|
                       @grammar.declare_precedence :Right, syms
-                    }\
-                  | seq(:NONASSOC, :symbols) {|_, syms|
+                    } \
+                  | seq(:NONASSOC, :symbols) { |_, syms|
                       @grammar.declare_precedence :Nonassoc, syms
                     }
 
-    g.symbols     = seq(:symbol) {|sym|
-                      [sym]
-                    }\
-                  | seq(:symbols, :symbol) {|list, sym|
-                      list.push sym
-                      list
-                    }\
+    g.symbols     = seq(:symbol) { |sym| [sym] } \
+                  | seq(:symbols, :symbol) { |list, sym| list << sym } \
                   | seq(:symbols, "|")
 
-    g.symbol      = seq(:SYMBOL) {|sym| @grammar.intern(sym) }\
-                  | seq(:STRING) {|str| @grammar.intern(str) }
+    g.symbol      = seq(:SYMBOL) { |sym| @grammar.intern(sym) } \
+                  | seq(:STRING) { |str| @grammar.intern(str) }
 
-    g.options     = many(:SYMBOL) {|syms| syms.map {|s| s.to_s } }
+    g.options     = many(:SYMBOL) { |syms| syms.map(&:to_s) }
 
-    g.rules       = option(:rules_core) {|list|
-                      add_rule_block list  unless list.empty?
-                      nil
-                    }
+    g.rules       = option(:rules_core) { |list| add_rule_block(list) }
 
-    g.rules_core  = seq(:symbol) {|sym|
-                      [sym]
-                    }\
-                  | seq(:rules_core, :rule_item) {|list, i|
-                      list.push i
-                      list
-                    }\
-                  | seq(:rules_core, ';') {|list, *|
-                      add_rule_block list  unless list.empty?
+    # a set of grammar rules with the same LHS, like:
+    # nonterminal: token1 token2 | token3 token4;
+    # the terminating ; is optional
+    g.rules_core  = seq(:symbol) { |sym| [sym] } \
+                  | seq(:rules_core, :rule_item) { |list, i| list << i } \
+                  | seq(:rules_core, ';') { |list, _|
+                      add_rule_block(list)
                       list.clear
-                      list
-                    }\
-                  | seq(:rules_core, ':') {|list, *|
+                    } \
+                  | seq(:rules_core, ':') { |list, _|
+                      # terminating ; was missing, so the previous token was
+                      # actually a new LHS
                       next_target = list.pop
-                      add_rule_block list  unless list.empty?
+                      add_rule_block(list)
                       [next_target]
                     }
 
-    g.rule_item   = seq(:symbol)\
-                  | seq("|") {|*|
-                      OrMark.new(@scanner.lineno)
-                    }\
-                  | seq("=", :symbol) {|_, sym|
-                      Prec.new(sym, @scanner.lineno)
-                    }\
-                  | seq(:ACTION) {|src|
-                      UserAction.source_text(src)
-                    }
-  }
+    g.rule_item   = seq(:symbol) \
+                  | seq("|") { |_| OrMark.new(@scanner.lineno) } \
+                  | seq("=", :symbol) { |_, sym| Prec.new(sym, @scanner.lineno) } \
+                  | seq(:ACTION) { |src| UserAction.source_text(src) }
+  end
 
   GrammarFileParser = grammar.parser_class
 
@@ -202,27 +181,32 @@ module Racc
     end
 
     def add_rule_block(list)
+      return if list.empty?
+
       sprec = nil
       target = list.shift
+
       case target
       when OrMark, UserAction, Prec
-        raise CompileError, "#{target.lineno}: unexpected symbol #{target}"
+        fail(CompileError, "#{target.lineno}: unexpected symbol #{target.name}")
       end
+
       curr = []
       list.each do |i|
         case i
         when OrMark
-          add_rule target, curr, sprec
+          add_rule(target, curr, sprec)
           curr = []
           sprec = nil
         when Prec
-          raise CompileError, "'=<prec>' used twice in one rule" if sprec
+          fail(CompileError, "'=<prec>' used twice in one rule") if sprec
           sprec = i.symbol
         else
-          curr.push i
+          curr.push(i)
         end
       end
-      add_rule target, curr, sprec
+
+      add_rule(target, curr, sprec)
     end
 
     def add_rule(target, list, sprec)
