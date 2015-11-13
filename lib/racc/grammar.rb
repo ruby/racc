@@ -784,7 +784,7 @@ module Racc
     end
 
     def fix
-      @terms, @nterms = @symbols.partition {|s| s.terminal? }
+      @terms, @nterms = @symbols.partition(&:terminal?)
       @symbols = @terms + @nterms
       fix_ident
       check_terminals
@@ -797,19 +797,17 @@ module Racc
     end
 
     def check_terminals
-      return unless @symbols.any? {|s| s.should_terminal? }
+      # token declarations in Racc are optional
+      # however, if you declare some tokens, you must declare them all
+      return unless @symbols.any?(&:should_terminal?)
       @anchor.should_terminal
       @error.should_terminal
-      terminals.each do |t|
-        t.should_terminal if t.string_symbol?
-      end
-      each do |s|
-        s.should_terminal if s.assoc
-      end
-      terminals().reject {|t| t.should_terminal? }.each do |t|
+      terminals.select(&:string_symbol?).each(&:should_terminal)
+      select(&:assoc).each(&:should_terminal)
+      terminals.reject(&:should_terminal?).each do |t|
         raise CompileError, "terminal #{t} not declared as terminal"
       end
-      nonterminals().select {|n| n.should_terminal? }.each do |n|
+      nonterminals.select(&:should_terminal?).each do |n|
         raise CompileError, "symbol #{n} declared as terminal but is not terminal"
       end
     end
