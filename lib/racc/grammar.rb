@@ -759,10 +759,6 @@ module Racc
       @terms.size
     end
 
-    def nt_max
-      @symbols.size
-    end
-
     def each(&block)
       @symbols.each(&block)
     end
