@@ -886,6 +886,8 @@ module Racc
       @should_be_terminal
     end
 
+    # is this a terminal which is written as a string literal in the grammar?
+    # (if so, it shouldn't appear on the LHS of any rule)
     def string_symbol?
       @string
     end
