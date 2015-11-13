@@ -780,7 +780,9 @@ module Racc
       @cache.delete(sym.value)
     end
 
-    attr_reader :nt_base
+    def nt_base
+      @terms.size
+    end
 
     def nt_max
       @symbols.size
@@ -809,7 +811,6 @@ module Racc
     def fix
       @terms, @nterms = @symbols.partition {|s| s.terminal? }
       @symbols = @terms + @nterms
-      @nt_base = @terms.size
       fix_ident
       check_terminals
     end
