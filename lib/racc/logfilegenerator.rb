@@ -31,11 +31,11 @@ module Racc
       @states.each do |state|
         if state.srconf
           out.printf "state %d contains %d shift/reduce conflicts\n",
-                     state.stateid, state.srconf.size
+                     state.ident, state.srconf.size
         end
         if state.rrconf
           out.printf "state %d contains %d reduce/reduce conflicts\n",
-                     state.stateid, state.rrconf.size
+                     state.ident, state.rrconf.size
         end
       end
     end

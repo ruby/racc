@@ -592,7 +592,6 @@ module Racc
     end
 
     attr_reader :ident
-    alias stateid ident
     alias hash ident
 
     attr_reader :core
