@@ -195,9 +195,6 @@ module Racc
 
       def grammar
         flush_delayed
-        @grammar.select(&:specified_prec).each do |rule|
-          rule.specified_prec = @grammar.intern(rule.specified_prec)
-        end
         @grammar.init
         @grammar
       end
