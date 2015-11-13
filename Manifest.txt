@@ -73,6 +73,7 @@ test/assets/normal.y
 test/assets/norule.y
 test/assets/nullbug1.y
 test/assets/nullbug2.y
+test/assets/opal.y
 test/assets/opt.y
 test/assets/percent.y
 test/assets/recv.y
@@ -91,6 +92,7 @@ test/bench.y
 test/helper.rb
 test/infini.y
 test/regress/csspool
+test/regress/opal
 test/regress/ruby18
 test/regress/ruby22
 test/scandata/brace
