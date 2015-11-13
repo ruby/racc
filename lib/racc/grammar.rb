@@ -561,13 +561,8 @@ module Racc
     end
 
     attr_accessor :ident
-
-    attr_reader :hash
+    attr_accessor :hash
     attr_reader :ptrs
-
-    def hash=(n)
-      @hash = n
-    end
 
     def precedence
       @specified_prec || @precedence
