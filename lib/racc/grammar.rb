@@ -398,10 +398,6 @@ module Racc
             t = tok if tok.terminal?
           end
         end
-
-        # if no explicit precedence was set for this Rule, it automatically
-        # inherits the precedence value of its LAST terminal
-        rule.precedence ||= t
       end
     end
 
@@ -523,7 +519,10 @@ module Racc
 
     attr_accessor :ident
     attr_reader :ptrs
-    attr_reader :precedence
+
+    def precedence
+      @precedence || @symbols.select(&:terminal?).last
+    end
 
     def precedence=(sym)
       @precedence ||= sym
