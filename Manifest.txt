@@ -68,6 +68,7 @@ test/assets/expect.y
 test/assets/firstline.y
 test/assets/huia.y
 test/assets/ichk.y
+test/assets/infini.y
 test/assets/intp.y
 test/assets/journey.y
 test/assets/liquor.y
@@ -107,7 +108,6 @@ test/assets/useless.y
 test/assets/yyerr.y
 test/bench.y
 test/helper.rb
-test/infini.y
 test/regress/bibtex
 test/regress/cadenza
 test/regress/cast
