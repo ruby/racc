@@ -230,5 +230,13 @@ module Racc
       assert_debugfile 'namae.y', [0, 0, 0, 0, 0]
       assert_output 'namae.y'
     end
+
+    # .y file from liquor gem
+
+    def test_liquor
+      assert_compile 'liquor.y'
+      assert_debugfile 'liquor.y', [0, 0, 0, 0, 15]
+      assert_output 'liquor.y'
+    end
   end
 end

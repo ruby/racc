@@ -70,6 +70,7 @@ test/assets/firstline.y
 test/assets/ichk.y
 test/assets/intp.y
 test/assets/journey.y
+test/assets/liquor.y
 test/assets/macruby.y
 test/assets/mailp.y
 test/assets/namae.y
@@ -103,6 +104,7 @@ test/regress/bibtex
 test/regress/csspool
 test/regress/edtf
 test/regress/journey
+test/regress/liquor
 test/regress/namae
 test/regress/nokogiri-css
 test/regress/opal
