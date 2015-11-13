@@ -165,5 +165,13 @@ module Racc
       assert_debugfile 'ruby22.y', []
       assert_output 'ruby22.y'
     end
+
+    # .y file from csspool gem
+
+    def test_csspool
+      assert_compile 'csspool.y'
+      assert_debugfile 'csspool.y', [5, 3]
+      assert_output 'csspool.y'
+    end
   end
 end
