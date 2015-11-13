@@ -370,7 +370,6 @@ module Racc
       fix_ident
       compute_hash
       compute_heads
-      determine_terminals
       @symboltable.fix
       compute_locate
       @symboltable.nonterminals.each {|t| compute_expand t }
@@ -408,13 +407,6 @@ module Racc
     def compute_heads
       @rules.each do |rule|
         rule.target.heads.push rule.ptrs[0]
-      end
-    end
-
-    # Sym#terminal?
-    def determine_terminals
-      @symboltable.each do |s|
-        s.term = s.heads.empty?
       end
     end
 
@@ -815,13 +807,11 @@ module Racc
 
   # Stands terminal and nonterminal symbols.
   class Sym
-
     def initialize(value, dummyp)
       @ident = nil
       @value = value
       @dummyp = dummyp
 
-      @term  = nil
       @should_terminal = false
       @precedence = nil
       case value
@@ -876,11 +866,11 @@ module Racc
     end
 
     def terminal?
-      @term
+      heads.empty?
     end
 
     def nonterminal?
-      !@term
+      !heads.empty?
     end
 
     def term=(t)
@@ -912,6 +902,11 @@ module Racc
     attr_accessor :precedence
     attr_accessor :assoc
 
+    attr_reader :heads
+    attr_reader :locate
+    attr_reader :expand
+    once_writer :expand
+
     def to_s
       @to_s.dup
     end
@@ -926,12 +921,6 @@ module Racc
       Rule.new(nil, [self], UserAction.empty)
     end
 
-    #
-    # cache
-    #
-
-    attr_reader :heads
-    attr_reader :locate
 
     def nullable?
       @null
@@ -940,9 +929,6 @@ module Racc
     def null=(n)
       @null = n
     end
-
-    attr_reader :expand
-    once_writer :expand
 
     def useless?
       @useless
