@@ -580,10 +580,6 @@ module Racc
       @symbols.size
     end
 
-    def empty?
-      @symbols.empty?
-    end
-
     def to_s
       "#<rule#{@ident}>"
     end
