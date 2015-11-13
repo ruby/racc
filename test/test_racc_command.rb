@@ -182,5 +182,13 @@ module Racc
       assert_debugfile 'csspool.y', [5, 3]
       assert_output 'csspool.y'
     end
+
+    # .y file from opal gem
+
+    def test_opal
+      assert_compile 'opal.y'
+      assert_debugfile 'opal.y', []
+      assert_output 'opal.y'
+    end
   end
 end
