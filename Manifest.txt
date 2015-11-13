@@ -72,6 +72,7 @@ test/assets/macruby.y
 test/assets/mailp.y
 test/assets/newsyn.y
 test/assets/noend.y
+test/assets/nokogiri-css.y
 test/assets/nonass.y
 test/assets/normal.y
 test/assets/norule.y
@@ -97,6 +98,7 @@ test/helper.rb
 test/infini.y
 test/regress/csspool
 test/regress/journey
+test/regress/nokogiri-css
 test/regress/opal
 test/regress/ruby18
 test/regress/ruby22
