@@ -352,9 +352,7 @@ module Racc
       end
     end
 
-    #
     # Computation
-    #
 
     def init
       return if @closed
@@ -366,7 +364,7 @@ module Racc
       @rules.freeze
       fix_ident
       @symboltable.fix
-      @symboltable.nonterminals.each {|t| compute_expand t }
+      compute_expand
       compute_nullable
       compute_useless
     end
@@ -386,30 +384,25 @@ module Racc
       @rules.flat_map(&:ptrs).each_with_index(&:ident=)
     end
 
-    # Sym#expand
-    def compute_expand(t)
-      puts "expand> #{t.to_s}" if @debug_symbol
-      t.expand = _compute_expand(t, Set.new, [])
-      puts "expand< #{t.to_s}: #{t.expand.to_s}" if @debug_symbol
-    end
+    # Sym#expand (non-terminals only)
+    # After we parse an instance of this non-terminal,
+    # what are all the locations in a Rule where we could possibly be?
+    # (Which tells us what all the Syms which could validly follow are,
+    # among other things...)
+    def compute_expand
+      @symboltable.nonterminals.each do |t|
+        worklist = t.heads.dup
+        t.expand = Set.new
 
-    def _compute_expand(t, set, lock)
-      if tmp = t.expand
-        return set.merge(tmp)
-      end
-
-      tok = nil
-      t.heads.each { |ptr| set.add(ptr) }
-      t.heads.each do |ptr|
-        tok = ptr.symbol
-        if tok and tok.nonterminal?
-          unless lock[tok.ident]
-            lock[tok.ident] = true
-            _compute_expand tok, set, lock
+        until worklist.empty?
+          ptr = worklist.shift
+          if t.expand.add?(ptr)
+            if (tok = ptr.symbol) && tok.nonterminal?
+              worklist.concat(tok.heads)
+            end
           end
         end
       end
-      set
     end
 
     # Sym#nullable?
