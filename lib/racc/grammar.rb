@@ -443,7 +443,7 @@ module Racc
         t = nil
         rule.ptrs.each do |ptr|
           unless ptr.reduce?
-            tok = ptr.dereference
+            tok = ptr.symbol
             tok.locate.push ptr
             t = tok if tok.terminal?
           end
@@ -467,7 +467,7 @@ module Racc
       tok = nil
       t.heads.each { |ptr| set.add(ptr) }
       t.heads.each do |ptr|
-        tok = ptr.dereference
+        tok = ptr.symbol
         if tok and tok.nonterminal?
           unless lock[tok.ident]
             lock[tok.ident] = true
@@ -721,8 +721,6 @@ module Racc
     attr_reader :rule
     attr_reader :index
     attr_reader :symbol
-
-    alias dereference symbol
 
     def hash
       @rule.hash + @index

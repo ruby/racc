@@ -114,10 +114,11 @@ module Racc
 
       table = Hash.new { |h,k| h[k] = Set.new }
       state.closure.each do |ptr|
-        if sym = ptr.dereference
+        if sym = ptr.symbol
           table[sym].add(ptr.next)
         end
       end
+
       table.each do |sym, core|
         puts "dstate: sym=#{sym} ncore=#{core}" if @d_state
 
@@ -626,7 +627,7 @@ module Racc
       set = Set.new
       core.each do |ptr|
         set.add(ptr)
-        if t = ptr.dereference and t.nonterminal?
+        if t = ptr.symbol and t.nonterminal?
           t.expand.each { |i| set.add(i) }
         end
       end
@@ -638,7 +639,7 @@ module Racc
       s = []
       r = []
       @closure.each do |ptr|
-        if t = ptr.dereference
+        if t = ptr.symbol
           if t.terminal?
             s[t.ident] = t
             if t.ident == 1    # $error
