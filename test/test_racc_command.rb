@@ -206,5 +206,13 @@ module Racc
       assert_debugfile 'nokogiri-css.y', [0, 1]
       assert_output 'nokogiri-css.y'
     end
+
+    # .y file from bibtex-ruby gem
+
+    def test_bibtex
+      assert_compile 'bibtex.y'
+      assert_debugfile 'bibtex.y', [0, 0, 0, 0, 0]
+      assert_output 'bibtex.y'
+    end
   end
 end
