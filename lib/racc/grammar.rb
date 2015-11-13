@@ -366,7 +366,6 @@ module Racc
       @rules.freeze
       fix_ident
       compute_hash
-      compute_heads
       @symboltable.fix
       compute_locate
       @symboltable.nonterminals.each {|t| compute_expand t }
@@ -396,13 +395,6 @@ module Racc
       @rules.each do |rule|
         rule.hash = hash
         hash += (rule.size + 1)
-      end
-    end
-
-    # Sym#heads
-    def compute_heads
-      @rules.each do |rule|
-        rule.target.heads.push rule.ptrs[0]
       end
     end
 
@@ -513,11 +505,19 @@ module Racc
       @ptrs = (0..@symbols.size).map do |idx|
         LocationPointer.new(self, idx)
       end
+
+      @target.heads << @ptrs[0] if @target
     end
 
-    attr_accessor :target
     attr_reader :symbols
     attr_reader :action
+    attr_reader :target
+
+    def target=(target)
+      raise 'target already set' if @target
+      @target = target
+      @target.heads << @ptrs[0]
+    end
 
     def |(x)
       @alternatives.push x.rule
@@ -575,9 +575,15 @@ module Racc
       @symbols.each(&block)
     end
 
-    def replace(src, dest)
-      @target = dest
-      @symbols = @symbols.map {|s| s == src ? dest : s }
+    # sometimes a Rule is instantiated before the target is actually known
+    # it may be given a "placeholder" target first, which is later replaced
+    # with the real one
+    def replace(placeholder, actual)
+      raise 'wrong placeholder' if placeholder != @target
+      @target.heads.delete(ptrs[0]) if @target
+      @target = actual
+      @target.heads << @ptrs[0]
+      @symbols.map! { |s| s == placeholder ? actual : s }
     end
   end
 
