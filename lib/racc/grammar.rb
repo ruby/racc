@@ -799,7 +799,7 @@ module Racc
     end
 
     def nonterminals
-      @symbols[@nt_base, @symbols.size - @nt_base]
+      @nterms
     end
 
     def each_nonterminal(&block)
