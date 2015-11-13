@@ -14,7 +14,6 @@ module Racc
 
   # A table of LALR states.
   class States
-
     include Enumerable
 
     def initialize(grammar, debug_flags = DebugFlags.new)
@@ -47,18 +46,13 @@ module Racc
       @states[i]
     end
 
-    def each_state(&block)
-      @states.each(&block)
-    end
-
-    alias each each_state
-
     def each_index(&block)
       @states.each_index(&block)
     end
 
     extend Forwardable
 
+    def_delegator "@states",  :each
     def_delegator "@actions", :shift_n
     def_delegator "@actions", :reduce_n
     def_delegator "@actions", :nt_base
@@ -576,9 +570,7 @@ module Racc
         end
       end
     end
-
-  end   # class StateTable
-
+  end
 
   # A LALR state.
   class State
