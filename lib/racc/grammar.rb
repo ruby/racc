@@ -543,12 +543,9 @@ module Racc
       @specified_prec = nil
       @useless = nil
 
-      ptrs = []
-      @symbols.each_with_index do |sym, idx|
-        ptrs.push LocationPointer.new(self, idx, sym)
+      @ptrs = (0..@symbols.size).map do |idx|
+        LocationPointer.new(self, idx)
       end
-      ptrs.push LocationPointer.new(self, @symbols.size, nil)
-      @ptrs = ptrs
     end
 
     attr_accessor :target
@@ -706,29 +703,31 @@ module Racc
     end
   end
 
-  # A set of rules and positions in their RHS.
+  # A combination of a rule and a position in its RHS.
   # Note that the number of pointers is more than the rule's RHS array,
   # because pointer points to the right edge of the final symbol when reducing.
   #
   class LocationPointer
-    def initialize(rule, i, sym)
-      @rule   = rule
-      @index  = i
-      @symbol = sym # Sym which immediately follows this position in RHS
-                    # or nil if it points to the end of RHS
+    def initialize(rule, i)
+      @rule  = rule
+      @index = i
     end
 
     attr_reader :rule
     attr_reader :index
-    attr_reader :symbol
+
+    # Sym which immediately follows this position in RHS
+    # or nil if it points to the end of RHS
+    def symbol
+      @rule.symbols[@index]
+    end
 
     def hash
       @rule.hash + @index
     end
 
     def to_s
-      sprintf('(%d,%d %s)',
-              @rule.ident, @index, (reduce? ? '#' : @symbol.to_s))
+      sprintf('(%d,%d %s)', @rule.ident, @index, (reduce? ? '#' : symbol.to_s))
     end
 
     alias inspect to_s
@@ -752,7 +751,7 @@ module Racc
     end
 
     def reduce?
-      @symbol.nil?
+      symbol.nil?
     end
 
     private
