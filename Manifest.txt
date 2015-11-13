@@ -60,6 +60,7 @@ test/assets/conf.y
 test/assets/csspool.y
 test/assets/digraph.y
 test/assets/echk.y
+test/assets/edtf.y
 test/assets/err.y
 test/assets/expect.y
 test/assets/firstline.y
@@ -96,6 +97,7 @@ test/helper.rb
 test/infini.y
 test/regress/bibtex
 test/regress/csspool
+test/regress/edtf
 test/regress/journey
 test/regress/nokogiri-css
 test/regress/opal
