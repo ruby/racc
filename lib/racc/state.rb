@@ -622,7 +622,7 @@ module Racc
           t.expand.each { |i| set.add(i) }
         end
       end
-      set.sort_by(&:hash)
+      set.sort_by(&:ident)
     end
 
     def check_la(la_rules)

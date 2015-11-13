@@ -659,7 +659,7 @@ module Racc
       @rule.symbols[@index]
     end
 
-    def hash
+    def ident
       @rule.hash + @index
     end
 
