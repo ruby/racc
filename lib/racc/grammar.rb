@@ -407,11 +407,8 @@ module Racc
     end
 
     # Rule#ident
-    # LocationPointer#ident
     def fix_ident
-      @rules.each_with_index do |rule, idx|
-        rule.ident = idx
-      end
+      @rules.each_with_index(&:ident=)
     end
 
     # Rule#hash
