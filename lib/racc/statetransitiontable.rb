@@ -95,7 +95,6 @@ module Racc
       t.action_default = yydefact = []
       t.action_pointer = yypact   = []
       e1 = []
-      e2 = []
       states.each do |state|
         yydefact.push act2actid(state.defact)
         if state.action.empty?
@@ -108,7 +107,7 @@ module Racc
         end
         addent e1, vector, state.ident, yypact
       end
-      set_table e1, e2, yytable, yycheck, yypact
+      set_table e1, yytable, yycheck, yypact
     end
 
     def gen_goto_tables(t, grammar)
@@ -117,7 +116,6 @@ module Racc
       t.goto_pointer = yypgoto   = []
       t.goto_default = yydefgoto = []
       e1 = []
-      e2 = []
       grammar.each_nonterminal do |tok|
         tmp = []
 
@@ -150,7 +148,7 @@ module Racc
 
         addent e1, tmp, (tok.ident - grammar.nonterminal_base), yypgoto
       end
-      set_table e1, e2, yytable2, yycheck2, yypgoto
+      set_table e1, yytable2, yycheck2, yypgoto
     end
 
     def addent(all, arr, chkval, ptr)
@@ -200,7 +198,7 @@ module Racc
       Regexp.compile(map, 'n')
     end
 
-    def set_table(entries, dummy, tbl, chk, ptr)
+    def set_table(entries, tbl, chk, ptr)
       upper = 0
       map = '-' * 10240
 
