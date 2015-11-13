@@ -214,5 +214,13 @@ module Racc
       assert_debugfile 'bibtex.y', [0, 0, 0, 0, 0]
       assert_output 'bibtex.y'
     end
+
+    # .y file from edtf-ruby gem
+
+    def test_edtf
+      assert_compile 'edtf.y'
+      assert_debugfile 'edtf.y', [0, 0, 0, 0, 0]
+      assert_output 'edtf.y'
+    end
   end
 end
