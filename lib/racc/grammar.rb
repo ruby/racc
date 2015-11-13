@@ -603,10 +603,6 @@ module Racc
       "#<Racc::Rule id=#{@ident} (#{@target})>"
     end
 
-    def ==(other)
-      other.kind_of?(Rule) and @ident == other.ident
-    end
-
     def [](idx)
       @symbols[idx]
     end
