@@ -584,12 +584,9 @@ module Racc
       "#<rule#{@ident}>"
     end
 
+    # is this the 'end' rule which is applied last in a successful parse?
     def accept?
-      if tok = @symbols[-1]
-        tok.anchor?
-      else
-        false
-      end
+      @symbols.last && @symbols.last.anchor?
     end
 
     def each(&block)
