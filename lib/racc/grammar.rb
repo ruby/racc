@@ -791,15 +791,15 @@ module Racc
     def check_terminals
       # token declarations in Racc are optional
       # however, if you declare some tokens, you must declare them all
-      return unless @symbols.any?(&:should_terminal?)
-      @anchor.should_terminal
-      @error.should_terminal
-      terminals.select(&:string_symbol?).each(&:should_terminal)
-      select(&:assoc).each(&:should_terminal)
-      terminals.reject(&:should_terminal?).each do |t|
+      return unless @symbols.any?(&:should_be_terminal?)
+      @anchor.should_be_terminal!
+      @error.should_be_terminal!
+      terminals.select(&:string_symbol?).each(&:should_be_terminal!)
+      select(&:assoc).each(&:should_be_terminal!)
+      terminals.reject(&:should_be_terminal?).each do |t|
         raise CompileError, "terminal #{t} not declared as terminal"
       end
-      nonterminals.select(&:should_terminal?).each do |n|
+      nonterminals.select(&:should_be_terminal?).each do |n|
         raise CompileError, "symbol #{n} declared as terminal but is not terminal"
       end
     end
@@ -812,7 +812,7 @@ module Racc
       @value = value
       @dummyp = dummyp
 
-      @should_terminal = false
+      @should_be_terminal = false
       @precedence = nil
       case value
       when Symbol
@@ -878,12 +878,14 @@ module Racc
       @term = t
     end
 
-    def should_terminal
-      @should_terminal = true
+    def should_be_terminal!
+      @should_be_terminal = true
     end
 
-    def should_terminal?
-      @should_terminal
+    # has this Sym appeared in a token declaration, or in some other context
+    # where only a terminal should be used (such as associativity declaration)?
+    def should_be_terminal?
+      @should_be_terminal
     end
 
     def string_symbol?
