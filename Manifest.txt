@@ -51,7 +51,6 @@ sample/lalr.y
 sample/lists.y
 sample/syntax.y
 sample/yyerr.y
-setup.rb
 tasks/doc.rb
 tasks/email.rb
 test/assets/bench.y
