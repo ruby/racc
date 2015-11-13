@@ -778,15 +778,12 @@ module Racc
     def fix
       @terms, @nterms = @symbols.partition(&:terminal?)
       @symbols = @terms + @nterms
-      fix_ident
+      # number Syms so terminals have the lower numbers
+      @symbols.each_with_index(&:ident=)
       check_terminals
     end
 
     private
-
-    def fix_ident
-      @symbols.each_with_index(&:ident=)
-    end
 
     def check_terminals
       # token declarations in Racc are optional
