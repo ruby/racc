@@ -334,7 +334,7 @@ module Racc
       @f.print "#{name} = {"
       h.to_a.sort_by {|sym, i| i }.each do |sym, i|
         @f.print sep; sep = ",\n"
-        @f.printf "  %s => %d", sym.serialize, i
+        @f.printf "  %s => %d", sym.serialized, i
       end
       line " }"
     end
