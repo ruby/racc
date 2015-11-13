@@ -490,7 +490,6 @@ module Racc
       @symboltable.terminals.each { |sym| sym.useless = false }
       @symboltable.nonterminals.each { |sym| sym.useless = true }
 
-      @symboltable.error.useless = false
       @symboltable.dummy.useless = false
       @symboltable.anchor.useless = false
       @start.useless = false
