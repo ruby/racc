@@ -92,6 +92,8 @@ test/assets/yyerr.y
 test/bench.y
 test/helper.rb
 test/infini.y
+test/regress/ruby18
+test/regress/ruby22
 test/scandata/brace
 test/scandata/gvar
 test/scandata/normal

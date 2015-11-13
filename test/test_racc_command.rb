@@ -166,13 +166,13 @@ module Racc
     def test_ruby18
       assert_compile 'ruby18.y'
       assert_debugfile 'ruby18.y', []
-      assert_exec 'ruby18.y'
+      assert_output 'ruby18.y'
     end
 
     def test_ruby22
       assert_compile 'ruby22.y'
       assert_debugfile 'ruby22.y', []
-      assert_exec 'ruby22.y'
+      assert_output 'ruby22.y'
     end
   end
 end

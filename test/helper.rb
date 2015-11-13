@@ -13,10 +13,11 @@ module Racc
 
     RACC      = File.join(PROJECT_DIR, 'bin', 'racc')
     OUT_DIR   = File.join(TEST_DIR, 'out')
-    TAB_DIR   = File.join(TEST_DIR, 'tab')
+    TAB_DIR   = File.join(TEST_DIR, 'tab') # generated parsers go here
     LOG_DIR   = File.join(TEST_DIR, 'log')
     ERR_DIR   = File.join(TEST_DIR, 'err')
-    ASSET_DIR = File.join(TEST_DIR, 'assets')
+    ASSET_DIR = File.join(TEST_DIR, 'assets') # test grammars
+    REGRESS_DIR  = File.join(TEST_DIR, 'regress') # known-good generated outputs
 
     INC = [
       File.join(PROJECT_DIR, 'lib'),
@@ -35,21 +36,21 @@ module Racc
       end
     end
 
-    def assert_compile asset, args = []
-      asset = File.basename(asset, '.y')
+    def assert_compile(asset, args = [])
+      file = File.basename(asset, '.y')
       args = ([args].flatten) + [
-        "#{ASSET_DIR}/#{asset}.y",
+        "#{ASSET_DIR}/#{file}.y",
         '-Do',
-        "-O#{OUT_DIR}/#{asset}",
-        "-o#{TAB_DIR}/#{asset}",
+        "-O#{OUT_DIR}/#{file}",
+        "-o#{TAB_DIR}/#{file}",
       ]
       racc "#{args.join(' ')}"
     end
 
-    def assert_debugfile asset, ok
-      name = File.basename(asset, '.y')
+    def assert_debugfile(asset, ok)
+      file = File.basename(asset, '.y')
       Dir.chdir(TEST_DIR) do
-        File.foreach("log/#{name}.y") do |line|
+        File.foreach("log/#{file}.y") do |line|
           line.strip!
           case line
           when /sr/ then assert_equal "sr#{ok[0]}", line
@@ -64,18 +65,29 @@ module Racc
       end
     end
 
-    def assert_exec file
-      file = File.basename(file, '.y')
+    def assert_exec(asset)
+      file = File.basename(asset, '.y')
       Dir.chdir(TEST_DIR) do
-        ruby("tab/#{file}")
+        ruby("#{TAB_DIR}/#{file}")
       end
     end
 
-    def racc arg
+    def assert_output(asset)
+      file = File.basename(asset, '.y')
+
+      expected = File.read("#{REGRESS_DIR}/#{file}")
+      actual   = File.read("#{TAB_DIR}/#{file}")
+      result   = (expected == actual)
+
+      assert(result, "Output of test/assets/#{file}.y differed from " \
+        "expectation. Try compiling it and diff with test/regress/#{file}.")
+    end
+
+    def racc(arg)
       ruby "-S #{RACC} #{arg}"
     end
 
-    def ruby arg
+    def ruby(arg)
       Dir.chdir(TEST_DIR) do
         Tempfile.open 'test' do |io|
           cmd = "#{ENV['_'] || Gem.ruby} -I #{INC} #{arg} 2>#{io.path}"
