@@ -54,6 +54,7 @@ sample/yyerr.y
 setup.rb
 tasks/doc.rb
 tasks/email.rb
+test/assets/bibtex.y
 test/assets/chk.y
 test/assets/conf.y
 test/assets/csspool.y
@@ -93,6 +94,7 @@ test/assets/yyerr.y
 test/bench.y
 test/helper.rb
 test/infini.y
+test/regress/bibtex
 test/regress/csspool
 test/regress/journey
 test/regress/nokogiri-css
