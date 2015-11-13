@@ -366,7 +366,6 @@ module Racc
       @rules.freeze
       fix_ident
       @symboltable.fix
-      compute_locate
       @symboltable.nonterminals.each {|t| compute_expand t }
       compute_nullable
       compute_useless
@@ -385,20 +384,6 @@ module Racc
     def fix_ident
       @rules.each_with_index(&:ident=)
       @rules.flat_map(&:ptrs).each_with_index(&:ident=)
-    end
-
-    # Sym#locate
-    def compute_locate
-      @rules.each do |rule|
-        t = nil
-        rule.ptrs.each do |ptr|
-          unless ptr.reduce?
-            tok = ptr.symbol
-            tok.locate.push ptr
-            t = tok if tok.terminal?
-          end
-        end
-      end
     end
 
     # Sym#expand
@@ -486,10 +471,12 @@ module Racc
       @useless = nil
       @precedence = precedence
 
-      @ptrs = (0..@symbols.size).map do |idx|
-        LocationPointer.new(self, idx)
-      end
+      @ptrs = (0..@symbols.size).map { |idx| LocationPointer.new(self, idx) }
 
+      # reverse lookup from each Sym in RHS to location in rule where it appears
+      @symbols.each_with_index { |sym, idx| sym.locate << @ptrs[idx] }
+
+      # reverse lookup from LHS of rule to starting location in rule
       @target.heads << @ptrs[0] if @target
     end
 
