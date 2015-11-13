@@ -280,7 +280,5 @@ module Racc
         end
       end
     end
-
   end
-
-end   # module Racc
+end

@@ -534,7 +534,5 @@ module Racc
     def scan_error!(msg)
       raise CompileError, "#{lineno()}: #{msg}"
     end
-
   end
-
-end   # module Racc
+end

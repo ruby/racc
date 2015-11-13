@@ -201,7 +201,5 @@ SRC
     def symbol_locations(locs)
       locs.map {|loc| loc.rule.ident }.reject {|n| n == 0 }.uniq
     end
-
   end
-
-end   # module Racc
+end

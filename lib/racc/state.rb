@@ -710,11 +710,8 @@ module Racc
     def n_rrconflicts
       @rrconf.size
     end
+  end
 
-  end   # class State
-
-
-  #
   # Represents a transition on the grammar.
   # "Real goto" means a transition by nonterminal,
   # but this class treats also terminal's.

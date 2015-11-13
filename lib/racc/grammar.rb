@@ -525,11 +525,9 @@ module Racc
         end
       end
     end
-  end   # class Grammar
-
+  end
 
   class Rule
-
     def initialize(target, syms, act)
       @target = target # LHS of rule (may be `nil` if not yet known)
       @symbols = syms  # RHS of rule
@@ -644,9 +642,7 @@ module Racc
       @target = dest
       @symbols = @symbols.map {|s| s == src ? dest : s }
     end
-
-  end   # class Rule
-
+  end
 
   class UserAction
 
@@ -759,9 +755,7 @@ module Racc
     def ptr_bug!
       raise "racc: fatal: pointer not exist: self: #{to_s}"
     end
-
-  end   # class LocationPointer
-
+  end
 
   class SymbolTable
 
@@ -864,9 +858,7 @@ module Racc
         raise CompileError, "symbol #{n} declared as terminal but is not terminal"
       end
     end
-
-  end   # class SymbolTable
-
+  end
 
   # Stands terminal and nonterminal symbols.
   class Sym
@@ -1006,7 +998,5 @@ module Racc
     def useless=(f)
       @useless = f
     end
-
-  end   # class Sym
-
-end   # module Racc
+  end
+end
