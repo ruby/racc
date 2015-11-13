@@ -714,7 +714,6 @@ module Racc
   end
 
   class SymbolTable
-
     include Enumerable
 
     def initialize
@@ -747,6 +746,8 @@ module Racc
       end
     end
 
+    attr_reader :terminals
+    attr_reader :nonterminals
     attr_reader :symbols
     alias to_a symbols
 
@@ -756,24 +757,16 @@ module Racc
     end
 
     def nt_base
-      @terms.size
+      @terminals.size
     end
 
     def each(&block)
       @symbols.each(&block)
     end
 
-    def terminals
-      @terms
-    end
-
-    def nonterminals
-      @nterms
-    end
-
     def fix
-      @terms, @nterms = @symbols.partition(&:terminal?)
-      @symbols = @terms + @nterms
+      @terminals, @nonterminals = @symbols.partition(&:terminal?)
+      @symbols = @terminals + @nonterminals
       # number Syms so terminals have the lower numbers
       @symbols.each_with_index(&:ident=)
       check_terminals
@@ -918,7 +911,6 @@ module Racc
     def rule
       Rule.new(nil, [self], UserAction.empty)
     end
-
 
     def nullable?
       @null
