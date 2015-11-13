@@ -223,9 +223,7 @@ module Racc
         act = UserAction.empty
       end
       list.map! {|s| s.kind_of?(UserAction) ? embedded_action(s) : s }
-      rule = Rule.new(target, list, act)
-      rule.specified_prec = prec
-      @grammar.add rule
+      @grammar.add(Rule.new(target, list, act, prec))
     end
 
     def embedded_action(act)

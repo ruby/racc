@@ -382,7 +382,6 @@ module Racc
                    UserAction.empty)
       r.ident = 0
       r.hash = 0
-      r.precedence = nil
       @rules.unshift r
     end
 
@@ -418,7 +417,10 @@ module Racc
             t = tok if tok.terminal?
           end
         end
-        rule.precedence = t
+
+        # if no explicit precedence was set for this Rule, it automatically
+        # inherits the precedence value of its LAST terminal
+        rule.precedence ||= t
       end
     end
 
@@ -497,7 +499,7 @@ module Racc
   end
 
   class Rule
-    def initialize(target, syms, act)
+    def initialize(target, syms, act, precedence = nil)
       @target = target # LHS of rule (may be `nil` if not yet known)
       @symbols = syms  # RHS of rule
       @action = act    # run this code when reducing
@@ -505,9 +507,8 @@ module Racc
 
       @ident = nil
       @hash = nil
-      @precedence = nil
-      @specified_prec = nil
       @useless = nil
+      @precedence = precedence
 
       @ptrs = (0..@symbols.size).map do |idx|
         LocationPointer.new(self, idx)
@@ -535,16 +536,11 @@ module Racc
     attr_accessor :ident
     attr_accessor :hash
     attr_reader :ptrs
-
-    def precedence
-      @specified_prec || @precedence
-    end
+    attr_reader :precedence
 
     def precedence=(sym)
       @precedence ||= sym
     end
-
-    attr_accessor :specified_prec
 
     def useless?
       @useless
@@ -586,7 +582,6 @@ module Racc
   end
 
   class UserAction
-
     def UserAction.source_text(src)
       new(src, nil)
     end
@@ -625,7 +620,6 @@ module Racc
     end
 
     alias inspect to_s
-
   end
 
   class OrMark < Struct.new(:lineno)
