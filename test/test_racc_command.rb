@@ -189,5 +189,13 @@ module Racc
       assert_debugfile 'journey.y', []
       assert_output 'journey.y'
     end
+
+    # .y file from nokogiri gem
+
+    def test_nokogiri_css
+      assert_compile 'nokogiri-css.y'
+      assert_debugfile 'nokogiri-css.y', [0, 1]
+      assert_output 'nokogiri-css.y'
+    end
   end
 end
