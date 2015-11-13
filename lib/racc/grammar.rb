@@ -721,12 +721,6 @@ module Racc
 
     alias inspect to_s
 
-    def eql?(ot)
-      hash == ot.hash
-    end
-
-    alias == eql?
-
     def head?
       @index == 0
     end
