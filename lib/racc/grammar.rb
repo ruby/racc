@@ -365,7 +365,6 @@ module Racc
       add_start_rule
       @rules.freeze
       fix_ident
-      compute_hash
       @symboltable.fix
       compute_locate
       @symboltable.nonterminals.each {|t| compute_expand t }
@@ -379,23 +378,13 @@ module Racc
       r = Rule.new(@symboltable.dummy,
                    [@start, @symboltable.anchor, @symboltable.anchor],
                    UserAction.empty)
-      r.ident = 0
-      r.hash = 0
-      @rules.unshift r
+      @rules.unshift(r)
     end
 
     # Rule#ident
     def fix_ident
       @rules.each_with_index(&:ident=)
-    end
-
-    # Rule#hash
-    def compute_hash
-      hash = 4   # size of dummy rule
-      @rules.each do |rule|
-        rule.hash = hash
-        hash += (rule.size + 1)
-      end
+      @rules.flat_map(&:ptrs).each_with_index(&:ident=)
     end
 
     # Sym#locate
@@ -498,7 +487,6 @@ module Racc
       @alternatives = []
 
       @ident = nil
-      @hash = nil
       @useless = nil
       @precedence = precedence
 
@@ -534,7 +522,6 @@ module Racc
     end
 
     attr_accessor :ident
-    attr_accessor :hash
     attr_reader :ptrs
     attr_reader :precedence
 
@@ -648,19 +635,17 @@ module Racc
     def initialize(rule, i)
       @rule  = rule
       @index = i
+      @ident = nil # canonical ordering for all LocationPointers
     end
 
     attr_reader :rule
     attr_reader :index
+    attr_accessor :ident
 
     # Sym which immediately follows this position in RHS
     # or nil if it points to the end of RHS
     def symbol
       @rule.symbols[@index]
-    end
-
-    def ident
-      @rule.hash + @index
     end
 
     def to_s
