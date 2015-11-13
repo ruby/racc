@@ -790,8 +790,8 @@ module Racc
       @symbols.each(&block)
     end
 
-    def terminals(&block)
-      @symbols[0, @nt_base]
+    def terminals
+      @terms
     end
 
     def each_terminal(&block)
@@ -807,11 +807,9 @@ module Racc
     end
 
     def fix
-      terms, nterms = @symbols.partition {|s| s.terminal? }
-      @symbols = terms + nterms
-      @terms = terms
-      @nterms = nterms
-      @nt_base = terms.size
+      @terms, @nterms = @symbols.partition {|s| s.terminal? }
+      @symbols = @terms + @nterms
+      @nt_base = @terms.size
       fix_ident
       check_terminals
     end
