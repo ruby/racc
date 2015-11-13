@@ -804,13 +804,14 @@ module Racc
 
   # Stands terminal and nonterminal symbols.
   class Sym
-    def initialize(value, dummyp)
+    def initialize(value, dummy)
       @ident = nil
       @value = value
-      @dummyp = dummyp
+      @dummy = dummy
 
       @should_be_terminal = false
       @precedence = nil
+
       case value
       when Symbol
         @to_s = value.to_s
@@ -859,7 +860,7 @@ module Racc
     attr_reader :value
 
     def dummy?
-      @dummyp
+      @dummy
     end
 
     def terminal?
