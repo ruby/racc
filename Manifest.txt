@@ -54,6 +54,7 @@ sample/yyerr.y
 setup.rb
 tasks/doc.rb
 tasks/email.rb
+test/assets/bench.y
 test/assets/bibtex.y
 test/assets/cadenza.y
 test/assets/cast.y
@@ -106,7 +107,6 @@ test/assets/syntax.y
 test/assets/unterm.y
 test/assets/useless.y
 test/assets/yyerr.y
-test/bench.y
 test/helper.rb
 test/regress/bibtex
 test/regress/cadenza
