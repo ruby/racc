@@ -47,7 +47,7 @@ module Racc
                      rl.ident, rl.target.to_s
         end
       end
-      @grammar.each_nonterminal do |t|
+      @grammar.symboltable.nonterminals.each do |t|
         if t.useless?
           out.printf "useless nonterminal %s\n", t.to_s
         end
@@ -180,7 +180,7 @@ module Racc
       out.print "------- Symbols -------\n\n"
 
       out.print "**Nonterminals, with rules where they appear\n\n"
-      @grammar.each_nonterminal do |t|
+      @grammar.symboltable.nonterminals.each do |t|
         tmp = <<SRC
   %s (%d)
     on right: %s

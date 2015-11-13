@@ -116,7 +116,7 @@ module Racc
       t.goto_pointer = yypgoto   = []
       t.goto_default = yydefgoto = []
       e1 = []
-      grammar.each_nonterminal do |tok|
+      grammar.symboltable.nonterminals.each do |tok|
         tmp = []
 
         # decide default

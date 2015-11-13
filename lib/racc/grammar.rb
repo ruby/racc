@@ -60,7 +60,6 @@ module Racc
     extend Forwardable
 
     def_delegator "@symboltable", :each, :each_symbol
-    def_delegator "@symboltable", :each_nonterminal
 
     def intern(value, dummy = false)
       @symboltable.intern(value, dummy)
@@ -388,7 +387,7 @@ module Racc
       determine_terminals
       @symboltable.fix
       compute_locate
-      @symboltable.each_nonterminal {|t| compute_expand t }
+      @symboltable.nonterminals.each {|t| compute_expand t }
       compute_nullable
       compute_useless
     end
@@ -503,7 +502,7 @@ module Racc
     # could eventually reduce down to the 'start' node
     def compute_useless
       @symboltable.terminals.each { |sym| sym.useless = false }
-      @symboltable.each_nonterminal { |sym| sym.useless = true }
+      @symboltable.nonterminals.each { |sym| sym.useless = true }
 
       @symboltable.error.useless = false
       @symboltable.dummy.useless = false
@@ -797,10 +796,6 @@ module Racc
 
     def nonterminals
       @nterms
-    end
-
-    def each_nonterminal(&block)
-      @nterms.each(&block)
     end
 
     def fix
