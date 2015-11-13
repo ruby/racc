@@ -556,18 +556,10 @@ module Racc
     end
 
     def check_useless
-      used = []
+      @symboltable.nonterminals.each { |nt| nt.useless = true }
       @actions.each_reduce do |act|
-        if act.refn == 0
-          act.rule.useless = true
-        else
-          t = act.rule.target
-          used[t.ident] = t
-        end
-      end
-      @symboltable.nt_base.upto(@symboltable.nt_max - 1) do |n|
-        unless used[n]
-          @symboltable[n].useless = true
+        if act.refn > 0
+          act.rule.target.useless = false
         end
       end
     end
