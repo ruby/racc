@@ -844,9 +844,7 @@ module Racc
     private
 
     def fix_ident
-      @symbols.each_with_index do |t, i|
-        t.ident = i
-      end
+      @symbols.each_with_index(&:ident=)
     end
 
     def check_terminals
