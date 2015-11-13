@@ -222,5 +222,13 @@ module Racc
       assert_debugfile 'edtf.y', [0, 0, 0, 0, 0]
       assert_output 'edtf.y'
     end
+
+    # .y file from namae gem
+
+    def test_namae
+      assert_compile 'namae.y'
+      assert_debugfile 'namae.y', [0, 0, 0, 0, 0]
+      assert_output 'namae.y'
+    end
   end
 end
