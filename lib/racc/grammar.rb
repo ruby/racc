@@ -882,7 +882,6 @@ module Racc
       @dummyp = dummyp
 
       @term  = nil
-      @nterm = nil
       @should_terminal = false
       @precedence = nil
       case value
@@ -941,13 +940,12 @@ module Racc
     end
 
     def nonterminal?
-      @nterm
+      !@term
     end
 
     def term=(t)
       raise 'racc: fatal: term= called twice' unless @term.nil?
       @term = t
-      @nterm = !t
     end
 
     def should_terminal
