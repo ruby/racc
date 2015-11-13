@@ -151,5 +151,19 @@ module Racc
         assert_compile 'unterm.y'
       }
     end
+
+    # .y files from `parser` gem
+
+    def test_ruby18
+      assert_compile 'ruby18.y'
+      assert_debugfile 'ruby18.y', []
+      assert_exec 'ruby18.y'
+    end
+
+    def test_ruby22
+      assert_compile 'ruby22.y'
+      assert_debugfile 'ruby22.y', []
+      assert_exec 'ruby22.y'
+    end
   end
 end

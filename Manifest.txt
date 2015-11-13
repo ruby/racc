@@ -63,6 +63,7 @@ test/assets/expect.y
 test/assets/firstline.y
 test/assets/ichk.y
 test/assets/intp.y
+test/assets/macruby.y
 test/assets/mailp.y
 test/assets/newsyn.y
 test/assets/noend.y
@@ -75,6 +76,11 @@ test/assets/opt.y
 test/assets/percent.y
 test/assets/recv.y
 test/assets/rrconf.y
+test/assets/ruby18.y
+test/assets/ruby19.y
+test/assets/ruby20.y
+test/assets/ruby21.y
+test/assets/ruby22.y
 test/assets/scan.y
 test/assets/syntax.y
 test/assets/unterm.y
