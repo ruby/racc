@@ -168,33 +168,22 @@ module Racc
     end
 
     def mkmapexp(arr)
-      i = ii = 0
-      as = arr.size
       map = ''
       maxdup = RE_DUP_MAX
-      curr = nil
-      while i < as
-        ii = i + 1
-        if arr[i]
-          ii += 1 while ii < as and arr[ii]
-          curr = '-'
-        else
-          ii += 1 while ii < as and not arr[ii]
-          curr = '.'
-        end
 
-        offset = ii - i
-        if offset == 1
-          map << curr
+      arr.chunk(&:nil?).each do |is_nil, items|
+        char = is_nil ? '.' : '-'
+        if (offset = items.size) == 1
+          map << char
         else
           while offset > maxdup
-            map << "#{curr}{#{maxdup}}"
+            map << "#{char}{#{maxdup}}"
             offset -= maxdup
           end
-          map << "#{curr}{#{offset}}" if offset > 1
+          map << "#{char}{#{offset}}" if offset > 0
         end
-        i = ii
       end
+
       Regexp.compile(map, 'n')
     end
 
