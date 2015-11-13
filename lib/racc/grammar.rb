@@ -547,17 +547,6 @@ module Racc
       @precedence ||= sym
     end
 
-    def prec(sym, &block)
-      @specified_prec = sym
-      if block
-        unless @action.empty?
-          raise CompileError, 'both of rule action block and prec block given'
-        end
-        @action = UserAction.proc(block)
-      end
-      self
-    end
-
     attr_accessor :specified_prec
 
     def useless?
