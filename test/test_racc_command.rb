@@ -190,5 +190,13 @@ module Racc
       assert_debugfile 'opal.y', []
       assert_output 'opal.y'
     end
+
+    # .y file from journey gem
+
+    def test_journey
+      assert_compile 'journey.y'
+      assert_debugfile 'journey.y', []
+      assert_output 'journey.y'
+    end
   end
 end
