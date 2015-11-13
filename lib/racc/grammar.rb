@@ -533,7 +533,6 @@ module Racc
 
       @ident = nil
       @hash = nil
-      @ptrs = nil
       @precedence = nil
       @specified_prec = nil
       @useless = nil
