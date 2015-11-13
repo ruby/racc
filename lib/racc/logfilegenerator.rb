@@ -192,7 +192,7 @@ SRC
       end
 
       out.print "\n**Terminals, with rules where they appear\n\n"
-      @grammar.each_terminal do |t|
+      @grammar.symboltable.terminals.each do |t|
         out.printf "  %s (%d) %s\n",
                    t.to_s, t.ident, symbol_locations(t.locate).join(' ')
       end
