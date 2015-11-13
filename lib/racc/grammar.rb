@@ -49,8 +49,6 @@ module Racc
 
     extend Forwardable
 
-    def_delegator "@symboltable", :each, :each_symbol
-
     def intern(value, dummy = false)
       @symboltable.intern(value, dummy)
     end
