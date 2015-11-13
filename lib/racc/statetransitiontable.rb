@@ -229,9 +229,16 @@ module Racc
       map = '-' * 10240
 
       # sort long to short
-      entries.sort! {|a,b| b[0].size <=> a[0].size }
+      # we want a stable sort, so that the output will not be dependent on
+      # the sorting algorithm used by the underlying Ruby implementation
+      entries.each_with_index.map { |a, i| a.unshift(i) }
+      entries.sort! do |a, b|
+        comp = (b[1].size <=> a[1].size)
+        comp = (a[0] <=> b[0]) if comp == 0
+        comp
+      end
 
-      entries.each do |arr, chkval, expr, min, ptri|
+      entries.each do |_, arr, chkval, expr, min, ptri|
         if upper + arr.size > map.size
           map << '-' * (arr.size + 1024)
         end
