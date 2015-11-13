@@ -214,12 +214,12 @@ end
 
 def log_conflict(states)
   logging('w') {|f|
-    f.puts "ex#{states.grammar.n_expected_srconflicts}"
+    f.puts "expected s/r conflicts:#{states.grammar.n_expected_srconflicts}"
     if states.should_report_srconflict?
-      f.puts "sr#{states.n_srconflicts}"
+      f.puts "s/r conflicts:#{states.n_srconflicts}"
     end
     if states.rrconflict_exist?
-      f.puts "rr#{states.n_rrconflicts}"
+      f.puts "r/r conflicts:#{states.n_rrconflicts}"
     end
   }
 end
@@ -239,10 +239,10 @@ end
 def log_useless(grammar)
   logging('a') {|f|
     if grammar.useless_nonterminal_exist?
-      f.puts "un#{grammar.n_useless_nonterminals}"
+      f.puts "useless nts:#{grammar.n_useless_nonterminals}"
     end
     if grammar.useless_rule_exist?
-      f.puts "ur#{grammar.n_useless_rules}"
+      f.puts "useless rules:#{grammar.n_useless_rules}"
     end
   }
 end

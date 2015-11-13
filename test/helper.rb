@@ -52,13 +52,18 @@ module Racc
         File.foreach("log/#{file}.y") do |line|
           line.strip!
           case line
-          when /sr/ then assert_equal "sr#{ok[0]}", line
-          when /rr/ then assert_equal "rr#{ok[1]}", line
-          when /un/ then assert_equal "un#{ok[2]}", line
-          when /ur/ then assert_equal "ur#{ok[3]}", line
-          when /ex/ then assert_equal "ex#{ok[4]}", line
+          when %r{\As/r conflicts}
+            assert_equal "s/r conflicts:#{ok[0]}", line
+          when %r{\Ar/r conflicts}
+            assert_equal "r/r conflicts:#{ok[1]}", line
+          when /\Auseless nts/
+            assert_equal "useless nts:#{ok[2]}", line
+          when /\Auseless rules/
+            assert_equal "useless rules:#{ok[3]}", line
+          when %r{\Aexpected s/r conflicts}
+            assert_equal "expected s/r conflicts:#{ok[4]}", line
           else
-            raise TestFailed, 'racc outputs unknown debug report???'
+            raise "racc output unknown debug report! bad line: #{line}"
           end
         end
       end
