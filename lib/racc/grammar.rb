@@ -35,11 +35,9 @@ module Racc
       @rules[x]
     end
 
-    def each_rule(&block)
+    def each(&block)
       @rules.each(&block)
     end
-
-    alias each each_rule
 
     def each_index(&block)
       @rules.each_index(&block)
