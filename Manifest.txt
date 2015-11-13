@@ -58,6 +58,7 @@ tasks/doc.rb
 tasks/email.rb
 test/assets/chk.y
 test/assets/conf.y
+test/assets/csspool.y
 test/assets/digraph.y
 test/assets/echk.y
 test/assets/err.y
@@ -92,6 +93,7 @@ test/assets/yyerr.y
 test/bench.y
 test/helper.rb
 test/infini.y
+test/regress/csspool
 test/regress/ruby18
 test/regress/ruby22
 test/scandata/brace
