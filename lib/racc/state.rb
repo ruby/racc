@@ -771,9 +771,7 @@ module Racc
     end
 
     def init
-      @grammar.each do |rule|
-        @reduce.push Reduce.new(rule)
-      end
+      @reduce.concat(@grammar.map { |rule| Reduce.new(rule) })
       @statetable.each do |state|
         @shift.push Shift.new(state)
       end

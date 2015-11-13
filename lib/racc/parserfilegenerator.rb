@@ -350,10 +350,8 @@ module Racc
     end
 
     def actions
-      @grammar.each do |rule|
-        unless rule.action.source?
-          raise "racc: fatal: cannot generate parser file when any action is a Proc"
-        end
+      if @grammar.any? { |rule| !rule.action.source? }
+        raise "racc: fatal: cannot generate parser file when any action is a Proc"
       end
 
       if @params.result_var?

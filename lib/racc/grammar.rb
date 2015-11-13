@@ -12,8 +12,8 @@ require 'forwardable'
 require 'set'
 
 module Racc
-
   class Grammar
+    include Enumerable
 
     def initialize(debug_flags = DebugFlags.new)
       @symboltable = SymbolTable.new
@@ -37,14 +37,6 @@ module Racc
 
     def each(&block)
       @rules.each(&block)
-    end
-
-    def each_index(&block)
-      @rules.each_index(&block)
-    end
-
-    def each_with_index(&block)
-      @rules.each_with_index(&block)
     end
 
     def size
@@ -205,10 +197,8 @@ module Racc
 
       def grammar
         flush_delayed
-        @grammar.each do |rule|
-          if rule.specified_prec
-            rule.specified_prec = @grammar.intern(rule.specified_prec)
-          end
+        @grammar.select(&:specified_prec).each do |rule|
+          rule.specified_prec = @grammar.intern(rule.specified_prec)
         end
         @grammar.init
         @grammar

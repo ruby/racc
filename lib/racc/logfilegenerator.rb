@@ -41,22 +41,16 @@ module Racc
     end
 
     def output_useless(out)
-      @grammar.each do |rl|
-        if rl.useless?
-          out.printf "rule %d (%s) never reduced\n",
-                     rl.ident, rl.target.to_s
-        end
+      @grammar.select(&:useless?).each do |rl|
+        out.printf "rule %d (%s) never reduced\n",
+                   rl.ident, rl.target.to_s
       end
-      @grammar.symboltable.nonterminals.each do |t|
-        if t.useless?
-          out.printf "useless nonterminal %s\n", t.to_s
-        end
+      @grammar.symboltable.nonterminals.select(&:useless?).each do |t|
+        out.printf "useless nonterminal %s\n", t.to_s
       end
     end
 
-    #
     # States
-    #
 
     def output_state(out)
       out << "--------- State ---------\n"
