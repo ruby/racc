@@ -31,7 +31,6 @@ lib/racc/sourcetext.rb
 lib/racc/state.rb
 lib/racc/statetransitiontable.rb
 lib/racc/static.rb
-misc/dist.sh
 rdoc/en/NEWS.en.rdoc
 rdoc/en/grammar.en.rdoc
 rdoc/ja/NEWS.ja.rdoc
