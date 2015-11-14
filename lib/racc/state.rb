@@ -98,7 +98,7 @@ module Racc
     private
 
     def compute_nfa
-      @grammar.init
+      @grammar.finished!
       # add state 0
       core_to_state  Set[@grammar[0].ptrs[0]]
       # generate LALR states

@@ -184,7 +184,7 @@ module Racc
 
       def grammar
         flush_delayed
-        @grammar.init
+        @grammar.finished!
         @grammar
       end
 
@@ -352,7 +352,7 @@ module Racc
 
     # Computation
 
-    def init
+    def finished!
       return if @closed
       @closed = true
 

@@ -161,7 +161,7 @@ module Racc
 
       parse_user_code
 
-      @result.grammar.init
+      @result.grammar.finished!
       @result
     end
 
