@@ -357,13 +357,14 @@ module Racc
     def init
       return if @closed
       @closed = true
+
       # if 'start' nonterminal was not explicitly set, just take the first one
       @start ||= @rules.map(&:target).detect { |sym| !sym.dummy? }
       fail CompileError, 'no rule in input' if @rules.empty?
       add_start_rule
       @rules.freeze
+
       fix_ident
-      @symboltable.fix
       compute_expand
       compute_nullable
       compute_useless
@@ -382,6 +383,7 @@ module Racc
     def fix_ident
       @rules.each_with_index(&:ident=)
       @rules.flat_map(&:ptrs).each_with_index(&:ident=)
+      @symboltable.fix_ident
     end
 
     # Sym#expand (non-terminals only)
@@ -473,9 +475,11 @@ module Racc
       @target.heads << @ptrs[0] if @target
     end
 
+    attr_accessor :ident
     attr_reader :symbols
     attr_reader :action
     attr_reader :target
+    attr_reader :ptrs
 
     def target=(target)
       raise 'target already set' if @target
@@ -497,9 +501,6 @@ module Racc
       @alternatives.each(&block)
     end
 
-    attr_accessor :ident
-    attr_reader :ptrs
-
     def precedence
       @precedence || @symbols.select(&:terminal?).last
     end
@@ -520,6 +521,14 @@ module Racc
       "#<Racc::Rule id=#{@ident} (#{@target})>"
     end
 
+    def to_s
+      "#<rule#{@ident}>"
+    end
+
+    def each(&block)
+      @symbols.each(&block)
+    end
+
     def [](idx)
       @symbols[idx]
     end
@@ -528,17 +537,9 @@ module Racc
       @symbols.size
     end
 
-    def to_s
-      "#<rule#{@ident}>"
-    end
-
     # is this the 'end' rule which is applied last in a successful parse?
     def accept?
       @symbols.last && @symbols.last.anchor?
-    end
-
-    def each(&block)
-      @symbols.each(&block)
     end
 
     # sometimes a Rule is instantiated before the target is actually known
@@ -707,7 +708,7 @@ module Racc
       @symbols.each(&block)
     end
 
-    def fix
+    def fix_ident
       @terminals, @nonterminals = @symbols.partition(&:terminal?)
       @symbols = @terminals + @nonterminals
       # number Syms so terminals have the lower numbers
