@@ -579,7 +579,6 @@ module Racc
     end
 
     attr_reader :ident
-    alias hash ident
 
     attr_reader :core
     attr_reader :closure
