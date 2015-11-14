@@ -58,20 +58,12 @@ module Racc
       @symboltable.nt_base
     end
 
-    def useless_nonterminal_exist?
-      n_useless_nonterminals() != 0
+    def useless_nonterminals
+      @symboltable.nonterminals.select(&:useless?)
     end
 
-    def n_useless_nonterminals
-      @n_useless_nonterminals ||= @symboltable.nonterminals.count(&:useless?)
-    end
-
-    def useless_rule_exist?
-      n_useless_rules() != 0
-    end
-
-    def n_useless_rules
-      @n_useless_rules ||= @rules.count(&:useless?)
+    def useless_rules
+      @rules.select(&:useless?)
     end
 
     def n_expected_srconflicts=(value)
@@ -111,20 +103,20 @@ module Racc
           report["#{states.n_rrconflicts} reduce/reduce conflicts"]
         end
         g = states.grammar
-        if g.useless_nonterminal_exist?
-          report["#{g.n_useless_nonterminals} useless nonterminals"]
+        if g.useless_nonterminals.any?
+          report["#{g.useless_nonterminals.size} useless nonterminals"]
         end
-        if g.useless_rule_exist?
-          report["#{g.n_useless_rules} useless rules"]
+        if g.useless_rules.any?
+          report["#{g.useless_rules.size} useless rules"]
         end
       end
       states.state_transition_table.parser_class
     end
 
     def write_log(path)
-      File.open(path, 'w') {|f|
-        LogFileGenerator.new(states()).output f
-      }
+      File.open(path, 'w') do |f|
+        LogFileGenerator.new(states()).output(f)
+      end
     end
 
     #

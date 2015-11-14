@@ -225,11 +225,11 @@ def log_conflict(states)
 end
 
 def report_useless(grammar)
-  if grammar.useless_nonterminal_exist?
-    $stderr.puts "#{grammar.n_useless_nonterminals} useless nonterminals"
+  if grammar.useless_nonterminals.any?
+    $stderr.puts "#{grammar.useless_nonterminals.size} useless nonterminals"
   end
-  if grammar.useless_rule_exist?
-    $stderr.puts "#{grammar.n_useless_rules} useless rules"
+  if grammar.useless_rules.any?
+    $stderr.puts "#{grammar.useless_rules.size} useless rules"
   end
   if grammar.start.useless?
     $stderr.puts 'fatal: start symbol does not derive any sentence'
@@ -238,11 +238,11 @@ end
 
 def log_useless(grammar)
   logging('a') {|f|
-    if grammar.useless_nonterminal_exist?
-      f.puts "useless nts:#{grammar.n_useless_nonterminals}"
+    if grammar.useless_nonterminals.any?
+      f.puts "useless nts:#{grammar.useless_nonterminals.size}"
     end
-    if grammar.useless_rule_exist?
-      f.puts "useless rules:#{grammar.n_useless_rules}"
+    if grammar.useless_rules.any?
+      f.puts "useless rules:#{grammar.useless_rules.size}"
     end
   }
 end
