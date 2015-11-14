@@ -562,7 +562,6 @@ module Racc
 
   # A LALR state.
   class State
-
     def initialize(ident, core)
       @ident = ident
       @core = core
@@ -601,12 +600,6 @@ module Racc
     end
 
     alias to_s inspect
-
-    def ==(oth)
-      @ident == oth.ident
-    end
-
-    alias eql? ==
 
     def make_closure(core)
       set = Set.new
