@@ -123,8 +123,7 @@ module Racc
     raise 'Racc boot script fatal: R/R conflict in build'
   end
 
-  class GrammarFileParser   # reopen
-
+  class GrammarFileParser # reopen
     class Result
       def initialize(grammar, filename)
         @grammar = grammar
@@ -249,24 +248,19 @@ module Racc
       end
     end
 
-    USER_CODE_LABELS = {
-      'header'  => :header,
-      'inner'   => :inner,
-      'footer'  => :footer,
-    }
+    USER_CODE_LABELS = %w(header inner footer)
 
     def canonical_label(src)
       label = src.to_s.strip.downcase.slice(/\w+/)
-      unless USER_CODE_LABELS.key?(label)
+      unless USER_CODE_LABELS.include?(label)
         raise CompileError, "unknown user code type: #{label.inspect}"
       end
       label
     end
 
     def add_user_code(label, src)
-      @result.params.send(USER_CODE_LABELS[label]).push src
+      @result.params.send(label.to_sym).push(src)
     end
-
   end
 
 
