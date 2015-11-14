@@ -654,11 +654,6 @@ module Racc
       if i = @la_rules.index(rule.ident)
         @la_rules_i + i
       else
-        puts '/// rruleid'
-        p self
-        p rule
-        p @rrules
-        p @la_rules_i
         raise 'racc: fatal: cannot get reduce rule id'
       end
     end
