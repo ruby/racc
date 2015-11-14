@@ -136,20 +136,16 @@ module Racc
       end
     end
 
-    def outsrconf(f, confs)
-      confs.each do |c|
-        r = c.reduce
-        f.printf "  %-12s  [reduce using rule %d (%s)]\n",
-                 c.shift.to_s, r.ident, r.target.to_s
-      end
+    def outsrconf(f, conf)
+      r = conf.reduce
+      f.printf("  %-12s  [reduce using rule %d (%s)]\n",
+               conf.shift.to_s, r.ident, r.target.to_s)
     end
 
-    def outrrconf(f, confs)
-      confs.each do |c|
-        r = c.low_prec
-        f.printf "  %-12s  [reduce using rule %d (%s)]\n",
-                 c.token.to_s, r.ident, r.target.to_s
-      end
+    def outrrconf(f, conf)
+      r = conf.low_prec
+      f.printf("  %-12s  [reduce using rule %d (%s)]\n",
+               conf.token.to_s, r.ident, r.target.to_s)
     end
 
     #
