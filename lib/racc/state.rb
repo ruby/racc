@@ -46,10 +46,6 @@ module Racc
       @states[i]
     end
 
-    def each_index(&block)
-      @states.each_index(&block)
-    end
-
     extend Forwardable
 
     def_delegator "@states",  :each
