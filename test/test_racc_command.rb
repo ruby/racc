@@ -237,5 +237,13 @@ module Racc
       assert_debugfile 'nasl.y', [0, 0, 0, 0, 1]
       assert_output 'nasl.y'
     end
+
+    # .y file from riml gem
+
+    def test_riml
+      assert_compile 'riml.y'
+      assert_debugfile 'riml.y', [289, 0, 0, 0]
+      assert_output 'riml.y'
+    end
   end
 end
