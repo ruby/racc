@@ -198,27 +198,36 @@ module Racc
         unless args.size == 1
           raise ArgumentError, "too many arguments for #{mid} (#{args.size} for 1)"
         end
-        _add target, args.first
+        _add(target, args.first)
       end
 
-      def _add(target, x)
-        case x
+      # We just received a call to `self.nonterminal = definition`
+      # But when we were executing that "definition", we didn't know what the
+      # nonterminal on the LHS would be
+      # Depending on the DSL method(s) which were used in the "definition",
+      # `rhs` may be:
+      # - A "placeholder" target symbol, which should be replaced with the
+      #   "real" target in all the rules which the definition created
+      # - A `Rule`, whose target we didn't know at the time of definition.
+      #   Its target will be `nil` right now; fix that up.
+      def _add(target, rhs)
+        case rhs
         when Sym
           @delayed.each do |rule|
-            rule.replace x, target if rule.target == x
+            rule.replace(rhs, target) if rule.target == rhs
           end
-          @grammar.symboltable.delete x
+          @grammar.symboltable.delete(rhs)
         else
-          x.each_rule do |r|
-            r.target = target
-            @grammar.add r
+          rhs.each_rule do |rule|
+            rule.target = target
+            @grammar.add(rule)
           end
         end
         flush_delayed
       end
 
       def _delayed_add(rule)
-        @delayed.push rule
+        @delayed.push(rule)
       end
 
       def _added?(sym)
