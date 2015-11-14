@@ -8,7 +8,6 @@
 require 'racc/sourcetext'
 require 'racc/logfilegenerator'
 require 'racc/exception'
-require 'forwardable'
 require 'set'
 
 module Racc
@@ -46,8 +45,6 @@ module Racc
     def to_s
       "<Racc::Grammar>"
     end
-
-    extend Forwardable
 
     def intern(value, dummy = false)
       @symboltable.intern(value, dummy)
