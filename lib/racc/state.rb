@@ -63,7 +63,7 @@ module Racc
     end
 
     def n_srconflicts
-      @n_srconflicts ||= inject(0) {|sum, st| sum + st.n_srconflicts }
+      map(&:n_srconflicts).reduce(0, &:+)
     end
 
     def rrconflict_exist?
@@ -71,7 +71,7 @@ module Racc
     end
 
     def n_rrconflicts
-      @n_rrconflicts ||= inject(0) {|sum, st| sum + st.n_rrconflicts }
+      map(&:n_rrconflicts).reduce(0, &:+)
     end
 
     def state_transition_table
