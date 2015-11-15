@@ -27,6 +27,7 @@ module Racc
       @actions = ActionTable.new(@grammar, self)
       @nfa_computed = false
       @dfa_computed = false
+      @gotos = []
     end
 
     attr_reader :grammar
@@ -81,12 +82,9 @@ module Racc
 
     def compute_nfa
       # add state 0
-      core_to_state  Set[@grammar[0].ptrs[0]]
+      core_to_state(Set[@grammar[0].ptrs[0]])
       # generate LALR states
-      @gotos = []
-      @states.each do |state|
-        generate_states(state)
-      end
+      @states.each { |state| generate_states(state) }
       @actions.init
     end
 
