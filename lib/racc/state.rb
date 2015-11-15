@@ -733,7 +733,6 @@ module Racc
   # The table of LALR actions. Actions are either
   # Shift, Reduce, Accept, or Error.
   class ActionTable
-
     def initialize(rt, st)
       @grammar = rt
       @statetable = st
@@ -787,10 +786,6 @@ module Racc
       end
 
       @shift[i] or raise "racc: fatal: shift action #{i} does not exist"
-    end
-
-    def each_shift(&block)
-      @shift.each(&block)
     end
 
     attr_reader :accept
