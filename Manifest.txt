@@ -83,6 +83,7 @@ test/assets/nullbug2.y
 test/assets/opal.y
 test/assets/opt.y
 test/assets/percent.y
+test/assets/php_serialization.y
 test/assets/recv.y
 test/assets/riml.y
 test/assets/rrconf.y
@@ -108,6 +109,7 @@ test/regress/namae
 test/regress/nasl
 test/regress/nokogiri-css
 test/regress/opal
+test/regress/php_serialization
 test/regress/riml
 test/regress/ruby18
 test/regress/ruby22

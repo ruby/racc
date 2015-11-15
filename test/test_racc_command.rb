@@ -245,5 +245,13 @@ module Racc
       assert_debugfile 'riml.y', [289, 0, 0, 0]
       assert_output 'riml.y'
     end
+
+    # .y file from ruby-php-serialization gem
+
+    def test_php_serialization
+      assert_compile 'php_serialization.y'
+      assert_debugfile 'php_serialization.y', [0, 0, 0, 0]
+      assert_output 'php_serialization.y'
+    end
   end
 end
