@@ -180,7 +180,6 @@ module Racc
       @states.each do |state|
         pack state
       end
-      check_useless
     end
 
     def lookahead
@@ -547,15 +546,6 @@ module Racc
         end
       else
         state.defact ||= @actions.error
-      end
-    end
-
-    def check_useless
-      @symboltable.nonterminals.each { |nt| nt.useless = true }
-      @actions.each_reduce do |act|
-        if act.refn > 0
-          act.rule.target.useless = false
-        end
       end
     end
   end
