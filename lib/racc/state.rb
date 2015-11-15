@@ -421,7 +421,7 @@ module Racc
             end
             # Cannot resolve R/R conflict (on t).
             # Reduce with upper rule as default.
-            state.rr_conflict act.rule, item.rule, t
+            state.rr_conflict!(act.rule, item.rule, t)
           else
             # No conflict.
             state.action[t] = @actions.reduce(item.rule)
@@ -466,7 +466,7 @@ module Racc
           when :CantResolve
             # shift as default
             state.action[stok] = @actions.shift(goto)
-            state.sr_conflict stok, act.rule
+            state.sr_conflict!(stok, act.rule)
           end
         end
       end
@@ -650,11 +650,11 @@ module Racc
       end
     end
 
-    def rr_conflict(high, low, ctok)
+    def rr_conflict!(high, low, ctok)
       @rrconf[ctok] = RRConflict.new(@ident, high, low, ctok)
     end
 
-    def sr_conflict(shift, reduce)
+    def sr_conflict!(shift, reduce)
       @srconf[shift] = SRConflict.new(@ident, shift, reduce)
     end
 
