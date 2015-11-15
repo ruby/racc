@@ -855,40 +855,17 @@ module Racc
     end
   end
 
-  class SRConflict
-    def initialize(sid, shift, reduce)
-      @stateid = sid
-      @shift   = shift
-      @reduce  = reduce
-    end
-
-    attr_reader :stateid
-    attr_reader :shift
-    attr_reader :reduce
-
+  class SRConflict < Struct.new(:stateid, :shift, :reduce)
     def to_s
       sprintf('state %d: S/R conflict rule %d reduce and shift %s',
-              @stateid, @reduce.ruleid, @shift.to_s)
+              stateid, reduce.ruleid, shift.to_s)
     end
   end
 
-  class RRConflict
-    def initialize(sid, high, low, tok)
-      @stateid   = sid
-      @high_prec = high
-      @low_prec  = low
-      @token     = tok
-    end
-
-    attr_reader :stateid
-    attr_reader :high_prec
-    attr_reader :low_prec
-    attr_reader :token
-
+  class RRConflict < Struct.new(:stateid, :high_prec, :low_prec, :token)
     def to_s
       sprintf('state %d: R/R conflict with rule %d and %d on %s',
-              @stateid, @high_prec.ident, @low_prec.ident, @token.to_s)
+              stateid, high_prec.ident, low_prec.ident, token.to_s)
     end
   end
-
 end
