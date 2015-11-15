@@ -47,7 +47,6 @@ module Racc
     def_delegator "@states",  :each
     def_delegator "@actions", :shift_n
     def_delegator "@actions", :reduce_n
-    def_delegator "@actions", :nt_base
 
     def should_report_srconflict?
       srconflict_exist? and
