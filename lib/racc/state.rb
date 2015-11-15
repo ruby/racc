@@ -572,11 +572,21 @@ module Racc
     alias to_s inspect
 
     def make_closure(core)
+      # Say we know that we are at "A = B . C" right now; in other words,
+      # we know that we are parsing an "A", we have already finished the "B",
+      # and the "C" should be coming next
+      # If "C" is a non-terminal, then that means the RHS of one of the rules
+      # for C should come next (but we don't know which one)
+      # So we could possibly be beginning ANY of the rules for C here
+      # But if one of the rules for C itself starts with non-terminal "D"...
+      # well, to find all the possible positions where we could be in each
+      # rule, we have to recurse down into all the rules for D (and so on)
+      # This recursion has already been done and the result cached in Sym#expand
       set = Set.new
       core.each do |ptr|
         set.add(ptr)
-        if t = ptr.symbol and t.nonterminal?
-          t.expand.each { |i| set.add(i) }
+        if sym = ptr.symbol and sym.nonterminal?
+          set.merge(sym.expand)
         end
       end
       set.sort_by(&:ident)
