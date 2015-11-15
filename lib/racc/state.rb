@@ -795,26 +795,17 @@ module Racc
 
     attr_reader :accept
     attr_reader :error
-
   end
 
-
-  class Shift
-    def initialize(goto)
-      @goto_state = goto
-    end
-
-    attr_reader :goto_state
-
+  class Shift < Struct.new(:goto_state)
     def goto_id
-      @goto_state.ident
+      goto_state.ident
     end
 
     def inspect
-      "<shift #{@goto_state.ident}>"
+      "<shift #{goto_state.ident}>"
     end
   end
-
 
   class Reduce
     def initialize(rule)
