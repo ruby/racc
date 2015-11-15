@@ -255,19 +255,13 @@ class RaccProfiler
   def initialize(really)
     @really = really
     @log = []
-    unless ::Process.respond_to?(:times)
-      # Ruby 1.6
-      @class = ::Time
-    else
-      @class = ::Process
-    end
   end
 
   def section(name)
     if @really
-      t1 = @class.times.utime
+      t1 = Process.times.utime
       result = yield
-      t2 = @class.times.utime
+      t2 = Process.times.utime
       @log.push [name, t2 - t1]
       result
     else
