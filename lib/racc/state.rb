@@ -210,7 +210,7 @@ module Racc
       ### compute_FOLLOWS
       path = nil
       edge = []
-      lookback = Array.new(la_rules.size, nil)
+      lookback = Hash.new { |h, k| h[k] = [] }
       includes = []
       gotos.each do |goto|
         goto.symbol.heads.each do |ptr|
@@ -218,7 +218,7 @@ module Racc
           lastgoto = path.last
           st = lastgoto ? lastgoto.to_state : goto.from_state
           if st.conflict?
-            addrel lookback, st.rruleid(ptr.rule), goto
+            lookback[st.rruleid(ptr.rule)] << goto
           end
           path.reverse_each do |g|
             break if     g.symbol.terminal?
@@ -242,11 +242,9 @@ module Racc
 
       ### compute_lookaheads
       la = create_bitmap(la_rules.size)
-      lookback.each_with_index do |arr, i|
-        if arr
-          arr.each do |g|
-            la[i] |= f[g.ident]
-          end
+      lookback.each_pair do |i, arr|
+        arr.each do |g|
+          la[i] |= f[g.ident]
         end
       end
       if @d_la
