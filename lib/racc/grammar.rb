@@ -93,10 +93,10 @@ module Racc
         end
         report = lambda {|s| $stderr.puts "racc: #{srcfilename}: #{s}" }
         if states.should_report_srconflict?
-          report["#{states.n_srconflicts} shift/reduce conflicts"]
+          report["#{states.sr_conflicts.size} shift/reduce conflicts"]
         end
-        if states.rrconflict_exist?
-          report["#{states.n_rrconflicts} reduce/reduce conflicts"]
+        if states.rr_conflicts.any?
+          report["#{states.rr_conflicts.size} reduce/reduce conflicts"]
         end
         g = states.grammar
         if g.useless_nonterminals.any?

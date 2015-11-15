@@ -205,10 +205,10 @@ end
 
 def report_conflict(states)
   if states.should_report_srconflict?
-    $stderr.puts "#{states.n_srconflicts} shift/reduce conflicts"
+    $stderr.puts "#{states.sr_conflicts.size} shift/reduce conflicts"
   end
-  if states.rrconflict_exist?
-    $stderr.puts "#{states.n_rrconflicts} reduce/reduce conflicts"
+  if states.rr_conflicts.any?
+    $stderr.puts "#{states.rr_conflicts.size} reduce/reduce conflicts"
   end
 end
 
@@ -216,10 +216,10 @@ def log_conflict(states)
   logging('w') {|f|
     f.puts "expected s/r conflicts:#{states.grammar.n_expected_srconflicts}"
     if states.should_report_srconflict?
-      f.puts "s/r conflicts:#{states.n_srconflicts}"
+      f.puts "s/r conflicts:#{states.sr_conflicts.size}"
     end
-    if states.rrconflict_exist?
-      f.puts "r/r conflicts:#{states.n_rrconflicts}"
+    if states.rr_conflicts.any?
+      f.puts "r/r conflicts:#{states.rr_conflicts.size}"
     end
   }
 end

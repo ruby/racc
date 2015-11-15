@@ -49,24 +49,15 @@ module Racc
     def_delegator "@actions", :reduce_n
 
     def should_report_srconflict?
-      srconflict_exist? and
-          (n_srconflicts() != @grammar.n_expected_srconflicts)
+      sr_conflicts.any? && (sr_conflicts.size != @grammar.n_expected_srconflicts)
     end
 
-    def srconflict_exist?
-      n_srconflicts() != 0
+    def sr_conflicts
+      flat_map { |state| state.sr_conflicts.values }
     end
 
-    def n_srconflicts
-      map(&:n_srconflicts).reduce(0, &:+)
-    end
-
-    def rrconflict_exist?
-      n_rrconflicts() != 0
-    end
-
-    def n_rrconflicts
-      map(&:n_rrconflicts).reduce(0, &:+)
+    def rr_conflicts
+      flat_map { |state| state.rr_conflicts.values }
     end
 
     def state_transition_table
@@ -553,8 +544,8 @@ module Racc
       @ritems = nil
       @action = {}
       @defact = nil
-      @rrconf = {}
-      @srconf = {}
+      @rr_conflicts = {}
+      @sr_conflicts = {}
 
       @closure = make_closure(@core)
     end
@@ -574,8 +565,8 @@ module Racc
     attr_reader :action
     attr_accessor :defact   # default action
 
-    attr_reader :rrconf
-    attr_reader :srconf
+    attr_reader :rr_conflicts
+    attr_reader :sr_conflicts
 
     def inspect
       "<state #{@ident}>"
@@ -651,19 +642,11 @@ module Racc
     end
 
     def rr_conflict!(high, low, ctok)
-      @rrconf[ctok] = RRConflict.new(@ident, high, low, ctok)
+      @rr_conflicts[ctok] = RRConflict.new(@ident, high, low, ctok)
     end
 
     def sr_conflict!(shift, reduce)
-      @srconf[shift] = SRConflict.new(@ident, shift, reduce)
-    end
-
-    def n_srconflicts
-      @srconf.size
-    end
-
-    def n_rrconflicts
-      @rrconf.size
+      @sr_conflicts[shift] = SRConflict.new(@ident, shift, reduce)
     end
   end
 

@@ -27,13 +27,13 @@ module Racc
 
     def output_conflict(out)
       @states.each do |state|
-        if state.srconf.any?
+        if state.sr_conflicts.any?
           out.printf "state %d contains %d shift/reduce conflicts\n",
-                     state.ident, state.srconf.size
+                     state.ident, state.sr_conflicts.size
         end
-        if state.rrconf.any?
+        if state.rr_conflicts.any?
           out.printf "state %d contains %d reduce/reduce conflicts\n",
-                     state.ident, state.rrconf.size
+                     state.ident, state.rr_conflicts.size
         end
       end
     end
@@ -73,8 +73,8 @@ module Racc
     end
 
     def action_out(f, state)
-      sr = state.srconf
-      rr = state.rrconf
+      sr = state.sr_conflicts
+      rr = state.rr_conflicts
       tokens = state.action.keys.sort_by(&:ident)
 
       [Shift, Reduce, Error, Accept].each do |klass|
