@@ -73,42 +73,32 @@ module Racc
     end
 
     def action_out(f, state)
-      sr = state.srconf && state.srconf.dup
-      rr = state.rrconf && state.rrconf.dup
-      acts = state.action
-      keys = acts.keys
-      keys.sort! {|a,b| a.ident <=> b.ident }
+      sr = state.srconf
+      rr = state.rrconf
+      tokens = state.action.keys.sort_by(&:ident)
 
-      [ Shift, Reduce, Error, Accept ].each do |klass|
-        keys.delete_if do |tok|
-          act = acts[tok]
+      [Shift, Reduce, Error, Accept].each do |klass|
+        tokens.each do |tok|
+          act = state.action[tok]
           if act.kind_of?(klass)
-            outact f, tok, act
-            if sr and c = sr.delete(tok)
-              outsrconf f, c
-            end
-            if rr and c = rr.delete(tok)
-              outrrconf f, c
-            end
-
-            true
-          else
-            false
+            outact(f, tok, act)
+            outsrconf(f, sr[tok]) if sr.key?(tok)
+            outrrconf(f, rr[tok]) if rr.key?(tok)
           end
         end
       end
-      sr.each {|tok, c| outsrconf f, c } if sr
-      rr.each {|tok, c| outrrconf f, c } if rr
 
-      act = state.defact
-      if not act.kind_of?(Error) or @debug_flags.any?
-        outact f, '$default', act
+      sr.each { |tok, c| outsrconf(f, c) if state.action[tok].nil? }
+      rr.each { |tok, c| outrrconf(f, c) if state.action[tok].nil? }
+
+      if !state.defact.kind_of?(Error) || @debug_flags.any?
+        outact(f, '$default', state.defact)
       end
 
       f.puts
-      state.goto_table.each do |t, st|
-        if t.nonterminal?
-          f.printf "  %-12s  go to state %d\n", t.to_s, st.ident
+      state.goto_table.each do |tok, next_state|
+        if tok.nonterminal?
+          f.printf("  %-12s  go to state %d\n", tok.to_s, next_state.ident)
         end
       end
     end
