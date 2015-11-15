@@ -97,9 +97,8 @@ module Racc
         if states.rr_conflicts.any?
           report["#{states.rr_conflicts.size} reduce/reduce conflicts"]
         end
-        g = states.grammar
-        if g.useless_nonterminals.any?
-          report["#{g.useless_nonterminals.size} useless nonterminals"]
+        if useless_nonterminals.any?
+          report["#{useless_nonterminals.size} useless nonterminals"]
         end
       end
       states.state_transition_table.parser_class
