@@ -533,7 +533,7 @@ module Racc
       act = state.action
       arr = Array.new(@grammar.size, 0)
       act.each do |t, a|
-        arr[a.ruleid] += 1  if a.kind_of?(Reduce)
+        arr[a.rule_id] += 1  if a.kind_of?(Reduce)
       end
       i = arr.max
       s = (i > 0) ? arr.index(i) : nil
@@ -825,7 +825,7 @@ module Racc
     attr_reader :rule
     attr_reader :refn
 
-    def ruleid
+    def rule_id
       @rule.ident
     end
 
@@ -858,7 +858,7 @@ module Racc
   class SRConflict < Struct.new(:stateid, :shift, :reduce)
     def to_s
       sprintf('state %d: S/R conflict rule %d reduce and shift %s',
-              stateid, reduce.ruleid, shift.to_s)
+              @stateid, reduce.ruleid, @shift.to_s)
     end
   end
 

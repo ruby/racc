@@ -222,7 +222,7 @@ module Racc
     def act2actid(act)
       case act
       when Shift  then act.goto_id
-      when Reduce then -act.ruleid
+      when Reduce then -act.rule_id
       when Accept then @states.shift_n
       when Error  then @states.reduce_n * -1
       else
