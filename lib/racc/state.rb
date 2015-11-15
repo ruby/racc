@@ -201,7 +201,7 @@ module Racc
       end
 
       ### initialize_F()
-      f     = create_tmap(gotos.size)
+      f     = create_bitmap(gotos.size)
       reads = []
       edge  = []
       gotos.each do |goto|
@@ -260,7 +260,7 @@ module Racc
       end
 
       ### compute_lookaheads
-      la = create_tmap(la_rules.size)
+      la = create_bitmap(la_rules.size)
       lookback.each_with_index do |arr, i|
         if arr
           arr.each do |g|
@@ -276,8 +276,8 @@ module Racc
       la
     end
 
-    def create_tmap(size)
-      Array.new(size, 0)   # use Integer as bitmap
+    def create_bitmap(size)
+      Array.new(size, 0) # use Integer as bitmap
     end
 
     def addrel(tbl, i, item)
