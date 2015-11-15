@@ -42,10 +42,6 @@ module Racc
 
     alias to_s inspect
 
-    def [](i)
-      @states[i]
-    end
-
     extend Forwardable
 
     def_delegator "@states",  :each
