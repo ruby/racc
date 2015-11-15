@@ -530,8 +530,9 @@ module Racc
   # A LALR state.
   class State
     def initialize(ident, core)
-      @ident = ident
-      @core = core
+      @ident = ident # ID number used to provide a canonical ordering
+      @core = core # LocationPointers to all the possible positions within the
+                   # RHS of a rule where we could be when in this state
       @goto_table = {}
       @gotos = {}
       @stokens = nil
