@@ -119,14 +119,14 @@ module Racc
     end
 
     def core_to_state(core)
-      # convert CORE to a State object.
-      # If matching state does not exist, create it and add to the table.
+      # a 'core' is a set of LocationPointers, indicating all the possible
+      # positions within the RHS of a rule where we could be right now
+      # convert core to a State object; if state does not exist, create it
 
       unless dest = @statecache[core]
         # not registered yet
         dest = State.new(@states.size, core)
-        @states.push dest
-
+        @states << dest
         @statecache[core] = dest
 
         puts "core_to_state: create state ID #{dest.ident}" if @d_state
