@@ -463,16 +463,13 @@ module Racc
 
           when :Shift
             # overwrite
-            act.decref
             state.action[stok] = @actions.shift(goto)
 
           when :Error
-            act.decref
             state.action[stok] = @actions.error
 
           when :CantResolve
             # shift as default
-            act.decref
             state.action[stok] = @actions.shift(goto)
             state.sr_conflict stok, act.rule
           end
@@ -749,9 +746,7 @@ module Racc
         raise "racc: fatal: wrong class #{i.class} for reduce"
       end
 
-      r = @reduce[i] or raise "racc: fatal: reduce action #{i.inspect} not exist"
-      r.incref
-      r
+      @reduce[i] or raise "racc: fatal: reduce action #{i.inspect} not exist"
     end
 
     def each_reduce(&block)
@@ -790,11 +785,9 @@ module Racc
   class Reduce
     def initialize(rule)
       @rule = rule
-      @refn = 0
     end
 
     attr_reader :rule
-    attr_reader :refn
 
     def rule_id
       @rule.ident
@@ -802,15 +795,6 @@ module Racc
 
     def inspect
       "<reduce #{@rule.ident}>"
-    end
-
-    def incref
-      @refn += 1
-    end
-
-    def decref
-      @refn -= 1
-      raise 'racc: fatal: act.refn < 0' if @refn < 0
     end
   end
 
