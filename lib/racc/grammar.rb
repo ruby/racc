@@ -70,14 +70,6 @@ module Racc
       @n_expected_srconflicts = value
     end
 
-    def nfa
-      @states.compute_nfa
-    end
-
-    def dfa
-      @states.compute_dfa
-    end
-
     def state_transition_table
       states().state_transition_table
     end
