@@ -23,9 +23,10 @@ module Racc
       @prec_table = []
       @prec_table_closed = false
       @closed = false
-      @states = nil
+      @states = States.new(self)
     end
 
+    attr_reader :states
     attr_reader :start
     attr_reader :symboltable
     attr_reader :n_expected_srconflicts
@@ -70,14 +71,12 @@ module Racc
     end
 
     def nfa
-      (@states ||= States.new(self)).compute_nfa
+      @states.compute_nfa
     end
 
     def dfa
-      (@states ||= States.new(self)).compute_dfa
+      @states.compute_dfa
     end
-
-    alias states dfa
 
     def state_transition_table
       states().state_transition_table

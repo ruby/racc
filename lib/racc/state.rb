@@ -684,13 +684,14 @@ module Racc
       @grammar = grammar
       @statetable = statetable
 
-      @reduce = @grammar.map { |rule| Reduce.new(rule) }
+      @reduce = []
       @shift = []
       @accept = Accept.new
       @error = Error.new
     end
 
     def init
+      @reduce = @grammar.map { |rule| Reduce.new(rule) }
       @shift = @statetable.map { |state| Shift.new(state) }
     end
 
