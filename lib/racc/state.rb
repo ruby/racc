@@ -782,19 +782,13 @@ module Racc
     end
   end
 
-  class Reduce
-    def initialize(rule)
-      @rule = rule
-    end
-
-    attr_reader :rule
-
+  class Reduce < Struct.new(:rule)
     def rule_id
-      @rule.ident
+      rule.ident
     end
 
     def inspect
-      "<reduce #{@rule.ident}>"
+      "<reduce #{rule.ident}>"
     end
   end
 
