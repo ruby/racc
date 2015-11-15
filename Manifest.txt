@@ -85,6 +85,8 @@ test/assets/opal.y
 test/assets/opt.y
 test/assets/percent.y
 test/assets/php_serialization.y
+test/assets/rdblockparser.y
+test/assets/rdinlineparser.y
 test/assets/recv.y
 test/assets/riml.y
 test/assets/rrconf.y
@@ -112,6 +114,8 @@ test/regress/nasl
 test/regress/nokogiri-css
 test/regress/opal
 test/regress/php_serialization
+test/regress/rdblockparser
+test/regress/rdinlineparser
 test/regress/riml
 test/regress/ruby18
 test/regress/ruby22

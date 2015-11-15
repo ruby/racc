@@ -261,5 +261,16 @@ module Racc
       assert_debugfile 'huia.y', [285, 0, 0, 0]
       assert_output 'huia.y'
     end
+
+    # .y files from rdtool gem
+
+    def test_rdtool
+      assert_compile 'rdblockparser.y'
+      assert_compile 'rdinlineparser.y'
+      assert_debugfile 'rdblockparser.y', [0, 0, 0, 0]
+      assert_debugfile 'rdinlineparser.y', [0, 0, 0, 0]
+      assert_output 'rdblockparser.y'
+      assert_output 'rdinlineparser.y'
+    end
   end
 end
