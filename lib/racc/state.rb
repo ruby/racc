@@ -89,6 +89,8 @@ module Racc
     def generate_states(state)
       puts "dstate: #{state}" if @d_state
 
+      # build table of what the 'core' of the following state will be, if the
+      # next token appearing in the input was 'sym'
       table = Hash.new { |h,k| h[k] = Set.new }
       state.closure.each do |ptr|
         if sym = ptr.symbol
