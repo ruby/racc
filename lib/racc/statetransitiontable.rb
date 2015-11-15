@@ -122,12 +122,14 @@ module Racc
         # decide default
         freq = Array.new(@states.size, 0)
         @states.each do |state|
-          st = state.goto_table[tok]
-          if st
-            st = st.ident
+          goto = state.gotos[tok]
+          if goto
+            st = goto.to_state.ident
             freq[st] += 1
+            tmp[state.ident] = st
+          else
+            tmp[state.ident] = nil
           end
-          tmp[state.ident] = st
         end
         max = freq.max
         if max > 1

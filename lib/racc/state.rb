@@ -102,7 +102,6 @@ module Racc
         puts "dstate: sym=#{sym} ncore=#{core}" if @d_state
 
         dest = core_to_state(core)
-        state.goto_table[sym] = dest
         id = sym.nonterminal?() ? @gotos.size : nil
         g = Goto.new(id, sym, state, dest)
         @gotos.push g if sym.nonterminal?
@@ -187,7 +186,7 @@ module Racc
       reads = []
       edge  = []
       gotos.each do |goto|
-        goto.to_state.goto_table.each do |t, st|
+        goto.to_state.gotos.each do |t, other|
           if t.terminal?
             f[goto.ident] |= (1 << t.ident)
           elsif t.nullable?
@@ -389,7 +388,7 @@ module Racc
         if state.rrules.empty?
           # shift
           state.stokens.each do |t|
-            state.action[t] = @actions.shift(state.goto_table[t])
+            state.action[t] = @actions.shift(state.gotos[t].to_state)
           end
         else
           # reduce
@@ -419,12 +418,12 @@ module Racc
 
     def resolve_sr(state, s)
       s.each do |stok|
-        goto = state.goto_table[stok]
+        goto = state.gotos[stok]
         act = state.action[stok]
 
         unless act
           # no conflict
-          state.action[stok] = @actions.shift(goto)
+          state.action[stok] = @actions.shift(goto.to_state)
         else
           unless act.kind_of?(Reduce)
             puts 'DEBUG -------------------------------'
@@ -445,14 +444,14 @@ module Racc
 
           when :Shift
             # overwrite
-            state.action[stok] = @actions.shift(goto)
+            state.action[stok] = @actions.shift(goto.to_state)
 
           when :Error
             state.action[stok] = @actions.error
 
           when :CantResolve
             # shift as default
-            state.action[stok] = @actions.shift(goto)
+            state.action[stok] = @actions.shift(goto.to_state)
             state.sr_conflict!(stok, act.rule)
           end
         end
@@ -497,12 +496,11 @@ module Racc
 
     def set_accept
       anch = @symboltable.anchor
-      init_state = @states[0].goto_table[@grammar.start]
+      init_state = @states[0].gotos[@grammar.start].to_state
       targ_state = init_state.action[anch].goto_state
       acc_state  = targ_state.action[anch].goto_state
 
       acc_state.action.clear
-      acc_state.goto_table.clear
       acc_state.defact = @actions.accept
     end
 
@@ -535,7 +533,6 @@ module Racc
       @ident = ident # ID number used to provide a canonical ordering
       @core = core # LocationPointers to all the possible positions within the
                    # RHS of a rule where we could be when in this state
-      @goto_table = {}
       @gotos = {}
       @stokens = nil
       @ritems = nil
@@ -552,7 +549,6 @@ module Racc
     attr_reader :core
     attr_reader :closure
 
-    attr_reader :goto_table
     attr_reader :gotos
 
     attr_reader :stokens

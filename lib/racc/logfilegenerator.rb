@@ -96,8 +96,9 @@ module Racc
       end
 
       f.puts
-      state.goto_table.each do |tok, next_state|
+      state.gotos.each do |tok, goto|
         if tok.nonterminal?
+          next_state = goto.to_state
           f.printf("  %-12s  go to state %d\n", tok.to_s, next_state.ident)
         end
       end
