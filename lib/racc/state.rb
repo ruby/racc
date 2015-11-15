@@ -669,11 +669,11 @@ module Racc
     end
 
     def rr_conflict(high, low, ctok)
-      @rrconf[ctok] = RRconflict.new(@ident, high, low, ctok)
+      @rrconf[ctok] = RRConflict.new(@ident, high, low, ctok)
     end
 
     def sr_conflict(shift, reduce)
-      @srconf[shift] = SRconflict.new(@ident, shift, reduce)
+      @srconf[shift] = SRConflict.new(@ident, shift, reduce)
     end
 
     def n_srconflicts
@@ -855,7 +855,7 @@ module Racc
     end
   end
 
-  class SRconflict
+  class SRConflict
     def initialize(sid, shift, reduce)
       @stateid = sid
       @shift   = shift
@@ -872,7 +872,7 @@ module Racc
     end
   end
 
-  class RRconflict
+  class RRConflict
     def initialize(sid, high, low, tok)
       @stateid   = sid
       @high_prec = high
