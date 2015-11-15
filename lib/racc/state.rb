@@ -677,21 +677,9 @@ module Racc
   # but this class treats also terminal's.
   # If one is a terminal transition, .ident returns nil.
   #
-  class Goto
-    def initialize(ident, sym, from, to)
-      @ident      = ident
-      @symbol     = sym
-      @from_state = from
-      @to_state   = to
-    end
-
-    attr_reader :ident
-    attr_reader :symbol
-    attr_reader :from_state
-    attr_reader :to_state
-
+  class Goto < Struct.new(:ident, :symbol, :from_state, :to_state)
     def inspect
-      "(#{@from_state.ident}-#{@symbol}->#{@to_state.ident})"
+      "(#{from_state.ident}-#{symbol}->#{to_state.ident})"
     end
   end
 
