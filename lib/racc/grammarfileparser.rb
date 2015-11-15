@@ -116,10 +116,10 @@ module Racc
 
   GrammarFileParser = grammar.parser_class
 
-  if grammar.states.sr_conflicts.any?
+  if grammar.sr_conflicts.any?
     raise 'Racc boot script fatal: S/R conflict in build'
   end
-  if grammar.states.rr_conflicts.any?
+  if grammar.rr_conflicts.any?
     raise 'Racc boot script fatal: R/R conflict in build'
   end
 

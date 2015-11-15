@@ -63,6 +63,14 @@ module Racc
       @symboltable.nonterminals.select(&:useless?)
     end
 
+    def sr_conflicts
+      @states.sr_conflicts
+    end
+
+    def rr_conflicts
+      @states.rr_conflicts
+    end
+
     def n_expected_srconflicts=(value)
       if @n_expected_srconflicts
         raise CompileError, "'expect' seen twice"
