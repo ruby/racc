@@ -62,7 +62,7 @@ module Racc
     end
 
     def state_transition_table
-      @state_transition_table ||= StateTransitionTable.generate(self.dfa)
+      @state_transition_table ||= StateTransitionTable.generate(compute_dfa)
     end
 
     #
@@ -71,22 +71,20 @@ module Racc
 
     public
 
-    def nfa
-      return self if @nfa_computed
-      compute_nfa
-      @nfa_computed = true
-      self
-    end
-
-    private
-
     def compute_nfa
+      return self if @nfa_computed
+
       # add state 0
       core_to_state(Set[@grammar[0].ptrs[0]])
       # generate LALR states
       @states.each { |state| generate_states(state) }
       @actions.init
+
+      @nfa_computed = true
+      self
     end
+
+    private
 
     def generate_states(state)
       puts "dstate: #{state}" if @d_state
@@ -144,17 +142,10 @@ module Racc
 
     public
 
-    def dfa
-      return self if @dfa_computed
-      nfa
-      compute_dfa
-      @dfa_computed = true
-      self
-    end
-
-    private
-
     def compute_dfa
+      return self if @dfa_computed
+      compute_nfa
+
       la = lookahead()
       @states.each do |state|
         state.la = la
@@ -164,7 +155,12 @@ module Racc
       @states.each do |state|
         pack state
       end
+
+      @dfa_computed = true
+      self
     end
+
+    private
 
     def lookahead
       #

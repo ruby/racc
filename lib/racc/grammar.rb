@@ -70,11 +70,11 @@ module Racc
     end
 
     def nfa
-      (@states ||= States.new(self)).nfa
+      (@states ||= States.new(self)).compute_nfa
     end
 
     def dfa
-      (@states ||= States.new(self)).dfa
+      (@states ||= States.new(self)).compute_dfa
     end
 
     alias states dfa

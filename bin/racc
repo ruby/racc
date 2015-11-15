@@ -146,12 +146,12 @@ def main
 
     $stderr.puts 'Generating LALR states...' if verbose
     states = profiler.section('nfa') {
-      Racc::States.new(result.grammar).nfa
+      Racc::States.new(result.grammar).compute_nfa
     }
 
     $stderr.puts "Resolving #{states.size} states..." if verbose
     profiler.section('dfa') {
-      states.dfa
+      states.compute_dfa
     }
 
     $stderr.puts 'Creating parser file...' if verbose

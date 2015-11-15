@@ -7,8 +7,7 @@ module Racc
       @debug_flags = Racc::DebugFlags.parse_option_string('o')
       parser = Racc::GrammarFileParser.new(@debug_flags)
       @result = parser.parse(File.read(file), File.basename(file))
-      @states = Racc::States.new(@result.grammar).nfa
-      @states.dfa
+      @states = Racc::States.new(@result.grammar).compute_nfa.compute_dfa
     end
 
     def test_compile
