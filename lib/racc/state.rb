@@ -733,21 +733,18 @@ module Racc
   # The table of LALR actions. Actions are either
   # Shift, Reduce, Accept, or Error.
   class ActionTable
-    def initialize(rt, st)
-      @grammar = rt
-      @statetable = st
+    def initialize(grammar, statetable)
+      @grammar = grammar
+      @statetable = statetable
 
-      @reduce = []
+      @reduce = @grammar.map { |rule| Reduce.new(rule) }
       @shift = []
-      @accept = nil
-      @error = nil
+      @accept = Accept.new
+      @error = Error.new
     end
 
     def init
-      @reduce.concat(@grammar.map { |rule| Reduce.new(rule) })
-      @shift.concat(@statetable.map { |state| Shift.new(state) })
-      @accept = Accept.new
-      @error = Error.new
+      @shift = @statetable.map { |state| Shift.new(state) }
     end
 
     def reduce_n
