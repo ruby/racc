@@ -6,9 +6,7 @@
 # For details of the GNU LGPL, see the file "COPYING".
 
 module Racc
-
   class LogFileGenerator
-
     def initialize(states, debug_flags = DebugFlags.new)
       @states = states
       @grammar = states.grammar
@@ -29,11 +27,11 @@ module Racc
 
     def output_conflict(out)
       @states.each do |state|
-        if state.srconf
+        if state.srconf.any?
           out.printf "state %d contains %d shift/reduce conflicts\n",
                      state.ident, state.srconf.size
         end
-        if state.rrconf
+        if state.rrconf.any?
           out.printf "state %d contains %d reduce/reduce conflicts\n",
                      state.ident, state.rrconf.size
         end
