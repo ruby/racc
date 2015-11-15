@@ -62,10 +62,6 @@ module Racc
       @symboltable.nonterminals.select(&:useless?)
     end
 
-    def useless_rules
-      @rules.select(&:useless?)
-    end
-
     def n_expected_srconflicts=(value)
       if @n_expected_srconflicts
         raise CompileError, "'expect' seen twice"
@@ -105,9 +101,6 @@ module Racc
         g = states.grammar
         if g.useless_nonterminals.any?
           report["#{g.useless_nonterminals.size} useless nonterminals"]
-        end
-        if g.useless_rules.any?
-          report["#{g.useless_rules.size} useless rules"]
         end
       end
       states.state_transition_table.parser_class
@@ -461,7 +454,6 @@ module Racc
       @alternatives = []
 
       @ident = nil
-      @useless = nil
       @precedence = precedence
 
       @ptrs = (0..@symbols.size).map { |idx| LocationPointer.new(self, idx) }
@@ -505,14 +497,6 @@ module Racc
 
     def precedence=(sym)
       @precedence ||= sym
-    end
-
-    def useless?
-      @useless
-    end
-
-    def useless=(u)
-      @useless = u
     end
 
     def inspect

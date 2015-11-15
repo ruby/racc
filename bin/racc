@@ -228,9 +228,6 @@ def report_useless(grammar)
   if grammar.useless_nonterminals.any?
     $stderr.puts "#{grammar.useless_nonterminals.size} useless nonterminals"
   end
-  if grammar.useless_rules.any?
-    $stderr.puts "#{grammar.useless_rules.size} useless rules"
-  end
   if grammar.start.useless?
     $stderr.puts 'fatal: start symbol does not derive any sentence'
   end
@@ -240,9 +237,6 @@ def log_useless(grammar)
   logging('a') {|f|
     if grammar.useless_nonterminals.any?
       f.puts "useless nts:#{grammar.useless_nonterminals.size}"
-    end
-    if grammar.useless_rules.any?
-      f.puts "useless rules:#{grammar.useless_rules.size}"
     end
   }
 end
