@@ -737,10 +737,6 @@ module Racc
       @reduce[i] or raise "racc: fatal: reduce action #{i.inspect} not exist"
     end
 
-    def each_reduce(&block)
-      @reduce.each(&block)
-    end
-
     def shift_n
       @shift.size
     end
