@@ -67,6 +67,7 @@ test/assets/err.y
 test/assets/error_recovery.y
 test/assets/expect.y
 test/assets/firstline.y
+test/assets/huia.y
 test/assets/ichk.y
 test/assets/intp.y
 test/assets/journey.y
@@ -107,6 +108,7 @@ test/regress/bibtex
 test/regress/csspool
 test/regress/edtf
 test/regress/journey
+test/regress/huia
 test/regress/liquor
 test/regress/namae
 test/regress/nasl

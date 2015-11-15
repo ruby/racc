@@ -262,5 +262,13 @@ module Racc
       assert_debugfile 'php_serialization.y', [0, 0, 0, 0]
       assert_output 'php_serialization.y'
     end
+
+    # .y file from huia language implementation
+
+    def test_huia
+      assert_compile 'huia.y'
+      assert_debugfile 'huia.y', [285, 0, 0, 0]
+      assert_output 'huia.y'
+    end
   end
 end
