@@ -152,9 +152,10 @@ module Racc
   class GrammarFileParser   # reopen
 
     class Result
-      def initialize(grammar)
+      def initialize(grammar, filename)
         @grammar = grammar
         @params = ParserFileGenerator::Params.new
+        @params.filename = filename
       end
 
       attr_reader :grammar
@@ -179,9 +180,11 @@ module Racc
       @scanner = GrammarFileScanner.new(src, @filename)
       @scanner.debug = @yydebug
       @grammar = Grammar.new
-      @result = Result.new(@grammar)
+      @result = Result.new(@grammar, @filename)
+
       @embedded_action_seq = 0
       yyparse @scanner, :yylex
+
       parse_user_code
       @result.grammar.init
       @result
