@@ -133,13 +133,9 @@ module Racc
       compute_nfa
       compute_lookahead
 
-      @states.each do |state|
-        resolve(state)
-      end
+      @states.each { |state| resolve(state) }
       set_accept
-      @states.each do |state|
-        pack(state)
-      end
+      @states.each { |state| pack(state) }
 
       @dfa_computed = true
       self
