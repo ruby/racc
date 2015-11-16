@@ -557,13 +557,8 @@ module Racc
     attr_accessor :la
 
     def each_lookahead_token(tbl)
-      la = @la
-      0.upto(la.size - 1) do |i|
-        (0..7).each do |ii|
-          if la[idx = i * 8 + ii] == 1
-            yield tbl[idx]
-          end
-        end
+      0.upto((@la.size * 8) - 1) do |idx|
+        yield tbl[idx] if @la[idx] == 1
       end
     end
   end
