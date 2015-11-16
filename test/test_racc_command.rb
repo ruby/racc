@@ -28,12 +28,12 @@ module Racc
       assert_compile 'normal.y'
       assert_debugfile 'normal.y', []
 
-      assert_compile 'normal.y', '-vg'
+      assert_compile 'normal.y', '-vt'
       assert_debugfile 'normal.y', []
     end
 
     def test_chk_y
-      assert_compile 'chk.y', '-vg'
+      assert_compile 'chk.y', '-vt'
       assert_debugfile 'chk.y', []
       assert_exec 'chk.y'
 

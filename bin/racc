@@ -36,10 +36,6 @@ def main
   parser.on('-t', '--debug', 'Outputs debugging parser.') {|fl|
     debug_parser = fl
   }
-  parser.on('-g', 'Equivalent to -t (obsolete).') {|fl|
-    $stderr.puts "racc -g is obsolete.  Use racc -t instead." if $VERBOSE
-    debug_parser = fl
-  }
   parser.on('-v', '--verbose',
             'Creates <filename>.output log file.') {|fl|
     make_logfile = fl

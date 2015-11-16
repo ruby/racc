@@ -25,7 +25,7 @@ end
 #          [-e<var>rubypath</var>] [--embedded=<var>rubypath</var>]
 #          [-v] [--verbose]
 #          [-O<var>filename</var>] [--log-file=<var>filename</var>]
-#          [-g] [--debug]
+#          [-t] [--debug]
 #          [-E] [--embedded]
 #          [-l] [--no-line-convert]
 #          [-c] [--line-convert-all]
@@ -45,9 +45,9 @@ end
 #   output executable file(mode 755). where +path+ is the Ruby interpreter.
 # [-v, --verbose]
 #   verbose mode. create +filename+.output file, like yacc's y.output file.
-# [-g, --debug]
-#   add debug code to parser class. To display debuggin information,
-#   use this '-g' option and set @yydebug true in parser class.
+# [-t, --debug]
+#   add debug code to parser class. To display debugging information,
+#   use this '-t' option and set @yydebug to true in parser class.
 # [-E, --embedded]
 #   Output parser which doesn't need runtime files (racc/parser.rb).
 # [-C, --check-only]
@@ -127,11 +127,11 @@ end
 # When debugging, "-v" or/and the "-g" option is helpful.
 #
 # "-v" creates verbose log file (.output).
-# "-g" creates a "Verbose Parser".
+# "-t" creates a "Verbose Parser".
 # Verbose Parser prints the internal status when parsing.
 # But it's _not_ automatic.
-# You must use -g option and set +@yydebug+ to +true+ in order to get output.
-# -g option only creates the verbose parser.
+# You must use -t option and set +@yydebug+ to +true+ in order to get output.
+# -t option only creates the verbose parser.
 #
 # === Racc reported syntax error.
 #
@@ -147,7 +147,7 @@ end
 #
 # === Generated parsers does not work correctly
 #
-# Try "racc -g xxxx.y".
+# Try "racc -t xxxx.y".
 # This command let racc generate "debugging parser".
 # Then set @yydebug=true in your parser.
 # It produces a working log of your parser.
