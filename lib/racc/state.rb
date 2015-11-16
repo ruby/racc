@@ -19,9 +19,6 @@ module Racc
     def initialize(grammar, debug_flags = DebugFlags.new)
       @grammar = grammar
       @symboltable = grammar.symboltable
-      @d_state = debug_flags.state
-      @d_la    = debug_flags.la
-      @d_prec  = debug_flags.prec
       @states = []
       @statecache = {}
       @nfa_computed = false
@@ -83,8 +80,6 @@ module Racc
     private
 
     def generate_states(state)
-      puts "dstate: #{state}" if @d_state
-
       # build table of what the 'core' of the following state will be, if the
       # next token appearing in the input was 'sym'
       table = Hash.new { |h,k| h[k] = Set.new }
@@ -95,13 +90,10 @@ module Racc
       end
 
       table.each do |sym, core|
-        puts "dstate: sym=#{sym} ncore=#{core}" if @d_state
-
         dest = core_to_state(core)
         goto = Goto.new(sym.nonterminal? && @gotos.size, sym, state, dest)
         @gotos << goto if sym.nonterminal?
         state.gotos[sym] = goto
-        puts "dstate: #{state.ident} --#{sym}--> #{dest.ident}" if @d_state
 
         # check infinite recursion
         if state.ident == dest.ident and state.closure.size == 1
@@ -122,13 +114,6 @@ module Racc
         dest = State.new(@states.size, core)
         @states << dest
         @statecache[core] = dest
-
-        puts "core_to_state: create state ID #{dest.ident}" if @d_state
-      else
-        if @d_state
-          puts "core_to_state: dest is cached ID #{dest.ident}"
-          puts "core_to_state: dest core #{dest.core.join(' ')}"
-        end
       end
 
       dest
@@ -370,29 +355,14 @@ module Racc
     }
 
     def do_resolve_sr(stok, rtok)
-      puts "resolve_sr: s/r conflict: rtok=#{rtok}, stok=#{stok}" if @d_prec
+      return :CantResolve unless rtok && (rprec = rtok.precedence)
+      return :CantResolve unless stok && (sprec = stok.precedence)
 
-      unless rtok and rtok.precedence
-        puts "resolve_sr: no prec for #{rtok}(R)" if @d_prec
-        return :CantResolve
+      if rprec == sprec
+        ASSOC[rtok.assoc] || (raise "racc: fatal: #{rtok}.assoc is not Left/Right/Nonassoc")
+      else
+        (rprec > sprec) ? :Reduce : :Shift
       end
-      rprec = rtok.precedence
-
-      unless stok and stok.precedence
-        puts "resolve_sr: no prec for #{stok}(S)" if @d_prec
-        return :CantResolve
-      end
-      sprec = stok.precedence
-
-      ret = if rprec == sprec
-              ASSOC[rtok.assoc] or
-                  raise "racc: fatal: #{rtok}.assoc is not Left/Right/Nonassoc"
-            else
-              (rprec > sprec) ? (:Reduce) : (:Shift)
-            end
-
-      puts "resolve_sr: resolved as #{ret.id2name}" if @d_prec
-      ret
     end
 
     #
