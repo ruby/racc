@@ -64,7 +64,7 @@ module Racc
       gen_goto_tables t, @grammar
       t.token_table = token_table(@grammar)
       t.reduce_table = reduce_table(@grammar)
-      t.reduce_n = @states.reduce_n
+      t.reduce_n = @grammar.size
       t.shift_n = @states.shift_n
       t.nt_base = @grammar.nonterminal_base
       t.token_to_s_table = @grammar.symbols.map {|sym| sym.to_s }
@@ -226,7 +226,7 @@ module Racc
       when Shift  then act.goto_id
       when Reduce then -act.rule_id
       when Accept then @states.shift_n
-      when Error  then @states.reduce_n * -1
+      when Error  then @grammar.size * -1
       else
         raise "racc: fatal: wrong act type #{act.class} in action table"
       end

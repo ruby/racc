@@ -47,7 +47,6 @@ module Racc
 
     def_delegator "@states",  :each
     def_delegator "@actions", :shift_n
-    def_delegator "@actions", :reduce_n
 
     def should_report_srconflict?
       sr_conflicts.any? && (sr_conflicts.size != @grammar.n_expected_srconflicts)
@@ -580,10 +579,6 @@ module Racc
     def init
       @reduce = @grammar.map { |rule| Reduce.new(rule) }
       @shift = @statetable.map { |state| Shift.new(state) }
-    end
-
-    def reduce_n
-      @reduce.size
     end
 
     def reduce(i)
