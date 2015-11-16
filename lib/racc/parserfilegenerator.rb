@@ -450,7 +450,5 @@ module Racc
         ' ' * len
       }
     end
-
   end
-
 end

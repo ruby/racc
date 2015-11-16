@@ -263,12 +263,9 @@ module Racc
         raise "racc: fatal: wrong act type #{act.class} in action table"
       end
     end
-
   end
 
-
   class ParserClassGenerator
-
     def initialize(states)
       @states = states
       @grammar = states.grammar
