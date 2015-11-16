@@ -1,5 +1,4 @@
 COPYING
-ChangeLog
 DEPENDS
 Manifest.txt
 README.ja.rdoc
