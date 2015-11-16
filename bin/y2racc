@@ -323,14 +323,6 @@ class YaccFileParser
     $stderr.puts "warning: unterminated action in #{@filename}"
     buf
   end
-
 end
-
-unless Object.method_defined?(:funcall)
-  class Object
-    alias funcall __send__
-  end
-end
-
 
 main
