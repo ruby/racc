@@ -81,6 +81,30 @@ module Racc
       Hash[grammar.symboltable.terminals.map { |t| [t, t.ident]}]
     end
 
+    # The action and goto tables use a clever trick for compression
+    # Each state should have its own action table (one per lookahead token)
+    # Each state from which we can reduce should also have its own goto table
+    # (Again, one entry per lookahead token)
+    # But those tables are very sparse (most entries are nil)
+    #
+    # So, to save space, we OVERLAY all the action tables into one big array
+    # And same with the goto tables
+    # We must choose an offset for each state, so its populated entries don't
+    # collide with the populated entries of any other state
+    # The chosen offsets go in the 'action_pointer' and 'goto_pointer' arrays
+    # At runtime, we will retrieve the offset for the current state, add the
+    # token number of the lookahead token, and index into the action/goto table
+    #
+    # BUT, what if the lookahead token is one which is illegal in this state?
+    # OR, what if it's legal, but its entry is the default entry (which does
+    # not explicitly appear in the main action/goto tables)?
+    # We could blindly hit an entry which belongs to a different state, and go
+    # off into some random sequence of states
+    # To prevent this, there are 'check' arrays with the state numbers which
+    # each action/goto entry belong to
+    # So before we retrieve an action/goto and use it, we see whether the
+    # corresponding 'check' number is the current state number
+
     def gen_action_tables(t, states)
       t.action_default = states.map { |s| act2actid(s.defact) }
 
