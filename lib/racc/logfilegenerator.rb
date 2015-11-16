@@ -108,7 +108,7 @@ module Racc
       case act
       when Shift
         f.printf "  %-12s  shift, and go to state %d\n",
-                 t.to_s, act.goto_id
+                 t.to_s, act.goto_state.ident
       when Reduce
         f.printf "  %-12s  reduce using rule %d (%s)\n",
                  t.to_s, act.rule.ident, act.rule.target.to_s

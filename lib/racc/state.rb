@@ -558,10 +558,6 @@ module Racc
   end
 
   class Shift < Struct.new(:goto_state)
-    def goto_id
-      goto_state.ident
-    end
-
     def inspect
       "<shift #{goto_state.ident}>"
     end
