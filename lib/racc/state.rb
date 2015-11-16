@@ -102,10 +102,9 @@ module Racc
         puts "dstate: sym=#{sym} ncore=#{core}" if @d_state
 
         dest = core_to_state(core)
-        id = sym.nonterminal?() ? @gotos.size : nil
-        g = Goto.new(id, sym, state, dest)
-        @gotos.push g if sym.nonterminal?
-        state.gotos[sym] = g
+        goto = Goto.new(sym.nonterminal? && @gotos.size, sym, state, dest)
+        @gotos << goto if sym.nonterminal?
+        state.gotos[sym] = goto
         puts "dstate: #{state.ident} --#{sym}--> #{dest.ident}" if @d_state
 
         # check infinite recursion
