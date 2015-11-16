@@ -580,27 +580,24 @@ module Racc
 
     def check_la(la_rules)
       @conflict = false
-      s = []
-      r = []
+      s = Set.new
+      r = [] # what reductions could we do in this state?
       @closure.each do |ptr|
         if t = ptr.symbol
           if t.terminal?
-            s[t.ident] = t
-            if t.ident == 1    # $error
-              @conflict = true
-            end
+            s << t
+            @conflict = true if t.ident == 1 # $error
           end
         else
-          r.push ptr.rule
+          r << ptr.rule
         end
       end
-      unless r.empty?
-        if not s.empty? or r.size > 1
-          @conflict = true
-        end
+
+      if (s.any? && r.any?) || r.size > 1
+        @conflict = true
       end
-      s.compact!
-      @stokens  = s
+
+      @stokens = s.sort_by(&:ident)
       @rrules = r
 
       if @conflict
