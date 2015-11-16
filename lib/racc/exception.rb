@@ -6,6 +6,5 @@
 # For details of the GNU LGPL, see the file "COPYING".
 
 module Racc
-  class Error < StandardError; end
-  class CompileError < Error; end
+  class CompileError < StandardError; end
 end

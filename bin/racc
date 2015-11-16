@@ -181,7 +181,7 @@ def main
     end
 
     profiler.report
-  rescue Racc::Error, Errno::ENOENT, Errno::EPERM => err
+  rescue Racc::CompileError, Errno::ENOENT, Errno::EPERM => err
     raise if $DEBUG or debug_flags.any?
     lineno = err.message.slice(/\A\d+:/).to_s
     $stderr.puts "#{File.basename $0}: #{input}:#{lineno} #{err.message.strip}"
