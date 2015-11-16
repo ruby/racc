@@ -278,16 +278,17 @@ module Racc
       end
     end
 
-    def transpose(rel)
-      new = Array.new(rel.size, nil)
-      rel.each_with_index do |arr, idx|
-        if arr
-          arr.each do |i|
-            addrel new, i, idx
-          end
+    # reverse a directed graph, so the arrows point in the opposite direction
+    # (regarding the structure used to represent a directed graph, see the
+    # comment on #walk_graph, below)
+    def transpose(out_arrows)
+      array = Array.new(out_arrows.size) { [] }
+      out_arrows.each_with_index do |to_indices, from_idx|
+        to_indices.each do |to_idx|
+          array[to_idx] << from_idx
         end
       end
-      new
+      array
     end
 
     # traverse a directed graph
