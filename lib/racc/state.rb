@@ -609,8 +609,8 @@ module Racc
 
       if @conflict
         @la_rules_i = la_rules.size
-        @la_rules = r.map {|i| i.ident }
-        la_rules.concat r
+        @la_rules = r.map(&:ident)
+        la_rules.concat(r)
       else
         @la_rules_i = @la_rules = nil
       end
@@ -631,9 +631,9 @@ module Racc
     def la=(la)
       return unless @conflict
       i = @la_rules_i
-      @ritems = r = []
+      @ritems = []
       @rrules.each do |rule|
-        r.push Item.new(rule, la[i])
+        @ritems.push(Item.new(rule, la[i]))
         i += 1
       end
     end
