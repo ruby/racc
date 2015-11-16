@@ -224,7 +224,7 @@ module Racc
     def act2actid(act)
       case act
       when Shift  then act.goto_id
-      when Reduce then -act.rule_id
+      when Reduce then -act.rule.ident
       when Accept then @states.size
       when Error  then @grammar.size * -1
       else

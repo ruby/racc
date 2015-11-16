@@ -568,10 +568,6 @@ module Racc
   end
 
   class Reduce < Struct.new(:rule)
-    def rule_id
-      rule.ident
-    end
-
     def inspect
       "<reduce #{rule.ident}>"
     end

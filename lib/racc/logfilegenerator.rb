@@ -111,7 +111,7 @@ module Racc
                  t.to_s, act.goto_id
       when Reduce
         f.printf "  %-12s  reduce using rule %d (%s)\n",
-                 t.to_s, act.rule_id, act.rule.target.to_s
+                 t.to_s, act.rule.ident, act.rule.target.to_s
       when Accept
         f.printf "  %-12s  accept\n", t.to_s
       when Error
