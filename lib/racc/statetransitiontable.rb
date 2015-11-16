@@ -107,24 +107,30 @@ module Racc
 
     def gen_action_tables(t, states)
       t.action_default = states.map { |s| act2actid(s.defact) }
+      t.action_table   = []
+      t.action_check   = []
+      t.action_pointer = []
 
-      t.action_table = yytable  = []
-      t.action_check = yycheck  = []
-      t.action_pointer = yypact   = []
-      e1 = []
-
+      entries = []
       states.each do |state|
         if state.action.empty?
-          yypact.push nil
-          next
+          # there is ONLY one default action in this state
+          # when the parser sees that the 'action pointer' (or offset) for this
+          # state is nil, it will just execute the default action
+          t.action_pointer << nil
+        else
+          # build the action table for this state
+          actions = []
+          state.action.each do |tok, act|
+            actions[tok.ident] = act2actid(act)
+          end
+          # then store data which will be used when we overlay all the per-state
+          # action tables into one big action table
+          add_entry(entries, actions, state.ident, t.action_pointer)
         end
-        vector = []
-        state.action.each do |tok, act|
-          vector[tok.ident] = act2actid(act)
-        end
-        addent e1, vector, state.ident, yypact
       end
-      set_table e1, yytable, yycheck, yypact
+
+      set_table(entries, t.action_table, t.action_check, t.action_pointer)
     end
 
     def gen_goto_tables(t, grammar)
@@ -165,16 +171,20 @@ module Racc
           next
         end
 
-        addent e1, tmp, (tok.ident - grammar.nonterminal_base), yypgoto
+        add_entry(e1, tmp, (tok.ident - grammar.nonterminal_base), yypgoto)
       end
       set_table e1, yytable2, yycheck2, yypgoto
     end
 
-    def addent(all, arr, chkval, ptr)
-      min = arr.index { |item| item }
-      ptr.push(-7777)    # mark
-      arr = arr.drop(min)
-      all.push [arr, chkval, mkmapexp(arr), min, ptr.size - 1]
+    def add_entry(all, array, chkval, ptr_array)
+      # array is an action/goto array for one state
+      # the array indices are token numbers
+      # prepare the data which will be needed when we overall ALL these arrays
+      # into one big array:
+      min = array.index { |item| item }
+      array = array.drop(min)
+      ptr_array << :just_reserving_space_and_will_be_overwritten
+      all << [array, chkval, mkmapexp(array), min, ptr_array.size - 1]
     end
 
     n = 2 ** 16
