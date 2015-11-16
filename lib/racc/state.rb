@@ -24,7 +24,6 @@ module Racc
       @d_prec  = debug_flags.prec
       @states = []
       @statecache = {}
-      @actions = ActionTable.new(@grammar, self)
       @nfa_computed = false
       @dfa_computed = false
       @gotos = []
@@ -353,7 +352,7 @@ module Racc
             state.action[stok] = Shift.new(goto.to_state)
 
           when :Error
-            state.action[stok] = @actions.error
+            state.action[stok] = Error.new
 
           when :CantResolve
             # shift as default
@@ -407,7 +406,7 @@ module Racc
       acc_state  = targ_state.action[anch].goto_state
 
       acc_state.action.clear
-      acc_state.defact = @actions.accept
+      acc_state.defact = Accept.new
     end
 
     def pack(state)
@@ -428,7 +427,7 @@ module Racc
           state.defact = r
         end
       else
-        state.defact ||= @actions.error
+        state.defact ||= Error.new
       end
     end
   end
@@ -559,21 +558,6 @@ module Racc
         yield tbl[idx] if @la[idx] == 1
       end
     end
-  end
-
-  # The table of LALR actions. Actions are either
-  # Shift, Reduce, Accept, or Error.
-  class ActionTable
-    def initialize(grammar, statetable)
-      @grammar = grammar
-      @statetable = statetable
-
-      @accept = Accept.new
-      @error = Error.new
-    end
-
-    attr_reader :accept
-    attr_reader :error
   end
 
   class Shift < Struct.new(:goto_state)
