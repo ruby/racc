@@ -134,46 +134,51 @@ module Racc
     end
 
     def gen_goto_tables(t, grammar)
-      t.goto_table   = yytable2  = []
-      t.goto_check   = yycheck2  = []
-      t.goto_pointer = yypgoto   = []
-      t.goto_default = yydefgoto = []
-      e1 = []
-      grammar.symboltable.nonterminals.each do |tok|
-        tmp = []
+      t.goto_table   = []
+      t.goto_check   = []
+      t.goto_pointer = []
+      t.goto_default = []
+      entries = []
 
-        # decide default
-        freq = Array.new(@states.size, 0)
+      # for each nonterminal, choose most common destination state after
+      # reduce as the default destination state
+      grammar.symboltable.nonterminals.each do |tok|
+        freq = Hash.new(0)
         @states.each do |state|
-          goto = state.gotos[tok]
-          if goto
-            st = goto.to_state.ident
-            freq[st] += 1
-            tmp[state.ident] = st
-          else
-            tmp[state.ident] = nil
+          if goto = state.gotos[tok]
+            freq[goto.to_state.ident] += 1
           end
         end
-        max = freq.max
-        if max > 1
-          default = freq.index(max)
-          tmp.map! {|i| default == i ? nil : i }
+
+        most_common = freq.keys.max_by { |k| freq[k] }
+        if most_common && freq[most_common] > 1
+          t.goto_default << most_common
         else
-          default = nil
+          t.goto_default << nil
         end
-        yydefgoto.push default
-
-        # delete default value
-        tmp.pop until tmp.last or tmp.empty?
-        if tmp.compact.empty?
-          # only default
-          yypgoto.push nil
-          next
-        end
-
-        add_entry(e1, tmp, (tok.ident - grammar.nonterminal_base), yypgoto)
       end
-      set_table e1, yytable2, yycheck2, yypgoto
+
+      # now build goto table for each nonterminal, and record data which will
+      # be used when overlaying all the individual goto tables into the main
+      # goto table
+      grammar.symboltable.nonterminals.zip(t.goto_default).each do |tok, default|
+        array = @states.map do |state|
+          if goto = state.gotos[tok]
+            to_state = goto.to_state.ident
+            to_state unless to_state == default
+          end
+        end
+
+        if array.compact.empty?
+          t.goto_pointer << nil
+        else
+          array.pop until array.last || array.empty?
+          add_entry(entries, array, (tok.ident - grammar.nonterminal_base),
+                    t.goto_pointer)
+        end
+      end
+
+      set_table(entries, t.goto_table, t.goto_check, t.goto_pointer)
     end
 
     def add_entry(all, array, chkval, ptr_array)
