@@ -174,52 +174,75 @@ module Racc
 
       # build a bitmap which shows which terminals could possibly appear next
       # after each reduction in the grammar
-      f     = create_bitmap(gotos.size)
-      reads = DirectedGraph.new(gotos.size)
+      # (we will use this information to decide which reduction to perform if
+      # two of them are possible, or whether to do a shift or a reduce if both
+      # are possible)
+      # (if both reductions A and B are possible, but we see that the next token
+      # can only validly appear after reduction A and not B, then we will choose
+      # to perform reduction A)
+      following_terminals = create_bitmap(gotos.size)
+      look_past = DirectedGraph.new(gotos.size)
       gotos.each do |goto|
         goto.to_state.gotos.each do |tok, next_goto|
           if tok.terminal?
             # set bit for terminal which could be shifted after this reduction
-            f[goto.ident] |= (1 << tok.ident)
+            following_terminals[goto.ident] |= (1 << tok.ident)
           elsif tok.nullable?
             # if a nullable NT could come next, then we have to look past it
             # to see which terminals could appear next
-            reads.add_arrow(goto.ident, next_goto.ident)
+            look_past.add_arrow(goto.ident, next_goto.ident)
           end
         end
       end
-      walk_graph(f, reads)
+      # traverse graph with arrows connecting reductions which could occur
+      # directly after another without shifting any terminal first (because the
+      # reduced nonterminal is null)
+      walk_graph(following_terminals, look_past)
 
-      # build_relations()
-      # compute_FOLLOWS
-      path = nil
+      # there is another case we have to consider to get the full set of tokens
+      # which can validly appear after each reduction...
+      # what if we do 2 reductions in a row? or 3, 4, 5...?
+      # if terminal T1 can appear after nonterminal A, and we can reduce to A
+      # immediately after reducing to B, that means terminal T1 could also
+      # appear after B
+
+      # but that's not all! think about this:
+      # what if we have a rule like "A = BC", and we know terminal T1 can appear
+      # after A, *and C is nullable*?
+      # that means T1 can also appear after B, not just after C
+
       lookback = Hash.new { |h, k| h[k] = [] }
       includes = DirectedGraph.new(gotos.size)
+      # look at the state transition triggered by each reduction in the grammar
+      # (at each place in the state graph where that reduction can occur)
       gotos.each do |goto|
+        # look at RHS of each rule which could have lead to this reduction
         goto.symbol.heads.each do |ptr|
+          # what sequence of state transitions would we have made to reach
+          # this reduction, if this is the rule that was used?
           path = record_path(goto.from_state, ptr.rule)
-          lastgoto = path.last
-          st = lastgoto ? lastgoto.to_state : goto.from_state
+          # and what would the last state before the reduction have been?
+          prev_state = (path.last && path.last.to_state) || goto.from_state
 
-          if st.conflict?
-            lookback[st.rruleid(ptr.rule)] << goto
+          if prev_state.conflict?
+            lookback[prev_state.rruleid(ptr.rule)] << goto
           end
 
-          path.reverse_each do |g|
-            break if     g.symbol.terminal?
-            includes.add_arrow(g.ident, goto.ident)
-            break unless g.symbol.nullable?
+          path.reverse_each do |preceding_goto|
+            break if     preceding_goto.symbol.terminal?
+            includes.add_arrow(preceding_goto.ident, goto.ident)
+            break unless preceding_goto.symbol.nullable?
           end
         end
       end
 
-      walk_graph(f, includes)
+      walk_graph(following_terminals, includes)
 
       # compute_lookaheads
       la = create_bitmap(la_rules.size)
       lookback.each_pair do |i, arr|
         arr.each do |g|
-          la[i] |= f[g.ident]
+          la[i] |= following_terminals[g.ident]
         end
       end
 
@@ -230,14 +253,13 @@ module Racc
       Array.new(size, 0) # use Integer as bitmap
     end
 
-    # Sequence of Gotos which would be taken when following a Rule all the
-    # way to its end
-    def record_path(begst, rule)
-      st = begst
-      rule.symbols.each_with_object([]) do |t, path|
-        goto = st.gotos[t]
-        path.push(goto)
-        st = goto.to_state
+    # Sequence of state transitions which would be taken when starting
+    # from 'state', then following the RHS of 'rule' right to the end
+    def record_path(state, rule)
+      rule.symbols.each_with_object([]) do |tok, path|
+        goto = state.gotos[tok]
+        path << goto
+        state = goto.to_state
       end
     end
 
