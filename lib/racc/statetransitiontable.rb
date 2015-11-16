@@ -63,15 +63,16 @@ module Racc
     end
 
     def reduce_table(grammar)
+      # reduce_table has 3 items for each grammar rule:
+      # [number of items to pop off stack when reducing,
+      #  ID number of non-terminal to push on stack after reducing,
+      #  method to call to perform the rule's action]
       t = [0, 0, :racc_error]
       grammar.each_with_index do |rule, idx|
         next if idx == 0
         t.push rule.size
         t.push rule.target.ident
-        t.push(if rule.action.empty?   # and @params.omit_action_call?
-               then :_reduce_none
-               else "_reduce_#{idx}".to_sym
-               end)
+        t.push(rule.action.empty? ? :_reduce_none : "_reduce_#{idx}".to_sym)
       end
       t
     end
