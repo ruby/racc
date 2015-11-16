@@ -456,12 +456,15 @@ module Racc
   class State
     def initialize(ident, core)
       @ident = ident # ID number used to provide a canonical ordering
-      @core = core # LocationPointers to all the possible positions within the
-                   # RHS of a rule where we could be when in this state
-      @gotos = {}
-      @ritems = nil
-      @action = {}
-      @defact = nil
+      @core = core   # LocationPointers to all the possible positions within the
+                     # RHS of a rule where we could be when in this state
+      @gotos = {}    # Sym -> Goto describing state transition if we encounter
+                     # that Sym next
+      @action = {}   # Sym -> Shift/Reduce/Accept/Error describing what we will
+                     # do if we encounter that Sym next
+      @defact = nil  # if this state is totally unambiguous as to what to do
+                     # next, then just perform this action (don't use action
+                     # table)
       @rr_conflicts = {}
       @sr_conflicts = {}
     end
@@ -469,10 +472,8 @@ module Racc
     attr_reader :ident
     attr_reader :core
     attr_reader :gotos
-
     attr_reader :action
-    attr_accessor :defact   # default action
-
+    attr_accessor :defact # default action
     attr_reader :rr_conflicts
     attr_reader :sr_conflicts
 
