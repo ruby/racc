@@ -184,14 +184,14 @@ module Racc
         # for each goto-after-reduce, which nullable NTs could come next?
         edge  = []
 
-        goto.to_state.gotos.each do |t, other|
-          if t.terminal?
+        goto.to_state.gotos.each do |tok, next_goto|
+          if tok.terminal?
             # set bit for terminal which could be shifted after this reduction
-            f[goto.ident] |= (1 << t.ident)
-          elsif t.nullable?
+            f[goto.ident] |= (1 << tok.ident)
+          elsif tok.nullable?
             # if a nullable NT could come next, then we have to look past it
             # to see which terminals could appear next
-            edge.push(other.ident)
+            edge.push(next_goto.ident)
           end
         end
 
