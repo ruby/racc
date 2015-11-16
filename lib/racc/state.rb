@@ -359,18 +359,7 @@ module Racc
           # no conflict
           state.action[stok] = @actions.shift(goto.to_state)
         else
-          unless act.kind_of?(Reduce)
-            puts 'DEBUG -------------------------------'
-            p stok
-            p act
-            state.action.each do |k,v|
-              print k.inspect, ' ', v.inspect, "\n"
-            end
-            raise "racc: fatal: #{act.class} in action table"
-          end
-
-          # conflict on stok
-
+          # conflict
           rtok = act.rule.precedence
           case do_resolve_sr(stok, rtok)
           when :Reduce
