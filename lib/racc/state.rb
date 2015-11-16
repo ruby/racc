@@ -316,7 +316,7 @@ module Racc
       else
         # only reduce is possible; we won't even bother looking at the next
         # token in this state
-        state.defact = @actions.reduce(state.rrules[0])
+        state.defact = Reduce.new(state.rrules[0])
       end
     end
 
@@ -329,7 +329,7 @@ module Racc
             state.rr_conflict!(act.rule, item.rule, tok)
           else
             # No conflict.
-            state.action[tok] = @actions.reduce(item.rule)
+            state.action[tok] = Reduce.new(item.rule)
           end
         end
       end
@@ -417,14 +417,14 @@ module Racc
       act = state.action
       arr = Array.new(@grammar.size, 0)
       act.each do |t, a|
-        arr[a.rule_id] += 1  if a.kind_of?(Reduce)
+        arr[a.rule_id] += 1 if a.kind_of?(Reduce)
       end
       i = arr.max
       s = (i > 0) ? arr.index(i) : nil
 
       ### set & delete default action
       if s
-        r = @actions.reduce(s)
+        r = Reduce.new(@grammar[s])
         if not state.defact or state.defact == r
           act.delete_if {|t, a| a == r }
           state.defact = r
@@ -570,26 +570,13 @@ module Racc
       @grammar = grammar
       @statetable = statetable
 
-      @reduce = []
       @shift = []
       @accept = Accept.new
       @error = Error.new
     end
 
     def init
-      @reduce = @grammar.map { |rule| Reduce.new(rule) }
       @shift = @statetable.map { |state| Shift.new(state) }
-    end
-
-    def reduce(i)
-      case i
-      when Rule    then i = i.ident
-      when Integer then ;
-      else
-        raise "racc: fatal: wrong class #{i.class} for reduce"
-      end
-
-      @reduce[i] or raise "racc: fatal: reduce action #{i.inspect} not exist"
     end
 
     def shift_n
