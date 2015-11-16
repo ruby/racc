@@ -145,15 +145,14 @@ module Racc
     def compute_dfa
       return self if @dfa_computed
       compute_nfa
+      compute_lookahead
 
-      la = lookahead()
       @states.each do |state|
-        state.la = la
-        resolve state
+        resolve(state)
       end
       set_accept
       @states.each do |state|
-        pack state
+        pack(state)
       end
 
       @dfa_computed = true
@@ -162,15 +161,9 @@ module Racc
 
     private
 
-    def lookahead
+    def compute_lookahead
       # lookahead algorithm ver.3 -- from bison 1.26
       gotos = @gotos
-
-      # find all cases where we have more than one reduction possible,
-      # or where both a reduction and a shift are possible; in such cases, we
-      # will try to use the lookahead table to disambiguate
-      la_rules = [] # rules for which lookahead will be used
-      @states.each { |state| state.check_la(la_rules) }
 
       # build a bitmap which shows which terminals could possibly appear next
       # after each reduction in the grammar
@@ -236,20 +229,17 @@ module Racc
       # So, find all the states leading to a possible reduce, where there is a
       # S/R or R/R conflict, and copy the lookahead set for each reduce to the
       # preceding state which has the conflict
-      lookahead_tbl = create_bitmap(la_rules.size)
 
       gotos.each do |goto|
         goto.symbol.heads.each do |ptr|
           path = path(goto.from_state, ptr.rule)
           prev_state = (path.last && path.last.to_state) || goto.from_state
           if prev_state.conflict?
-            tbl_idx = prev_state.rruleid(ptr.rule)
-            lookahead_tbl[tbl_idx] |= following_terminals[goto.ident]
+            ritem = prev_state.ritems.find { |item| item.rule == ptr.rule }
+            ritem.la |= following_terminals[goto.ident]
           end
         end
       end
-
-      lookahead_tbl
     end
 
     def create_bitmap(size)
@@ -483,7 +473,6 @@ module Racc
     attr_reader :ident
     attr_reader :core
     attr_reader :gotos
-    attr_reader :ritems
 
     attr_reader :action
     attr_accessor :defact   # default action
@@ -524,16 +513,6 @@ module Racc
       @rrules ||= closure.select(&:reduce?).map(&:rule)
     end
 
-    def check_la(la_rules)
-      if conflict?
-        @la_rules_i = la_rules.size
-        @la_rules = rrules.map(&:ident)
-        la_rules.concat(rrules)
-      else
-        @la_rules_i = @la_rules = nil
-      end
-    end
-
     # would there be a S/R or R/R conflict IF lookahead was not used?
     def conflict?
       @conflict ||= begin
@@ -543,22 +522,10 @@ module Racc
       end
     end
 
-    def rruleid(rule)
-      if i = @la_rules.index(rule.ident)
-        @la_rules_i + i
-      else
-        raise 'racc: fatal: cannot get reduce rule id'
-      end
-    end
-
-    def la=(la)
-      return unless conflict?
-      i = @la_rules_i
-      @ritems = []
-      @rrules.each do |rule|
-        @ritems.push(Item.new(rule, la[i]))
-        i += 1
-      end
+    # rules for which we need a lookahead set (to disambiguate which of them we
+    # should apply next)
+    def ritems
+      @ritems ||= conflict? ? rrules.map { |rule| Item.new(rule) } : []
     end
 
     def rr_conflict!(high, low, ctok)
@@ -583,15 +550,15 @@ module Racc
     end
   end
 
-  # LALR item. A set of rules and its lookahead tokens.
+  # LALR item. A rule and its lookahead tokens.
   class Item
-    def initialize(rule, la)
+    def initialize(rule)
       @rule = rule
-      @la  = la
+      @la   = 0 # bitmap
     end
 
     attr_reader :rule
-    attr_reader :la
+    attr_accessor :la
 
     def each_la(tbl)
       la = @la
