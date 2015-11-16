@@ -276,14 +276,14 @@ module Racc
       end
     end
 
-    def traverse(node, traversed, index, stack, map, graph)
+    def traverse(node, traversed, index, stack, bitmap, graph)
       traversed.add(node)
       stack.push(node)
       index[node] = stack_depth = stack.size
 
       graph.arrows(node) do |next_node|
         unless index[next_node]
-          traverse(next_node, traversed, index, stack, map, graph)
+          traverse(next_node, traversed, index, stack, bitmap, graph)
         end
 
         if index[node] > index[next_node]
@@ -292,7 +292,7 @@ module Racc
           index[node] = index[next_node]
         end
 
-        map[node] |= map[next_node]
+        bitmap[node] |= bitmap[next_node]
       end
 
       if index[node] == stack_depth
@@ -301,7 +301,7 @@ module Racc
           index[next_node] = @infinity
           break if node == next_node
 
-          map[next_node] |= map[node]
+          bitmap[next_node] |= bitmap[node]
         end
       end
     end
