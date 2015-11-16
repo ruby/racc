@@ -82,13 +82,14 @@ module Racc
     end
 
     def gen_action_tables(t, states)
+      t.action_default = states.map { |s| act2actid(s.defact) }
+
       t.action_table = yytable  = []
       t.action_check = yycheck  = []
-      t.action_default = yydefact = []
       t.action_pointer = yypact   = []
       e1 = []
+
       states.each do |state|
-        yydefact.push act2actid(state.defact)
         if state.action.empty?
           yypact.push nil
           next
