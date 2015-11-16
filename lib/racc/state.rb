@@ -165,10 +165,6 @@ module Racc
     def lookahead
       # lookahead algorithm ver.3 -- from bison 1.26
       gotos = @gotos
-      if @d_la
-        puts "\n--- goto ---"
-        gotos.each_with_index { |g, i| puts "#{i} #{g.inspect}" }
-      end
 
       # find all cases where we have more than one reduction possible,
       # or where both a reduction and a shift are possible; in such cases, we
@@ -193,11 +189,6 @@ module Racc
         end
       end
       walk_graph(f, reads)
-
-      if @d_la
-        puts "\n--- F1 (reads) ---"
-        print_tab gotos, reads, f
-      end
 
       # build_relations()
       # compute_FOLLOWS
@@ -224,22 +215,12 @@ module Racc
 
       walk_graph(f, includes.invert)
 
-      if @d_la
-        puts "\n--- F2 (includes) ---"
-        print_tab(gotos, includes, f)
-      end
-
       # compute_lookaheads
       la = create_bitmap(la_rules.size)
       lookback.each_pair do |i, arr|
         arr.each do |g|
           la[i] |= f[g.ident]
         end
-      end
-
-      if @d_la
-        puts "\n--- LA (lookback) ---"
-        print_tab(la_rules, lookback, la)
       end
 
       la
@@ -301,49 +282,6 @@ module Racc
           break if node == next_node
 
           bitmap[next_node] |= bitmap[node]
-        end
-      end
-    end
-
-    # for debug
-    def print_atab(idx, tab)
-      tab.each_with_index do |i,ii|
-        printf '%-20s', idx[ii].inspect
-        p i
-      end
-    end
-
-    def print_tab(idx, rel, tab)
-      tab.each_with_index do |bin,i|
-        print i, ' ', idx[i].inspect, ' << '; p rel[i]
-        print '  '
-        each_t(@symboltable, bin) {|t| print ' ', t }
-        puts
-      end
-    end
-
-    # for debug
-    def print_tab_i(idx, rel, tab, i)
-      bin = tab[i]
-      print i, ' ', idx[i].inspect, ' << '; p rel[i]
-      print '  '
-      each_t(@symboltable, bin) {|t| print ' ', t }
-    end
-
-    # for debug
-    def printb(i)
-      each_t(@symboltable, i) do |t|
-        print t, ' '
-      end
-      puts
-    end
-
-    def each_t(tbl, set)
-      0.upto( set.size ) do |i|
-        (0..7).each do |ii|
-          if set[idx = i * 8 + ii] == 1
-            yield tbl[idx]
-          end
         end
       end
     end
