@@ -37,7 +37,7 @@ def main
     @with_usercode = true
   }
   parser.on('--version', 'Prints version and quit.') {
-    puts "y2racc version #{Racc::Version}"
+    puts "y2racc version #{Racc::VERSION}"
     exit 0
   }
   parser.on('--copyright', 'Prints copyright and quit.') {
@@ -78,7 +78,7 @@ end
 
 def convert(classname, result, f)
   init_indent = 'token'.size
-  f.puts %<# Converted from "#{result.filename}" by y2racc version #{Racc::Version}>
+  f.puts %<# Converted from "#{result.filename}" by y2racc version #{Racc::VERSION}>
   f.puts
   f.puts "class #{classname}"
   unless result.terminals.empty?

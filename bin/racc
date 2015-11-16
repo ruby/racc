@@ -86,7 +86,7 @@ def main
   #  Racc.const_set :Racc_No_Extentions, true
   #}
   parser.on('--version', 'Prints version and quit.') {
-    puts "racc version #{Racc::Version}"
+    puts "racc version #{Racc::VERSION}"
     if Racc::Parser.racc_runtime_type == 'ruby'
       puts '(ruby core)'
     else
