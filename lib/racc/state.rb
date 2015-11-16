@@ -374,18 +374,16 @@ module Racc
 
     def resolve(state)
       if state.conflict?
-        resolve_rr state, state.ritems
-        resolve_sr state, state.stokens
-      else
-        if state.rrules.empty?
-          # shift
-          state.stokens.each do |t|
-            state.action[t] = @actions.shift(state.gotos[t].to_state)
-          end
-        else
-          # reduce
-          state.defact = @actions.reduce(state.rrules[0])
+        resolve_rr(state, state.ritems)
+        resolve_sr(state, state.stokens)
+      elsif state.rrules.empty?
+        # shift
+        state.stokens.each do |t|
+          state.action[t] = @actions.shift(state.gotos[t].to_state)
         end
+      else
+        # reduce
+        state.defact = @actions.reduce(state.rrules[0])
       end
     end
 
