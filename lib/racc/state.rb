@@ -76,7 +76,6 @@ module Racc
       core_to_state(Set[@grammar[0].ptrs[0]])
       # generate LALR states
       @states.each { |state| generate_states(state) }
-      @actions.init
 
       @nfa_computed = true
       self
@@ -571,9 +570,6 @@ module Racc
 
       @accept = Accept.new
       @error = Error.new
-    end
-
-    def init
     end
 
     attr_reader :accept
