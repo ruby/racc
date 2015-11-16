@@ -269,21 +269,22 @@ module Racc
       index    = Array.new(graph.size, nil)
       vertices = []
       @infinity = graph.size + 2
+      traversed = Set.new
 
-      index.each_index do |i|
-        if !index[i]
-          traverse(i, index, vertices, bitmap, graph)
-        end
+      graph.nodes do |node|
+        next if traversed.include?(node)
+        traverse(node, traversed, index, vertices, bitmap, graph)
       end
     end
 
-    def traverse(node, index, vertices, map, graph)
+    def traverse(node, traversed, index, vertices, map, graph)
+      traversed.add(node)
       vertices.push(node)
       index[node] = height = vertices.size
 
       graph.arrows(node) do |next_node|
         unless index[next_node]
-          traverse(next_node, index, vertices, map, graph)
+          traverse(next_node, traversed, index, vertices, map, graph)
         end
 
         if index[node] > index[next_node]
