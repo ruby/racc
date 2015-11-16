@@ -478,13 +478,10 @@ module Racc
       @defact = nil
       @rr_conflicts = {}
       @sr_conflicts = {}
-
-      @closure = make_closure(@core)
     end
 
     attr_reader :ident
     attr_reader :core
-    attr_reader :closure
     attr_reader :gotos
     attr_reader :ritems
 
@@ -500,7 +497,7 @@ module Racc
 
     alias to_s inspect
 
-    def make_closure(core)
+    def closure
       # Say we know that we are at "A = B . C" right now; in other words,
       # we know that we are parsing an "A", we have already finished the "B",
       # and the "C" should be coming next
@@ -511,22 +508,20 @@ module Racc
       # well, to find all the possible positions where we could be in each
       # rule, we have to recurse down into all the rules for D (and so on)
       # This recursion has already been done and the result cached in Sym#expand
-      set = Set.new
-      core.each do |ptr|
+      @closure ||= @core.each_with_object(Set.new) do |ptr, set|
         set.add(ptr)
         if sym = ptr.symbol and sym.nonterminal?
           set.merge(sym.expand)
         end
-      end
-      set.sort_by(&:ident)
+      end.sort_by(&:ident)
     end
 
     def stokens
-      @stokens ||= @closure.map(&:symbol).compact.select(&:terminal?).uniq.sort_by(&:ident)
+      @stokens ||= closure.map(&:symbol).compact.select(&:terminal?).uniq.sort_by(&:ident)
     end
 
     def rrules
-      @rrules ||= @closure.select(&:reduce?).map(&:rule)
+      @rrules ||= closure.select(&:reduce?).map(&:rule)
     end
 
     def check_la(la_rules)
