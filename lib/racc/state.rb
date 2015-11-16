@@ -207,13 +207,13 @@ module Racc
 
           path.reverse_each do |g|
             break if     g.symbol.terminal?
-            includes.add_arrow(goto.ident, g.ident)
+            includes.add_arrow(g.ident, goto.ident)
             break unless g.symbol.nullable?
           end
         end
       end
 
-      walk_graph(f, includes.invert)
+      walk_graph(f, includes)
 
       # compute_lookaheads
       la = create_bitmap(la_rules.size)
@@ -448,15 +448,6 @@ module Racc
 
     def arrows(from, &block)
       self[from].each(&block)
-    end
-
-    # reverse direction of all arrows
-    def invert
-      graph = DirectedGraph.new(size)
-      nodes do |from|
-        arrows(from) { |to| graph.add_arrow(to, from) }
-      end
-      graph
     end
   end
 
