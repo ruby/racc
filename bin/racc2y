@@ -128,7 +128,7 @@ end
 
 def print_precedence_table(f, table)
   return if table.empty?
-  f.puts '/* precedance table */'
+  f.puts '/* precedence table */'
   table.each do |syms|
     assoc = syms.shift
     f.printf '%%%-8s ', assoc.to_s.downcase

@@ -52,7 +52,7 @@ def main
   parser.on('-E', '--embedded', "Embeds Racc runtime in output.") {
     embed_runtime = true
   }
-  parser.on('--line-convert-all', 'Converts line numbers of user codes.') {
+  parser.on('--line-convert-all', 'Converts line numbers of user code.') {
     line_convert_all = true
   }
   parser.on('-l', '--no-line-convert', 'Never convert line numbers.') {
