@@ -326,9 +326,6 @@ module Racc
         item.each_la(@symboltable) do |t|
           act = state.action[t]
           if act
-            unless act.kind_of?(Reduce)
-              raise "racc: fatal: #{act.class} in action table"
-            end
             # Cannot resolve R/R conflict (on t).
             # Reduce with upper rule as default.
             state.rr_conflict!(act.rule, item.rule, t)
