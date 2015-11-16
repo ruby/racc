@@ -640,10 +640,12 @@ module Racc
     end
   end
 
-  # Represents a transition on the grammar.
-  # "Real goto" means a transition by nonterminal,
-  # but this class treats also terminal's.
-  # If one is a terminal transition, .ident returns nil.
+  # Represents a transition between states in the grammar
+  # Descriptions of the LR algorithm only talk about doing a "goto" after
+  # reducing, but this class can also represent a state transition which occurs
+  # after shifting
+  # If 'symbol' is a terminal, then ident will be nil (there is no global
+  # ordering of such Gotos).
   #
   class Goto < Struct.new(:ident, :symbol, :from_state, :to_state)
     def inspect
