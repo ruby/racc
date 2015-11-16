@@ -325,7 +325,8 @@ module Racc
           state.action[t] = @actions.shift(state.gotos[t].to_state)
         end
       else
-        # reduce
+        # only reduce is possible; we won't even bother looking at the next
+        # token in this state
         state.defact = @actions.reduce(state.rrules[0])
       end
     end
