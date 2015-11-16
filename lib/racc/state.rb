@@ -163,24 +163,19 @@ module Racc
     private
 
     def lookahead
-      #
       # lookahead algorithm ver.3 -- from bison 1.26
-      #
-
       gotos = @gotos
       if @d_la
         puts "\n--- goto ---"
-        gotos.each_with_index {|g, i| print i, ' '; p g }
+        gotos.each_with_index { |g, i| puts "#{i} #{g.inspect}" }
       end
 
-      ### initialize_LA()
-      ### set_goto_map()
+      # initialize_LA()
+      # set_goto_map()
       la_rules = []
-      @states.each do |state|
-        state.check_la la_rules
-      end
+      @states.each { |state| state.check_la(la_rules) }
 
-      ### initialize_F()
+      # initialize_F()
       f     = create_bitmap(gotos.size)
       reads = []
       edge  = []
@@ -205,8 +200,8 @@ module Racc
         print_tab gotos, reads, f
       end
 
-      ### build_relations()
-      ### compute_FOLLOWS
+      # build_relations()
+      # compute_FOLLOWS
       path = nil
       edge = []
       lookback = Hash.new { |h, k| h[k] = [] }
@@ -239,7 +234,7 @@ module Racc
         print_tab gotos, includes, f
       end
 
-      ### compute_lookaheads
+      # compute_lookaheads
       la = create_bitmap(la_rules.size)
       lookback.each_pair do |i, arr|
         arr.each do |g|
