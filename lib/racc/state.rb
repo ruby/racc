@@ -310,7 +310,7 @@ module Racc
       elsif state.rrules.empty?
         # shift
         state.stokens.each do |t|
-          state.action[t] = @actions.shift(state.gotos[t].to_state)
+          state.action[t] = Shift.new(state.gotos[t].to_state)
         end
       else
         # only reduce is possible; we won't even bother looking at the next
@@ -341,7 +341,7 @@ module Racc
 
         unless act
           # no conflict
-          state.action[stok] = @actions.shift(goto.to_state)
+          state.action[stok] = Shift.new(goto.to_state)
         else
           # conflict
           rtok = act.rule.precedence
@@ -351,14 +351,14 @@ module Racc
 
           when :Shift
             # overwrite
-            state.action[stok] = @actions.shift(goto.to_state)
+            state.action[stok] = Shift.new(goto.to_state)
 
           when :Error
             state.action[stok] = @actions.error
 
           when :CantResolve
             # shift as default
-            state.action[stok] = @actions.shift(goto.to_state)
+            state.action[stok] = Shift.new(goto.to_state)
             state.sr_conflict!(stok, act.rule)
           end
         end
@@ -569,24 +569,11 @@ module Racc
       @grammar = grammar
       @statetable = statetable
 
-      @shift = []
       @accept = Accept.new
       @error = Error.new
     end
 
     def init
-      @shift = @statetable.map { |state| Shift.new(state) }
-    end
-
-    def shift(i)
-      case i
-      when State   then i = i.ident
-      when Integer then ;
-      else
-        raise "racc: fatal: wrong class #{i.class} for shift"
-      end
-
-      @shift[i] or raise "racc: fatal: shift action #{i} does not exist"
     end
 
     attr_reader :accept
