@@ -267,7 +267,6 @@ module Racc
     # from it
     def walk_graph(bitmap, graph)
       index    = Array.new(graph.size, nil)
-      @infinity = graph.size + 2
       traversed = Set.new
 
       graph.nodes do |node|
@@ -298,7 +297,7 @@ module Racc
       if index[node] == stack_depth
         while true
           next_node = stack.pop
-          index[next_node] = @infinity
+          index[next_node] = graph.size + 2
           break if node == next_node
 
           bitmap[next_node] |= bitmap[node]
