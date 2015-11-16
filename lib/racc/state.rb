@@ -19,11 +19,16 @@ module Racc
     def initialize(grammar, debug_flags = DebugFlags.new)
       @grammar = grammar
       @symboltable = grammar.symboltable
+
       @states = []
       @statecache = {}
+
       @nfa_computed = false
       @dfa_computed = false
-      @gotos = []
+
+      @gotos = [] # all state transitions performed when reducing
+                  # Goto is also used for state transitions when shifting,
+                  # but those objects don't go in this array
     end
 
     attr_reader :grammar
