@@ -197,7 +197,7 @@ module Racc
 
         reads << edge
       end
-      digraph(f, reads)
+      walk_graph(f, reads)
 
       if @d_la
         puts "\n--- F1 (reads) ---"
@@ -232,7 +232,7 @@ module Racc
       end
 
       includes = transpose(includes)
-      digraph(f, includes)
+      walk_graph(f, includes)
 
       if @d_la
         puts "\n--- F2 (includes) ---"
@@ -290,7 +290,15 @@ module Racc
       new
     end
 
-    def digraph(map, relation)
+    # traverse a directed graph
+    # (represented by an array, of arrays, of indices into the parent array
+    # each member of the parent array is a 'node', each member of a nested
+    # array is an 'arrow', pointing to another node)
+    # each entry in 'bitmap' also corresponds to a graph node
+    # after the traversal, the bitmap for each node will be the union of its
+    # original value, and ALL the values for all the nodes which are reachable
+    # from it
+    def walk_graph(bitmap, relation)
       n = relation.size
       index    = Array.new(n, nil)
       vertices = []
@@ -298,7 +306,7 @@ module Racc
 
       index.each_index do |i|
         if not index[i] and relation[i]
-          traverse i, index, vertices, map, relation
+          traverse i, index, vertices, bitmap, relation
         end
       end
     end
