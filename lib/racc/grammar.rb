@@ -492,10 +492,6 @@ module Racc
       @precedence || @symbols.select(&:terminal?).last
     end
 
-    def precedence=(sym)
-      @precedence ||= sym
-    end
-
     def inspect
       "#<Racc::Rule id=#{@ident} (#{@target})>"
     end
