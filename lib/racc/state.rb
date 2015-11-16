@@ -169,7 +169,7 @@ module Racc
       # find all cases where we have more than one reduction possible,
       # or where both a reduction and a shift are possible; in such cases, we
       # will try to use the lookahead table to disambiguate
-      la_rules = []
+      la_rules = [] # rules for which lookahead will be used
       @states.each { |state| state.check_la(la_rules) }
 
       # build a bitmap which shows which terminals could possibly appear next
@@ -211,7 +211,6 @@ module Racc
       # after A, *and C is nullable*?
       # that means T1 can also appear after B, not just after C
 
-      lookback = Hash.new { |h, k| h[k] = [] }
       includes = DirectedGraph.new(gotos.size)
       # look at the state transition triggered by each reduction in the grammar
       # (at each place in the state graph where that reduction can occur)
@@ -220,15 +219,7 @@ module Racc
         goto.symbol.heads.each do |ptr|
           # what sequence of state transitions would we have made to reach
           # this reduction, if this is the rule that was used?
-          path = record_path(goto.from_state, ptr.rule)
-          # and what would the last state before the reduction have been?
-          prev_state = (path.last && path.last.to_state) || goto.from_state
-
-          if prev_state.conflict?
-            lookback[prev_state.rruleid(ptr.rule)] << goto
-          end
-
-          path.reverse_each do |preceding_goto|
+          path(goto.from_state, ptr.rule).reverse_each do |preceding_goto|
             break if     preceding_goto.symbol.terminal?
             includes.add_arrow(preceding_goto.ident, goto.ident)
             break unless preceding_goto.symbol.nullable?
@@ -238,15 +229,27 @@ module Racc
 
       walk_graph(following_terminals, includes)
 
-      # compute_lookaheads
-      la = create_bitmap(la_rules.size)
-      lookback.each_pair do |i, arr|
-        arr.each do |g|
-          la[i] |= following_terminals[g.ident]
+      # Now we know which terminals can follow each reduction
+      # But this lookahead information is only needed when there would otherwise
+      # be a S/R or R/R conflict
+
+      # So, find all the states leading to a possible reduce, where there is a
+      # S/R or R/R conflict, and copy the lookahead set for each reduce to the
+      # preceding state which has the conflict
+      lookahead_tbl = create_bitmap(la_rules.size)
+
+      gotos.each do |goto|
+        goto.symbol.heads.each do |ptr|
+          path = path(goto.from_state, ptr.rule)
+          prev_state = (path.last && path.last.to_state) || goto.from_state
+          if prev_state.conflict?
+            tbl_idx = prev_state.rruleid(ptr.rule)
+            lookahead_tbl[tbl_idx] |= following_terminals[goto.ident]
+          end
         end
       end
 
-      la
+      lookahead_tbl
     end
 
     def create_bitmap(size)
@@ -255,7 +258,7 @@ module Racc
 
     # Sequence of state transitions which would be taken when starting
     # from 'state', then following the RHS of 'rule' right to the end
-    def record_path(state, rule)
+    def path(state, rule)
       rule.symbols.each_with_object([]) do |tok, path|
         goto = state.gotos[tok]
         path << goto
