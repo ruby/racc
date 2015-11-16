@@ -410,24 +410,21 @@ module Racc
     end
 
     def pack(state)
-      ### find most frequently used reduce rule
-      act = state.action
-      arr = Array.new(@grammar.size, 0)
-      act.each do |t, a|
-        arr[a.rule_id] += 1 if a.kind_of?(Reduce)
-      end
-      i = arr.max
-      s = (i > 0) ? arr.index(i) : nil
-
-      ### set & delete default action
-      if s
-        r = Reduce.new(@grammar[s])
-        if not state.defact or state.defact == r
-          act.delete_if {|t, a| a == r }
-          state.defact = r
+      # find most frequently used reduce rule, and make it the default action
+      state.defact ||= begin
+        freq = Hash.new(0)
+        state.action.each do |tok, act|
+          freq[act.rule] += 1 if act.kind_of?(Reduce)
         end
-      else
-        state.defact ||= Error.new
+
+        if freq.empty?
+          Error.new
+        else
+          most_common = freq.keys.max_by { |rule| freq[rule] }
+          reduce = Reduce.new(most_common)
+          state.action.delete_if { |tok, act| act == reduce }
+          reduce
+        end
       end
     end
   end
