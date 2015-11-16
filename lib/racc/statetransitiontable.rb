@@ -9,23 +9,14 @@ require 'racc/parser'
 
 module Racc
 
-  StateTransitionTable = Struct.new(:action_table,
-                                    :action_check,
-                                    :action_default,
-                                    :action_pointer,
-                                    :goto_table,
-                                    :goto_check,
-                                    :goto_default,
-                                    :goto_pointer,
-                                    :token_table,
-                                    :reduce_table,
-                                    :reduce_n,
-                                    :shift_n,
-                                    :nt_base,
-                                    :token_to_s_table,
-                                    :use_result_var,
-                                    :debug_parser)
-  class StateTransitionTable   # reopen
+  TRANSITION_TABLE_ATTRS =
+    [:action_table,   :action_check,    :action_default, :action_pointer,
+     :goto_table,     :goto_check,      :goto_default,   :goto_pointer,
+     :token_table,    :reduce_table,    :reduce_n,       :shift_n,
+     :nt_base,        :token_to_s_table,
+     :use_result_var, :debug_parser]
+
+  class StateTransitionTable < Struct.new(*TRANSITION_TABLE_ATTRS)
     def StateTransitionTable.generate(states)
       StateTransitionTableGenerator.new(states).generate
     end
