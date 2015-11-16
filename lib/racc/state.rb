@@ -267,24 +267,23 @@ module Racc
     # from it
     def walk_graph(bitmap, graph)
       index    = Array.new(graph.size, nil)
-      vertices = []
       @infinity = graph.size + 2
       traversed = Set.new
 
       graph.nodes do |node|
         next if traversed.include?(node)
-        traverse(node, traversed, index, vertices, bitmap, graph)
+        traverse(node, traversed, index, [], bitmap, graph)
       end
     end
 
-    def traverse(node, traversed, index, vertices, map, graph)
+    def traverse(node, traversed, index, stack, map, graph)
       traversed.add(node)
-      vertices.push(node)
-      index[node] = height = vertices.size
+      stack.push(node)
+      index[node] = stack_depth = stack.size
 
       graph.arrows(node) do |next_node|
         unless index[next_node]
-          traverse(next_node, traversed, index, vertices, map, graph)
+          traverse(next_node, traversed, index, stack, map, graph)
         end
 
         if index[node] > index[next_node]
@@ -296,9 +295,9 @@ module Racc
         map[node] |= map[next_node]
       end
 
-      if index[node] == height
+      if index[node] == stack_depth
         while true
-          next_node = vertices.pop
+          next_node = stack.pop
           index[next_node] = @infinity
           break if node == next_node
 
