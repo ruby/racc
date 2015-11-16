@@ -287,7 +287,8 @@ module Racc
         end
 
         if index[node] > index[next_node]
-          # circulative recursion !!!
+          # there is a cycle in the graph
+          # we already passed through 'next_node' to reach here
           index[node] = index[next_node]
         end
 
