@@ -171,8 +171,8 @@ end
 # Note: parser.rb is LGPL, but your parser is not.
 # Your own parser is completely yours.
 module Racc
-  unless defined?(Racc_No_Extentions)
-    Racc_No_Extentions = false # :nodoc:
+  unless defined?(Racc_No_Extensions)
+    Racc_No_Extensions = ENV['PURERUBY'] # :nodoc:
   end
 
   class Parser
@@ -187,7 +187,7 @@ module Racc
       unless new.respond_to?(:_racc_do_parse_c, true)
         raise LoadError, 'old cparse.so'
       end
-      if Racc_No_Extentions
+      if Racc_No_Extensions
         raise LoadError, 'selecting ruby version of racc runtime core'
       end
 
