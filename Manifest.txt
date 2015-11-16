@@ -50,7 +50,6 @@ sample/lalr.y
 sample/lists.y
 sample/syntax.y
 sample/yyerr.y
-tasks/email.rb
 test/assets/bench.y
 test/assets/bibtex.y
 test/assets/cadenza.y
