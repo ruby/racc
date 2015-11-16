@@ -804,10 +804,6 @@ Init_cparse(void)
     }
     rb_define_private_method(Parser, "_racc_do_parse_c", racc_cparse, 2);
     rb_define_private_method(Parser, "_racc_yyparse_c", racc_yyparse, 4);
-    rb_define_const(Parser, "Racc_Runtime_Core_Version_C",
-                    rb_str_new2(RACC_VERSION));
-    rb_define_const(Parser, "Racc_Runtime_Core_Id_C",
-        rb_str_new2("$originalId: cparse.c,v 1.8 2006/07/06 11:39:46 aamine Exp $"));
 
     CparseParams = rb_define_class_under(Racc, "CparseParams", rb_cObject);
 

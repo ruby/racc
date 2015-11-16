@@ -171,18 +171,11 @@ end
 # Note: parser.rb is LGPL, but your parser is not.
 # Your own parser is completely yours.
 module Racc
-
   unless defined?(Racc_No_Extentions)
     Racc_No_Extentions = false # :nodoc:
   end
 
   class Parser
-
-    Racc_Runtime_Version = ::Racc::VERSION
-    Racc_Runtime_Revision = '$Id$'
-
-    Racc_Runtime_Core_Version_R = ::Racc::VERSION
-    Racc_Runtime_Core_Revision_R = '$Id$'.split[1]
     begin
       if Object.const_defined?(:RUBY_ENGINE) and RUBY_ENGINE == 'jruby'
         require 'racc/cparse-jruby.jar'
@@ -190,8 +183,7 @@ module Racc
       else
         require 'racc/cparse'
       end
-    # Racc_Runtime_Core_Version_C  = (defined in extention)
-      Racc_Runtime_Core_Revision_C = Racc_Runtime_Core_Id_C.split[2]
+
       unless new.respond_to?(:_racc_do_parse_c, true)
         raise LoadError, 'old cparse.so'
       end
@@ -201,16 +193,12 @@ module Racc
 
       Racc_Main_Parsing_Routine    = :_racc_do_parse_c # :nodoc:
       Racc_YY_Parse_Method         = :_racc_yyparse_c # :nodoc:
-      Racc_Runtime_Core_Version    = Racc_Runtime_Core_Version_C # :nodoc:
-      Racc_Runtime_Core_Revision   = Racc_Runtime_Core_Revision_C # :nodoc:
       Racc_Runtime_Type            = 'c' # :nodoc:
     rescue LoadError
 puts $!
 puts $!.backtrace
       Racc_Main_Parsing_Routine    = :_racc_do_parse_rb
       Racc_YY_Parse_Method         = :_racc_yyparse_rb
-      Racc_Runtime_Core_Version    = Racc_Runtime_Core_Version_R
-      Racc_Runtime_Core_Revision   = Racc_Runtime_Core_Revision_R
       Racc_Runtime_Type            = 'ruby'
     end
 

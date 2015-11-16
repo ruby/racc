@@ -91,21 +91,11 @@ def main
   #}
   parser.on('--version', 'Prints version and quit.') {
     puts "racc version #{Racc::Version}"
-    exit 0
-  }
-  parser.on('--runtime-version', 'Prints runtime version and quit.') {
-    printf "racc runtime version %s (rev. %s); %s\n",
-           Racc::Parser::Racc_Runtime_Version,
-           Racc::Parser::Racc_Runtime_Revision,
-           if Racc::Parser.racc_runtime_type == 'ruby'
-             sprintf('ruby core version %s (rev. %s)',
-                     Racc::Parser::Racc_Runtime_Core_Version_R,
-                     Racc::Parser::Racc_Runtime_Core_Revision_R)
-           else
-             sprintf('c core version %s (rev. %s)',
-                     Racc::Parser::Racc_Runtime_Core_Version_C,
-                     Racc::Parser::Racc_Runtime_Core_Revision_C)
-           end
+    if Racc::Parser.racc_runtime_type == 'ruby'
+      puts '(ruby core)'
+    else
+      puts '(c core)'
+    end
     exit 0
   }
   parser.on('--copyright', 'Prints copyright and quit.') {
