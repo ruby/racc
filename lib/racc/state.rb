@@ -267,15 +267,15 @@ module Racc
       end
     end
 
+    # Sequence of Gotos which would be taken when following a Rule all the
+    # way to its end
     def record_path(begst, rule)
       st = begst
-      path = []
-      rule.symbols.each do |t|
+      rule.symbols.each_with_object([]) do |t, path|
         goto = st.gotos[t]
-        path.push goto
+        path.push(goto)
         st = goto.to_state
       end
-      path
     end
 
     def transpose(rel)
