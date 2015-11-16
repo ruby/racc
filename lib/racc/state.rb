@@ -366,10 +366,6 @@ module Racc
       end
     end
 
-    #
-    # complete
-    #
-
     def set_accept
       anch = @symboltable.anchor
       init_state = @states[0].gotos[@grammar.start].to_state
@@ -416,7 +412,6 @@ module Racc
     end
   end
 
-  # A LALR state.
   class State
     def initialize(ident, core)
       @ident = ident # ID number used to provide a canonical ordering
