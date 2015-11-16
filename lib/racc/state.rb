@@ -350,8 +350,8 @@ module Racc
       end
     end
 
-    def resolve_sr(state, s)
-      s.each do |stok|
+    def resolve_sr(state, stokens)
+      stokens.each do |stok|
         goto = state.gotos[stok]
         act = state.action[stok]
 
@@ -473,7 +473,6 @@ module Racc
       @core = core # LocationPointers to all the possible positions within the
                    # RHS of a rule where we could be when in this state
       @gotos = {}
-      @stokens = nil
       @ritems = nil
       @action = {}
       @defact = nil
@@ -484,13 +483,9 @@ module Racc
     end
 
     attr_reader :ident
-
     attr_reader :core
     attr_reader :closure
-
     attr_reader :gotos
-
-    attr_reader :stokens
     attr_reader :ritems
     attr_reader :rrules
 
@@ -527,14 +522,16 @@ module Racc
       set.sort_by(&:ident)
     end
 
+    def stokens
+      @stokens ||= @closure.map(&:symbol).compact.select(&:terminal?).uniq.sort_by(&:ident)
+    end
+
     def check_la(la_rules)
       @conflict = false
-      s = Set.new
       r = [] # what reductions could we do in this state?
       @closure.each do |ptr|
         if t = ptr.symbol
           if t.terminal?
-            s << t
             @conflict = true if t.ident == 1 # $error
           end
         else
@@ -542,11 +539,10 @@ module Racc
         end
       end
 
-      if (s.any? && r.any?) || r.size > 1
+      if (stokens.any? && r.any?) || r.size > 1
         @conflict = true
       end
 
-      @stokens = s.sort_by(&:ident)
       @rrules = r
 
       if @conflict
