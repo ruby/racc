@@ -179,11 +179,8 @@ module Racc
       # build a bitmap which shows which terminals could possibly appear next
       # after each reduction in the grammar
       f     = create_bitmap(gotos.size)
-      reads = []
+      reads = DirectedGraph.new(gotos.size)
       gotos.each do |goto|
-        # for each goto-after-reduce, which nullable NTs could come next?
-        edge  = []
-
         goto.to_state.gotos.each do |tok, next_goto|
           if tok.terminal?
             # set bit for terminal which could be shifted after this reduction
@@ -191,11 +188,9 @@ module Racc
           elsif tok.nullable?
             # if a nullable NT could come next, then we have to look past it
             # to see which terminals could appear next
-            edge.push(next_goto.ident)
+            reads.add_arrow(goto.ident, next_goto.ident)
           end
         end
-
-        reads << edge
       end
       walk_graph(f, reads)
 
@@ -208,10 +203,8 @@ module Racc
       # compute_FOLLOWS
       path = nil
       lookback = Hash.new { |h, k| h[k] = [] }
-      includes = []
+      includes = DirectedGraph.new(gotos.size)
       gotos.each do |goto|
-        edge = []
-
         goto.symbol.heads.each do |ptr|
           path = record_path(goto.from_state, ptr.rule)
           lastgoto = path.last
@@ -223,16 +216,13 @@ module Racc
 
           path.reverse_each do |g|
             break if     g.symbol.terminal?
-            edge.push    g.ident
+            includes.add_arrow(goto.ident, g.ident)
             break unless g.symbol.nullable?
           end
         end
-
-        includes << edge
       end
 
-      includes = transpose(includes)
-      walk_graph(f, includes)
+      walk_graph(f, includes.invert)
 
       if @d_la
         puts "\n--- F2 (includes) ---"
@@ -270,64 +260,47 @@ module Racc
       end
     end
 
-    # reverse a directed graph, so the arrows point in the opposite direction
-    # (regarding the structure used to represent a directed graph, see the
-    # comment on #walk_graph, below)
-    def transpose(out_arrows)
-      array = Array.new(out_arrows.size) { [] }
-      out_arrows.each_with_index do |to_indices, from_idx|
-        to_indices.each do |to_idx|
-          array[to_idx] << from_idx
-        end
-      end
-      array
-    end
-
     # traverse a directed graph
-    # (represented by an array, of arrays, of indices into the parent array
-    # each member of the parent array is a 'node', each member of a nested
-    # array is an 'arrow', pointing to another node)
-    # each entry in 'bitmap' also corresponds to a graph node
+    # each entry in 'bitmap' corresponds to a graph node
     # after the traversal, the bitmap for each node will be the union of its
     # original value, and ALL the values for all the nodes which are reachable
     # from it
-    def walk_graph(bitmap, relation)
-      n = relation.size
-      index    = Array.new(n, nil)
+    def walk_graph(bitmap, graph)
+      index    = Array.new(graph.size, nil)
       vertices = []
-      @infinity = n + 2
+      @infinity = graph.size + 2
 
       index.each_index do |i|
-        if not index[i] and relation[i]
-          traverse i, index, vertices, bitmap, relation
+        if !index[i]
+          traverse(i, index, vertices, bitmap, graph)
         end
       end
     end
 
-    def traverse(i, index, vertices, map, relation)
-      vertices.push i
-      index[i] = height = vertices.size
+    def traverse(node, index, vertices, map, graph)
+      vertices.push(node)
+      index[node] = height = vertices.size
 
-      if rp = relation[i]
-        rp.each do |proci|
-          unless index[proci]
-            traverse proci, index, vertices, map, relation
-          end
-          if index[i] > index[proci]
-            # circulative recursion !!!
-            index[i] = index[proci]
-          end
-          map[i] |= map[proci]
+      graph.arrows(node) do |next_node|
+        unless index[next_node]
+          traverse(next_node, index, vertices, map, graph)
         end
+
+        if index[node] > index[next_node]
+          # circulative recursion !!!
+          index[node] = index[next_node]
+        end
+
+        map[node] |= map[next_node]
       end
 
-      if index[i] == height
+      if index[node] == height
         while true
-          proci = vertices.pop
-          index[proci] = @infinity
-          break if i == proci
+          next_node = vertices.pop
+          index[next_node] = @infinity
+          break if node == next_node
 
-          map[proci] |= map[i]
+          map[next_node] |= map[node]
         end
       end
     end
@@ -521,6 +494,31 @@ module Racc
       else
         state.defact ||= @actions.error
       end
+    end
+  end
+
+  class DirectedGraph < Array
+    def initialize(size)
+      super(size) { [] }
+    end
+
+    def add_arrow(from, to)
+      self[from] << to
+    end
+
+    alias nodes each_index
+
+    def arrows(from, &block)
+      self[from].each(&block)
+    end
+
+    # reverse direction of all arrows
+    def invert
+      graph = DirectedGraph.new(size)
+      nodes do |from|
+        arrows(from) { |to| graph.add_arrow(to, from) }
+      end
+      graph
     end
   end
 
