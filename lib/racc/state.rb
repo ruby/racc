@@ -170,31 +170,35 @@ module Racc
         gotos.each_with_index { |g, i| puts "#{i} #{g.inspect}" }
       end
 
-      # initialize_LA()
-      # set_goto_map()
+      # find all cases where we have more than one reduction possible,
+      # or where both a reduction and a shift are possible; in such cases, we
+      # will try to use the lookahead table to disambiguate
       la_rules = []
       @states.each { |state| state.check_la(la_rules) }
 
-      # initialize_F()
+      # build a bitmap which shows which terminals could possibly appear next
+      # after each reduction in the grammar
       f     = create_bitmap(gotos.size)
       reads = []
-      edge  = []
       gotos.each do |goto|
+        # for each goto-after-reduce, which nullable NTs could come next?
+        edge  = []
+
         goto.to_state.gotos.each do |t, other|
           if t.terminal?
+            # set bit for terminal which could be shifted after this reduction
             f[goto.ident] |= (1 << t.ident)
           elsif t.nullable?
-            edge.push goto.to_state.gotos[t].ident
+            # if a nullable NT could come next, then we have to look past it
+            # to see which terminals could appear next
+            edge.push(other.ident)
           end
         end
-        if edge.empty?
-          reads.push nil
-        else
-          reads.push edge
-          edge = []
-        end
+
+        reads << edge
       end
-      digraph f, reads
+      digraph(f, reads)
+
       if @d_la
         puts "\n--- F1 (reads) ---"
         print_tab gotos, reads, f
@@ -203,35 +207,36 @@ module Racc
       # build_relations()
       # compute_FOLLOWS
       path = nil
-      edge = []
       lookback = Hash.new { |h, k| h[k] = [] }
       includes = []
       gotos.each do |goto|
+        edge = []
+
         goto.symbol.heads.each do |ptr|
           path = record_path(goto.from_state, ptr.rule)
           lastgoto = path.last
           st = lastgoto ? lastgoto.to_state : goto.from_state
+
           if st.conflict?
             lookback[st.rruleid(ptr.rule)] << goto
           end
+
           path.reverse_each do |g|
             break if     g.symbol.terminal?
             edge.push    g.ident
             break unless g.symbol.nullable?
           end
         end
-        if edge.empty?
-          includes.push nil
-        else
-          includes.push edge
-          edge = []
-        end
+
+        includes << edge
       end
+
       includes = transpose(includes)
-      digraph f, includes
+      digraph(f, includes)
+
       if @d_la
         puts "\n--- F2 (includes) ---"
-        print_tab gotos, includes, f
+        print_tab(gotos, includes, f)
       end
 
       # compute_lookaheads
@@ -241,9 +246,10 @@ module Racc
           la[i] |= f[g.ident]
         end
       end
+
       if @d_la
         puts "\n--- LA (lookback) ---"
-        print_tab la_rules, lookback, la
+        print_tab(la_rules, lookback, la)
       end
 
       la
