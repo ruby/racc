@@ -259,14 +259,6 @@ module Racc
       Array.new(size, 0) # use Integer as bitmap
     end
 
-    def addrel(tbl, i, item)
-      if a = tbl[i]
-        a.push item
-      else
-        tbl[i] = [item]
-      end
-    end
-
     # Sequence of Gotos which would be taken when following a Rule all the
     # way to its end
     def record_path(begst, rule)
