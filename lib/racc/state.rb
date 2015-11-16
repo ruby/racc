@@ -321,17 +321,16 @@ module Racc
       end
     end
 
-    def resolve_rr(state, r)
-      r.each do |item|
-        item.each_la(@symboltable) do |t|
-          act = state.action[t]
-          if act
+    def resolve_rr(state, ritems)
+      ritems.each do |item|
+        item.each_lookahead_token(@symboltable) do |tok|
+          if act = state.action[tok]
             # Cannot resolve R/R conflict (on t).
             # Reduce with upper rule as default.
-            state.rr_conflict!(act.rule, item.rule, t)
+            state.rr_conflict!(act.rule, item.rule, tok)
           else
             # No conflict.
-            state.action[t] = @actions.reduce(item.rule)
+            state.action[tok] = @actions.reduce(item.rule)
           end
         end
       end
@@ -557,7 +556,7 @@ module Racc
     attr_reader :rule
     attr_accessor :la
 
-    def each_la(tbl)
+    def each_lookahead_token(tbl)
       la = @la
       0.upto(la.size - 1) do |i|
         (0..7).each do |ii|
