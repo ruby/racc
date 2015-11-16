@@ -487,7 +487,6 @@ module Racc
     attr_reader :closure
     attr_reader :gotos
     attr_reader :ritems
-    attr_reader :rrules
 
     attr_reader :action
     attr_accessor :defact   # default action
@@ -526,20 +525,15 @@ module Racc
       @stokens ||= @closure.map(&:symbol).compact.select(&:terminal?).uniq.sort_by(&:ident)
     end
 
+    def rrules
+      @rrules ||= @closure.select(&:reduce?).map(&:rule)
+    end
+
     def check_la(la_rules)
-      r = [] # what reductions could we do in this state?
-      @closure.each do |ptr|
-        if !ptr.symbol
-          r << ptr.rule
-        end
-      end
-
-      @rrules = r
-
       if conflict?
         @la_rules_i = la_rules.size
-        @la_rules = r.map(&:ident)
-        la_rules.concat(r)
+        @la_rules = rrules.map(&:ident)
+        la_rules.concat(rrules)
       else
         @la_rules_i = @la_rules = nil
       end
