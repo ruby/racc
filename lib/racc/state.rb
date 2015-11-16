@@ -527,25 +527,16 @@ module Racc
     end
 
     def check_la(la_rules)
-      @conflict = false
       r = [] # what reductions could we do in this state?
       @closure.each do |ptr|
-        if t = ptr.symbol
-          if t.terminal?
-            @conflict = true if t.ident == 1 # $error
-          end
-        else
+        if !ptr.symbol
           r << ptr.rule
         end
       end
 
-      if (stokens.any? && r.any?) || r.size > 1
-        @conflict = true
-      end
-
       @rrules = r
 
-      if @conflict
+      if conflict?
         @la_rules_i = la_rules.size
         @la_rules = r.map(&:ident)
         la_rules.concat(r)
@@ -554,8 +545,13 @@ module Racc
       end
     end
 
+    # would there be a S/R or R/R conflict IF lookahead was not used?
     def conflict?
-      @conflict
+      @conflict ||= begin
+        (rrules.size > 1) ||
+        (stokens.any? { |tok| tok.ident == 1 }) || # $error symbol
+        (stokens.any? && rrules.any?)
+      end
     end
 
     def rruleid(rule)
@@ -567,7 +563,7 @@ module Racc
     end
 
     def la=(la)
-      return unless @conflict
+      return unless conflict?
       i = @la_rules_i
       @ritems = []
       @rrules.each do |rule|
