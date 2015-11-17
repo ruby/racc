@@ -7,7 +7,7 @@
 
 require 'racc'
 require 'racc/grammar'
-require 'racc/parserfilegenerator'
+require 'racc/parser_file_generator'
 require 'racc/sourcetext'
 require 'stringio'
 

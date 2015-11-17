@@ -22,7 +22,7 @@ lib/racc/info.rb
 lib/racc/log_file_generator.rb
 lib/racc/parser-text.rb
 lib/racc/parser.rb
-lib/racc/parserfilegenerator.rb
+lib/racc/parser_file_generator.rb
 lib/racc/sourcetext.rb
 lib/racc/state.rb
 lib/racc/statetransitiontable.rb
