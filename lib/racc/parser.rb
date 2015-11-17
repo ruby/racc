@@ -411,11 +411,25 @@ module Racc
         #
         # error
         #
+
+        # Like yacc, Racc calls `on_error` when an error occurs, and then starts
+        # to attempt auto-recovery by discarding states on the stack until it
+        # gets to a state where the 'error' token is acceptable
+        #
+        # Often, this leads to another error, and another, until all the tokens
+        # in the erroneous portion of input have been shifted (and then
+        # discarded by the auto-recovery code)
+        #
+        # So to avoid an outpouring of error messages, @racc_error_status is
+        # used to suppress 3 calls to `on_error` after each error is detected
+        # Each successful shift decrements @racc_error_status, so after the
+        # erroneous portion of input is cleared, it quickly returns to zero,
+        # and then Racc is ready to report another error again
         case @racc_error_status
         when 0
-          unless arg[21]    # user_yyerror
+          unless arg[21] # user_yyerror
             nerr += 1
-            on_error @racc_t, @racc_val, @racc_vstack
+            on_error(@racc_t, @racc_val, @racc_vstack)
           end
         when 3
           if @racc_t == 0   # is $
@@ -515,7 +529,7 @@ module Racc
     end
 
     # Enter error recovering mode.
-    # This method does not call #on_error.
+    # This method does not call `on_error`.
     def yyerror
       throw :racc_jump, 1
     end
@@ -526,7 +540,15 @@ module Racc
       throw :racc_jump, 2
     end
 
-    # Leave error recovering mode.
+    # Leave error recovery mode.
+    #
+    # When in error recovery mode, Racc suppresses 3 errors after each error
+    # which is reported (by calling `on_error`).
+    # To get out of error recovery mode, normally Racc must successfully shift
+    # 3 tokens.
+    # You can call this from `on_error`, or from an action block, to immediately
+    # get out of error recovery and stop suppressing the reporting of further
+    # errors.
     def yyerrok
       @racc_error_status = 0
     end
