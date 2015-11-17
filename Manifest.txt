@@ -57,6 +57,7 @@ test/assets/digraph.y
 test/assets/echk.y
 test/assets/edtf.y
 test/assets/err.y
+test/assets/error_recovery.y
 test/assets/expect.y
 test/assets/firstline.y
 test/assets/huia.y
