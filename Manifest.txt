@@ -17,7 +17,7 @@ lib/racc.rb
 lib/racc/debugflags.rb
 lib/racc/exception.rb
 lib/racc/grammar.rb
-lib/racc/grammarfileparser.rb
+lib/racc/grammar_file_parser.rb
 lib/racc/info.rb
 lib/racc/logfilegenerator.rb
 lib/racc/parser-text.rb

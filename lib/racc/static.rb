@@ -1,5 +1,5 @@
 require 'racc'
 require 'racc/parser'
-require 'racc/grammarfileparser'
+require 'racc/grammar_file_parser'
 require 'racc/parserfilegenerator'
 require 'racc/logfilegenerator'
