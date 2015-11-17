@@ -396,7 +396,7 @@ puts $!.backtrace
         # shift
         #
         if @racc_error_status > 0
-          @racc_error_status -= 1 unless @racc_t == 1   # error token
+          @racc_error_status -= 1 unless @racc_t <= 1 # error token or EOF
         end
         @racc_vstack.push @racc_val
         @racc_state.push act
@@ -445,6 +445,8 @@ puts $!.backtrace
           end
         when 3
           if @racc_t == 0   # is $
+            # We're at EOF, and another error occurred immediately after
+            # attempting auto-recovery
             throw :racc_end_parse, nil
           end
           @racc_read_next = true
