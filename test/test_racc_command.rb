@@ -280,5 +280,13 @@ module Racc
       assert_debugfile 'cast.y', [0, 0, 0, 0, 1]
       assert_output 'cast.y'
     end
+
+    # .y file from cadenza gem
+
+    def test_cadenza
+      assert_compile 'cadenza.y'
+      assert_debugfile 'cadenza.y', [0, 0, 0, 0, 37]
+      assert_output 'cadenza.y'
+    end
   end
 end
