@@ -19,7 +19,7 @@ lib/racc/exception.rb
 lib/racc/grammar.rb
 lib/racc/grammar_file_parser.rb
 lib/racc/info.rb
-lib/racc/logfilegenerator.rb
+lib/racc/log_file_generator.rb
 lib/racc/parser-text.rb
 lib/racc/parser.rb
 lib/racc/parserfilegenerator.rb
