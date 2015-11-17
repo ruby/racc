@@ -25,7 +25,7 @@ lib/racc/parser.rb
 lib/racc/parser_file_generator.rb
 lib/racc/source_text.rb
 lib/racc/state.rb
-lib/racc/statetransitiontable.rb
+lib/racc/state_transition_table.rb
 lib/racc/static.rb
 rdoc/en/NEWS.en.rdoc
 rdoc/en/grammar.en.rdoc

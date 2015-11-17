@@ -5,7 +5,7 @@
 # the GNU LGPL, Lesser General Public License version 2.1.
 # For details of the GNU LGPL, see the file "COPYING".
 
-require 'racc/statetransitiontable'
+require 'racc/state_transition_table'
 require 'racc/exception'
 require 'forwardable'
 require 'set'
