@@ -281,5 +281,13 @@ module Racc
       assert_output 'rdblockparser.y'
       assert_output 'rdinlineparser.y'
     end
+
+    # .y file from cast gem
+
+    def test_cast
+      assert_compile 'cast.y'
+      assert_debugfile 'cast.y', [0, 0, 0, 0, 1]
+      assert_output 'cast.y'
+    end
   end
 end

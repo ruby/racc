@@ -57,6 +57,7 @@ setup.rb
 tasks/doc.rb
 tasks/email.rb
 test/assets/bibtex.y
+test/assets/cast.y
 test/assets/chk.y
 test/assets/conf.y
 test/assets/csspool.y
@@ -107,6 +108,7 @@ test/bench.y
 test/helper.rb
 test/infini.y
 test/regress/bibtex
+test/regress/cast
 test/regress/csspool
 test/regress/edtf
 test/regress/journey
