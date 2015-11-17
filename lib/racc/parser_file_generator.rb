@@ -6,7 +6,7 @@
 # For details of the GNU LGPL, see the file "COPYING".
 
 require 'enumerator'
-require 'racc/sourcetext'
+require 'racc/source_text'
 require 'racc/parser-text'
 require 'rbconfig'
 

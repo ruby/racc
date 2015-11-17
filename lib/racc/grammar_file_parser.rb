@@ -8,7 +8,7 @@
 require 'racc'
 require 'racc/grammar'
 require 'racc/parser_file_generator'
-require 'racc/sourcetext'
+require 'racc/source_text'
 require 'stringio'
 
 module Racc
