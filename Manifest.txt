@@ -129,6 +129,7 @@ test/regress/ruby18
 test/regress/ruby22
 test/regress/tp_plus
 test/regress/twowaysql
+test/scandata/blockcomment
 test/scandata/brace
 test/scandata/gvar
 test/scandata/normal
