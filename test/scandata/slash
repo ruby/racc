@@ -1,10 +1,14 @@
-{
-    # here's many '/'s
-    i = 5/1            # div
-    re = /regex/       # regexp
-    i /= 5             # div
-    result = 5 / 1     # div
-    result = 5/ 1      # div
-    call(/regex/)      # regexp
-    call /regex/       # regexp
-}
+# here's many '/'s
+i = 5/1            # div
+re = /regex/       # regexp
+i /= 5             # div
+result = 5 / 1     # div
+result = 5/ 1      # div
+call(/regex/)      # regexp
+call /regex/       # regexp
+/#{a + ' ' + "#{123}"}/ # regexp
+/hello/mi          # regexp with options
+/#{a + ' ' + "#{'hello'}"}/mi # combined
+handles /\Ablahblah/ # ambiguous regexp
+para_setup(M, N/M) # div
+sleep zzz / 2.0    # div
