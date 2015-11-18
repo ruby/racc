@@ -66,8 +66,6 @@ as follows:
 { print val[0]
   puts val[1] }
 --
-However, there is some Ruby syntax which cannot be used inside an action block.
-for instance, you cannot use '%' strings, here documents, or '%r' regexps.
 
 The return value of an action is the left-hand side (lhs) value of the rule.
 This is $$ in yacc.

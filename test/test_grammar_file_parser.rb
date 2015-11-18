@@ -4,7 +4,6 @@ module Racc
   class TestGrammarFileParser < TestCase
     def test_parse
       file = File.join(ASSET_DIR, 'yyerr.y')
-
       parser = Racc::GrammarFileParser.new
       parser.parse(File.read(file), File.basename(file))
     end

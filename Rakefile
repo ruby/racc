@@ -105,7 +105,6 @@ else
   task gem_build_path => [:compile] do
     add_file_to_gem 'lib/racc/cparse-jruby.jar'
   end
-
 end
 
 task :test_pure do
@@ -121,3 +120,7 @@ RuboCop::RakeTask.new(:rubocop) do |task|
 end
 
 Hoe.add_include_dirs('.:lib/racc')
+
+rule '.rb' => '.rl' do |t|
+  sh "ragel -F1 -R #{t.source} -o #{t.name}"
+end
