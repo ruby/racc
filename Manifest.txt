@@ -132,6 +132,7 @@ test/regress/twowaysql
 test/scandata/blockcomment
 test/scandata/brace
 test/scandata/gvar
+test/scandata/heredocs
 test/scandata/normal
 test/scandata/percent
 test/scandata/slash

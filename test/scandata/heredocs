@@ -1,0 +1,44 @@
+<<ABC
+this is a line. this doesn't end the heredoc:
+    ABC
+but this does:
+ABC
+
+c.module_eval(<<-End, 1, 2, 3)
+    def method
+      something
+    end
+  End
+
+<<'__end_of_file__'
+# Comment here
+__end_of_file__
+
+# this looks like a heredoc, but isn't
+class <<self
+  def method; end
+end
+
+# this too
+module EM
+  def self._set_mocks
+    class <<self
+      alias set_tls_parms_old set_tls_parms
+    end
+  end
+end
+
+puts <<ABC + "hello
+1
+2
+3
+ABC
+ there!"
+
+# this is not a heredoc:
+ @res << list_name(fragment.type, true) <<"\n"
+
+ expect(table.join("\n")).to eq <<-TABLE.gsub(/^\s+\|/, '').strip
+   |    0    true          3          io     io
+   |    1   false               boo fast     io
+ TABLE
