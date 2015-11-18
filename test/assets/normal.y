@@ -14,7 +14,7 @@ rule
 
 /* comment */
   target: A B C nonterminal { action "string" == /regexp/o
-                              1 /= 3 }
+                              a /= 3 }
         ;   # comment
 
   nonterminal: A '+' B  = A;

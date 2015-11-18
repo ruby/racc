@@ -25,5 +25,4 @@ module Racc
       "#{@filename}:#{@lineno}"
     end
   end
-
 end
