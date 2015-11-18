@@ -1,0 +1,9 @@
+$LOAD_PATH.unshift(File.dirname(__FILE__)+'/lib')
+
+=begin
+some code here }}}
+this doesn't count if it isn't at the start of the line:
+    =end
+=end  this is also commented here
+
+require 'parser/current'
