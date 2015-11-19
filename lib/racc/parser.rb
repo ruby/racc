@@ -8,10 +8,8 @@
 # without restriction.
 
 require 'racc/info'
+require 'racc/exception'
 
-module Racc
-  class ParseError < StandardError; end
-end
 unless defined?(::ParseError)
   ParseError = Racc::ParseError
 end

@@ -7,4 +7,6 @@
 
 module Racc
   class CompileError < StandardError; end
+  class ScanError    < CompileError;  end
+  class ParseError   < CompileError;  end
 end
