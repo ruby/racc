@@ -138,6 +138,7 @@ test/scandata/gvar
 test/scandata/heredocs
 test/scandata/leading_whitespace
 test/scandata/normal
+test/scandata/operators
 test/scandata/percent
 test/scandata/regexp
 test/scandata/slash

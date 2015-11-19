@@ -1,0 +1,12 @@
+def  `(command); end
+
+def -@
+  1
+end
+
+def []= (index, val)
+  # code here
+end
+
+def /(other)
+end
