@@ -1,0 +1,11 @@
+line "#{name} = #{lines.join("\n")}"
+
+"#{"#{"#{1}"}"}"
+
+"#{array.join(' ')}"
+
+# we must also be able to deal with \#{
+"#{configuration[:scope].to_s} = \#{#{configuration[:scope].to_s}}"
+
+# and nested interpolations which contain strings of a different type
+"Query pattern(s) #{failed_patterns.map(&:inspect).join(', ')} not found.#{SQLCounter.log.size == 0 ? '' : "\nQueries:\n#{SQLCounter.log.join("\n")}"}"
