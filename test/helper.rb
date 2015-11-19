@@ -3,6 +3,7 @@ require 'minitest/autorun'
 require 'racc/static'
 require 'fileutils'
 require 'tempfile'
+require 'timeout'
 
 module Racc
   class TestCase < MiniTest::Unit::TestCase

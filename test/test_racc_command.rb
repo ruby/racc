@@ -151,5 +151,14 @@ module Racc
         assert_compile 'unterm.y'
       }
     end
+
+    # Regression test for a problem where error recovery at EOF would cause
+    # a Racc-generated parser to go into an infinite loop (on some grammars)
+    def test_error_recovery_y
+      assert_compile 'error_recovery.y'
+      Timeout.timeout(10) do
+        assert_exec 'error_recovery.y'
+      end
+    end
   end
 end
