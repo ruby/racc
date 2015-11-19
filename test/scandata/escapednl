@@ -1,0 +1,11 @@
+puts 1 + \
+2
+
+<<ABC + "!!\
+!"
+hello there
+ABC
+
+class \
+<< self
+end
