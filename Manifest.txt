@@ -136,6 +136,7 @@ test/scandata/dynstr
 test/scandata/escapednl
 test/scandata/gvar
 test/scandata/heredocs
+test/scandata/leading_whitespace
 test/scandata/normal
 test/scandata/percent
 test/scandata/regexp
