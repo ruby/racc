@@ -1,0 +1,4 @@
+
+# don't drop leading whitespace when method call dot is on following line
+expect(subject.compare_and_set([1, 2, 3], 1.2, true, false))
+  .to be_falsey
