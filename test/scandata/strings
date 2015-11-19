@@ -1,0 +1,7 @@
+%{
+  hello { }
+}
+
+%Q{href="#{style_sheet}" type="text/css"}
+
+this_might_look_like_a_string :%
