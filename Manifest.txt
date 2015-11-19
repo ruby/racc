@@ -131,6 +131,7 @@ test/regress/tp_plus
 test/regress/twowaysql
 test/scandata/blockcomment
 test/scandata/brace
+test/scandata/comment_at_eof
 test/scandata/dynstr
 test/scandata/escapednl
 test/scandata/gvar
