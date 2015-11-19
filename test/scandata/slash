@@ -12,3 +12,5 @@ call /regex/       # regexp
 handles /\Ablahblah/ # ambiguous regexp
 para_setup(M, N/M) # div
 sleep zzz / 2.0    # div
+re = indent_empty_lines ? /^/ : /^(?!$)/ # regexps
+Then /^(?:|I )should see \/([^\/]*)\/(?: within "([^"]*)")?$/

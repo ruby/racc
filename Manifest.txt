@@ -138,6 +138,7 @@ test/scandata/gvar
 test/scandata/heredocs
 test/scandata/normal
 test/scandata/percent
+test/scandata/regexp
 test/scandata/slash
 test/test_chk_y.rb
 test/test_grammar_file_parser.rb

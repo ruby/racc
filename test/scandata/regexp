@@ -1,0 +1,6 @@
+%r{^#{"abc"}#{/def/i}}
+%r{^#{@library.source_path.to_s}/}
+
+def struct
+  /struct\s[[:alnum:]]+\s\{/
+end
