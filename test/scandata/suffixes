@@ -1,0 +1,4 @@
+# the ! in the following could be mistaken for suffixes on a method name
+if ((family!='symbol') and (family!='zapfdingbats'))
+  file += style.downcase;
+end

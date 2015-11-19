@@ -141,6 +141,7 @@ test/scandata/percent
 test/scandata/regexp
 test/scandata/slash
 test/scandata/strings
+test/scandata/suffixes
 test/test_chk_y.rb
 test/test_grammar_file_parser.rb
 test/test_racc_command.rb
