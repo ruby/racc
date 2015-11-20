@@ -7,10 +7,9 @@
 
 module Racc
   class LogFileGenerator
-    def initialize(states, debug_flags = DebugFlags.new)
+    def initialize(states)
       @states = states
       @grammar = states.grammar
-      @debug_flags = debug_flags
     end
 
     def output(out)
@@ -49,12 +48,11 @@ module Racc
     def output_state(out)
       out << "--------- State ---------\n"
 
-      showall = @debug_flags.la || @debug_flags.state
       @states.each do |state|
         out << "\nstate #{state.ident}\n\n"
 
-        (showall ? state.closure : state.core).each do |ptr|
-          pointer_out(out, ptr) if ptr.rule.ident != 0 or showall
+        state.core.each do |ptr|
+          pointer_out(out, ptr) if ptr.rule.ident != 0
         end
         out << "\n"
 
@@ -91,7 +89,7 @@ module Racc
       sr.each { |tok, c| outsrconf(f, c) if state.action[tok].nil? }
       rr.each { |tok, c| outrrconf(f, c) if state.action[tok].nil? }
 
-      if !state.defact.kind_of?(Error) || @debug_flags.any?
+      if !state.defact.kind_of?(Error)
         outact(f, '$default', state.defact)
       end
 
@@ -140,7 +138,7 @@ module Racc
     def output_rule(out)
       out.print "-------- Grammar --------\n\n"
       @grammar.each do |rl|
-        if @debug_flags.any? or rl.ident != 0
+        if rl.ident != 0
           out.printf "rule %d %s: %s\n",
                      rl.ident, rl.target.to_s, rl.symbols.join(' ')
         end

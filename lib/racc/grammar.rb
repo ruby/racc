@@ -14,9 +14,8 @@ module Racc
   class Grammar
     include Enumerable
 
-    def initialize(debug_flags = DebugFlags.new)
+    def initialize
       @symboltable = SymbolTable.new
-      @debug_symbol = debug_flags.token
       @rules   = []  # :: [Rule]
       @start   = nil
       @n_expected_srconflicts = nil

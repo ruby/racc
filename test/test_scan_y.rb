@@ -4,8 +4,7 @@ module Racc
   class TestScanY < TestCase
     def setup
       file = File.join(ASSET_DIR, 'scan.y')
-      @debug_flags = Racc::DebugFlags.parse_option_string('o')
-      parser = Racc::GrammarFileParser.new(@debug_flags)
+      parser = Racc::GrammarFileParser.new
       @result = parser.parse(File.read(file), File.basename(file))
       @states = Racc::States.new(@result.grammar).compute_nfa.compute_dfa
     end

@@ -15,8 +15,7 @@ module Racc
   # A table of LALR states.
   class States
     include Enumerable
-
-    def initialize(grammar, debug_flags = DebugFlags.new)
+    def initialize(grammar)
       @grammar = grammar
       @symboltable = grammar.symboltable
 

@@ -143,15 +143,10 @@ module Racc
       new().parse(src, filename, lineno)
     end
 
-    def initialize(debug_flags = DebugFlags.new)
-      @yydebug = debug_flags.parse
-    end
-
     def parse(src, filename = '-', lineno = 1)
       @filename = filename
       @lineno = lineno
       @scanner = GrammarFileScanner.new(src, @filename)
-      @scanner.debug = @yydebug
       @grammar = Grammar.new
       @result = Result.new(@grammar, @filename)
 
@@ -259,9 +254,7 @@ module Racc
     end
   end
 
-
   class GrammarFileScanner
-
     def initialize(str, filename = '-')
       @lines  = str.split(/\n|\r\n|\r/)
       @filename = filename

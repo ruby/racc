@@ -40,7 +40,6 @@ module Racc
       file = File.basename(asset, '.y')
       args = ([args].flatten) + [
         "#{ASSET_DIR}/#{file}.y",
-        '-Do',
         "-O#{OUT_DIR}/#{file}",
         "-o#{TAB_DIR}/#{file}",
       ]

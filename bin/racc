@@ -18,7 +18,6 @@ def main
   make_executable = false
   rubypath = nil
   embed_runtime = false
-  debug_flags = Racc::DebugFlags.new
   line_convert = true
   line_convert_all = false
   omit_action_call = true
@@ -75,9 +74,6 @@ def main
   parser.on('-P', 'Enables generator profile') {
     profiler = RaccProfiler.new(true)
   }
-  parser.on('-D flags', "Flags for Racc debugging (do not use).") {|flags|
-    debug_flags = Racc::DebugFlags.parse_option_string(flags)
-  }
   #parser.on('--no-extensions', 'Run Racc without any Ruby extension.') {
   #  Racc.const_set :Racc_No_Extentions, true
   #}
@@ -118,7 +114,7 @@ def main
   begin
     $stderr.puts 'Parsing grammar file...' if verbose
     result = profiler.section('parse') {
-      parser = Racc::GrammarFileParser.new(debug_flags)
+      parser = Racc::GrammarFileParser.new
       parser.parse(File.read(input), File.basename(input))
     }
     if check_only
@@ -160,21 +156,20 @@ def main
         $stderr.puts 'Creating log file...' if verbose
         logfilename ||= make_filename(output || File.basename(input), '.output')
         File.open(logfilename, 'w') {|f|
-          Racc::LogFileGenerator.new(states, debug_flags).output f
+          Racc::LogFileGenerator.new(states).output f
         }
       }
-    end
-    if debug_flags.status_logging
-      log_useless states.grammar
-      log_conflict states
+
+      log_useless(states.grammar)
+      log_conflict(states)
     else
-      report_useless states.grammar
-      report_conflict states
+      report_useless(states.grammar)
+      report_conflict(states)
     end
 
     profiler.report
   rescue Racc::CompileError, Errno::ENOENT, Errno::EPERM => err
-    raise if $DEBUG or debug_flags.any?
+    raise if $DEBUG
     lineno = err.message.slice(/\A\d+:/).to_s
     $stderr.puts "#{File.basename $0}: #{input}:#{lineno} #{err.message.strip}"
     exit 1
