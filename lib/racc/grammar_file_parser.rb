@@ -159,10 +159,6 @@ module Racc
 
     private
 
-    def next_token
-      @scanner.scan
-    end
-
     def on_error(_tok, val, _values)
       fail CompileError, "#{location}: unexpected token #{val.inspect}"
     end
