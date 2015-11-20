@@ -332,9 +332,7 @@ module Racc
       def _wrap(wrapper, wrapped, block)
         wrapped = @grammar.intern(wrapped)
         wrapper = @grammar.intern(wrapper)
-        _delayed_add Rule.new(wrapper,
-                              [wrapped],
-                              UserAction.proc(block))
+        _delayed_add Rule.new(wrapper, [wrapped], UserAction.proc(block))
         wrapper
       end
     end
