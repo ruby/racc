@@ -155,13 +155,13 @@ end
 # A parser, which is created by Racc, requires the Racc runtime module;
 # racc/parser.rb.
 #
-# Ruby 1.8.x comes with Racc runtime module,
+# Ruby 1.8+ comes with Racc runtime module,
 # you need NOT distribute Racc runtime files.
 #
 # If you want to include the Racc runtime module with your parser.
 # This can be done by using '-E' option:
 #
-#   $ racc -E -omyparser.rb myparser.y
+#   $ racc -E -o myparser.rb myparser.y
 #
 # This command creates myparser.rb which `includes' Racc runtime.
 # Only you must do is to distribute your parser file (myparser.rb).
