@@ -10,7 +10,6 @@ require 'racc/grammar'
 require 'racc/grammar_file_scanner'
 require 'racc/parser_file_generator'
 require 'racc/source_text'
-require 'stringio'
 
 module Racc
 
