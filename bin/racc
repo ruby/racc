@@ -29,7 +29,7 @@ def main
   parser = OptionParser.new
   parser.banner = "Usage: #{File.basename($0)} [options] <input>"
   parser.on('-o', '--output-file=PATH',
-            'output file name [<input>.tab.rb]') {|name|
+            'Output file name [<input>.tab.rb]') {|name|
     output = name
   }
   parser.on('-t', '--debug', 'Outputs debugging parser.') {|fl|
@@ -77,7 +77,7 @@ def main
   #parser.on('--no-extensions', 'Run Racc without any Ruby extension.') {
   #  Racc.const_set :Racc_No_Extentions, true
   #}
-  parser.on('--version', 'Prints version and quit.') {
+  parser.on('--version', 'Prints version and quits.') {
     puts "racc version #{Racc::VERSION}"
     if Racc::Parser.racc_runtime_type == 'ruby'
       puts '(ruby core)'
@@ -86,11 +86,11 @@ def main
     end
     exit 0
   }
-  parser.on('--copyright', 'Prints copyright and quit.') {
+  parser.on('--copyright', 'Prints copyright and quits.') {
     puts Racc::Copyright
     exit 0
   }
-  parser.on('--help', 'Prints this message and quit.') {
+  parser.on('--help', 'Prints this message and quits.') {
     puts parser.help
     exit 1
   }
