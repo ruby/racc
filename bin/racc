@@ -74,9 +74,6 @@ def main
   parser.on('-P', 'Enables generator profile') {
     profiler = RaccProfiler.new(true)
   }
-  #parser.on('--no-extensions', 'Run Racc without any Ruby extension.') {
-  #  Racc.const_set :Racc_No_Extentions, true
-  #}
   parser.on('--version', 'Prints version and quits.') {
     puts "racc version #{Racc::VERSION}"
     if Racc::Parser.racc_runtime_type == 'ruby'
