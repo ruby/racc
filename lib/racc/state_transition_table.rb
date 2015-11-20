@@ -170,6 +170,8 @@ module Racc
         end
 
         if array.compact.empty?
+          # there is ONLY one destination state which we can transition to after
+          # reducing down to this nonterminal
           t.goto_pointer << nil
         else
           array.pop until array.last || array.empty?
@@ -230,6 +232,8 @@ module Racc
       # the sorting algorithm used by the underlying Ruby implementation
       entries.each_with_index.map { |a, i| a.unshift(i) }
       entries.sort! do |a, b|
+        # find space for the big ones first; it is more likely that the small
+        # ones will "fit in the cracks"
         comp = (b[1].size <=> a[1].size)
         comp = (a[0] <=> b[0]) if comp == 0
         comp
