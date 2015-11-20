@@ -32,9 +32,7 @@ module Racc
 
     g.colon2 = seq(':', ':')
 
-    g.param       = seq(:CONV, many1(:convdef), :END) { |*|
-                      #@grammar.end_convert_block   # FIXME
-                    } \
+    g.param       = seq(:CONV, many1(:convdef), :END) \
                   | seq(:PRECHIGH, many1(:precdef), :PRECLOW) { |*|
                       @grammar.end_precedence_declaration(true)
                     } \
