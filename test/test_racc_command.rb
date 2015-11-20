@@ -288,5 +288,13 @@ module Racc
       assert_debugfile 'cadenza.y', [0, 0, 0, 0, 37]
       assert_output 'cadenza.y'
     end
+
+    # .y file from mediacloth gem
+
+    def test_mediacloth
+      assert_compile 'mediacloth.y'
+      assert_debugfile 'mediacloth.y', [0, 0, 0, 0]
+      assert_output 'mediacloth.y'
+    end
   end
 end
