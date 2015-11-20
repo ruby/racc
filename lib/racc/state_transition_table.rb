@@ -250,7 +250,7 @@ module Racc
             i += idx
             tbl[i] = item
             chk[i] = chkval
-            map[i] = ?o
+            map[i] = 'o'
           end
         end
         upper = idx + arr.size
