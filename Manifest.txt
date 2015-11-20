@@ -75,6 +75,7 @@ test/assets/intp.y
 test/assets/journey.y
 test/assets/liquor.y
 test/assets/macruby.y
+test/assets/mediacloth.y
 test/assets/mailp.y
 test/assets/namae.y
 test/assets/nasl.y
@@ -116,6 +117,7 @@ test/regress/edtf
 test/regress/journey
 test/regress/huia
 test/regress/liquor
+test/regress/mediacloth
 test/regress/namae
 test/regress/nasl
 test/regress/nokogiri-css
