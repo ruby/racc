@@ -1,16 +1,10 @@
-#
-# $Id$
-#
 # Copyright (c) 1999-2006 Minero Aoki
 #
 # This program is free software.
 # You can distribute/modify this program under the terms of
 # the GNU LGPL, Lesser General Public License version 2.1.
 # For details of the GNU LGPL, see the file "COPYING".
-#
 
-require 'racc/compat'
-require 'racc/iset'
 require 'racc/sourcetext'
 require 'racc/logfilegenerator'
 require 'racc/exception'
@@ -85,14 +79,7 @@ module Racc
     end
 
     def n_useless_nonterminals
-      @n_useless_nonterminals ||=
-          begin
-            n = 0
-            @symboltable.each_nonterminal do |sym|
-              n += 1 if sym.useless?
-            end
-            n
-          end
+      @n_useless_nonterminals ||= @symboltable.nonterminals.count(&:useless?)
     end
 
     def useless_rule_exist?
@@ -100,14 +87,7 @@ module Racc
     end
 
     def n_useless_rules
-      @n_useless_rules ||=
-          begin
-            n = 0
-            each do |r|
-              n += 1 if r.useless?
-            end
-            n
-          end
+      @n_useless_rules ||= @rules.count(&:useless?)
     end
 
     def nfa
@@ -201,6 +181,17 @@ module Racc
       env.grammar
     end
 
+    # Implements `Grammar.define` DSL
+    # Methods are DSL 'keywords' which can be used in a `Grammar.define` block
+    #
+    # Key method is `#seq`, which creates a `Rule` (effectively, RHS of a rule in a BNF grammar)
+    # (`Rule` objects can be combined using `#|`, similar to how alternative derivations for a
+    # non-terminal are separated by | in a BNF grammar)
+    #
+    # The other key method is `#method_missing`, which is used to register rules like so:
+    #
+    #     self.nonterminal_name = seq(:token, :another_token) | seq(:something_else)
+    #
     class DefinitionEnv
       def initialize
         @grammar = Grammar.new
@@ -225,6 +216,8 @@ module Racc
         @grammar.end_precedence_declaration env.reverse
       end
 
+      # Intercept calls to `self.non_terminal = ...`, and use them to register
+      # a new rule
       def method_missing(mid, *args, &block)
         unless mid.to_s[-1,1] == '='
           super   # raises NoMethodError
@@ -268,28 +261,34 @@ module Racc
         @delayed.clear
       end
 
+      # Basic method for creating a new `Rule`.
       def seq(*list, &block)
         Rule.new(nil, list.map {|x| _intern(x) }, UserAction.proc(block))
       end
 
+      # Create a null `Rule` (one with an empty RHS)
       def null(&block)
         seq(&block)
       end
 
       def action(&block)
-        id = "@#{@seqs["action"] += 1}".intern
+        id = "@#{@seqs["action"] += 1}".to_sym
         _delayed_add Rule.new(@grammar.intern(id), [], UserAction.proc(block))
         id
       end
 
       alias _ action
 
+      # Create a `Rule` which can either be null (like an empty RHS in a BNF grammar),
+      # in which case the action will return `default`, or which can match a single
+      # `sym` token.
       def option(sym, default = nil, &block)
         _defmetasyntax("option", _intern(sym), block) {|target|
           seq() { default } | seq(sym)
         }
       end
 
+      # Create a `Rule` which matches 0 or more `sym` tokens in a row.
       def many(sym, &block)
         _defmetasyntax("many", _intern(sym), block) {|target|
             seq() { [] }\
@@ -297,6 +296,7 @@ module Racc
         }
       end
 
+      # Create a `Rule` which matches 1 or more `sym` tokens in a row.
       def many1(sym, &block)
         _defmetasyntax("many1", _intern(sym), block) {|target|
             seq(sym) {|x| [x] }\
@@ -340,7 +340,7 @@ module Racc
       end
 
       def _regist(target_name)
-        target = target_name.intern
+        target = target_name.to_sym
         unless _added?(@grammar.intern(target))
           yield(target).each_rule do |rule|
             rule.target = @grammar.intern(target)
@@ -351,9 +351,9 @@ module Racc
       end
 
       def _wrap(target_name, sym, block)
-        target = target_name.intern
+        target = target_name.to_sym
         _delayed_add Rule.new(@grammar.intern(target),
-                              [@grammar.intern(sym.intern)],
+                              [@grammar.intern(sym.to_sym)],
                               UserAction.proc(block))
         target
       end
@@ -406,8 +406,9 @@ module Racc
     def init
       return if @closed
       @closed = true
-      @start ||= @rules.map {|r| r.target }.detect {|sym| not sym.dummy? }
-      raise CompileError, 'no rule in input' if @rules.empty?
+      # if 'start' nonterminal was not explicitly set, just take the first one
+      @start ||= @rules.map(&:target).detect { |sym| !sym.dummy? }
+      fail CompileError, 'no rule in input' if @rules.empty?
       add_start_rule
       @rules.freeze
       fix_ident
@@ -494,17 +495,17 @@ module Racc
     # Sym#expand
     def compute_expand(t)
       puts "expand> #{t.to_s}" if @debug_symbol
-      t.expand = _compute_expand(t, ISet.new, [])
+      t.expand = _compute_expand(t, {}, [])
       puts "expand< #{t.to_s}: #{t.expand.to_s}" if @debug_symbol
     end
 
     def _compute_expand(t, set, lock)
       if tmp = t.expand
-        set.update tmp
-        return set
+        return set.update(tmp)
       end
+
       tok = nil
-      set.update_a t.heads
+      t.heads.each { |ptr| set[ptr.ident] = ptr }
       t.heads.each do |ptr|
         tok = ptr.dereference
         if tok and tok.nonterminal?
@@ -603,9 +604,9 @@ module Racc
   class Rule
 
     def initialize(target, syms, act)
-      @target = target
-      @symbols = syms
-      @action = act
+      @target = target # LHS of rule (may be `nil` if not yet known)
+      @symbols = syms  # RHS of rule
+      @action = act    # run this code when reducing
       @alternatives = []
 
       @ident = nil
@@ -760,60 +761,37 @@ module Racc
       not @proc and not @source
     end
 
-    def name
+    def to_s
       "{action type=#{@source || @proc || 'nil'}}"
     end
 
-    alias inspect name
+    alias inspect to_s
 
   end
 
-
-  class OrMark
-    def initialize(lineno)
-      @lineno = lineno
-    end
-
-    def name
+  class OrMark < Struct.new(:lineno)
+    def to_s
       '|'
     end
-
-    alias inspect name
-
-    attr_reader :lineno
   end
 
-
-  class Prec
-    def initialize(symbol, lineno)
-      @symbol = symbol
-      @lineno = lineno
-    end
-
-    def name
+  class Prec < Struct.new(:symbol, :lineno)
+    def to_s
       "=#{@symbol}"
     end
-
-    alias inspect name
-
-    attr_reader :symbol
-    attr_reader :lineno
   end
 
-
-  #
-  # A set of rule and position in it's RHS.
-  # Note that the number of pointers is more than rule's RHS array,
-  # because pointer points right edge of the final symbol when reducing.
+  # A set of rules and positions in their RHS.
+  # Note that the number of pointers is more than the rule's RHS array,
+  # because pointer points to the right edge of the final symbol when reducing.
   #
   class LocationPointer
-
     def initialize(rule, i, sym)
       @rule   = rule
       @index  = i
-      @symbol = sym
+      @symbol = sym # Sym which immediately follows this position in RHS
+                    # or nil if it points to the end of RHS
       @ident  = @rule.hash + i
-      @reduce = sym.nil?
     end
 
     attr_reader :rule
@@ -824,12 +802,10 @@ module Racc
 
     attr_reader :ident
     alias hash ident
-    attr_reader :reduce
-    alias reduce? reduce
 
     def to_s
       sprintf('(%d,%d %s)',
-              @rule.ident, @index, (reduce?() ? '#' : @symbol.to_s))
+              @rule.ident, @index, (reduce? ? '#' : @symbol.to_s))
     end
 
     alias inspect to_s
@@ -854,6 +830,10 @@ module Racc
       @rule.ptrs[@index - len] or ptr_bug!
     end
 
+    def reduce?
+      @symbol.nil?
+    end
+
     private
 
     def ptr_bug!
@@ -868,11 +848,19 @@ module Racc
     include Enumerable
 
     def initialize
-      @symbols = []   # :: [Racc::Sym]
-      @cache   = {}   # :: {(String|Symbol) => Racc::Sym}
-      @dummy  = intern(:$start, true)
-      @anchor = intern(false, true)     # Symbol ID = 0
-      @error  = intern(:error, false)   # Symbol ID = 1
+      @symbols = [] # all Syms used in a grammar
+      @cache   = {} # map of String/Symbol name -> Sym
+
+      # 'dummy' and 'anchor' are used to make sure the parser runs over ALL the
+      # input tokens before concluding that the parse was successful
+      # an 'anchor' token is appended to the end of the token stream, and a
+      # 'dummy rule' is automatically added which reduces [start node, anchor]
+      # to 'dummy'
+      # only if the parse ends in 'dummy', is it considered successful
+
+      @dummy   = intern(:$start, true)
+      @anchor  = intern(false, true)   # Symbol ID = 0
+      @error   = intern(:error, false) # Symbol ID = 1
     end
 
     attr_reader :dummy
@@ -884,20 +872,17 @@ module Racc
     end
 
     def intern(val, dummy = false)
-      @cache[val] ||=
-          begin
-            sym = Sym.new(val, dummy)
-            @symbols.push sym
-            sym
-          end
+      @cache[val] ||= begin
+        Sym.new(val, dummy).tap { |sym| @symbols.push(sym) }
+      end
     end
 
     attr_reader :symbols
     alias to_a symbols
 
     def delete(sym)
-      @symbols.delete sym
-      @cache.delete sym.value
+      @symbols.delete(sym)
+      @cache.delete(sym.value)
     end
 
     attr_reader :nt_base
@@ -998,12 +983,12 @@ module Racc
         raise ArgumentError, "unknown symbol value: #{value.class}"
       end
 
-      @heads    = []
-      @locate   = []
-      @snull    = nil
-      @null     = nil
-      @expand   = nil
-      @useless  = nil
+      @heads   = [] # RHS of rules which can reduce to this Sym
+      @locate  = [] # all rules which have this Sym on their RHS
+      @snull   = nil
+      @null    = nil
+      @expand  = nil
+      @useless = nil
     end
 
     class << self
@@ -1059,6 +1044,9 @@ module Racc
       @serialized
     end
 
+    # some tokens are written one way in the grammar, but the actual value
+    # expected from the lexer is different
+    # you can set this up using a 'convert' block
     attr_writer :serialized
 
     attr_accessor :precedence

@@ -1,16 +1,11 @@
-#
-# $Id$
-#
 # Copyright (c) 1999-2006 Minero Aoki
 #
 # This program is free software.
 # You can distribute/modify this program under the terms of
 # the GNU LGPL, Lesser General Public License version 2.1.
 # For details of the GNU LGPL, see the file "COPYING".
-#
 
 require 'racc'
-require 'racc/compat'
 require 'racc/grammar'
 require 'racc/parserfilegenerator'
 require 'racc/sourcetext'
@@ -152,9 +147,10 @@ module Racc
   class GrammarFileParser   # reopen
 
     class Result
-      def initialize(grammar)
+      def initialize(grammar, filename)
         @grammar = grammar
         @params = ParserFileGenerator::Params.new
+        @params.filename = filename
       end
 
       attr_reader :grammar
@@ -179,9 +175,11 @@ module Racc
       @scanner = GrammarFileScanner.new(src, @filename)
       @scanner.debug = @yydebug
       @grammar = Grammar.new
-      @result = Result.new(@grammar)
+      @result = Result.new(@grammar, @filename)
+
       @embedded_action_seq = 0
       yyparse @scanner, :yylex
+
       parse_user_code
       @result.grammar.init
       @result
@@ -193,15 +191,8 @@ module Racc
       @scanner.scan
     end
 
-    def on_error(tok, val, _values)
-      if val.respond_to?(:id2name)
-        v = val.id2name
-      elsif val.kind_of?(String)
-        v = val
-      else
-        v = val.inspect
-      end
-      raise CompileError, "#{location()}: unexpected token '#{v}'"
+    def on_error(_tok, val, _values)
+      fail CompileError, "#{location}: unexpected token #{val.inspect}"
     end
 
     def location
@@ -213,7 +204,7 @@ module Racc
       target = list.shift
       case target
       when OrMark, UserAction, Prec
-        raise CompileError, "#{target.lineno}: unexpected symbol #{target.name}"
+        raise CompileError, "#{target.lineno}: unexpected symbol #{target}"
       end
       curr = []
       list.each do |i|
@@ -245,7 +236,7 @@ module Racc
     end
 
     def embedded_action(act)
-      sym = @grammar.intern("@#{@embedded_action_seq += 1}".intern, true)
+      sym = @grammar.intern("@#{@embedded_action_seq += 1}".to_sym, true)
       @grammar.add Rule.new(sym, [], act)
       sym
     end
@@ -271,10 +262,8 @@ module Racc
 
     USER_CODE_LABELS = {
       'header'  => :header,
-      'prepare' => :header,   # obsolete
       'inner'   => :inner,
       'footer'  => :footer,
-      'driver'  => :footer    # obsolete
     }
 
     def canonical_label(src)
@@ -337,7 +326,7 @@ module Racc
           elsif /\A\/\*/ =~ @line
             skip_comment
           elsif s = reads(/\A[a-zA-Z_]\w*/)
-            yield [atom_symbol(s), s.intern]
+            yield [atom_symbol(s), s.to_sym]
           elsif s = reads(/\A\d+/)
             yield [:DIGIT, s.to_i]
           elsif ch = reads(/\A./)
@@ -364,6 +353,7 @@ module Racc
       @lineno += 1
       @line = @lines[@lineno]
       if not @line or /\A----/ =~ @line
+        # class block is over, user code blocks follow
         @epilogue = @lines.join("\n")
         @lines.clear
         @line = nil

@@ -151,5 +151,150 @@ module Racc
         assert_compile 'unterm.y'
       }
     end
+
+    # .y files from parser gem
+
+    def test_ruby18
+      assert_compile 'ruby18.y'
+      assert_debugfile 'ruby18.y', []
+      assert_output 'ruby18.y'
+    end
+
+    def test_ruby22
+      assert_compile 'ruby22.y'
+      assert_debugfile 'ruby22.y', []
+      assert_output 'ruby22.y'
+    end
+
+    # .y file from csspool gem
+
+    def test_csspool
+      assert_compile 'csspool.y'
+      assert_debugfile 'csspool.y', [5, 3]
+      assert_output 'csspool.y'
+    end
+
+    # .y file from opal gem
+
+    def test_opal
+      assert_compile 'opal.y'
+      assert_debugfile 'opal.y', []
+      assert_output 'opal.y'
+    end
+
+    # .y file from journey gem
+
+    def test_journey
+      assert_compile 'journey.y'
+      assert_debugfile 'journey.y', []
+      assert_output 'journey.y'
+    end
+
+    # .y file from nokogiri gem
+
+    def test_nokogiri_css
+      assert_compile 'nokogiri-css.y'
+      assert_debugfile 'nokogiri-css.y', [0, 1]
+      assert_output 'nokogiri-css.y'
+    end
+
+    # .y file from bibtex-ruby gem
+
+    def test_bibtex
+      assert_compile 'bibtex.y'
+      assert_debugfile 'bibtex.y', [0, 0, 0, 0, 0]
+      assert_output 'bibtex.y'
+    end
+
+    # .y file from edtf-ruby gem
+
+    def test_edtf
+      assert_compile 'edtf.y'
+      assert_debugfile 'edtf.y', [0, 0, 0, 0, 0]
+      assert_output 'edtf.y'
+    end
+
+    # .y file from namae gem
+
+    def test_namae
+      assert_compile 'namae.y'
+      assert_debugfile 'namae.y', [0, 0, 0, 0, 0]
+      assert_output 'namae.y'
+    end
+
+    # .y file from liquor gem
+
+    def test_liquor
+      assert_compile 'liquor.y'
+      assert_debugfile 'liquor.y', [0, 0, 0, 0, 15]
+      assert_output 'liquor.y'
+    end
+
+    # .y file from nasl gem
+
+    def test_nasl
+      assert_compile 'nasl.y'
+      assert_debugfile 'nasl.y', [0, 0, 0, 0, 1]
+      assert_output 'nasl.y'
+    end
+
+    # .y file from riml gem
+
+    def test_riml
+      assert_compile 'riml.y'
+      assert_debugfile 'riml.y', [289, 0, 0, 0]
+      assert_output 'riml.y'
+    end
+
+    # .y file from ruby-php-serialization gem
+
+    def test_php_serialization
+      assert_compile 'php_serialization.y'
+      assert_debugfile 'php_serialization.y', [0, 0, 0, 0]
+      assert_output 'php_serialization.y'
+    end
+
+    # .y file from huia language implementation
+
+    def test_huia
+      assert_compile 'huia.y'
+      assert_debugfile 'huia.y', [285, 0, 0, 0]
+      assert_output 'huia.y'
+    end
+
+    # .y files from rdtool gem
+
+    def test_rdtool
+      assert_compile 'rdblockparser.y'
+      assert_compile 'rdinlineparser.y'
+      assert_debugfile 'rdblockparser.y', [0, 0, 0, 0]
+      assert_debugfile 'rdinlineparser.y', [0, 0, 0, 0]
+      assert_output 'rdblockparser.y'
+      assert_output 'rdinlineparser.y'
+    end
+
+    # .y file from cast gem
+
+    def test_cast
+      assert_compile 'cast.y'
+      assert_debugfile 'cast.y', [0, 0, 0, 0, 1]
+      assert_output 'cast.y'
+    end
+
+    # .y file from cadenza gem
+
+    def test_cadenza
+      assert_compile 'cadenza.y'
+      assert_debugfile 'cadenza.y', [0, 0, 0, 0, 37]
+      assert_output 'cadenza.y'
+    end
+
+    # .y file from mediacloth gem
+
+    def test_mediacloth
+      assert_compile 'mediacloth.y'
+      assert_debugfile 'mediacloth.y', [0, 0, 0, 0]
+      assert_output 'mediacloth.y'
+    end
   end
 end

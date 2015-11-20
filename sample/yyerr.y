@@ -1,5 +1,3 @@
-# $Id$
-#
 # Test grammar file for error handling.
 
 class A

@@ -25,7 +25,7 @@ HOE = Hoe.spec 'racc' do
 
   dependency 'rake',          '~> 10.4',  :developer
   dependency 'rake-compiler', '>= 0.4.1', :developer
-  dependency 'minitest',      '~> 4.7',   :developer # stick to stdlib's version
+  dependency 'minitest',      '~> 5.8',   :developer
 
   dependency 'hoe',           '~> 3.14',  :developer
   dependency 'hoe-debugging', '~> 1.2',   :developer

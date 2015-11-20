@@ -1,15 +1,10 @@
-#
-# $Id$
-#
 # Copyright (c) 1999-2006 Minero Aoki
 #
 # This program is free software.
 # You can distribute/modify this program under the terms of
 # the GNU LGPL, Lesser General Public License version 2.1.
 # For details of the GNU LGPL, see the file "COPYING".
-#
 
-require 'racc/iset'
 require 'racc/statetransitiontable'
 require 'racc/exception'
 require 'forwardable'
@@ -112,11 +107,9 @@ module Racc
       # add state 0
       core_to_state  [ @grammar[0].ptrs[0] ]
       # generate LALR states
-      cur = 0
       @gotos = []
-      while cur < @states.size
-        generate_states @states[cur]   # state is added here
-        cur += 1
+      @states.each do |state|
+        generate_states(state)
       end
       @actions.init
     end
@@ -124,16 +117,16 @@ module Racc
     def generate_states(state)
       puts "dstate: #{state}" if @d_state
 
-      table = {}
+      table = Hash.new { |h,k| h[k] = {} }
       state.closure.each do |ptr|
         if sym = ptr.dereference
-          addsym table, sym, ptr.next
+          table[sym][ptr.next.ident] = ptr.next
         end
       end
       table.each do |sym, core|
         puts "dstate: sym=#{sym} ncore=#{core}" if @d_state
 
-        dest = core_to_state(core.to_a)
+        dest = core_to_state(core.values)
         state.goto_table[sym] = dest
         id = sym.nonterminal?() ? @gotos.size : nil
         g = Goto.new(id, sym, state, dest)
@@ -148,13 +141,6 @@ module Racc
                       state.ident, state.ptrs[0].rule.ident)
         end
       end
-    end
-
-    def addsym(table, sym, ptr)
-      unless s = table[sym]
-        table[sym] = s = ISet.new
-      end
-      s.add ptr
     end
 
     def core_to_state(core)
@@ -585,7 +571,7 @@ module Racc
     def check_useless
       used = []
       @actions.each_reduce do |act|
-        if not act or act.refn == 0
+        if act.refn == 0
           act.rule.useless = true
         else
           t = act.rule.target
@@ -614,8 +600,8 @@ module Racc
       @ritems = nil
       @action = {}
       @defact = nil
-      @rrconf = nil
-      @srconf = nil
+      @rrconf = Hash.new { |h,k| h[k] = [] }
+      @srconf = Hash.new { |h,k| h[k] = [] }
 
       @closure = make_closure(@core)
     end
@@ -653,14 +639,14 @@ module Racc
     alias eql? ==
 
     def make_closure(core)
-      set = ISet.new
+      set = {}
       core.each do |ptr|
-        set.add ptr
+        set[ptr.ident] = ptr
         if t = ptr.dereference and t.nonterminal?
-          set.update_a t.expand
+          t.expand.values.each { |i| set[i.ident] = i }
         end
       end
-      set.to_a
+      set.sort_by { |k, v| k }.map { |k, v| v }
     end
 
     def check_la(la_rules)
@@ -725,33 +711,19 @@ module Racc
     end
 
     def rr_conflict(high, low, ctok)
-      c = RRconflict.new(@ident, high, low, ctok)
-
-      @rrconf ||= {}
-      if a = @rrconf[ctok]
-        a.push c
-      else
-        @rrconf[ctok] = [c]
-      end
+      @rrconf[ctok] << RRconflict.new(@ident, high, low, ctok)
     end
 
     def sr_conflict(shift, reduce)
-      c = SRconflict.new(@ident, shift, reduce)
-
-      @srconf ||= {}
-      if a = @srconf[shift]
-        a.push c
-      else
-        @srconf[shift] = [c]
-      end
+      @srconf[shift] << SRconflict.new(@ident, shift, reduce)
     end
 
     def n_srconflicts
-      @srconf ? @srconf.size : 0
+      @srconf.size
     end
 
     def n_rrconflicts
-      @rrconf ? @rrconf.size : 0
+      @rrconf.size
     end
 
   end   # class State
@@ -781,8 +753,7 @@ module Racc
     end
   end
 
-
-  # LALR item.  A set of rule and its lookahead tokens.
+  # LALR item. A set of rules and its lookahead tokens.
   class Item
     def initialize(rule, la)
       @rule = rule
@@ -804,9 +775,8 @@ module Racc
     end
   end
 
-
-  # The table of LALR actions. Actions are either of
-  # Shift, Reduce, Accept and Error.
+  # The table of LALR actions. Actions are either
+  # Shift, Reduce, Accept, or Error.
   class ActionTable
 
     def initialize(rt, st)

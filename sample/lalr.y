@@ -1,5 +1,3 @@
-# $Id$
-#
 # This is LALR grammar, and not LL/SLR.
 
 class A

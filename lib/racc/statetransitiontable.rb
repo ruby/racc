@@ -1,21 +1,11 @@
-#
-# $Id$
-#
 # Copyright (c) 1999-2006 Minero Aoki
 #
 # This program is free software.
 # You can distribute/modify this program under the terms of
 # the GNU LGPL, Lesser General Public License version 2.1.
 # For details of LGPL, see the file "COPYING".
-#
 
 require 'racc/parser'
-
-unless Object.method_defined?(:funcall)
-  class Object
-    alias funcall __send__
-  end
-end
 
 module Racc
 
@@ -56,11 +46,7 @@ module Racc
     end
 
     def token_value_table
-      h = {}
-      token_table().each do |sym, i|
-        h[sym.value] = i
-      end
-      h
+      Hash[token_table.map { |sym, i| [sym.value, i]}]
     end
   end
 
@@ -93,18 +79,14 @@ module Racc
         t.push rule.target.ident
         t.push(if rule.action.empty?   # and @params.omit_action_call?
                then :_reduce_none
-               else "_reduce_#{idx}".intern
+               else "_reduce_#{idx}".to_sym
                end)
       end
       t
     end
 
     def token_table(grammar)
-      h = {}
-      grammar.symboltable.terminals.each do |t|
-        h[t] = t.ident
-      end
-      h
+      Hash[grammar.symboltable.terminals.map { |t| [t, t.ident]}]
     end
 
     def gen_action_tables(t, states)
@@ -172,15 +154,9 @@ module Racc
     end
 
     def addent(all, arr, chkval, ptr)
-      max = arr.size
-      min = nil
-      arr.each_with_index do |item, idx|
-        if item
-          min ||= idx
-        end
-      end
+      min = arr.index { |item| item }
       ptr.push(-7777)    # mark
-      arr = arr[min...max]
+      arr = arr.drop(min)
       all.push [arr, chkval, mkmapexp(arr), min, ptr.size - 1]
     end
 
@@ -306,9 +282,9 @@ module Racc
       c.module_eval "def _reduce_none(vals, vstack) vals[0] end"
       @grammar.each do |rule|
         if rule.action.empty?
-          c.funcall(:alias_method, "_reduce_#{rule.ident}", :_reduce_none)
+          c.__send__(:alias_method, "_reduce_#{rule.ident}", :_reduce_none)
         else
-          c.funcall(:define_method, "_racc_action_#{rule.ident}", &rule.action.proc)
+          c.__send__(:define_method, "_racc_action_#{rule.ident}", &rule.action.proc)
           c.module_eval(<<-End, __FILE__, __LINE__ + 1)
             def _reduce_#{rule.ident}(vals, vstack)
               _racc_action_#{rule.ident}(*vals)

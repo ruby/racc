@@ -4,28 +4,28 @@
 
 == Class Block and User Code Block
 
-There are two blocks on toplevel.
+There are two blocks at the top level.
 One is the 'class' block and the other is the 'user' block.
 You MUST write the 'user' block after the 'class' block.
 The 'class' block can also be called the 'rule' block or the 'class definition'
 block.
 
-== Comment
+== Comments
 
-You can insert comment about all places.
+You can insert comments anywhere you like.
 There are two possible comment styles,
-Ruby style (#.....) and C style (/*......*/) .
+ Ruby style (#.....) and C style (/*......*/) .
 
 == Class Block
 
 The class block is formed like this:
 --
 class CLASS_NAME
-  [precedance table]
-  [token declearations]
+  [precedence table]
+  [token declarations]
   [expected number of S/R conflict]
   [options]
-  [semantic value convertion]
+  [semantic value conversion]
   [start rule]
 rule
   GRAMMARS
@@ -34,9 +34,9 @@ CLASS_NAME is the name of the parser class to be defined.
 This is used as the name of the parser class in the generated file
 which is written in Ruby.
 
-If CLASS_NAME includes '::', Racc outputs module clause.
+If CLASS_NAME includes '::', Racc outputs a module clause.
 For example, when CLASS_NAME is "M::C",
-the parser class is defined as follows in the generated file.
+the parser class is defined as follows in the generated file:
 --
 module M
   class C
@@ -48,8 +48,10 @@ end
 
 == Grammar Block
 
-The grammar block is where you write grammars understood by the generated parser.
-It is written between the reserved words 'rule' and 'end' and its syntax is as follows:
+The grammar block is where you write the grammar rules understood by the
+generated parser.
+It is written between the reserved words 'rule' and 'end' and its syntax is
+as follows:
 --
 (token): (token) (token) (token).... (action)
 
@@ -59,23 +61,26 @@ It is written between the reserved words 'rule' and 'end' and its syntax is as f
 --
 
 (action) is executed when its (token)s are found.
-(action) is basically a ruby code block which is surrounded by braces:
+(action) is basically a Ruby code block which is surrounded by braces:
 --
 { print val[0]
   puts val[1] }
 --
-However, you cannot use some of Ruby syntax inside action,
-for instance, you cannot use '%' string, here document, or '%r' regexp.
+However, there is some Ruby syntax which cannot be used inside an action block.
+for instance, you cannot use '%' strings, here documents, or '%r' regexps.
 
 The return value of an action is the left-hand side (lhs) value of the rule.
 This is $$ in yacc.
-The way to return the value depends on the option you set.
+
+The way to return the value depends on the options you set.
 By default, the 'result' local variable (this is val[0] by default) represents
 the left-hand side value, thus the value stored in the 'result' variable
-by the end of the action would be the left-hand side value.
-Otherwise, you can explicitly 'return' the value desired.
-Alternatively, when you set no_result_var option via options,
-the lhs value is the value of the last statement in the action block (same as
+is the left-hand side value.
+
+Alternatively, you can explicitly 'return' the value desired.
+
+Or, when you set the 'no_result_var' option via options,
+the LHS value is the value of the last statement in the action block (same as
 Ruby methods).
 
 In any case, you can omit actions.
@@ -98,7 +103,7 @@ rule
 --
 
 You can use the following special local variables inside actions.
-The symbols surrounded by parentheses are how they are represented when using
+The symbols shown in parentheses are how they are represented when using
 yacc.
 
   * result ($$)
@@ -112,10 +117,10 @@ This is generated every time, so you can freely modify or discard it.
 
   * _values (...$-2,$-1,$0)
 
-A stack of values used by the Racc.
+A stack of values used by Racc.
 DO NOT MODIFY the _values stack unless you know what you are doing.
 
-There is also a special form of action which is called embedded action.
+There is also a special form of action which is called an embedded action.
 An embedded action can be written wherever you like in the middle of the
 token sequence.
 Here is an example of the embedded action:
@@ -145,7 +150,7 @@ nonterm : /* empty rule */ { result = 1 }
 == Operator Precedence
 
 When there's a shift/reduce conflict on a token,
-sometimes the conflict can be eliminated by defining operator precedences.
+sometimes the conflict can be eliminated by defining operator precedence.
 A famous example of such a case are arithmetic operators and if-else syntax.
 
 This doesn't mean setting operator precedence is necessary to resolve conflicts
@@ -249,9 +254,9 @@ This feature is similar to %token in yacc but slightly different.
 With racc, this is not required and even if the tokens are declared, it does not
 cause errors but only warnings.
 
-Please notice that you can write the declaration spanning over multiple lines.
+Please notice that you can write declarations spanning over multiple lines.
 
-Racc does have the reserved words but they are only considered as reserved
+Racc does have reserved words but they are only considered as reserved
 words when they are written at the beginning of the line. Therefore, for
 instance, prechigh can also be used as a symbol. However, for an abyssal
 reason, no matter what we do, we cannot use 'end' as a symbol.
@@ -309,10 +314,10 @@ When you declared the expected number of shift/reduce conflicts as 3 like the
 above code, the number of conflicts should exactly be 3.
 If it was not 3 (even it was zero), racc would print the warning message.
 
-Besides, you could not suppress the warning message for reduce/reduce conflict.
+Besides, you cannot suppress warning messages for reduce/reduce conflicts.
 
 
-== Converting Token Symbol
+== Converting Token Symbols
 
 Token symbols abide by the following rules:
 
@@ -338,7 +343,7 @@ However, when interpreting the above definition it becomes PlusClass.
 We can use all ruby values as token symbol values
 except 'false' and 'nil'.
 
-If you want to use String as token symbol, special care is required.
+If you want to use a String as a token symbol, special care is required.
 For example:
 --
 convert
@@ -356,18 +361,19 @@ The start rule is a way to write it explicitly.
 --
 start real_target
 --
-This is usually omitted and in that case,
-the start rule is the first rule in the file.
-This statement will not be used forever, I think.
+This is usually omitted and in that case, the start rule is the first rule in
+the file.
+This statement will never be used, I think.
 
 In yacc, this is '%start'.
 
 == User Code Block
 
-"User Code Block" is a Ruby source code which is copied to the output file.
-There are three user code blocks, "header" "inner" and "footer".
+A "User Code Block" is a block of Ruby source code which is copied to the
+output file.
+There can be up to three user code blocks: "header", "inner" and "footer".
 
-The code written in "header" block is copied to just before the parser class
+The code written in the "header" block is copied to just before the parser class
 definition. "inner" is for inside (and the beginning of) the class definition,
 and "footer" is after the definition.
 
@@ -383,6 +389,6 @@ Format of user code is like this:
      :
      :
 --
-If four '-' exist on line head, Racc treats this case as the beginning of a
+If there are four '-' at line head, Racc treats this case as the beginning of a
 user code block.
-A name of user code must be one word.
+The name of a user code block must be one word.

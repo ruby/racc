@@ -1,6 +1,3 @@
-#
-# $Id$
-#
 # Copyright (c) 1999-2006 Minero Aoki
 #
 # This program is free software.
@@ -9,13 +6,8 @@
 # As a special exception, when this code is copied by Racc
 # into a Racc output file, you may use that output file
 # without restriction.
-#
 
 require 'racc/info'
-
-unless defined?(NotImplementedError)
-  NotImplementedError = NotImplementError # :nodoc:
-end
 
 module Racc
   class ParseError < StandardError; end
@@ -121,7 +113,7 @@ end
 # It's yyparse() of yacc, and Racc::Parser#next_token is yylex().
 # This method must returns an array like [TOKENSYMBOL, ITS_VALUE].
 # EOF is [false, false].
-# (TOKENSYMBOL is a Ruby symbol (taken from String#intern) by default.
+# (TOKENSYMBOL is a Ruby symbol (taken from String#to_sym) by default.
 # If you want to change this, see the grammar reference.
 #
 # Racc::Parser#yyparse is little complicated, but useful.
@@ -316,7 +308,6 @@ puts $!.backtrace
             act = action_default[@racc_state[-1]]
           end
           while act = _racc_evalact(act, arg)
-            ;
           end
         end
       }
@@ -341,7 +332,6 @@ puts $!.backtrace
       catch(:racc_end_parse) {
         until i = action_pointer[@racc_state[-1]]
           while act = _racc_evalact(action_default[@racc_state[-1]], arg)
-            ;
           end
         end
         recv.__send__(mid) do |tok, val|
@@ -360,7 +350,6 @@ puts $!.backtrace
             act = action_default[@racc_state[-1]]
           end
           while act = _racc_evalact(act, arg)
-            ;
           end
 
           while !(i = action_pointer[@racc_state[-1]]) ||
@@ -373,7 +362,6 @@ puts $!.backtrace
               act = action_default[@racc_state[-1]]
             end
             while act = _racc_evalact(act, arg)
-              ;
             end
           end
         end
