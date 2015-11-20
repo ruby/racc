@@ -34,6 +34,8 @@ HOE = Hoe.spec 'racc' do
   dependency 'hoe-gemspec',   '~> 1.0',   :developer
   dependency 'hoe-bundler',   '~> 1.2',   :developer
 
+  dependency 'rubocop',       '~> 0.34',  :developer
+
   if java?
     self.spec_extras[:platform]   = 'java'
   else
@@ -62,6 +64,8 @@ file 'lib/racc/parser-text.rb' => ['lib/racc/parser.rb'] do |t|
 
   open(t.name, 'wb') { |io|
     io.write(<<-eorb)
+# Generated from parser.rb; do not edit
+# This file is used for embedding the Racc runtime into a generated parser
 module Racc
   PARSER_TEXT = <<'__end_of_file__'
 #{File.read(source)}
@@ -110,5 +114,10 @@ task :test_pure do
 end
 
 task :test => :compile
+
+require 'rubocop/rake_task'
+RuboCop::RakeTask.new(:rubocop) do |task|
+  task.options = ['-a', '-D']
+end
 
 Hoe.add_include_dirs('.:lib/racc')

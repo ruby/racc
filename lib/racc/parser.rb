@@ -25,7 +25,7 @@ end
 #          [-e<var>rubypath</var>] [--embedded=<var>rubypath</var>]
 #          [-v] [--verbose]
 #          [-O<var>filename</var>] [--log-file=<var>filename</var>]
-#          [-g] [--debug]
+#          [-t] [--debug]
 #          [-E] [--embedded]
 #          [-l] [--no-line-convert]
 #          [-c] [--line-convert-all]
@@ -45,9 +45,9 @@ end
 #   output executable file(mode 755). where +path+ is the Ruby interpreter.
 # [-v, --verbose]
 #   verbose mode. create +filename+.output file, like yacc's y.output file.
-# [-g, --debug]
-#   add debug code to parser class. To display debuggin information,
-#   use this '-g' option and set @yydebug true in parser class.
+# [-t, --debug]
+#   add debug code to parser class. To display debugging information,
+#   use this '-t' option and set @yydebug to true in parser class.
 # [-E, --embedded]
 #   Output parser which doesn't need runtime files (racc/parser.rb).
 # [-C, --check-only]
@@ -127,11 +127,11 @@ end
 # When debugging, "-v" or/and the "-g" option is helpful.
 #
 # "-v" creates verbose log file (.output).
-# "-g" creates a "Verbose Parser".
+# "-t" creates a "Verbose Parser".
 # Verbose Parser prints the internal status when parsing.
 # But it's _not_ automatic.
-# You must use -g option and set +@yydebug+ to +true+ in order to get output.
-# -g option only creates the verbose parser.
+# You must use -t option and set +@yydebug+ to +true+ in order to get output.
+# -t option only creates the verbose parser.
 #
 # === Racc reported syntax error.
 #
@@ -147,7 +147,7 @@ end
 #
 # === Generated parsers does not work correctly
 #
-# Try "racc -g xxxx.y".
+# Try "racc -t xxxx.y".
 # This command let racc generate "debugging parser".
 # Then set @yydebug=true in your parser.
 # It produces a working log of your parser.
@@ -171,18 +171,11 @@ end
 # Note: parser.rb is LGPL, but your parser is not.
 # Your own parser is completely yours.
 module Racc
-
-  unless defined?(Racc_No_Extentions)
-    Racc_No_Extentions = false # :nodoc:
+  unless defined?(Racc_No_Extensions)
+    Racc_No_Extensions = ENV['PURERUBY'] # :nodoc:
   end
 
   class Parser
-
-    Racc_Runtime_Version = ::Racc::VERSION
-    Racc_Runtime_Revision = '$Id$'
-
-    Racc_Runtime_Core_Version_R = ::Racc::VERSION
-    Racc_Runtime_Core_Revision_R = '$Id$'.split[1]
     begin
       if Object.const_defined?(:RUBY_ENGINE) and RUBY_ENGINE == 'jruby'
         require 'racc/cparse-jruby.jar'
@@ -190,27 +183,20 @@ module Racc
       else
         require 'racc/cparse'
       end
-    # Racc_Runtime_Core_Version_C  = (defined in extention)
-      Racc_Runtime_Core_Revision_C = Racc_Runtime_Core_Id_C.split[2]
+
       unless new.respond_to?(:_racc_do_parse_c, true)
         raise LoadError, 'old cparse.so'
       end
-      if Racc_No_Extentions
+      if Racc_No_Extensions
         raise LoadError, 'selecting ruby version of racc runtime core'
       end
 
       Racc_Main_Parsing_Routine    = :_racc_do_parse_c # :nodoc:
       Racc_YY_Parse_Method         = :_racc_yyparse_c # :nodoc:
-      Racc_Runtime_Core_Version    = Racc_Runtime_Core_Version_C # :nodoc:
-      Racc_Runtime_Core_Revision   = Racc_Runtime_Core_Revision_C # :nodoc:
       Racc_Runtime_Type            = 'c' # :nodoc:
     rescue LoadError
-puts $!
-puts $!.backtrace
       Racc_Main_Parsing_Routine    = :_racc_do_parse_rb
       Racc_YY_Parse_Method         = :_racc_yyparse_rb
-      Racc_Runtime_Core_Version    = Racc_Runtime_Core_Version_R
-      Racc_Runtime_Core_Revision   = Racc_Runtime_Core_Revision_R
       Racc_Runtime_Type            = 'ruby'
     end
 
@@ -384,7 +370,7 @@ puts $!.backtrace
         # shift
         #
         if @racc_error_status > 0
-          @racc_error_status -= 1 unless @racc_t == 1   # error token
+          @racc_error_status -= 1 unless @racc_t <= 1 # error token or EOF
         end
         @racc_vstack.push @racc_val
         @racc_state.push act
@@ -425,14 +411,31 @@ puts $!.backtrace
         #
         # error
         #
+
+        # Like yacc, Racc calls `on_error` when an error occurs, and then starts
+        # to attempt auto-recovery by discarding states on the stack until it
+        # gets to a state where the 'error' token is acceptable
+        #
+        # Often, this leads to another error, and another, until all the tokens
+        # in the erroneous portion of input have been shifted (and then
+        # discarded by the auto-recovery code)
+        #
+        # So to avoid an outpouring of error messages, @racc_error_status is
+        # used to suppress 3 calls to `on_error` after each error is detected
+        # Each successful shift decrements @racc_error_status, so after the
+        # erroneous portion of input is cleared, it quickly returns to zero,
+        # and then Racc is ready to report another error again
+
         case @racc_error_status
         when 0
-          unless arg[21]    # user_yyerror
+          unless arg[21] # user_yyerror
             nerr += 1
-            on_error @racc_t, @racc_val, @racc_vstack
+            on_error(@racc_t, @racc_val, @racc_vstack)
           end
         when 3
           if @racc_t == 0   # is $
+            # We're at EOF, and another error occurred immediately after
+            # attempting auto-recovery
             throw :racc_end_parse, nil
           end
           @racc_read_next = true
@@ -529,7 +532,7 @@ puts $!.backtrace
     end
 
     # Enter error recovering mode.
-    # This method does not call #on_error.
+    # This method does not call `on_error`.
     def yyerror
       throw :racc_jump, 1
     end
@@ -540,7 +543,15 @@ puts $!.backtrace
       throw :racc_jump, 2
     end
 
-    # Leave error recovering mode.
+    # Leave error recovery mode.
+    #
+    # When in error recovery mode, Racc suppresses 3 errors after each error
+    # which is reported (by calling `on_error`).
+    # To get out of error recovery mode, normally Racc must successfully shift
+    # 3 tokens.
+    # You can call this from `on_error`, or from an action block, to immediately
+    # get out of error recovery and stop suppressing the reporting of further
+    # errors.
     def yyerrok
       @racc_error_status = 0
     end

@@ -28,12 +28,12 @@ module Racc
       assert_compile 'normal.y'
       assert_debugfile 'normal.y', []
 
-      assert_compile 'normal.y', '-vg'
+      assert_compile 'normal.y', '-vt'
       assert_debugfile 'normal.y', []
     end
 
     def test_chk_y
-      assert_compile 'chk.y', '-vg'
+      assert_compile 'chk.y', '-vt'
       assert_debugfile 'chk.y', []
       assert_exec 'chk.y'
 
@@ -151,6 +151,19 @@ module Racc
         assert_compile 'unterm.y'
       }
     end
+
+    # Regression test for a problem where error recovery at EOF would cause
+    # a Racc-generated parser to go into an infinite loop (on some grammars)
+    def test_error_recovery_y
+      assert_compile 'error_recovery.y'
+      Timeout.timeout(10) do
+        assert_exec 'error_recovery.y'
+      end
+    end
+
+    # Regression tests based on real-world gramamrs from various gems
+    # For each test, we check whether the generated parser file is byte-for-byte
+    # identical to the known-good file in test/regress
 
     # .y files from parser gem
 

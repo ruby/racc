@@ -363,7 +363,6 @@ start real_target
 --
 This is usually omitted and in that case, the start rule is the first rule in
 the file.
-This statement will never be used, I think.
 
 In yacc, this is '%start'.
 

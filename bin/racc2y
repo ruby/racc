@@ -7,7 +7,7 @@
 # the GNU LGPL, Lesser General Public License version 2.1.
 # For details of the LGPL, see the file "COPYING".
 
-require 'racc/grammarfileparser'
+require 'racc/grammar_file_parser'
 require 'racc/info'
 require 'optparse'
 
@@ -35,7 +35,7 @@ def main
     with_footer = true
   }
   parser.on('--version', 'Prints version and quit.') {
-    puts "racc2y version #{Racc::Version}"
+    puts "racc2y version #{Racc::VERSION}"
     exit 0
   }
   parser.on('--copyright', 'Prints copyright and quit.') {
@@ -128,7 +128,7 @@ end
 
 def print_precedence_table(f, table)
   return if table.empty?
-  f.puts '/* precedance table */'
+  f.puts '/* precedence table */'
   table.each do |syms|
     assoc = syms.shift
     f.printf '%%%-8s ', assoc.to_s.downcase

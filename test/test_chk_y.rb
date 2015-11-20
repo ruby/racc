@@ -4,11 +4,9 @@ module Racc
   class TestChkY < TestCase
     def setup
       file = File.join(ASSET_DIR, 'chk.y')
-      @debug_flags = Racc::DebugFlags.parse_option_string('o')
-      parser = Racc::GrammarFileParser.new(@debug_flags)
+      parser = Racc::GrammarFileParser.new
       @result = parser.parse(File.read(file), File.basename(file))
-      @states = Racc::States.new(@result.grammar).nfa
-      @states.dfa
+      @states = Racc::States.new(@result.grammar).compute_nfa.compute_dfa
     end
 
     def test_compile_chk_y
@@ -21,10 +19,9 @@ module Racc
 
       grammar = @states.grammar
 
-      assert_equal 0, @states.n_srconflicts
-      assert_equal 0, @states.n_rrconflicts
-      assert_equal 0, grammar.n_useless_nonterminals
-      assert_equal 0, grammar.n_useless_rules
+      assert_equal 0, @states.sr_conflicts.size
+      assert_equal 0, @states.rr_conflicts.size
+      assert_equal 0, grammar.useless_nonterminals.size
       assert_nil grammar.n_expected_srconflicts
     end
 
@@ -41,10 +38,9 @@ module Racc
 
       grammar = @states.grammar
 
-      assert_equal 0, @states.n_srconflicts
-      assert_equal 0, @states.n_rrconflicts
-      assert_equal 0, grammar.n_useless_nonterminals
-      assert_equal 0, grammar.n_useless_rules
+      assert_equal 0, @states.sr_conflicts.size
+      assert_equal 0, @states.rr_conflicts.size
+      assert_equal 0, grammar.useless_nonterminals.size
       assert_nil grammar.n_expected_srconflicts
     end
   end

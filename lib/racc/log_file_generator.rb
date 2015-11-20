@@ -6,13 +6,10 @@
 # For details of the GNU LGPL, see the file "COPYING".
 
 module Racc
-
   class LogFileGenerator
-
-    def initialize(states, debug_flags = DebugFlags.new)
+    def initialize(states)
       @states = states
       @grammar = states.grammar
-      @debug_flags = debug_flags
     end
 
     def output(out)
@@ -29,44 +26,33 @@ module Racc
 
     def output_conflict(out)
       @states.each do |state|
-        if state.srconf
+        if state.sr_conflicts.any?
           out.printf "state %d contains %d shift/reduce conflicts\n",
-                     state.stateid, state.srconf.size
+                     state.ident, state.sr_conflicts.size
         end
-        if state.rrconf
+        if state.rr_conflicts.any?
           out.printf "state %d contains %d reduce/reduce conflicts\n",
-                     state.stateid, state.rrconf.size
+                     state.ident, state.rr_conflicts.size
         end
       end
     end
 
     def output_useless(out)
-      @grammar.each do |rl|
-        if rl.useless?
-          out.printf "rule %d (%s) never reduced\n",
-                     rl.ident, rl.target.to_s
-        end
-      end
-      @grammar.each_nonterminal do |t|
-        if t.useless?
-          out.printf "useless nonterminal %s\n", t.to_s
-        end
+      @grammar.symboltable.nonterminals.select(&:useless?).each do |t|
+        out.printf "useless nonterminal %s\n", t.to_s
       end
     end
 
-    #
     # States
-    #
 
     def output_state(out)
       out << "--------- State ---------\n"
 
-      showall = @debug_flags.la || @debug_flags.state
       @states.each do |state|
         out << "\nstate #{state.ident}\n\n"
 
-        (showall ? state.closure : state.core).each do |ptr|
-          pointer_out(out, ptr) if ptr.rule.ident != 0 or showall
+        state.core.each do |ptr|
+          pointer_out(out, ptr) if ptr.rule.ident != 0
         end
         out << "\n"
 
@@ -85,42 +71,33 @@ module Racc
     end
 
     def action_out(f, state)
-      sr = state.srconf && state.srconf.dup
-      rr = state.rrconf && state.rrconf.dup
-      acts = state.action
-      keys = acts.keys
-      keys.sort! {|a,b| a.ident <=> b.ident }
+      sr = state.sr_conflicts
+      rr = state.rr_conflicts
+      tokens = state.action.keys.sort_by(&:ident)
 
-      [ Shift, Reduce, Error, Accept ].each do |klass|
-        keys.delete_if do |tok|
-          act = acts[tok]
+      [Shift, Reduce, Error, Accept].each do |klass|
+        tokens.each do |tok|
+          act = state.action[tok]
           if act.kind_of?(klass)
-            outact f, tok, act
-            if sr and c = sr.delete(tok)
-              outsrconf f, c
-            end
-            if rr and c = rr.delete(tok)
-              outrrconf f, c
-            end
-
-            true
-          else
-            false
+            outact(f, tok, act)
+            outsrconf(f, sr[tok]) if sr.key?(tok)
+            outrrconf(f, rr[tok]) if rr.key?(tok)
           end
         end
       end
-      sr.each {|tok, c| outsrconf f, c } if sr
-      rr.each {|tok, c| outrrconf f, c } if rr
 
-      act = state.defact
-      if not act.kind_of?(Error) or @debug_flags.any?
-        outact f, '$default', act
+      sr.each { |tok, c| outsrconf(f, c) if state.action[tok].nil? }
+      rr.each { |tok, c| outrrconf(f, c) if state.action[tok].nil? }
+
+      if !state.defact.kind_of?(Error)
+        outact(f, '$default', state.defact)
       end
 
       f.puts
-      state.goto_table.each do |t, st|
-        if t.nonterminal?
-          f.printf "  %-12s  go to state %d\n", t.to_s, st.ident
+      state.gotos.each do |tok, goto|
+        if tok.nonterminal?
+          next_state = goto.to_state
+          f.printf("  %-12s  go to state %d\n", tok.to_s, next_state.ident)
         end
       end
     end
@@ -129,10 +106,10 @@ module Racc
       case act
       when Shift
         f.printf "  %-12s  shift, and go to state %d\n",
-                 t.to_s, act.goto_id
+                 t.to_s, act.goto_state.ident
       when Reduce
         f.printf "  %-12s  reduce using rule %d (%s)\n",
-                 t.to_s, act.ruleid, act.rule.target.to_s
+                 t.to_s, act.rule.ident, act.rule.target.to_s
       when Accept
         f.printf "  %-12s  accept\n", t.to_s
       when Error
@@ -142,20 +119,16 @@ module Racc
       end
     end
 
-    def outsrconf(f, confs)
-      confs.each do |c|
-        r = c.reduce
-        f.printf "  %-12s  [reduce using rule %d (%s)]\n",
-                 c.shift.to_s, r.ident, r.target.to_s
-      end
+    def outsrconf(f, conf)
+      r = conf.reduce
+      f.printf("  %-12s  [reduce using rule %d (%s)]\n",
+               conf.shift.to_s, r.ident, r.target.to_s)
     end
 
-    def outrrconf(f, confs)
-      confs.each do |c|
-        r = c.low_prec
-        f.printf "  %-12s  [reduce using rule %d (%s)]\n",
-                 c.token.to_s, r.ident, r.target.to_s
-      end
+    def outrrconf(f, conf)
+      r = conf.low_prec
+      f.printf("  %-12s  [reduce using rule %d (%s)]\n",
+               conf.token.to_s, r.ident, r.target.to_s)
     end
 
     #
@@ -165,7 +138,7 @@ module Racc
     def output_rule(out)
       out.print "-------- Grammar --------\n\n"
       @grammar.each do |rl|
-        if @debug_flags.any? or rl.ident != 0
+        if rl.ident != 0
           out.printf "rule %d %s: %s\n",
                      rl.ident, rl.target.to_s, rl.symbols.join(' ')
         end
@@ -180,7 +153,7 @@ module Racc
       out.print "------- Symbols -------\n\n"
 
       out.print "**Nonterminals, with rules where they appear\n\n"
-      @grammar.each_nonterminal do |t|
+      @grammar.symboltable.nonterminals.each do |t|
         tmp = <<SRC
   %s (%d)
     on right: %s
@@ -192,7 +165,7 @@ SRC
       end
 
       out.print "\n**Terminals, with rules where they appear\n\n"
-      @grammar.each_terminal do |t|
+      @grammar.symboltable.terminals.each do |t|
         out.printf "  %s (%d) %s\n",
                    t.to_s, t.ident, symbol_locations(t.locate).join(' ')
       end
@@ -201,7 +174,5 @@ SRC
     def symbol_locations(locs)
       locs.map {|loc| loc.rule.ident }.reject {|n| n == 0 }.uniq
     end
-
   end
-
-end   # module Racc
+end

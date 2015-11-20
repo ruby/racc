@@ -5,28 +5,29 @@
 # the GNU LGPL, Lesser General Public License version 2.1.
 # For details of the GNU LGPL, see the file "COPYING".
 
-require 'racc/statetransitiontable'
+require 'racc/state_transition_table'
 require 'racc/exception'
 require 'forwardable'
+require 'set'
 
 module Racc
 
   # A table of LALR states.
   class States
-
     include Enumerable
-
-    def initialize(grammar, debug_flags = DebugFlags.new)
+    def initialize(grammar)
       @grammar = grammar
       @symboltable = grammar.symboltable
-      @d_state = debug_flags.state
-      @d_la    = debug_flags.la
-      @d_prec  = debug_flags.prec
+
       @states = []
       @statecache = {}
-      @actions = ActionTable.new(@grammar, self)
+
       @nfa_computed = false
       @dfa_computed = false
+
+      @gotos = [] # all state transitions performed when reducing
+                  # Goto is also used for state transitions when shifting,
+                  # but those objects don't go in this array
     end
 
     attr_reader :grammar
@@ -42,49 +43,24 @@ module Racc
 
     alias to_s inspect
 
-    def [](i)
-      @states[i]
-    end
-
-    def each_state(&block)
-      @states.each(&block)
-    end
-
-    alias each each_state
-
-    def each_index(&block)
-      @states.each_index(&block)
-    end
-
     extend Forwardable
 
-    def_delegator "@actions", :shift_n
-    def_delegator "@actions", :reduce_n
-    def_delegator "@actions", :nt_base
+    def_delegator "@states",  :each
 
     def should_report_srconflict?
-      srconflict_exist? and
-          (n_srconflicts() != @grammar.n_expected_srconflicts)
+      sr_conflicts.any? && (sr_conflicts.size != @grammar.n_expected_srconflicts)
     end
 
-    def srconflict_exist?
-      n_srconflicts() != 0
+    def sr_conflicts
+      flat_map { |state| state.sr_conflicts.values }
     end
 
-    def n_srconflicts
-      @n_srconflicts ||= inject(0) {|sum, st| sum + st.n_srconflicts }
-    end
-
-    def rrconflict_exist?
-      n_rrconflicts() != 0
-    end
-
-    def n_rrconflicts
-      @n_rrconflicts ||= inject(0) {|sum, st| sum + st.n_rrconflicts }
+    def rr_conflicts
+      flat_map { |state| state.rr_conflicts.values }
     end
 
     def state_transition_table
-      @state_transition_table ||= StateTransitionTable.generate(self.dfa)
+      @state_transition_table ||= StateTransitionTable.generate(compute_dfa)
     end
 
     #
@@ -93,46 +69,35 @@ module Racc
 
     public
 
-    def nfa
+    def compute_nfa
       return self if @nfa_computed
-      compute_nfa
+
+      # add state 0
+      core_to_state(Set[@grammar[0].ptrs[0]])
+      # generate LALR states
+      @states.each { |state| generate_states(state) }
+
       @nfa_computed = true
       self
     end
 
     private
 
-    def compute_nfa
-      @grammar.init
-      # add state 0
-      core_to_state  [ @grammar[0].ptrs[0] ]
-      # generate LALR states
-      @gotos = []
-      @states.each do |state|
-        generate_states(state)
-      end
-      @actions.init
-    end
-
     def generate_states(state)
-      puts "dstate: #{state}" if @d_state
-
-      table = Hash.new { |h,k| h[k] = {} }
+      # build table of what the 'core' of the following state will be, if the
+      # next token appearing in the input was 'sym'
+      table = Hash.new { |h,k| h[k] = Set.new }
       state.closure.each do |ptr|
-        if sym = ptr.dereference
-          table[sym][ptr.next.ident] = ptr.next
+        if sym = ptr.symbol
+          table[sym].add(ptr.next)
         end
       end
-      table.each do |sym, core|
-        puts "dstate: sym=#{sym} ncore=#{core}" if @d_state
 
-        dest = core_to_state(core.values)
-        state.goto_table[sym] = dest
-        id = sym.nonterminal?() ? @gotos.size : nil
-        g = Goto.new(id, sym, state, dest)
-        @gotos.push g if sym.nonterminal?
-        state.gotos[sym] = g
-        puts "dstate: #{state.ident} --#{sym}--> #{dest.ident}" if @d_state
+      table.each do |sym, core|
+        dest = core_to_state(core)
+        goto = Goto.new(sym.nonterminal? && @gotos.size, sym, state, dest)
+        @gotos << goto if sym.nonterminal?
+        state.gotos[sym] = goto
 
         # check infinite recursion
         if state.ident == dest.ident and state.closure.size == 1
@@ -144,272 +109,175 @@ module Racc
     end
 
     def core_to_state(core)
-      #
-      # convert CORE to a State object.
-      # If matching state does not exist, create it and add to the table.
-      #
+      # a 'core' is a set of LocationPointers, indicating all the possible
+      # positions within the RHS of a rule where we could be right now
+      # convert core to a State object; if state does not exist, create it
 
-      k = fingerprint(core)
-      unless dest = @statecache[k]
+      unless dest = @statecache[core]
         # not registered yet
         dest = State.new(@states.size, core)
-        @states.push dest
-
-        @statecache[k] = dest
-
-        puts "core_to_state: create state   ID #{dest.ident}" if @d_state
-      else
-        if @d_state
-          puts "core_to_state: dest is cached ID #{dest.ident}"
-          puts "core_to_state: dest core #{dest.core.join(' ')}"
-        end
+        @states << dest
+        @statecache[core] = dest
       end
 
       dest
     end
 
-    def fingerprint(arr)
-      arr.map {|i| i.ident }.pack('L*')
-    end
-
-    #
     # DFA (Deterministic Finite Automaton) Generation
-    #
 
     public
 
-    def dfa
+    def compute_dfa
       return self if @dfa_computed
-      nfa
-      compute_dfa
+      compute_nfa
+      compute_lookahead
+
+      @states.each { |state| resolve(state) }
+      set_accept
+      @states.each { |state| pack(state) }
+
       @dfa_computed = true
       self
     end
 
     private
 
-    def compute_dfa
-      la = lookahead()
-      @states.each do |state|
-        state.la = la
-        resolve state
-      end
-      set_accept
-      @states.each do |state|
-        pack state
-      end
-      check_useless
-    end
-
-    def lookahead
-      #
+    def compute_lookahead
       # lookahead algorithm ver.3 -- from bison 1.26
-      #
-
       gotos = @gotos
-      if @d_la
-        puts "\n--- goto ---"
-        gotos.each_with_index {|g, i| print i, ' '; p g }
-      end
 
-      ### initialize_LA()
-      ### set_goto_map()
-      la_rules = []
-      @states.each do |state|
-        state.check_la la_rules
-      end
-
-      ### initialize_F()
-      f     = create_tmap(gotos.size)
-      reads = []
-      edge  = []
+      # build a bitmap which shows which terminals could possibly appear next
+      # after each reduction in the grammar
+      # (we will use this information to decide which reduction to perform if
+      # two of them are possible, or whether to do a shift or a reduce if both
+      # are possible)
+      # (if both reductions A and B are possible, but we see that the next token
+      # can only validly appear after reduction A and not B, then we will choose
+      # to perform reduction A)
+      following_terminals = create_bitmap(gotos.size)
+      look_past = DirectedGraph.new(gotos.size)
       gotos.each do |goto|
-        goto.to_state.goto_table.each do |t, st|
-          if t.terminal?
-            f[goto.ident] |= (1 << t.ident)
-          elsif t.nullable?
-            edge.push goto.to_state.gotos[t].ident
+        goto.to_state.gotos.each do |tok, next_goto|
+          if tok.terminal?
+            # set bit for terminal which could be shifted after this reduction
+            following_terminals[goto.ident] |= (1 << tok.ident)
+          elsif tok.nullable?
+            # if a nullable NT could come next, then we have to look past it
+            # to see which terminals could appear next
+            look_past.add_arrow(goto.ident, next_goto.ident)
           end
         end
-        if edge.empty?
-          reads.push nil
-        else
-          reads.push edge
-          edge = []
+      end
+      # traverse graph with arrows connecting reductions which could occur
+      # directly after another without shifting any terminal first (because the
+      # reduced nonterminal is null)
+      walk_graph(following_terminals, look_past)
+
+      # there is another case we have to consider to get the full set of tokens
+      # which can validly appear after each reduction...
+      # what if we do 2 reductions in a row? or 3, 4, 5...?
+      # if terminal T1 can appear after nonterminal A, and we can reduce to A
+      # immediately after reducing to B, that means terminal T1 could also
+      # appear after B
+
+      # but that's not all! think about this:
+      # what if we have a rule like "A = BC", and we know terminal T1 can appear
+      # after A, *and C is nullable*?
+      # that means T1 can also appear after B, not just after C
+
+      includes = DirectedGraph.new(gotos.size)
+      # look at the state transition triggered by each reduction in the grammar
+      # (at each place in the state graph where that reduction can occur)
+      gotos.each do |goto|
+        # look at RHS of each rule which could have lead to this reduction
+        goto.symbol.heads.each do |ptr|
+          # what sequence of state transitions would we have made to reach
+          # this reduction, if this is the rule that was used?
+          path(goto.from_state, ptr.rule).reverse_each do |preceding_goto|
+            break if     preceding_goto.symbol.terminal?
+            includes.add_arrow(preceding_goto.ident, goto.ident)
+            break unless preceding_goto.symbol.nullable?
+          end
         end
       end
-      digraph f, reads
-      if @d_la
-        puts "\n--- F1 (reads) ---"
-        print_tab gotos, reads, f
-      end
 
-      ### build_relations()
-      ### compute_FOLLOWS
-      path = nil
-      edge = []
-      lookback = Array.new(la_rules.size, nil)
-      includes = []
+      walk_graph(following_terminals, includes)
+
+      # Now we know which terminals can follow each reduction
+      # But this lookahead information is only needed when there would otherwise
+      # be a S/R or R/R conflict
+
+      # So, find all the states leading to a possible reduce, where there is a
+      # S/R or R/R conflict, and copy the lookahead set for each reduce to the
+      # preceding state which has the conflict
+
       gotos.each do |goto|
         goto.symbol.heads.each do |ptr|
-          path = record_path(goto.from_state, ptr.rule)
-          lastgoto = path.last
-          st = lastgoto ? lastgoto.to_state : goto.from_state
-          if st.conflict?
-            addrel lookback, st.rruleid(ptr.rule), goto
+          path = path(goto.from_state, ptr.rule)
+          prev_state = (path.last && path.last.to_state) || goto.from_state
+          if prev_state.conflict?
+            ritem = prev_state.ritems.find { |item| item.rule == ptr.rule }
+            ritem.la |= following_terminals[goto.ident]
           end
-          path.reverse_each do |g|
-            break if     g.symbol.terminal?
-            edge.push    g.ident
-            break unless g.symbol.nullable?
-          end
-        end
-        if edge.empty?
-          includes.push nil
-        else
-          includes.push edge
-          edge = []
-        end
-      end
-      includes = transpose(includes)
-      digraph f, includes
-      if @d_la
-        puts "\n--- F2 (includes) ---"
-        print_tab gotos, includes, f
-      end
-
-      ### compute_lookaheads
-      la = create_tmap(la_rules.size)
-      lookback.each_with_index do |arr, i|
-        if arr
-          arr.each do |g|
-            la[i] |= f[g.ident]
-          end
-        end
-      end
-      if @d_la
-        puts "\n--- LA (lookback) ---"
-        print_tab la_rules, lookback, la
-      end
-
-      la
-    end
-
-    def create_tmap(size)
-      Array.new(size, 0)   # use Integer as bitmap
-    end
-
-    def addrel(tbl, i, item)
-      if a = tbl[i]
-        a.push item
-      else
-        tbl[i] = [item]
-      end
-    end
-
-    def record_path(begst, rule)
-      st = begst
-      path = []
-      rule.symbols.each do |t|
-        goto = st.gotos[t]
-        path.push goto
-        st = goto.to_state
-      end
-      path
-    end
-
-    def transpose(rel)
-      new = Array.new(rel.size, nil)
-      rel.each_with_index do |arr, idx|
-        if arr
-          arr.each do |i|
-            addrel new, i, idx
-          end
-        end
-      end
-      new
-    end
-
-    def digraph(map, relation)
-      n = relation.size
-      index    = Array.new(n, nil)
-      vertices = []
-      @infinity = n + 2
-
-      index.each_index do |i|
-        if not index[i] and relation[i]
-          traverse i, index, vertices, map, relation
         end
       end
     end
 
-    def traverse(i, index, vertices, map, relation)
-      vertices.push i
-      index[i] = height = vertices.size
+    def create_bitmap(size)
+      Array.new(size, 0) # use Integer as bitmap
+    end
 
-      if rp = relation[i]
-        rp.each do |proci|
-          unless index[proci]
-            traverse proci, index, vertices, map, relation
-          end
-          if index[i] > index[proci]
-            # circulative recursion !!!
-            index[i] = index[proci]
-          end
-          map[i] |= map[proci]
+    # Sequence of state transitions which would be taken when starting
+    # from 'state', then following the RHS of 'rule' right to the end
+    def path(state, rule)
+      rule.symbols.each_with_object([]) do |tok, path|
+        goto = state.gotos[tok]
+        path << goto
+        state = goto.to_state
+      end
+    end
+
+    # traverse a directed graph
+    # each entry in 'bitmap' corresponds to a graph node
+    # after the traversal, the bitmap for each node will be the union of its
+    # original value, and ALL the values for all the nodes which are reachable
+    # from it
+    def walk_graph(bitmap, graph)
+      index    = Array.new(graph.size, nil)
+      traversed = Set.new
+
+      graph.nodes do |node|
+        next if traversed.include?(node)
+        traverse(node, traversed, index, [], bitmap, graph)
+      end
+    end
+
+    def traverse(node, traversed, index, stack, bitmap, graph)
+      traversed.add(node)
+      stack.push(node)
+      index[node] = stack_depth = stack.size
+
+      graph.arrows(node) do |next_node|
+        unless index[next_node]
+          traverse(next_node, traversed, index, stack, bitmap, graph)
         end
+
+        if index[node] > index[next_node]
+          # there is a cycle in the graph
+          # we already passed through 'next_node' to reach here
+          index[node] = index[next_node]
+        end
+
+        bitmap[node] |= bitmap[next_node]
       end
 
-      if index[i] == height
+      if index[node] == stack_depth
         while true
-          proci = vertices.pop
-          index[proci] = @infinity
-          break if i == proci
+          next_node = stack.pop
+          index[next_node] = graph.size + 2
+          break if node == next_node
 
-          map[proci] |= map[i]
-        end
-      end
-    end
-
-    # for debug
-    def print_atab(idx, tab)
-      tab.each_with_index do |i,ii|
-        printf '%-20s', idx[ii].inspect
-        p i
-      end
-    end
-
-    def print_tab(idx, rel, tab)
-      tab.each_with_index do |bin,i|
-        print i, ' ', idx[i].inspect, ' << '; p rel[i]
-        print '  '
-        each_t(@symboltable, bin) {|t| print ' ', t }
-        puts
-      end
-    end
-
-    # for debug
-    def print_tab_i(idx, rel, tab, i)
-      bin = tab[i]
-      print i, ' ', idx[i].inspect, ' << '; p rel[i]
-      print '  '
-      each_t(@symboltable, bin) {|t| print ' ', t }
-    end
-
-    # for debug
-    def printb(i)
-      each_t(@symboltable, i) do |t|
-        print t, ' '
-      end
-      puts
-    end
-
-    def each_t(tbl, set)
-      0.upto( set.size ) do |i|
-        (0..7).each do |ii|
-          if set[idx = i * 8 + ii] == 1
-            yield tbl[idx]
-          end
+          bitmap[next_node] |= bitmap[node]
         end
       end
     end
@@ -420,61 +288,45 @@ module Racc
 
     def resolve(state)
       if state.conflict?
-        resolve_rr state, state.ritems
-        resolve_sr state, state.stokens
-      else
-        if state.rrules.empty?
-          # shift
-          state.stokens.each do |t|
-            state.action[t] = @actions.shift(state.goto_table[t])
-          end
-        else
-          # reduce
-          state.defact = @actions.reduce(state.rrules[0])
+        resolve_rr(state, state.ritems)
+        resolve_sr(state, state.stokens)
+      elsif state.rrules.empty?
+        # shift
+        state.stokens.each do |t|
+          state.action[t] = Shift.new(state.gotos[t].to_state)
         end
+      else
+        # only reduce is possible; we won't even bother looking at the next
+        # token in this state
+        state.defact = Reduce.new(state.rrules[0])
       end
     end
 
-    def resolve_rr(state, r)
-      r.each do |item|
-        item.each_la(@symboltable) do |t|
-          act = state.action[t]
-          if act
-            unless act.kind_of?(Reduce)
-              raise "racc: fatal: #{act.class} in action table"
-            end
+    def resolve_rr(state, ritems)
+      ritems.each do |item|
+        item.each_lookahead_token(@symboltable) do |tok|
+          if act = state.action[tok]
             # Cannot resolve R/R conflict (on t).
             # Reduce with upper rule as default.
-            state.rr_conflict act.rule, item.rule, t
+            state.rr_conflict!(act.rule, item.rule, tok)
           else
             # No conflict.
-            state.action[t] = @actions.reduce(item.rule)
+            state.action[tok] = Reduce.new(item.rule)
           end
         end
       end
     end
 
-    def resolve_sr(state, s)
-      s.each do |stok|
-        goto = state.goto_table[stok]
+    def resolve_sr(state, stokens)
+      stokens.each do |stok|
+        goto = state.gotos[stok]
         act = state.action[stok]
 
         unless act
           # no conflict
-          state.action[stok] = @actions.shift(goto)
+          state.action[stok] = Shift.new(goto.to_state)
         else
-          unless act.kind_of?(Reduce)
-            puts 'DEBUG -------------------------------'
-            p stok
-            p act
-            state.action.each do |k,v|
-              print k.inspect, ' ', v.inspect, "\n"
-            end
-            raise "racc: fatal: #{act.class} in action table"
-          end
-
-          # conflict on stok
-
+          # conflict
           rtok = act.rule.precedence
           case do_resolve_sr(stok, rtok)
           when :Reduce
@@ -482,18 +334,15 @@ module Racc
 
           when :Shift
             # overwrite
-            act.decref
-            state.action[stok] = @actions.shift(goto)
+            state.action[stok] = Shift.new(goto.to_state)
 
           when :Error
-            act.decref
-            state.action[stok] = @actions.error
+            state.action[stok] = Error.new
 
           when :CantResolve
             # shift as default
-            act.decref
-            state.action[stok] = @actions.shift(goto)
-            state.sr_conflict stok, act.rule
+            state.action[stok] = Shift.new(goto.to_state)
+            state.sr_conflict!(stok, act.rule)
           end
         end
       end
@@ -506,125 +355,85 @@ module Racc
     }
 
     def do_resolve_sr(stok, rtok)
-      puts "resolve_sr: s/r conflict: rtok=#{rtok}, stok=#{stok}" if @d_prec
+      return :CantResolve unless rtok && (rprec = rtok.precedence)
+      return :CantResolve unless stok && (sprec = stok.precedence)
 
-      unless rtok and rtok.precedence
-        puts "resolve_sr: no prec for #{rtok}(R)" if @d_prec
-        return :CantResolve
+      if rprec == sprec
+        ASSOC[rtok.assoc] || (raise "racc: fatal: #{rtok}.assoc is not Left/Right/Nonassoc")
+      else
+        (rprec > sprec) ? :Reduce : :Shift
       end
-      rprec = rtok.precedence
-
-      unless stok and stok.precedence
-        puts "resolve_sr: no prec for #{stok}(S)" if @d_prec
-        return :CantResolve
-      end
-      sprec = stok.precedence
-
-      ret = if rprec == sprec
-              ASSOC[rtok.assoc] or
-                  raise "racc: fatal: #{rtok}.assoc is not Left/Right/Nonassoc"
-            else
-              (rprec > sprec) ? (:Reduce) : (:Shift)
-            end
-
-      puts "resolve_sr: resolved as #{ret.id2name}" if @d_prec
-      ret
     end
-
-    #
-    # complete
-    #
 
     def set_accept
       anch = @symboltable.anchor
-      init_state = @states[0].goto_table[@grammar.start]
+      init_state = @states[0].gotos[@grammar.start].to_state
       targ_state = init_state.action[anch].goto_state
       acc_state  = targ_state.action[anch].goto_state
 
       acc_state.action.clear
-      acc_state.goto_table.clear
-      acc_state.defact = @actions.accept
+      acc_state.defact = Accept.new
     end
 
     def pack(state)
-      ### find most frequently used reduce rule
-      act = state.action
-      arr = Array.new(@grammar.size, 0)
-      act.each do |t, a|
-        arr[a.ruleid] += 1  if a.kind_of?(Reduce)
-      end
-      i = arr.max
-      s = (i > 0) ? arr.index(i) : nil
-
-      ### set & delete default action
-      if s
-        r = @actions.reduce(s)
-        if not state.defact or state.defact == r
-          act.delete_if {|t, a| a == r }
-          state.defact = r
+      # find most frequently used reduce rule, and make it the default action
+      state.defact ||= begin
+        freq = Hash.new(0)
+        state.action.each do |tok, act|
+          freq[act.rule] += 1 if act.kind_of?(Reduce)
         end
-      else
-        state.defact ||= @actions.error
-      end
-    end
 
-    def check_useless
-      used = []
-      @actions.each_reduce do |act|
-        if act.refn == 0
-          act.rule.useless = true
+        if freq.empty?
+          Error.new
         else
-          t = act.rule.target
-          used[t.ident] = t
-        end
-      end
-      @symboltable.nt_base.upto(@symboltable.nt_max - 1) do |n|
-        unless used[n]
-          @symboltable[n].useless = true
+          most_common = freq.keys.max_by { |rule| freq[rule] }
+          reduce = Reduce.new(most_common)
+          state.action.delete_if { |tok, act| act == reduce }
+          reduce
         end
       end
     end
+  end
 
-  end   # class StateTable
+  class DirectedGraph < Array
+    def initialize(size)
+      super(size) { [] }
+    end
 
+    def add_arrow(from, to)
+      self[from] << to
+    end
 
-  # A LALR state.
+    alias nodes each_index
+
+    def arrows(from, &block)
+      self[from].each(&block)
+    end
+  end
+
   class State
-
     def initialize(ident, core)
-      @ident = ident
-      @core = core
-      @goto_table = {}
-      @gotos = {}
-      @stokens = nil
-      @ritems = nil
-      @action = {}
-      @defact = nil
-      @rrconf = Hash.new { |h,k| h[k] = [] }
-      @srconf = Hash.new { |h,k| h[k] = [] }
-
-      @closure = make_closure(@core)
+      @ident = ident # ID number used to provide a canonical ordering
+      @core = core   # LocationPointers to all the possible positions within the
+                     # RHS of a rule where we could be when in this state
+      @gotos = {}    # Sym -> Goto describing state transition if we encounter
+                     # that Sym next
+      @action = {}   # Sym -> Shift/Reduce/Accept/Error describing what we will
+                     # do if we encounter that Sym next
+      @defact = nil  # if this state is totally unambiguous as to what to do
+                     # next, then just perform this action (don't use action
+                     # table)
+      @rr_conflicts = {}
+      @sr_conflicts = {}
     end
 
     attr_reader :ident
-    alias stateid ident
-    alias hash ident
-
     attr_reader :core
-    attr_reader :closure
-
-    attr_reader :goto_table
     attr_reader :gotos
-
-    attr_reader :stokens
-    attr_reader :ritems
-    attr_reader :rrules
-
     attr_reader :action
-    attr_accessor :defact   # default action
-
-    attr_reader :rrconf
-    attr_reader :srconf
+    attr_accessor :defact # default action
+    attr_reader :rr_conflicts
+    attr_reader :sr_conflicts
 
     def inspect
       "<state #{@ident}>"
@@ -632,261 +441,96 @@ module Racc
 
     alias to_s inspect
 
-    def ==(oth)
-      @ident == oth.ident
+    def closure
+      # Say we know that we are at "A = B . C" right now; in other words,
+      # we know that we are parsing an "A", we have already finished the "B",
+      # and the "C" should be coming next
+      # If "C" is a non-terminal, then that means the RHS of one of the rules
+      # for C should come next (but we don't know which one)
+      # So we could possibly be beginning ANY of the rules for C here
+      # But if one of the rules for C itself starts with non-terminal "D"...
+      # well, to find all the possible positions where we could be in each
+      # rule, we have to recurse down into all the rules for D (and so on)
+      # This recursion has already been done and the result cached in Sym#expand
+      @closure ||= @core.each_with_object(Set.new) do |ptr, set|
+        set.add(ptr)
+        if sym = ptr.symbol and sym.nonterminal?
+          set.merge(sym.expand)
+        end
+      end.sort_by(&:ident)
     end
 
-    alias eql? ==
-
-    def make_closure(core)
-      set = {}
-      core.each do |ptr|
-        set[ptr.ident] = ptr
-        if t = ptr.dereference and t.nonterminal?
-          t.expand.values.each { |i| set[i.ident] = i }
-        end
-      end
-      set.sort_by { |k, v| k }.map { |k, v| v }
+    def stokens
+      @stokens ||= closure.map(&:symbol).compact.select(&:terminal?).uniq.sort_by(&:ident)
     end
 
-    def check_la(la_rules)
-      @conflict = false
-      s = []
-      r = []
-      @closure.each do |ptr|
-        if t = ptr.dereference
-          if t.terminal?
-            s[t.ident] = t
-            if t.ident == 1    # $error
-              @conflict = true
-            end
-          end
-        else
-          r.push ptr.rule
-        end
-      end
-      unless r.empty?
-        if not s.empty? or r.size > 1
-          @conflict = true
-        end
-      end
-      s.compact!
-      @stokens  = s
-      @rrules = r
-
-      if @conflict
-        @la_rules_i = la_rules.size
-        @la_rules = r.map {|i| i.ident }
-        la_rules.concat r
-      else
-        @la_rules_i = @la_rules = nil
-      end
+    def rrules
+      @rrules ||= closure.select(&:reduce?).map(&:rule)
     end
 
+    # would there be a S/R or R/R conflict IF lookahead was not used?
     def conflict?
-      @conflict
-    end
-
-    def rruleid(rule)
-      if i = @la_rules.index(rule.ident)
-        @la_rules_i + i
-      else
-        puts '/// rruleid'
-        p self
-        p rule
-        p @rrules
-        p @la_rules_i
-        raise 'racc: fatal: cannot get reduce rule id'
+      @conflict ||= begin
+        (rrules.size > 1) ||
+        (stokens.any? { |tok| tok.ident == 1 }) || # $error symbol
+        (stokens.any? && rrules.any?)
       end
     end
 
-    def la=(la)
-      return unless @conflict
-      i = @la_rules_i
-      @ritems = r = []
-      @rrules.each do |rule|
-        r.push Item.new(rule, la[i])
-        i += 1
-      end
+    # rules for which we need a lookahead set (to disambiguate which of them we
+    # should apply next)
+    def ritems
+      @ritems ||= conflict? ? rrules.map { |rule| Item.new(rule) } : []
     end
 
-    def rr_conflict(high, low, ctok)
-      @rrconf[ctok] << RRconflict.new(@ident, high, low, ctok)
+    def rr_conflict!(high, low, ctok)
+      @rr_conflicts[ctok] = RRConflict.new(@ident, high, low, ctok)
     end
 
-    def sr_conflict(shift, reduce)
-      @srconf[shift] << SRconflict.new(@ident, shift, reduce)
-    end
-
-    def n_srconflicts
-      @srconf.size
-    end
-
-    def n_rrconflicts
-      @rrconf.size
-    end
-
-  end   # class State
-
-
-  #
-  # Represents a transition on the grammar.
-  # "Real goto" means a transition by nonterminal,
-  # but this class treats also terminal's.
-  # If one is a terminal transition, .ident returns nil.
-  #
-  class Goto
-    def initialize(ident, sym, from, to)
-      @ident      = ident
-      @symbol     = sym
-      @from_state = from
-      @to_state   = to
-    end
-
-    attr_reader :ident
-    attr_reader :symbol
-    attr_reader :from_state
-    attr_reader :to_state
-
-    def inspect
-      "(#{@from_state.ident}-#{@symbol}->#{@to_state.ident})"
+    def sr_conflict!(shift, reduce)
+      @sr_conflicts[shift] = SRConflict.new(@ident, shift, reduce)
     end
   end
 
-  # LALR item. A set of rules and its lookahead tokens.
+  # Represents a transition between states in the grammar
+  # Descriptions of the LR algorithm only talk about doing a "goto" after
+  # reducing, but this class can also represent a state transition which occurs
+  # after shifting
+  # If 'symbol' is a terminal, then ident will be nil (there is no global
+  # ordering of such Gotos).
+  #
+  class Goto < Struct.new(:ident, :symbol, :from_state, :to_state)
+    def inspect
+      "(#{from_state.ident}-#{symbol}->#{to_state.ident})"
+    end
+  end
+
+  # LALR item. A rule and its lookahead tokens.
   class Item
-    def initialize(rule, la)
-      @rule = rule
-      @la  = la
-    end
-
-    attr_reader :rule
-    attr_reader :la
-
-    def each_la(tbl)
-      la = @la
-      0.upto(la.size - 1) do |i|
-        (0..7).each do |ii|
-          if la[idx = i * 8 + ii] == 1
-            yield tbl[idx]
-          end
-        end
-      end
-    end
-  end
-
-  # The table of LALR actions. Actions are either
-  # Shift, Reduce, Accept, or Error.
-  class ActionTable
-
-    def initialize(rt, st)
-      @grammar = rt
-      @statetable = st
-
-      @reduce = []
-      @shift = []
-      @accept = nil
-      @error = nil
-    end
-
-    def init
-      @grammar.each do |rule|
-        @reduce.push Reduce.new(rule)
-      end
-      @statetable.each do |state|
-        @shift.push Shift.new(state)
-      end
-      @accept = Accept.new
-      @error = Error.new
-    end
-
-    def reduce_n
-      @reduce.size
-    end
-
-    def reduce(i)
-      case i
-      when Rule    then i = i.ident
-      when Integer then ;
-      else
-        raise "racc: fatal: wrong class #{i.class} for reduce"
-      end
-
-      r = @reduce[i] or raise "racc: fatal: reduce action #{i.inspect} not exist"
-      r.incref
-      r
-    end
-
-    def each_reduce(&block)
-      @reduce.each(&block)
-    end
-
-    def shift_n
-      @shift.size
-    end
-
-    def shift(i)
-      case i
-      when State   then i = i.ident
-      when Integer then ;
-      else
-        raise "racc: fatal: wrong class #{i.class} for shift"
-      end
-
-      @shift[i] or raise "racc: fatal: shift action #{i} does not exist"
-    end
-
-    def each_shift(&block)
-      @shift.each(&block)
-    end
-
-    attr_reader :accept
-    attr_reader :error
-
-  end
-
-
-  class Shift
-    def initialize(goto)
-      @goto_state = goto
-    end
-
-    attr_reader :goto_state
-
-    def goto_id
-      @goto_state.ident
-    end
-
-    def inspect
-      "<shift #{@goto_state.ident}>"
-    end
-  end
-
-
-  class Reduce
     def initialize(rule)
       @rule = rule
-      @refn = 0
+      @la   = 0 # bitmap
     end
 
     attr_reader :rule
-    attr_reader :refn
+    attr_accessor :la
 
-    def ruleid
-      @rule.ident
+    def each_lookahead_token(tbl)
+      0.upto((@la.size * 8) - 1) do |idx|
+        yield tbl[idx] if @la[idx] == 1
+      end
     end
+  end
 
+  class Shift < Struct.new(:goto_state)
     def inspect
-      "<reduce #{@rule.ident}>"
+      "<shift #{goto_state.ident}>"
     end
+  end
 
-    def incref
-      @refn += 1
-    end
-
-    def decref
-      @refn -= 1
-      raise 'racc: fatal: act.refn < 0' if @refn < 0
+  class Reduce < Struct.new(:rule)
+    def inspect
+      "<reduce #{rule.ident}>"
     end
   end
 
@@ -902,40 +546,17 @@ module Racc
     end
   end
 
-  class SRconflict
-    def initialize(sid, shift, reduce)
-      @stateid = sid
-      @shift   = shift
-      @reduce  = reduce
-    end
-
-    attr_reader :stateid
-    attr_reader :shift
-    attr_reader :reduce
-
+  class SRConflict < Struct.new(:stateid, :shift, :reduce)
     def to_s
       sprintf('state %d: S/R conflict rule %d reduce and shift %s',
-              @stateid, @reduce.ruleid, @shift.to_s)
+              @stateid, reduce.ruleid, @shift.to_s)
     end
   end
 
-  class RRconflict
-    def initialize(sid, high, low, tok)
-      @stateid   = sid
-      @high_prec = high
-      @low_prec  = low
-      @token     = tok
-    end
-
-    attr_reader :stateid
-    attr_reader :high_prec
-    attr_reader :low_prec
-    attr_reader :token
-
+  class RRConflict < Struct.new(:stateid, :high_prec, :low_prec, :token)
     def to_s
       sprintf('state %d: R/R conflict with rule %d and %d on %s',
-              @stateid, @high_prec.ident, @low_prec.ident, @token.to_s)
+              stateid, high_prec.ident, low_prec.ident, token.to_s)
     end
   end
-
 end

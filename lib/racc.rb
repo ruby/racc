@@ -1,4 +1,3 @@
-require 'racc/debugflags'
 require 'racc/grammar'
 require 'racc/state'
 require 'racc/exception'
