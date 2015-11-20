@@ -597,10 +597,6 @@ module Racc
       @rule.ptrs[@index + 1] or ptr_bug!
     end
 
-    def before(len)
-      @rule.ptrs[@index - len] or ptr_bug!
-    end
-
     def reduce?
       symbol.nil?
     end
