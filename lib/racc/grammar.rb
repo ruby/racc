@@ -82,23 +82,6 @@ module Racc
     end
 
     def parser_class
-      if $DEBUG
-        srcfilename = caller(1).first.slice(/\A(.*?):/, 1)
-        begin
-          write_log srcfilename + ".output"
-        rescue SystemCallError
-        end
-        report = lambda {|s| $stderr.puts "racc: #{srcfilename}: #{s}" }
-        if @states.should_report_srconflict?
-          report["#{@states.sr_conflicts.size} shift/reduce conflicts"]
-        end
-        if @states.rr_conflicts.any?
-          report["#{@states.rr_conflicts.size} reduce/reduce conflicts"]
-        end
-        if useless_nonterminals.any?
-          report["#{useless_nonterminals.size} useless nonterminals"]
-        end
-      end
       state_transition_table.parser_class
     end
 
