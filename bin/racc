@@ -26,7 +26,7 @@ def main
   parser = OptionParser.new
   parser.banner = "Usage: #{File.basename($0)} [options] <input>"
   parser.on('-o', '--output-file=PATH',
-            'Output file name [<input>.tab.rb]') {|name|
+            'Output file name [<input>.rb]') {|name|
     output = name
   }
   parser.on('-t', '--debug', 'Outputs debugging parser.') {|fl|
@@ -120,7 +120,7 @@ def main
     params.embed_runtime = embed_runtime
     profiler.section('generation') {
       generator = Racc::ParserFileGenerator.new(states, params)
-      generator.generate_parser_file(output || make_filename(input, '.tab.rb'))
+      generator.generate_parser_file(output || make_filename(input, '.rb'))
     }
 
     if make_logfile
