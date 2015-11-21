@@ -53,9 +53,9 @@ end
 # [--help]
 #   Print usage and quit.
 #
-# == Generating Parser Using Racc
+# == Generating a Parser Using Racc
 #
-# To compile Racc grammar file, simply type:
+# To compile a Racc grammar file, simply type:
 #
 #   $ racc parse.y
 #
@@ -63,13 +63,13 @@ end
 #
 # == Writing A Racc Grammar File
 #
-# If you want your own parser, you have to write a grammar file.
+# To generate your own parser, you have to write a grammar file.
 # A grammar file contains the name of your parser class, grammar for the parser,
-# user code, and anything else.
+# and user code.
 # When writing a grammar file, yacc's knowledge is helpful.
 # If you have not used yacc before, Racc is not too difficult.
 #
-# Here's an example Racc grammar file.
+# Here's an example Racc grammar file:
 #
 #   class Calcparser
 #   rule
@@ -96,13 +96,13 @@ end
 #
 # Racc::Parser#do_parse is simple.
 #
-# It's yyparse() of yacc, and Racc::Parser#next_token is yylex().
-# This method must returns an array like [TOKENSYMBOL, ITS_VALUE].
+# It's the `yyparse` of yacc, and Racc::Parser#next_token is `yylex`.
+# This method must return an array like [TOKENSYMBOL, ITS_VALUE].
 # EOF is [false, false].
-# (TOKENSYMBOL is a Ruby symbol (taken from String#to_sym) by default.
-# If you want to change this, see the grammar reference.
+# (TOKENSYMBOL is a Ruby Symbol by default.
+# If you want to change this, see the grammar reference.)
 #
-# Racc::Parser#yyparse is little complicated, but useful.
+# Racc::Parser#yyparse is a little complicated, but useful.
 # It does not use Racc::Parser#next_token, instead it gets tokens from any iterator.
 #
 # For example, <code>yyparse(obj, :scan)</code> causes
@@ -110,21 +110,14 @@ end
 #
 # == Debugging
 #
-# When debugging, "-v" or/and the "-g" option is helpful.
+# When debugging, "-v" or/and the "-t" option is helpful.
 #
 # "-v" creates verbose log file (.output).
 # "-t" creates a "Verbose Parser".
-# Verbose Parser prints the internal status when parsing.
+# A verbose parser prints the internal status when parsing.
 # But it's _not_ automatic.
 # You must use -t option and set +@yydebug+ to +true+ in order to get output.
-# -t option only creates the verbose parser.
-#
-# === Racc reported syntax error.
-#
-# Isn't there too many "end"?
-# grammar of racc file is changed in v0.10.
-#
-# Racc does not use '%' mark, while yacc uses huge number of '%' marks..
+# -t option only creates a verbose parser.
 #
 # === Racc reported "XXXX conflicts".
 #
@@ -134,25 +127,25 @@ end
 # === Generated parsers does not work correctly
 #
 # Try "racc -t xxxx.y".
-# This command let racc generate "debugging parser".
+# This command makes racc generate a "debugging parser".
 # Then set @yydebug=true in your parser.
 # It produces a working log of your parser.
 #
 # == Re-distributing Racc runtime
 #
-# A parser, which is created by Racc, requires the Racc runtime module;
+# A parser, which is created by Racc, requires the Racc runtime module:
 # racc/parser.rb.
 #
-# Ruby 1.8+ comes with Racc runtime module,
-# you need NOT distribute Racc runtime files.
+# Ruby 1.8+ comes with the Racc runtime module,
+# so you need NOT distribute Racc runtime files.
 #
-# If you want to include the Racc runtime module with your parser.
-# This can be done by using '-E' option:
+# If you want to include the Racc runtime module with your parser,
+# this can be done by using the '-E' option:
 #
 #   $ racc -E -o myparser.rb myparser.y
 #
-# This command creates myparser.rb which `includes' Racc runtime.
-# Only you must do is to distribute your parser file (myparser.rb).
+# This command creates a parser with the Racc runtime embedded right in the
+# parser source file, so it can run even if racc/parser.rb is not present.
 #
 # Note: parser.rb is LGPL, but your parser is not.
 # Your own parser is completely yours.
@@ -613,7 +606,5 @@ module Racc
     def token_to_str(t)
       self.class::Racc_token_to_s_table[t]
     end
-
   end
-
 end
