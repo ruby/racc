@@ -91,9 +91,7 @@ module Racc
       end
     end
 
-    #
     # Grammar Definition Interface
-    #
 
     def add(rule)
       raise ArgumentError, "rule added after the Grammar closed" if @closed
@@ -126,9 +124,7 @@ module Racc
       end
     end
 
-    #
     # Dynamic Generation Interface
-    #
 
     def Grammar.define(&block)
       env = DefinitionEnv.new
