@@ -11,9 +11,7 @@ require 'racc/parser-text'
 require 'rbconfig'
 
 module Racc
-
   class ParserFileGenerator
-
     class Params
       def self.bool_attr(name)
         module_eval(<<-End)
@@ -238,9 +236,7 @@ module Racc
       sep
     end
 
-    #
     # State Transition Table Serialization
-    #
 
     public
 

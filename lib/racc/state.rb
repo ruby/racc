@@ -63,9 +63,7 @@ module Racc
       @state_transition_table ||= StateTransitionTable.generate(compute_dfa)
     end
 
-    #
     # NFA (Non-deterministic Finite Automaton) Computation
-    #
 
     public
 
