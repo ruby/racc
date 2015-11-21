@@ -21,7 +21,7 @@ def main
   superclass = nil
   check_only = false
   verbose = false
-  profiler = RaccProfiler.new(false)
+  profiler = RaccProfiler.new(!!ENV['PROFILE'])
 
   parser = OptionParser.new
   parser.banner = "Usage: #{File.basename($0)} [options] <input>"
@@ -55,9 +55,6 @@ def main
   }
   parser.on('-C', '--check-only', 'Checks syntax and quit immediately.') {|fl|
     check_only = fl
-  }
-  parser.on('-P', 'Enables generator profile') {
-    profiler = RaccProfiler.new(true)
   }
   parser.on('--version', 'Prints version and quits.') {
     core = Racc::Parser.racc_runtime_type == 'ruby' ? '(ruby core)' : '(c core)'
