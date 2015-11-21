@@ -35,6 +35,7 @@ def main
   parser.on('-v', '--verbose',
             'Creates <filename>.output log file.') {|fl|
     make_logfile = fl
+    verbose = true
   }
   parser.on('-O', '--log-file=PATH',
             'Log file name [<input>.output]') {|path|
@@ -54,9 +55,6 @@ def main
   }
   parser.on('-C', '--check-only', 'Checks syntax and quit immediately.') {|fl|
     check_only = fl
-  }
-  parser.on('-S', '--output-status', 'Outputs internal status time to time.') {
-    verbose = true
   }
   parser.on('-P', 'Enables generator profile') {
     profiler = RaccProfiler.new(true)

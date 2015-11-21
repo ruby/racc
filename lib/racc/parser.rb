@@ -26,7 +26,6 @@ end
 #          [-t] [--debug]
 #          [-E] [--embedded]
 #          [-C] [--check-only]
-#          [-S] [--output-status]
 #          [--version] [--copyright] [--help] <var>grammarfile</var>
 #
 # [+filename+]
@@ -47,8 +46,6 @@ end
 #   Output parser which doesn't need runtime files (racc/parser.rb).
 # [-C, --check-only]
 #   Check syntax of racc grammer file and quit.
-# [-S, --output-status]
-#   Print messages time to time while compiling.
 # [--version]
 #   print Racc version and quit.
 # [--copyright]
