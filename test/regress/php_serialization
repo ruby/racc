@@ -6,12 +6,14 @@
 
 require 'racc/parser.rb'
 
+Object.module_eval(<<'...end php_serialization.y/module_eval...', 'php_serialization.y', 81)
 require 'php_serialization/tokenizer'
 
+...end php_serialization.y/module_eval...
 module PhpSerialization
   class Unserializer < Racc::Parser
 
-module_eval(<<'...end php_serialization.y/module_eval...', 'php_serialization.y', 84)
+module_eval(<<'...end php_serialization.y/module_eval...2', 'php_serialization.y', 84)
   def initialize(tokenizer_klass = Tokenizer)
     @tokenizer_klass = tokenizer_klass
   end
@@ -27,7 +29,7 @@ module_eval(<<'...end php_serialization.y/module_eval...', 'php_serialization.y'
   def next_token
     @tokenizer.next_token
   end
-...end php_serialization.y/module_eval...
+...end php_serialization.y/module_eval...2
 ##### State transition tables begin ###
 
 racc_action_table = [

@@ -6,12 +6,14 @@
 
 require 'racc/parser.rb'
 
+Object.module_eval(<<'...end bibtex.y/module_eval...', 'bibtex.y', 86)
 require 'bibtex/lexer'
 
+...end bibtex.y/module_eval...
 module BibTeX
   class Parser < Racc::Parser
 
-module_eval(<<'...end bibtex.y/module_eval...', 'bibtex.y', 89)
+module_eval(<<'...end bibtex.y/module_eval...2', 'bibtex.y', 89)
 
   attr_reader :lexer, :options
 
@@ -65,7 +67,7 @@ module_eval(<<'...end bibtex.y/module_eval...', 'bibtex.y', 89)
   end
 
 # -*- racc -*-
-...end bibtex.y/module_eval...
+...end bibtex.y/module_eval...2
 ##### State transition tables begin ###
 
 racc_action_table = [

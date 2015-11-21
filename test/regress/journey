@@ -6,8 +6,10 @@
 
 require 'racc/parser.rb'
 
+Object.module_eval(<<'...end journey.y/module_eval...', 'journey.y', 46)
 
 require 'journey/parser_extras'
+...end journey.y/module_eval...
 module Journey
   class Parser < Racc::Parser
 ##### State transition tables begin ###

@@ -26,9 +26,6 @@ module Racc
     end
 
     def test_compile_line_convert
-      params = @result.params.dup
-      params.convert_line_all = true
-
       generator = Racc::ParserFileGenerator.new(@states, @result.params.dup)
 
       # it generates valid ruby

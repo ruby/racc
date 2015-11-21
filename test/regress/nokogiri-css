@@ -6,8 +6,10 @@
 
 require 'racc/parser.rb'
 
+Object.module_eval(<<'...end nokogiri-css.y/module_eval...', 'nokogiri-css.y', 254)
 
 require 'nokogiri/css/parser_extras'
+...end nokogiri-css.y/module_eval...
 module Nokogiri
   module CSS
     class Parser < Racc::Parser

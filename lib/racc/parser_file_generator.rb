@@ -37,8 +37,6 @@ module Racc
       attr_accessor :footer
 
       bool_attr :debug_parser
-      bool_attr :convert_line
-      bool_attr :convert_line_all
       bool_attr :embed_runtime
       bool_attr :make_executable
       attr_accessor :interpreter
@@ -56,8 +54,6 @@ module Racc
 
         # Parameters derived from command line options
         self.debug_parser = false
-        self.convert_line = true
-        self.convert_line_all = false
         self.embed_runtime = false
         self.make_executable = false
         self.interpreter = nil
@@ -132,7 +128,7 @@ module Racc
       line %[###### #{src.filename} begin]
       line %[unless $".index '#{src.filename}']
       line %[$".push '#{src.filename}']
-      put src, @params.convert_line?
+      put src
       line %[end]
       line %[###### #{src.filename} end]
     end
@@ -162,34 +158,30 @@ module Racc
     def header
       @params.header.each do |src|
         line
-        put src, @params.convert_line_all?
+        put src
       end
     end
 
     def inner
       @params.inner.each do |src|
         line
-        put src, @params.convert_line?
+        put src
       end
     end
 
     def footer
       @params.footer.each do |src|
         line
-        put src, @params.convert_line_all?
+        put src
       end
     end
 
     # Low Level Routines
 
-    def put(src, convert_line = false)
-      if convert_line
-        replace_location(src) {
-          @f.puts src.text
-        }
-      else
+    def put(src)
+      replace_location(src) {
         @f.puts src.text
-      end
+      }
     end
 
     def line(str = '')
@@ -219,7 +211,7 @@ module Racc
 
     def replace_location(src)
       sep = make_separator(src)
-      @f.print 'self.class.' if toplevel?
+      @f.print 'Object.' if toplevel?
       @f.puts "module_eval(<<'#{sep}', '#{src.filename}', #{src.lineno})"
       yield
       @f.puts sep
@@ -233,9 +225,15 @@ module Racc
 
     def unique_separator(id)
       sep = "...end #{id}/module_eval..."
-      while @used_separator.key?(sep)
-        sep.concat sprintf('%02x', rand(255))
+
+      if @used_separator.key?(sep)
+        suffix = 2
+        while @used_separator.key?("#{sep}#{suffix}")
+          suffix += 1
+        end
+        sep = "#{sep}#{suffix}"
       end
+
       @used_separator[sep] = true
       sep
     end
@@ -369,30 +367,19 @@ module Racc
           line "# reduce #{rule.ident} omitted"
         else
           src0 = rule.action.source || SourceText.new(default_body, __FILE__, 0)
-          if @params.convert_line?
-            src = remove_blank_lines(src0)
-            delim = make_delimiter(src.text)
-            @f.printf unindent_auto(<<-End),
-              module_eval(<<'%s', '%s', %d)
-                def _reduce_%d(val, _values%s)
-                  %s%s
-                end
-              %s
-            End
-                      delim, src.filename, src.lineno - 1,
-                        rule.ident, decl,
-                        src.text, retval,
-                      delim
-          else
-            src = remove_blank_lines(src0)
-            @f.printf unindent_auto(<<-End),
+          src = remove_blank_lines(src0)
+          delim = make_delimiter(src.text)
+          @f.printf unindent_auto(<<-End),
+            module_eval(<<'%s', '%s', %d)
               def _reduce_%d(val, _values%s)
-              %s%s
+                %s%s
               end
-            End
+            %s
+          End
+                    delim, src.filename, src.lineno - 1,
                       rule.ident, decl,
-                      src.text, retval
-          end
+                      src.text, retval,
+                    delim
         end
       end
       line

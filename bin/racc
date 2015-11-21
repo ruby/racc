@@ -18,8 +18,6 @@ def main
   make_executable = false
   rubypath = nil
   embed_runtime = false
-  line_convert = true
-  line_convert_all = false
   omit_action_call = true
   superclass = nil
   check_only = false
@@ -50,13 +48,6 @@ def main
   }
   parser.on('-E', '--embedded', "Embeds Racc runtime in output.") {
     embed_runtime = true
-  }
-  parser.on('--line-convert-all', 'Converts line numbers of user code.') {
-    line_convert_all = true
-  }
-  parser.on('-l', '--no-line-convert', 'Never convert line numbers.') {
-    line_convert = false
-    line_convert_all = false
   }
   parser.on('-a', '--no-omit-actions', 'Never omit actions.') {
     omit_action_call = false
@@ -136,8 +127,6 @@ def main
       params.interpreter = rubypath
     end
     params.debug_parser = debug_parser
-    params.convert_line = line_convert
-    params.convert_line_all = line_convert_all
     params.embed_runtime = embed_runtime
     profiler.section('generation') {
       generator = Racc::ParserFileGenerator.new(states, params)

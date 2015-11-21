@@ -6,6 +6,7 @@
 
 require 'racc/parser.rb'
 
+Object.module_eval(<<'...end nasl.y/module_eval...', 'nasl.y', 542)
 
 require 'nasl/parser/tree'
 
@@ -45,10 +46,11 @@ require 'nasl/parser/string'
 require 'nasl/parser/undefined'
 require 'nasl/parser/while'
 
+...end nasl.y/module_eval...
 module Nasl
   class Grammar < Racc::Parser
 
-module_eval(<<'...end nasl.y/module_eval...', 'nasl.y', 582)
+module_eval(<<'...end nasl.y/module_eval...2', 'nasl.y', 582)
 
 def n(cls, *args)
   begin
@@ -93,7 +95,7 @@ def parse(env, code, path)
   @tree.concat(do_parse)
 end
 
-...end nasl.y/module_eval...
+...end nasl.y/module_eval...2
 ##### State transition tables begin ###
 
 racc_action_table = [
@@ -2198,4 +2200,6 @@ end
   end   # class Grammar
   end   # module Nasl
 
+Object.module_eval(<<'...end nasl.y/module_eval...3', 'nasl.y', 627)
 
+...end nasl.y/module_eval...3

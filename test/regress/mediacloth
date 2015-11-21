@@ -6,11 +6,13 @@
 
 require 'racc/parser.rb'
 
+Object.module_eval(<<'...end mediacloth.y/module_eval...', 'mediacloth.y', 561)
 require 'mediacloth/mediawikiast'
 
+...end mediacloth.y/module_eval...
 class MediaWikiParser < Racc::Parser
 
-module_eval(<<'...end mediacloth.y/module_eval...', 'mediacloth.y', 564)
+module_eval(<<'...end mediacloth.y/module_eval...2', 'mediacloth.y', 564)
 
 attr_accessor :lexer
 
@@ -47,7 +49,7 @@ def next_token
 
     return token[0..1]
 end
-...end mediacloth.y/module_eval...
+...end mediacloth.y/module_eval...2
 ##### State transition tables begin ###
 
 racc_action_table = [

@@ -6,14 +6,16 @@
 
 require 'racc/parser.rb'
 
+Object.module_eval(<<'...end riml.y/module_eval...', 'riml.y', 587)
   require File.expand_path("../lexer", __FILE__)
   require File.expand_path("../nodes", __FILE__)
   require File.expand_path("../errors", __FILE__)
   require File.expand_path("../ast_rewriter", __FILE__)
+...end riml.y/module_eval...
 module Riml
   class Parser < Racc::Parser
 
-module_eval(<<'...end riml.y/module_eval...', 'riml.y', 592)
+module_eval(<<'...end riml.y/module_eval...2', 'riml.y', 592)
   # This code will be put as-is in the parser class
 
   attr_accessor :ast_rewriter
@@ -88,7 +90,7 @@ module_eval(<<'...end riml.y/module_eval...', 'riml.y', 592)
     node.parser_info = @current_parser_info
     node
   end
-...end riml.y/module_eval...
+...end riml.y/module_eval...2
 ##### State transition tables begin ###
 
 racc_action_table = [
