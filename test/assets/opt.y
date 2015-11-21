@@ -13,7 +13,7 @@ class Calcp
     NUMBER 'Number'
   end
 
-  options no_omit_action_call no_result_var
+  options no_result_var
 
 rule
 

@@ -270,15 +270,6 @@ options OPTION OPTION ...
 
 The currently available options are:
 
-  * [no_]omit_action_call
-
-This is `omit_action_call` by default, which uses the `_reduce_none` action
-when the action is empty.
-This behavior can be changed to `no_omit_action_call` by specifying the
-'--no-omit-actions' command line option of the racc command.
-Also, you can set this to `no_omit_action_call` in your grammar file so that
-each particular action is defined even when it is empty.
-
   * [no_]result_var
 
 This is `result_var` by default, which makes the `result` special variable

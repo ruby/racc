@@ -25,7 +25,6 @@ end
 #          [-O<var>filename</var>] [--log-file=<var>filename</var>]
 #          [-t] [--debug]
 #          [-E] [--embedded]
-#          [-a] [--no-omit-actions]
 #          [-C] [--check-only]
 #          [-S] [--output-status]
 #          [--version] [--copyright] [--help] <var>grammarfile</var>
@@ -50,8 +49,6 @@ end
 #   Check syntax of racc grammer file and quit.
 # [-S, --output-status]
 #   Print messages time to time while compiling.
-# [-a, --no-omit-actions]
-#   Call all actions, even if an action is empty.
 # [--version]
 #   print Racc version and quit.
 # [--copyright]

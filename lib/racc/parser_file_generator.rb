@@ -28,7 +28,6 @@ module Racc
       attr_accessor :filename
       attr_accessor :classname
       attr_accessor :superclass
-      bool_attr :omit_action_call
       bool_attr :result_var
       attr_accessor :header
       attr_accessor :inner
@@ -44,7 +43,6 @@ module Racc
         self.filename = nil
         self.classname = nil
         self.superclass = 'Racc::Parser'
-        self.omit_action_call = true
         self.result_var = true
         self.header = []
         self.inner  = []
@@ -359,7 +357,7 @@ module Racc
       end
       @grammar.each do |rule|
         line
-        if rule.action.empty? and @params.omit_action_call?
+        if rule.action.empty?
           line "# reduce #{rule.ident} omitted"
         else
           src0 = rule.action.source || SourceText.new(default_body, __FILE__, 0)

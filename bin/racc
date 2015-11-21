@@ -18,7 +18,6 @@ def main
   make_executable = false
   rubypath = nil
   embed_runtime = false
-  omit_action_call = true
   superclass = nil
   check_only = false
   verbose = false
@@ -48,9 +47,6 @@ def main
   }
   parser.on('-E', '--embedded', "Embeds Racc runtime in output.") {
     embed_runtime = true
-  }
-  parser.on('-a', '--no-omit-actions', 'Never omit actions.') {
-    omit_action_call = false
   }
   parser.on('--superclass=CLASSNAME',
             'Uses CLASSNAME instead of Racc::Parser.') {|name|
@@ -120,7 +116,6 @@ def main
     params = result.params.dup
     # Overwrites parameters given by a grammar file with command line options.
     params.superclass = superclass if superclass
-    params.omit_action_call = true if omit_action_call
     # From command line option
     if make_executable
       params.make_executable = true

@@ -248,10 +248,6 @@ options オプション オプション …
 --
 現在ここで使えるのは
 
-  * omit_action_call
-
-空のアクション呼び出しを省略する
-
   * result_var
 
 変数 result を使う
