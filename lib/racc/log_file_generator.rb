@@ -59,10 +59,10 @@ module Racc
     def pointer_out(out, ptr)
       buf = sprintf("%4d) %s :", ptr.rule.ident, ptr.rule.target.to_s)
       ptr.rule.symbols.each_with_index do |tok, idx|
-        buf << ' _' if idx == ptr.index
+        buf << ' .' if idx == ptr.index
         buf << ' ' << tok.to_s
       end
-      buf << ' _' if ptr.reduce?
+      buf << ' .' if ptr.reduce?
       out.puts buf
     end
 
