@@ -12,7 +12,7 @@ class P
     left B
   preclow
 
-  options omit_action_call
+  options result_var
 
   start target
 rule

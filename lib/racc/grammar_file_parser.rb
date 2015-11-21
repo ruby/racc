@@ -53,10 +53,6 @@ module Racc
                           @result.params.result_var = true
                         when 'no_result_var'
                           @result.params.result_var = false
-                        when 'omit_action_call'
-                          @result.params.omit_action_call = true
-                        when 'no_omit_action_call'
-                          @result.params.omit_action_call = false
                         else
                           raise CompileError, "unknown option: #{opt}"
                         end
