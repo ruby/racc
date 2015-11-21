@@ -25,8 +25,6 @@ end
 #          [-O<var>filename</var>] [--log-file=<var>filename</var>]
 #          [-t] [--debug]
 #          [-E] [--embedded]
-#          [-l] [--no-line-convert]
-#          [-c] [--line-convert-all]
 #          [-a] [--no-omit-actions]
 #          [-C] [--check-only]
 #          [-S] [--output-status]
@@ -52,10 +50,6 @@ end
 #   Check syntax of racc grammer file and quit.
 # [-S, --output-status]
 #   Print messages time to time while compiling.
-# [-l, --no-line-convert]
-#   turns off line number converting.
-# [-c, --line-convert-all]
-#   Convert line number of actions, inner, header and footer.
 # [-a, --no-omit-actions]
 #   Call all actions, even if an action is empty.
 # [--version]

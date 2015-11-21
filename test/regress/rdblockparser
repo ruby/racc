@@ -6,13 +6,15 @@
 
 require 'racc/parser.rb'
 
+Object.module_eval(<<'...end rdblockparser.y/module_eval...', 'rdblockparser.y', 571)
 require "rd/rdinlineparser.tab.rb"
 require "rd/parser-util"
 
 module RD
+...end rdblockparser.y/module_eval...
 class RDParser < Racc::Parser
 
-module_eval(<<'...end rdblockparser.y/module_eval...', 'rdblockparser.y', 289)
+module_eval(<<'...end rdblockparser.y/module_eval...2', 'rdblockparser.y', 289)
 include ParserUtility
 
 TMPFILE = ["rdtmp", $$, 0]
@@ -294,7 +296,7 @@ def format_line_num(*args)
 end
 private :format_line_num
 
-...end rdblockparser.y/module_eval...
+...end rdblockparser.y/module_eval...2
 ##### State transition tables begin ###
 
 racc_action_table = [
@@ -1028,4 +1030,6 @@ end
 
 end   # class RDParser
 
+Object.module_eval(<<'...end rdblockparser.y/module_eval...3', 'rdblockparser.y', 576)
 end # end of module RD
+...end rdblockparser.y/module_eval...3

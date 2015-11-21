@@ -6,13 +6,15 @@
 
 require 'racc/parser.rb'
 
+Object.module_eval(<<'...end namae.y/module_eval...', 'namae.y', 131)
 require 'singleton'
 require 'strscan'
 
+...end namae.y/module_eval...
 module Namae
   class Parser < Racc::Parser
 
-module_eval(<<'...end namae.y/module_eval...', 'namae.y', 135)
+module_eval(<<'...end namae.y/module_eval...2', 'namae.y', 135)
 
   include Singleton
 
@@ -181,7 +183,7 @@ module_eval(<<'...end namae.y/module_eval...', 'namae.y', 135)
   end
 
 # -*- racc -*-
-...end namae.y/module_eval...
+...end namae.y/module_eval...2
 ##### State transition tables begin ###
 
 racc_action_table = [-39, 16, 32, 30, -40, 31, 33, -39, 17, -39, -39, -40, 67, -40, -40, 66, 53, 52, 54, -38, 59, -22, 39, -34, 45, 58, -

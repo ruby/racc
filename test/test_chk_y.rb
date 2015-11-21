@@ -10,30 +10,11 @@ module Racc
     end
 
     def test_compile_chk_y
-      generator = Racc::ParserFileGenerator.new(@states, @result.params.dup)
+      generator = Racc::ParserFileGenerator.new(@states, @result.params)
 
       # it generates valid ruby
       assert Module.new {
-        self.instance_eval(generator.generate_parser, __FILE__, __LINE__)
-      }
-
-      grammar = @states.grammar
-
-      assert_equal 0, @states.sr_conflicts.size
-      assert_equal 0, @states.rr_conflicts.size
-      assert_equal 0, grammar.useless_nonterminals.size
-      assert_nil grammar.n_expected_srconflicts
-    end
-
-    def test_compile_chk_y_line_convert
-      params = @result.params.dup
-      params.convert_line_all = true
-
-      generator = Racc::ParserFileGenerator.new(@states, @result.params.dup)
-
-      # it generates valid ruby
-      assert Module.new {
-        self.instance_eval(generator.generate_parser, __FILE__, __LINE__)
+        module_eval(generator.generate_parser)
       }
 
       grammar = @states.grammar

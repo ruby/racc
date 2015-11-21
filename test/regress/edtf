@@ -6,12 +6,14 @@
 
 require 'racc/parser.rb'
 
+Object.module_eval(<<'...end edtf.y/module_eval...', 'edtf.y', 465)
 require 'strscan'
 
+...end edtf.y/module_eval...
 module EDTF
   class Parser < Racc::Parser
 
-module_eval(<<'...end edtf.y/module_eval...', 'edtf.y', 468)
+module_eval(<<'...end edtf.y/module_eval...2', 'edtf.y', 468)
 
   @defaults = {
     :level => 2,
@@ -128,7 +130,7 @@ module_eval(<<'...end edtf.y/module_eval...', 'edtf.y', 468)
 
 
 # -*- racc -*-
-...end edtf.y/module_eval...
+...end edtf.y/module_eval...2
 ##### State transition tables begin ###
 
 racc_action_table = [129, 128, 52, 111, 51, 112, 149, 208, 207, 57, -50, 43, 45, 40, 55, 42, 54, 44, 43, 45, 40, -

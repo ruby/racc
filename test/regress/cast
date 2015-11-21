@@ -6,6 +6,7 @@
 
 require 'racc/parser.rb'
 
+Object.module_eval(<<'...end cast.y/module_eval...', 'cast.y', 916)
 
 require 'set'
 
@@ -17,10 +18,11 @@ end
 # Local variables:
 #   mode: ruby
 # end:
+...end cast.y/module_eval...
 module C
   class Parser < Racc::Parser
 
-module_eval(<<'...end cast.y/module_eval...', 'cast.y', 564)
+module_eval(<<'...end cast.y/module_eval...2', 'cast.y', 564)
   # A.1.9 -- Preprocessing numbers -- skip
   # A.1.8 -- Header names -- skip
 
@@ -372,7 +374,7 @@ restrict return short signed sizeof static struct switch typedef union
     raise ParseError, "#{pos}: #{str}"
   end
 
-...end cast.y/module_eval...
+...end cast.y/module_eval...2
 ##### State transition tables begin ###
 
 racc_action_table = [

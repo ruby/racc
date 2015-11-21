@@ -6,15 +6,17 @@
 
 require 'racc/parser.rb'
 
+Object.module_eval(<<'...end rdinlineparser.y/module_eval...', 'rdinlineparser.y', 553)
 
 require "rd/parser-util"
 require "forwardable"
 require "strscan"
 
 module RD
+...end rdinlineparser.y/module_eval...
 class RDInlineParser < Racc::Parser
 
-module_eval(<<'...end rdinlineparser.y/module_eval...', 'rdinlineparser.y', 350)
+module_eval(<<'...end rdinlineparser.y/module_eval...2', 'rdinlineparser.y', 350)
 include ParserUtility
 extend Forwardable
 
@@ -217,7 +219,7 @@ def next_words_on_error
   end
 end
 
-...end rdinlineparser.y/module_eval...
+...end rdinlineparser.y/module_eval...2
 ##### State transition tables begin ###
 
 racc_action_table = [
@@ -1158,4 +1160,6 @@ end
 
 end   # class RDInlineParser
 
+Object.module_eval(<<'...end rdinlineparser.y/module_eval...3', 'rdinlineparser.y', 560)
 end # end of module RD
+...end rdinlineparser.y/module_eval...3

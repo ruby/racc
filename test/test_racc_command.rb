@@ -36,10 +36,6 @@ module Racc
       assert_compile 'chk.y', '-vt'
       assert_debugfile 'chk.y', []
       assert_exec 'chk.y'
-
-      assert_compile 'chk.y', '--line-convert-all'
-      assert_debugfile 'chk.y', []
-      assert_exec 'chk.y'
     end
 
     def test_echk_y
