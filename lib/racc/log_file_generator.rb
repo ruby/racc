@@ -23,12 +23,14 @@ module Racc
     def output_conflict(out)
       @states.each do |state|
         if state.sr_conflicts.any?
-          out.printf "state %d contains %d shift/reduce conflicts\n",
-                     state.ident, state.sr_conflicts.size
+          out.printf "state %d contains %d shift/reduce conflict%s\n",
+                     state.ident, state.sr_conflicts.size,
+                     state.sr_conflicts.size == 1 ? '' : 's'
         end
         if state.rr_conflicts.any?
-          out.printf "state %d contains %d reduce/reduce conflicts\n",
-                     state.ident, state.rr_conflicts.size
+          out.printf "state %d contains %d reduce/reduce conflict%s\n",
+                     state.ident, state.rr_conflicts.size,
+                     state.rr_conflicts.size == 1 ? '' : 's'
         end
       end
     end
