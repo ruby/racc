@@ -31,23 +31,23 @@ def main
   parser = OptionParser.new
   parser.banner = "Usage: #{File.basename($0)} [options] <input>"
   parser.on('-o', '--output-file=PATH',
-            'Output file name [<input>.rb]') {|name|
+            'Output file name [<input>.rb]') { |name|
     output = name
   }
-  parser.on('-t', '--debug', 'Outputs debugging parser.') {|fl|
+  parser.on('-t', '--debug', 'Outputs debugging parser.') { |fl|
     debug_parser = fl
   }
   parser.on('-v', '--verbose',
-            'Creates <filename>.output log file.') {|fl|
+            'Creates <filename>.output log file.') { |fl|
     make_logfile = fl
     verbose = true
   }
   parser.on('-O', '--log-file=PATH',
-            'Log file name [<input>.output]') {|path|
+            'Log file name [<input>.output]') { |path|
     make_logfile = true
     logfilename = path
   }
-  parser.on('-e', '--executable [RUBYPATH]', 'Makes executable parser.') {|path|
+  parser.on('-e', '--executable [RUBYPATH]', 'Makes executable parser.') { |path|
     executable = true
     rubypath = (path == 'ruby' ? nil : path)
   }
@@ -58,7 +58,7 @@ def main
             'Uses CLASSNAME instead of Racc::Parser.') {|name|
     superclass = name
   }
-  parser.on('-C', '--check-only', 'Checks syntax and quit immediately.') {|fl|
+  parser.on('-C', '--check-only', 'Checks syntax and quits immediately.') { |fl|
     check_only = fl
   }
   parser.on('--[no-]color', 'Force colored output on or off.') { |fl|
@@ -110,24 +110,24 @@ def main
     end
 
     $stderr.puts 'Parsing grammar file...' if verbose
-    result = profiler.section('parse') {
+    result = profiler.section('parse') do
       parser = Racc::GrammarFileParser.new
       parser.parse(File.read(input), File.basename(input))
-    }
+    end
     if check_only
-      $stderr.puts 'syntax ok'
+      $stderr.puts "Syntax is OK for #{input}"
       exit 0
     end
 
     $stderr.puts 'Generating LALR states...' if verbose
-    states = profiler.section('nfa') {
-      Racc::States.new(result.grammar).compute_nfa
-    }
+    states = profiler.section('nfa') do
+      result.grammar.states.compute_nfa
+    end
 
     $stderr.puts "Resolving #{states.size} states..." if verbose
-    profiler.section('dfa') {
+    profiler.section('dfa') do
       states.compute_dfa
-    }
+    end
 
     $stderr.puts 'Creating parser file...' if verbose
     params = result.params.dup
@@ -140,19 +140,19 @@ def main
     end
     params.debug_parser = debug_parser
     params.embed_runtime = embed_runtime
-    profiler.section('generation') {
+    profiler.section('generation') do
       generator = Racc::ParserFileGenerator.new(states, params)
       generator.generate_parser_file(output)
-    }
+    end
 
     if make_logfile
-      profiler.section('logging') {
+      profiler.section('logging') do
         $stderr.puts 'Creating log file...' if verbose
         logfilename ||= make_filename(output || File.basename(input), '.output')
-        File.open(logfilename, 'w') {|f|
-          Racc::LogFileGenerator.new(states).output f
-        }
-      }
+        File.open(logfilename, 'w') do |f|
+          Racc::LogFileGenerator.new(states).output(f)
+        end
+      end
 
       log_useless(states.grammar)
       log_conflict(states)
