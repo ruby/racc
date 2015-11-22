@@ -714,20 +714,7 @@ module Racc
       @useless = nil
     end
 
-    class << self
-      def once_writer(nm)
-        nm = nm.id2name
-        module_eval(<<-EOS)
-          def #{nm}=(v)
-            raise 'racc: fatal: @#{nm} != nil' unless @#{nm}.nil?
-            @#{nm} = v
-          end
-        EOS
-      end
-    end
-
-    once_writer :ident
-    attr_reader :ident
+    attr_accessor :ident
 
     alias hash ident
 
@@ -771,8 +758,8 @@ module Racc
 
     attr_reader :heads
     attr_reader :locate
-    attr_reader :expand
-    once_writer :expand
+
+    attr_accessor :expand
 
     def to_s
       @to_s.dup
