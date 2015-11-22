@@ -137,10 +137,10 @@ def main
 
       log_useless(states.grammar)
       log_conflict(states)
-    else
-      report_useless(states.grammar)
-      report_conflict(states)
     end
+
+    report_useless(states.grammar)
+    report_conflict(states)
 
     profiler.report
   rescue Racc::CompileError, Errno::ENOENT, Errno::EPERM => err
