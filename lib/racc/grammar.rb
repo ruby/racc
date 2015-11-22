@@ -745,11 +745,6 @@ module Racc
       !heads.empty?
     end
 
-    def term=(t)
-      raise 'racc: fatal: term= called twice' unless @term.nil?
-      @term = t
-    end
-
     def should_be_terminal!
       @should_be_terminal = true
     end
