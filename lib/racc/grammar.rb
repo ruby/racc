@@ -651,7 +651,6 @@ module Racc
     attr_reader :terminals
     attr_reader :nonterminals
     attr_reader :symbols
-    alias to_a symbols
 
     def delete(sym)
       @symbols.delete(sym)
