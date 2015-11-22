@@ -78,10 +78,13 @@ def main
   end
   if ARGV.empty?
     $stderr.puts 'no input'
+    $stderr.puts
+    $stderr.puts parser.help
     exit 1
-  end
-  if ARGV.size > 1
+  elsif ARGV.size > 1
     $stderr.puts 'too many inputs'
+    $stderr.puts
+    $stderr.puts parser.help
     exit 1
   end
   input = ARGV[0]
