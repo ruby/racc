@@ -75,11 +75,16 @@ module Racc
 
     def generate_parser_file(destpath)
       init_line_conversion_system
-      File.open(destpath, 'w') {|f|
-        @f = f
+      if destpath == '-'
+        @f = $stdout
         parser_file
-      }
-      File.chmod 0755, destpath if @params.make_executable?
+      else
+        File.open(destpath, 'w') do |f|
+          @f = f
+          parser_file
+        end
+        File.chmod(0755, destpath) if @params.make_executable?
+      end
     end
 
     private
