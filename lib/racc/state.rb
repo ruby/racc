@@ -11,8 +11,6 @@ require 'forwardable'
 require 'set'
 
 module Racc
-
-  # A table of LALR states.
   class States
     include Enumerable
     def initialize(grammar)

@@ -732,7 +732,6 @@ module Racc
     end
 
     attr_accessor :ident
-
     alias hash ident
 
     attr_reader :value
