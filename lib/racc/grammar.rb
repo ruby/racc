@@ -85,12 +85,6 @@ module Racc
       state_transition_table.parser_class
     end
 
-    def write_log(path)
-      File.open(path, 'w') do |f|
-        LogFileGenerator.new(@states).output(f)
-      end
-    end
-
     # Grammar Definition Interface
 
     def add(rule)
