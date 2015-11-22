@@ -89,14 +89,19 @@ module Racc
     end
 
     def warnings
-      # nonterminals which don't appear on any rule's RHS?
-      useless_nts = @symboltable.nonterminals.select do |nt|
-        nt.locate.empty? && !nt.dummy?
-      end
-      warnings = useless_nts.map do |nt|
-        "#{bold_white("#{@filename}:#{nt.lineno}:")} Useless nonterminal " \
-        "#{symbol(nt)} does not appear on the right side of any rule, " \
-        'neither is it the start symbol.'
+      warnings = []
+      src_loc  = ->(line) { bold_white("#{@filename}:#{line}:") }
+
+      @symboltable.nonterminals.each do |nt|
+        if nt.locate.empty? && !nt.dummy?
+          warnings << "#{src_loc.call(nt.lineno)} Useless nonterminal " \
+          "#{symbol(nt)} does not appear on the right side of any" \
+          ' rule, neither is it the start symbol.'
+        elsif nt.locate.one? && nt.locate[0].rule.target == nt
+          warnings << "#{src_loc.call(nt.lineno)} Useless nonterminal " \
+          "#{symbol(nt)} only appears on the right side of its own " \
+          "definition"
+        end
       end
 
       warnings
