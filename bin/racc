@@ -69,6 +69,7 @@ def main
     puts parser.help
     exit 1
   }
+
   begin
     parser.parse!
   rescue OptionParser::ParseError => err
@@ -76,6 +77,7 @@ def main
     $stderr.puts parser.help
     exit 1
   end
+
   if ARGV.empty?
     $stderr.puts 'no input'
     $stderr.puts
@@ -90,6 +92,15 @@ def main
   input = ARGV[0]
 
   begin
+    if output.nil?
+      output = make_filename(input, '.rb')
+      if File.exist?(output)
+        $stderr.puts "'#{output}' already exists. Please use '-o #{output}' if " \
+          'you are sure that you want to overwrite this file.'
+        exit 1
+      end
+    end
+
     $stderr.puts 'Parsing grammar file...' if verbose
     result = profiler.section('parse') {
       parser = Racc::GrammarFileParser.new
@@ -123,7 +134,7 @@ def main
     params.embed_runtime = embed_runtime
     profiler.section('generation') {
       generator = Racc::ParserFileGenerator.new(states, params)
-      generator.generate_parser_file(output || make_filename(input, '.rb'))
+      generator.generate_parser_file(output)
     }
 
     if make_logfile
