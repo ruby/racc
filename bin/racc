@@ -8,7 +8,10 @@
 # For details of LGPL, see the file "COPYING".
 
 require 'racc/static'
+require 'racc/color'
 require 'optparse'
+
+include Racc::Color
 
 def main
   output = nil
@@ -22,6 +25,8 @@ def main
   check_only = false
   verbose = false
   profiler = RaccProfiler.new(!!ENV['PROFILE'])
+
+  Racc::Color.enabled = $stderr.tty?
 
   parser = OptionParser.new
   parser.banner = "Usage: #{File.basename($0)} [options] <input>"
@@ -55,6 +60,9 @@ def main
   }
   parser.on('-C', '--check-only', 'Checks syntax and quit immediately.') {|fl|
     check_only = fl
+  }
+  parser.on('--[no-]color', 'Force colored output on or off.') { |fl|
+    Racc::Color.enabled = fl
   }
   parser.on('--version', 'Prints version and quits.') {
     core = Racc::Parser.racc_runtime_type == 'ruby' ? '(ruby core)' : '(c core)'
@@ -150,8 +158,9 @@ def main
       log_conflict(states)
     end
 
-    report_useless(states.grammar)
-    report_conflict(states)
+    if result.grammar.warnings.any?
+      $stderr.puts result.grammar.warnings.join("\n\n")
+    end
 
     profiler.report
   rescue Racc::CompileError, Errno::ENOENT, Errno::EPERM => err
