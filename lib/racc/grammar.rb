@@ -8,16 +8,19 @@
 require 'racc/source_text'
 require 'racc/log_file_generator'
 require 'racc/exception'
+require 'racc/color'
 require 'set'
 
 module Racc
   class Grammar
     include Enumerable
+    include Racc::Color
 
-    def initialize
+    def initialize(filename = nil)
       @symboltable = SymbolTable.new
-      @rules   = []  # :: [Rule]
-      @start   = nil
+      @filename = filename
+      @rules = []
+      @start = nil
       @n_expected_srconflicts = nil
       @prec_table = []
       @prec_table_closed = false
@@ -46,8 +49,8 @@ module Racc
       "<Racc::Grammar>"
     end
 
-    def intern(value, dummy = false)
-      @symboltable.intern(value, dummy)
+    def intern(value, dummy = false, lineno = nil)
+      @symboltable.intern(value, dummy, lineno)
     end
 
     def symbols
@@ -83,6 +86,20 @@ module Racc
 
     def parser_class
       state_transition_table.parser_class
+    end
+
+    def warnings
+      # nonterminals which don't appear on any rule's RHS?
+      useless_nts = @symboltable.nonterminals.select do |nt|
+        nt.locate.empty? && !nt.dummy?
+      end
+      warnings = useless_nts.map do |nt|
+        "#{bold_white("#{@filename}:#{nt.lineno}:")} Useless nonterminal " \
+        "#{symbol(nt)} does not appear on the right side of any rule, " \
+        'neither is it the start symbol.'
+      end
+
+      warnings
     end
 
     # Grammar Definition Interface
@@ -625,9 +642,9 @@ module Racc
       @symbols[id]
     end
 
-    def intern(val, dummy = false)
+    def intern(val, dummy = false, lineno = false)
       @cache[val] ||= begin
-        Sym.new(val, dummy).tap { |sym| @symbols.push(sym) }
+        Sym.new(val, dummy, lineno).tap { |sym| @symbols.push(sym) }
       end
     end
 
@@ -678,10 +695,11 @@ module Racc
 
   # Stands terminal and nonterminal symbols.
   class Sym
-    def initialize(value, dummy)
-      @ident = nil
-      @value = value
-      @dummy = dummy
+    def initialize(value, dummy, lineno)
+      @ident  = nil
+      @value  = value
+      @dummy  = dummy
+      @lineno = lineno # of first appearance
 
       @should_be_terminal = false
       @precedence = nil
@@ -758,6 +776,7 @@ module Racc
 
     attr_reader :heads
     attr_reader :locate
+    attr_reader :lineno
 
     attr_accessor :expand
 

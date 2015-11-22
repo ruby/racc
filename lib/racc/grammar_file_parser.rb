@@ -78,8 +78,8 @@ module Racc
                   | seq(:symbols, :symbol) { |list, sym| list << sym } \
                   | seq(:symbols, "|")
 
-    g.symbol      = seq(:SYMBOL) { |sym| @grammar.intern(sym) } \
-                  | seq(:STRING) { |str| @grammar.intern(str) }
+    g.symbol      = seq(:SYMBOL) { |sym| @grammar.intern(sym, false, @scanner.lineno) } \
+                  | seq(:STRING) { |str| @grammar.intern(str, false, @scanner.lineno) }
 
     g.options     = many(:SYMBOL) { |syms| syms.map(&:to_s) }
 
@@ -134,14 +134,14 @@ module Racc
     end
 
     def GrammarFileParser.parse(src, filename = '-', lineno = 1)
-      new().parse(src, filename, lineno)
+      new.parse(src, filename, lineno)
     end
 
     def parse(src, filename = '-', lineno = 1)
       @filename = filename
       @lineno = lineno
       @scanner = GrammarFileScanner.new(src, @filename)
-      @grammar = Grammar.new
+      @grammar = Grammar.new(filename)
       @result = Result.new(@grammar, @filename)
       @embedded_action_seq = 0
 
