@@ -41,9 +41,7 @@ module Racc
     end
   end
 
-
   class StateTransitionTableGenerator
-
     def initialize(states)
       @states = states
       @grammar = states.grammar
