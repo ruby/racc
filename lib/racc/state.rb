@@ -74,7 +74,7 @@ module Racc
 
     def generate_states
       # create start state
-      start = State.new(0, Set[@grammar[0].ptrs[0]])
+      start = State.new(0, Set[@grammar[0].ptrs[0]], [])
       @states << start
       states = {start.core => start}
       worklist = [start]
@@ -98,7 +98,7 @@ module Racc
           # each possible 'core' corresponds to one LALR state
           unless dest = states[core]
             # not registered yet
-            dest = State.new(@states.size, core)
+            dest = State.new(@states.size, core, state.path.dup << sym)
             @states << dest
             worklist << dest
             states[core] = dest
@@ -401,11 +401,14 @@ module Racc
   end
 
   class State
-    def initialize(ident, core)
+    def initialize(ident, core, path)
       @ident = ident # ID number used to provide a canonical ordering
-      @core = core   # LocationPointers to all the possible positions within the
+      @core  = core  # LocationPointers to all the possible positions within the
                      # RHS of a rule where we could be when in this state
-      @gotos = {}    # Sym -> Goto describing state transition if we encounter
+      @path  = path  # sample sequence of terms/nonterms which would lead here
+                     # (for diagnostics)
+
+      @gotos  = {}   # Sym -> Goto describing state transition if we encounter
                      # that Sym next
       @action = {}   # Sym -> Shift/Reduce/Accept/Error describing what we will
                      # do if we encounter that Sym next
@@ -418,6 +421,7 @@ module Racc
 
     attr_reader :ident
     attr_reader :core
+    attr_reader :path
     attr_reader :gotos
     attr_reader :action
     attr_accessor :defact # default action
