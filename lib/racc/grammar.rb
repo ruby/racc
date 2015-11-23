@@ -686,8 +686,7 @@ module Racc
         @serialized = value.inspect
         @string = false
       when String
-        @to_s = value.inspect
-        @serialized = value.dump
+        @to_s = @serialized = value.inspect
         @string = true
       when false
         @to_s = '$end'
