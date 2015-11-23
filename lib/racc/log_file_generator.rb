@@ -118,9 +118,8 @@ module Racc
     end
 
     def outsrconf(f, conf)
-      r = conf.reduce
       f.printf("  %-12s  [reduce using rule %d (%s)]\n",
-               conf.shift.to_s, r.ident, r.target.to_s)
+               conf.symbol.to_s, conf.rrule.ident, conf.rrule.target.to_s)
     end
 
     def outrrconf(f, conf)
