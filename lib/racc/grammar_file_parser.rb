@@ -78,8 +78,8 @@ module Racc
                   | seq(:symbols, :symbol) { |list, sym| list << sym } \
                   | seq(:symbols, "|")
 
-    g.symbol      = seq(:SYMBOL) { |sym| @grammar.intern(sym, false, @scanner.lineno) } \
-                  | seq(:STRING) { |str| @grammar.intern(str, false, @scanner.lineno) }
+    g.symbol      = seq(:SYMBOL) { |sym| @grammar.intern(sym, false) } \
+                  | seq(:STRING) { |str| @grammar.intern(str, false) }
 
     g.options     = many(:SYMBOL) { |syms| syms.map(&:to_s) }
 

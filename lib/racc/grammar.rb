@@ -49,8 +49,8 @@ module Racc
       "<Racc::Grammar>"
     end
 
-    def intern(value, dummy = false, lineno = nil)
-      @symboltable.intern(value, dummy, lineno)
+    def intern(value, dummy = false)
+      @symboltable.intern(value, dummy)
     end
 
     def symbols
@@ -90,27 +90,23 @@ module Racc
 
     def warnings
       warnings = []
-      src_loc  = ->(line) { bold_white("#{@filename}:#{line}:") }
 
       @symboltable.each do |sym|
         next unless sym.useless?
 
         if sym.locate.empty?
           what = sym.terminal? ? 'terminal' : 'nonterminal'
-          warnings << "#{src_loc.call(sym.lineno)} Useless #{what} " \
-            "#{symbol(sym)} does not appear on the right side of any" \
-            ' rule, neither is it the start symbol.'
+          warnings << "Useless #{what} #{symbol(sym)} does not appear on the " \
+            ' right side of any rule, neither is it the start symbol.'
         elsif sym.can_derive.include?(sym)
           if sym.can_derive.one?
-            warnings << "#{src_loc.call(sym.lineno)} Useless nonterminal " \
-              "#{symbol(sym)} only appears on the right side of its own " \
-              'rules.'
+            warnings << "Useless nonterminal #{symbol(sym)} only appears on " \
+              'the right side of its own rules.'
           else
-            warnings << "#{src_loc.call(sym.lineno)} Useless nonterminal " \
-              "#{symbol(sym)} cannot be part of a valid parse tree, since " \
-              'there is no sequence of reductions from it to the start ' \
-              'symbol. It can only reduce to: ' \
-              "#{sym.can_derive.map { |s| symbol(s) }.join(', ')}"
+            warnings << "Useless nonterminal #{symbol(sym)} cannot be part " \
+              'of a valid parse tree, since there is no sequence of ' \
+              ' reductions from it to the start symbol. It can only reduce ' \
+              "to: #{sym.can_derive.map { |s| symbol(s) }.join(', ')}"
           end
         end
       end
@@ -625,9 +621,9 @@ module Racc
       @symbols[id]
     end
 
-    def intern(val, dummy = false, lineno = false)
+    def intern(val, dummy = false)
       @cache[val] ||= begin
-        Sym.new(val, dummy, lineno).tap { |sym| @symbols.push(sym) }
+        Sym.new(val, dummy).tap { |sym| @symbols.push(sym) }
       end
     end
 
@@ -677,11 +673,10 @@ module Racc
 
   # Stands terminal and nonterminal symbols.
   class Sym
-    def initialize(value, dummy, lineno)
+    def initialize(value, dummy)
       @ident  = nil
       @value  = value
       @dummy  = dummy
-      @lineno = lineno # of first appearance
 
       @should_be_terminal = false
       @precedence = nil
@@ -756,7 +751,6 @@ module Racc
 
     attr_reader :heads
     attr_reader :locate
-    attr_reader :lineno
 
     def to_s
       @to_s.dup
