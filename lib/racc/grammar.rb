@@ -14,7 +14,6 @@ require 'set'
 module Racc
   class Grammar
     include Enumerable
-    include Racc::Color
 
     def initialize(filename = nil)
       @symboltable = SymbolTable.new
@@ -96,17 +95,17 @@ module Racc
 
         if sym.locate.empty?
           what = sym.terminal? ? 'terminal' : 'nonterminal'
-          warnings << "Useless #{what} #{symbol(sym)} does not appear on the " \
+          warnings << "Useless #{what} #{sym} does not appear on the " \
             ' right side of any rule, neither is it the start symbol.'
         elsif sym.can_derive.include?(sym)
           if sym.can_derive.one?
-            warnings << "Useless nonterminal #{symbol(sym)} only appears on " \
+            warnings << "Useless nonterminal #{sym} only appears on " \
               'the right side of its own rules.'
           else
-            warnings << "Useless nonterminal #{symbol(sym)} cannot be part " \
+            warnings << "Useless nonterminal #{sym} cannot be part " \
               'of a valid parse tree, since there is no sequence of ' \
               ' reductions from it to the start symbol. It can only reduce ' \
-              "to: #{sym.can_derive.map { |s| symbol(s) }.join(', ')}"
+              "to: #{sym.can_derive.map(&:to_s).join(', ')}"
           end
         end
       end
@@ -753,7 +752,16 @@ module Racc
     attr_reader :locate
 
     def to_s
-      @to_s.dup
+      return @to_s.dup unless Color.enabled?
+      if terminal?
+        if string_symbol?
+          Color.yellow(@to_s)
+        else
+          Color.light_green(@to_s)
+        end
+      else
+        Color.light_purple(@to_s)
+      end
     end
 
     alias inspect to_s

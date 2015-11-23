@@ -1,6 +1,7 @@
 module Racc
   # Support module for printing colored text to an ANSI terminal
   module Color
+    extend self
     @color_enabled = false
 
     def self.enabled=(enabled)
@@ -26,23 +27,16 @@ module Racc
       "\e[1;37m#{text}\e[0m"
     end
 
-    # nonterminals are light purple
-    def nonterminal(name)
-      "\e[1;35m#{name}\e[0m"
+    def light_purple(text)
+      "\e[1;35m#{text}\e[0m"
     end
 
-    # terminals are light green
-    def terminal(name)
-      "\e[1;32m#{name}\e[0m"
+    def light_green(text)
+      "\e[1;32m#{text}\e[0m"
     end
 
-    def symbol(sym)
-      return sym.to_s unless Color.enabled?
-      if sym.terminal?
-        terminal(sym.to_s)
-      else
-        nonterminal(sym.to_s)
-      end
+    def yellow(text)
+      "\e[1;33m#{text}\e[0m"
     end
   end
 end
