@@ -391,18 +391,20 @@ module Racc
     def warnings
       warnings = []
 
-      sr_conflicts.each do |sr|
-        msg = bright("Shift/reduce conflict on #{sr.symbol}, after the following input:\n")
-        msg << sr.state.path.reject(&:hidden).map(&:to_s).join(' ')
-        if sr.srules.one?
-          msg << "\nThe following rule directs me to shift:\n"
-        else
-          msg << "\nThe following rules direct me to shift:\n"
+      if should_report_srconflict?
+        sr_conflicts.each do |sr|
+          msg = bright("Shift/reduce conflict on #{sr.symbol}, after the following input:\n")
+          msg << sr.state.path.reject(&:hidden).map(&:to_s).join(' ')
+          if sr.srules.one?
+            msg << "\nThe following rule directs me to shift:\n"
+          else
+            msg << "\nThe following rules direct me to shift:\n"
+          end
+          msg << sr.srules.map(&:to_s).join("\n")
+          msg << "\nThe following rule directs me to reduce:\n"
+          msg << sr.rrule.ptrs.last.to_s
+          warnings << msg
         end
-        msg << sr.srules.map(&:to_s).join("\n")
-        msg << "\nThe following rule directs me to reduce:\n"
-        msg << sr.rrule.ptrs.last.to_s
-        warnings << msg
       end
 
       rr_conflicts.each do |rr|
