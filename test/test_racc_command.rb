@@ -305,5 +305,13 @@ module Racc
       assert_debugfile 'mediacloth.y', [0, 0, 0, 0]
       assert_output 'mediacloth.y'
     end
+
+    # .y file from twowaysql gem
+
+    def test_twowaysql
+      assert_compile 'twowaysql.y'
+      assert_debugfile 'twowaysql.y', [4, 0, 0, 0]
+      assert_output 'twowaysql.y'
+    end
   end
 end

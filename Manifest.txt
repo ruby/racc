@@ -103,6 +103,7 @@ test/assets/ruby21.y
 test/assets/ruby22.y
 test/assets/scan.y
 test/assets/syntax.y
+test/assets/twowaysql.y
 test/assets/unterm.y
 test/assets/useless.y
 test/assets/yyerr.y
