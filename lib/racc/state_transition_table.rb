@@ -83,8 +83,8 @@ module Racc
 
     # The action and goto tables use a clever trick for compression
     # Each state should have its own action table (one per lookahead token)
-    # Each state from which we can reduce should also have its own goto table
-    # (Again, one entry per lookahead token)
+    # Each nonterminal which we can reduce to also has its own goto table
+    # (with one entry per state which we can perform the reduction from)
     # But those tables are very sparse (most entries are nil)
     #
     # So, to save space, we OVERLAY all the action tables into one big array
