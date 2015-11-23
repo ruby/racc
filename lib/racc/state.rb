@@ -18,8 +18,6 @@ module Racc
       @symboltable = grammar.symboltable
 
       @states = []
-      @statecache = {}
-
       @nfa_computed = false
       @dfa_computed = false
 
@@ -67,56 +65,55 @@ module Racc
 
     def compute_nfa
       return self if @nfa_computed
-
-      # add state 0
-      core_to_state(Set[@grammar[0].ptrs[0]])
-      # generate LALR states
-      @states.each { |state| generate_states(state) }
-
+      generate_states
       @nfa_computed = true
       self
     end
 
     private
 
-    def generate_states(state)
-      # build table of what the 'core' of the following state will be, if the
-      # next token appearing in the input was 'sym'
-      table = Hash.new { |h,k| h[k] = Set.new }
-      state.closure.each do |ptr|
-        if sym = ptr.symbol
-          table[sym].add(ptr.next)
+    def generate_states
+      # create start state
+      start = State.new(0, Set[@grammar[0].ptrs[0]])
+      @states << start
+      states = {start.core => start}
+      worklist = [start]
+
+      until worklist.empty?
+        state = worklist.shift
+
+        # build table of what the 'core' of the following state will be, if the
+        # next token appearing in the input was 'sym'
+        #
+        # a 'core' is a set of LocationPointers, indicating all the possible
+        # positions within the RHS of a rule where we could be right now
+        # convert core to a State object; if state does not exist, create it
+
+        table = Hash.new { |h,k| h[k] = Set.new }
+        state.closure.each do |ptr|
+          table[ptr.symbol].add(ptr.next) unless ptr.reduce?
+        end
+
+        table.each do |sym, core|
+          # each possible 'core' corresponds to one LALR state
+          unless dest = states[core]
+            # not registered yet
+            dest = State.new(@states.size, core)
+            @states << dest
+            worklist << dest
+            states[core] = dest
+          end
+
+          goto = Goto.new(sym.nonterminal? && @gotos.size, sym, state, dest)
+          @gotos << goto if sym.nonterminal?
+          state.gotos[sym] = goto
+
+          if state.ident == dest.ident and state.closure.size == 1
+            rule = state.ptrs[0].rule
+            raise CompileError, "Infinite recursion in rule: #{rule}"
+          end
         end
       end
-
-      table.each do |sym, core|
-        dest = core_to_state(core)
-        goto = Goto.new(sym.nonterminal? && @gotos.size, sym, state, dest)
-        @gotos << goto if sym.nonterminal?
-        state.gotos[sym] = goto
-
-        # check infinite recursion
-        if state.ident == dest.ident and state.closure.size == 1
-          raise CompileError,
-              sprintf("Infinite recursion: state %d, with rule %d",
-                      state.ident, state.ptrs[0].rule.ident)
-        end
-      end
-    end
-
-    def core_to_state(core)
-      # a 'core' is a set of LocationPointers, indicating all the possible
-      # positions within the RHS of a rule where we could be right now
-      # convert core to a State object; if state does not exist, create it
-
-      unless dest = @statecache[core]
-        # not registered yet
-        dest = State.new(@states.size, core)
-        @states << dest
-        @statecache[core] = dest
-      end
-
-      dest
     end
 
     # DFA (Deterministic Finite Automaton) Generation
