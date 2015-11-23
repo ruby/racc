@@ -462,7 +462,7 @@ module Racc
     end
 
     def to_s
-      "#{@target} : #{@symbols.map(&:to_s).join(' ')}"
+      "#{@target} : #{@symbols.reject(&:hidden).map(&:to_s).join(' ')}"
     end
 
     def each(&block)
@@ -570,9 +570,9 @@ module Racc
 
     def to_s
       result = "#{@rule.target} : " \
-        "#{@rule.symbols[0...@index].map(&:to_s).join(' ')} ."
+        "#{@rule.symbols[0...@index].reject(&:hidden).map(&:to_s).join(' ')} ."
       unless reduce?
-        result << " #{rule.symbols[@index..-1].map(&:to_s).join(' ')}"
+        result << " #{rule.symbols[@index..-1].reject(&:hidden).map(&:to_s).join(' ')}"
       end
       result
     end
@@ -705,6 +705,7 @@ module Racc
       @locate  = [] # all rules which have this Sym on their RHS
       @null    = false
       @useless = false
+      @hidden  = false # don't show in diagnostic messages
     end
 
     attr_reader :value
@@ -714,6 +715,7 @@ module Racc
     attr_accessor :display_name
     attr_accessor :precedence
     attr_accessor :assoc
+    attr_accessor :hidden
 
     # some tokens are written one way in the grammar, but the actual value
     # expected from the lexer is different

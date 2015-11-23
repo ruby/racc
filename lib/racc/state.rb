@@ -392,7 +392,7 @@ module Racc
 
       sr_conflicts.each do |sr|
         msg = "Shift/reduce conflict on #{sr.symbol}, after the following input:\n"
-        msg << sr.state.path.map(&:to_s).join(' ')
+        msg << sr.state.path.reject(&:hidden).map(&:to_s).join(' ')
         if sr.srules.one?
           msg << "\nThe following rule directs me to shift:\n"
         else
@@ -406,7 +406,7 @@ module Racc
 
       rr_conflicts.each do |rr|
         msg = "Reduce/reduce conflict on #{rr.symbol}, after the following input:\n"
-        msg << rr.state.path.map(&:to_s).join(' ')
+        msg << rr.state.path.reject(&:hidden).map(&:to_s).join(' ')
         msg << "\nIt is possible to reduce by " \
                "#{rr.rules.size == 2 ? 'either' : 'any'} of these rules:\n"
         msg << rr.rules.map(&:to_s).join("\n")
