@@ -682,14 +682,14 @@ module Racc
 
       case value
       when Symbol
-        @to_s = value.to_s
+        @display_name = value.to_s
         @serialized = value.inspect
         @string = false
       when String
-        @to_s = @serialized = value.inspect
+        @display_name = @serialized = value.inspect
         @string = true
       when false
-        @to_s = '$end'
+        @display_name = '$end'
         @serialized = 'false'
         @string = false
       else
@@ -706,6 +706,8 @@ module Racc
     alias hash ident
 
     attr_reader :value
+
+    attr_accessor :display_name
 
     def dummy?
       @dummy
@@ -747,15 +749,15 @@ module Racc
     attr_reader :locate
 
     def to_s
-      return @to_s.dup unless Color.enabled?
+      return @display_name.dup unless Color.enabled?
       if terminal?
         if string_symbol?
-          Color.yellow(@to_s)
+          Color.yellow(@display_name)
         else
-          Color.light_green(@to_s)
+          Color.light_green(@display_name)
         end
       else
-        Color.light_purple(@to_s)
+        Color.light_purple(@display_name)
       end
     end
 
