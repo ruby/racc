@@ -275,10 +275,6 @@ module Racc
       end
     end
 
-    #
-    # resolve
-    #
-
     def resolve(state)
       if state.conflict?
         resolve_rr(state, state.ritems)
