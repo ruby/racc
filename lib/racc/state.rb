@@ -210,7 +210,7 @@ module Racc
           prev_state = (path.last && path.last.to_state) || goto.from_state
           if prev_state.conflict?
             ritem = prev_state.ritems.find { |item| item.rule == ptr.rule }
-            ritem.la |= following_terminals[goto.ident]
+            ritem.lookahead |= following_terminals[goto.ident]
           end
         end
       end
@@ -494,19 +494,19 @@ module Racc
     end
   end
 
-  # LALR item. A rule and its lookahead tokens.
+  # LALR item: a rule and its lookahead tokens
   class Item
     def initialize(rule)
       @rule = rule
-      @la   = 0 # bitmap
+      @lookahead = 0 # bitmap of terminal ID numbers (Sym#ident)
     end
 
     attr_reader :rule
-    attr_accessor :la
+    attr_accessor :lookahead
 
     def each_lookahead_token(tbl)
-      0.upto((@la.size * 8) - 1) do |idx|
-        yield tbl[idx] if @la[idx] == 1
+      0.upto((@lookahead.size * 8) - 1) do |idx|
+        yield tbl[idx] if @lookahead[idx] == 1
       end
     end
   end
