@@ -123,9 +123,9 @@ module Racc
     end
 
     def outrrconf(f, conf)
-      r = conf.low_prec
+      r = conf.rules.first
       f.printf("  %-12s  [reduce using rule %d (%s)]\n",
-               conf.token.to_s, r.ident, r.target.to_s)
+               conf.symbol.to_s, r.ident, r.target.to_s)
     end
   end
 end
