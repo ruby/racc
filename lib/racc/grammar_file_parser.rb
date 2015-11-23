@@ -204,13 +204,13 @@ module Racc
       else
         act = UserAction.empty
       end
-      list.map! {|s| s.kind_of?(UserAction) ? embedded_action(s) : s }
+      list.map! { |s| s.kind_of?(UserAction) ? embedded_action(s, target) : s }
       @grammar.add(Rule.new(target, list, act, prec))
     end
 
-    def embedded_action(act)
+    def embedded_action(act, target)
       sym = @grammar.intern("@#{@embedded_action_seq += 1}".to_sym, true)
-      @grammar.add(Rule.new(sym, [], act))
+      @grammar.add Rule.new(sym, [], act)
       sym
     end
 

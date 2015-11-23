@@ -382,6 +382,23 @@ module Racc
         end
       end
     end
+
+    public
+
+    def warnings
+      sr_conflicts.map do |sr|
+        msg = "Shift/reduce conflict on #{sr.symbol}, after the following input:\n"
+        msg << sr.state.path.map(&:to_s).join(' ')
+        if sr.srules.one?
+          msg << "\nThe following rule directs me to shift:\n"
+        else
+          msg << "\nThe following rules direct me to shift:\n"
+        end
+        msg << sr.srules.map(&:to_s).join("\n")
+        msg << "\nThe following rule directs me to reduce:\n"
+        msg << sr.rrule.ptrs.last.to_s
+      end
+    end
   end
 
   class DirectedGraph < Array
