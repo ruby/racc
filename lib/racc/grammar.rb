@@ -92,15 +92,26 @@ module Racc
       warnings = []
       src_loc  = ->(line) { bold_white("#{@filename}:#{line}:") }
 
-      @symboltable.nonterminals.each do |nt|
-        if nt.locate.empty? && !nt.dummy?
-          warnings << "#{src_loc.call(nt.lineno)} Useless nonterminal " \
-          "#{symbol(nt)} does not appear on the right side of any" \
-          ' rule, neither is it the start symbol.'
-        elsif nt.locate.one? && nt.locate[0].rule.target == nt
-          warnings << "#{src_loc.call(nt.lineno)} Useless nonterminal " \
-          "#{symbol(nt)} only appears on the right side of its own " \
-          "definition"
+      @symboltable.each do |sym|
+        next unless sym.useless?
+
+        if sym.locate.empty?
+          what = sym.terminal? ? 'terminal' : 'nonterminal'
+          warnings << "#{src_loc.call(sym.lineno)} Useless #{what} " \
+            "#{symbol(sym)} does not appear on the right side of any" \
+            ' rule, neither is it the start symbol.'
+        elsif sym.can_derive.include?(sym)
+          if sym.can_derive.one?
+            warnings << "#{src_loc.call(sym.lineno)} Useless nonterminal " \
+              "#{symbol(sym)} only appears on the right side of its own " \
+              'rules.'
+          else
+            warnings << "#{src_loc.call(sym.lineno)} Useless nonterminal " \
+              "#{symbol(sym)} cannot be part of a valid parse tree, since " \
+              'there is no sequence of reductions from it to the start ' \
+              'symbol. It can only reduce to: ' \
+              "#{sym.can_derive.map { |s| symbol(s) }.join(', ')}"
+          end
         end
       end
 
@@ -395,6 +406,7 @@ module Racc
     def compute_useless
       @symboltable.each do |sym|
         sym.useless = !sym.dummy? &&
+                      sym != @symboltable.error &&
                       sym != @start &&
                       !sym.can_derive.include?(@start)
       end
