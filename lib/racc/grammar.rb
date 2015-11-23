@@ -345,7 +345,6 @@ module Racc
       @rules.freeze
 
       fix_ident
-      compute_expand
       compute_nullable
       compute_useless
     end
@@ -364,27 +363,6 @@ module Racc
       @rules.each_with_index(&:ident=)
       @rules.flat_map(&:ptrs).each_with_index(&:ident=)
       @symboltable.fix_ident
-    end
-
-    # Sym#expand (non-terminals only)
-    # After we parse an instance of this non-terminal,
-    # what are all the locations in a Rule where we could possibly be?
-    # (Which tells us what all the Syms which could validly follow are,
-    # among other things...)
-    def compute_expand
-      @symboltable.nonterminals.each do |t|
-        worklist = t.heads.dup
-        t.expand = Set.new
-
-        until worklist.empty?
-          ptr = worklist.shift
-          if t.expand.add?(ptr)
-            if (tok = ptr.symbol) && tok.nonterminal?
-              worklist.concat(tok.heads)
-            end
-          end
-        end
-      end
     end
 
     # Sym#nullable?
@@ -732,7 +710,6 @@ module Racc
       @heads   = [] # RHS of rules which can reduce to this Sym
       @locate  = [] # all rules which have this Sym on their RHS
       @null    = nil
-      @expand  = nil
       @useless = nil
     end
 
@@ -781,8 +758,6 @@ module Racc
     attr_reader :locate
     attr_reader :lineno
 
-    attr_accessor :expand
-
     def to_s
       @to_s.dup
     end
@@ -811,6 +786,28 @@ module Racc
 
     def useless=(f)
       @useless = f
+    end
+
+    # After we parse an instance of this non-terminal,
+    # what are all the locations in a Rule where we could possibly be?
+    # (Which tells us what all the Syms which could validly follow are,
+    # among other things...)
+    def expand
+      @expand ||= begin
+        worklist = @heads.dup
+        result   = Set.new
+
+        until worklist.empty?
+          ptr = worklist.shift
+          if result.add?(ptr)
+            if (tok = ptr.symbol) && tok.nonterminal?
+              worklist.concat(tok.heads)
+            end
+          end
+        end
+
+        result
+      end
     end
   end
 end
