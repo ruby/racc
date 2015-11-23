@@ -292,17 +292,19 @@ module Racc
     end
 
     def resolve_rr(state, ritems)
+      rrules = Hash.new { |h,k| h[k] = [] }
+
       ritems.each do |item|
-        item.each_lookahead_token(@symboltable) do |tok|
-          if act = state.action[tok]
-            # Cannot resolve R/R conflict (on t).
-            # Reduce with upper rule as default.
-            state.rr_conflict!(act.rule, item.rule, tok)
-          else
-            # No conflict.
-            state.action[tok] = Reduce.new(item.rule)
-          end
+        item.each_lookahead_token(@symboltable) do |sym|
+          rrules[sym] << item.rule
         end
+      end
+
+      rrules.each do |sym, rules|
+        # If there is a conflict, reduce with the rule which appeared
+        # first in the source
+        state.action[sym] = Reduce.new(rules[0])
+        state.rr_conflict!(sym, rules) if rules.size > 1
       end
     end
 
@@ -386,7 +388,9 @@ module Racc
     public
 
     def warnings
-      sr_conflicts.map do |sr|
+      warnings = []
+
+      sr_conflicts.each do |sr|
         msg = "Shift/reduce conflict on #{sr.symbol}, after the following input:\n"
         msg << sr.state.path.map(&:to_s).join(' ')
         if sr.srules.one?
@@ -397,7 +401,19 @@ module Racc
         msg << sr.srules.map(&:to_s).join("\n")
         msg << "\nThe following rule directs me to reduce:\n"
         msg << sr.rrule.ptrs.last.to_s
+        warnings << msg
       end
+
+      rr_conflicts.each do |rr|
+        msg = "Reduce/reduce conflict on #{rr.symbol}, after the following input:\n"
+        msg << rr.state.path.map(&:to_s).join(' ')
+        msg << "\nIt is possible to reduce by " \
+               "#{rr.rules.size == 2 ? 'either' : 'any'} of these rules:\n"
+        msg << rr.rules.map(&:to_s).join("\n")
+        warnings << msg
+      end
+
+      warnings
     end
   end
 
@@ -504,8 +520,8 @@ module Racc
       @ritems ||= conflict? ? rrules.map { |rule| Item.new(rule) } : []
     end
 
-    def rr_conflict!(high, low, ctok)
-      @rr_conflicts[ctok] = RRConflict.new(@ident, high, low, ctok)
+    def rr_conflict!(sym, rules)
+      @rr_conflicts[sym] = RRConflict.new(self, sym, rules)
     end
 
     def sr_conflict!(token, srule, rrule)
@@ -574,10 +590,10 @@ module Racc
     end
   end
 
-  class RRConflict < Struct.new(:stateid, :high_prec, :low_prec, :token)
+  class RRConflict < Struct.new(:state, :symbol, :rules)
     def to_s
-      sprintf('state %d: R/R conflict with rule %d and %d on %s',
-              stateid, high_prec.ident, low_prec.ident, token.to_s)
+      "state #{state.ident}: R/R conflict on #{symbol} between reduce rules " \
+      "#{rrules}"
     end
   end
 end
