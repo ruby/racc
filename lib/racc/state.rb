@@ -137,7 +137,6 @@ module Racc
 
     def compute_lookahead
       # lookahead algorithm ver.3 -- from bison 1.26
-      gotos = @gotos
 
       # build a bitmap which shows which terminals could possibly appear next
       # after each reduction in the grammar
@@ -147,9 +146,9 @@ module Racc
       # (if both reductions A and B are possible, but we see that the next token
       # can only validly appear after reduction A and not B, then we will choose
       # to perform reduction A)
-      following_terminals = create_bitmap(gotos.size)
-      look_past = DirectedGraph.new(gotos.size)
-      gotos.each do |goto|
+      following_terminals = create_bitmap(@gotos.size)
+      look_past = DirectedGraph.new(@gotos.size)
+      @gotos.each do |goto|
         goto.to_state.gotos.each do |tok, next_goto|
           if tok.terminal?
             # set bit for terminal which could be shifted after this reduction
@@ -178,10 +177,10 @@ module Racc
       # after A, *and C is nullable*?
       # that means T1 can also appear after B, not just after C
 
-      includes = DirectedGraph.new(gotos.size)
+      includes = DirectedGraph.new(@gotos.size)
       # look at the state transition triggered by each reduction in the grammar
       # (at each place in the state graph where that reduction can occur)
-      gotos.each do |goto|
+      @gotos.each do |goto|
         # look at RHS of each rule which could have lead to this reduction
         goto.symbol.heads.each do |ptr|
           # what sequence of state transitions would we have made to reach
@@ -204,7 +203,7 @@ module Racc
       # S/R or R/R conflict, and copy the lookahead set for each reduce to the
       # preceding state which has the conflict
 
-      gotos.each do |goto|
+      @gotos.each do |goto|
         goto.symbol.heads.each do |ptr|
           path = path(goto.from_state, ptr.rule)
           prev_state = (path.last && path.last.to_state) || goto.from_state
