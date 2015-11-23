@@ -389,26 +389,14 @@ module Racc
     end
 
     # Sym#useless?
-    # A 'useless' Sym is a nonterminal which can never be part of a valid parse
-    # tree, because there is no sequence of rules by which that nonterminal
+    # A 'useless' Sym is one which can never be part of a valid parse
+    # tree, because there is no sequence of rules by which it
     # could eventually reduce down to the 'start' node
     def compute_useless
-      @symboltable.terminals.each { |sym| sym.useless = false }
-      @symboltable.nonterminals.each { |sym| sym.useless = true }
-
-      @symboltable.dummy.useless = false
-      @symboltable.anchor.useless = false
-      @start.useless = false
-      worklist = @start.heads.dup # all RHS of rules which reduce to 'start' NT
-
-      until worklist.empty?
-        rule = worklist.shift.rule
-        rule.symbols.each do |sym|
-          if sym.useless?
-            sym.useless = false
-            worklist.concat(sym.heads)
-          end
-        end
+      @symboltable.each do |sym|
+        sym.useless = !sym.dummy? &&
+                      sym != @start &&
+                      !sym.can_derive.include?(@start)
       end
     end
   end
@@ -709,8 +697,8 @@ module Racc
 
       @heads   = [] # RHS of rules which can reduce to this Sym
       @locate  = [] # all rules which have this Sym on their RHS
-      @null    = nil
-      @useless = nil
+      @null    = false
+      @useless = false
     end
 
     attr_accessor :ident
@@ -786,6 +774,23 @@ module Racc
 
     def useless=(f)
       @useless = f
+    end
+
+    # What NTs can this Sym be reduced down to (perhaps indirectly)?
+    def can_derive
+      @can_derive ||= begin
+        worklist = @locate.map { |ptr| ptr.rule.target }
+        result   = Set.new
+
+        until worklist.empty?
+          sym = worklist.shift
+          if result.add?(sym)
+            worklist.concat(sym.locate.map { |ptr| ptr.rule.target })
+          end
+        end
+
+        result
+      end
     end
 
     # After we parse an instance of this non-terminal,
