@@ -408,7 +408,8 @@ module Racc
         sym.useless = !sym.dummy? &&
                       sym != @symboltable.error &&
                       sym != @start &&
-                      !sym.can_derive.include?(@start)
+                      !sym.can_derive.include?(@start) &&
+                      @rules.none? { |r| r.explicit_precedence == sym }
       end
     end
   end
@@ -460,6 +461,10 @@ module Racc
 
     def precedence
       @precedence || @symbols.select(&:terminal?).last
+    end
+
+    def explicit_precedence
+      @precedence
     end
 
     def inspect
