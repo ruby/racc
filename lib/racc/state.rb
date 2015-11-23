@@ -331,7 +331,7 @@ module Racc
           when :CantResolve
             # shift as default
             state.action[stok] = Shift.new(goto.to_state)
-            state.sr_conflict!(stok, act.rule)
+            state.sr_conflict!(stok, state.srules[stok], act.rule)
           end
         end
       end
@@ -450,7 +450,18 @@ module Racc
     end
 
     def stokens
-      @stokens ||= closure.map(&:symbol).compact.select(&:terminal?).uniq.sort_by(&:ident)
+      @stokens ||= closure.reject(&:reduce?).map(&:symbol).select(&:terminal?)
+                     .uniq.sort_by(&:ident)
+    end
+
+    # {Sym -> LocationPointers within rules which direct us to shift that Sym}
+    def srules
+      @srules ||= begin
+        closure.each_with_object(Hash.new { |h,k| h[k] = []}) do |ptr, table|
+          next if ptr.reduce? || ptr.symbol.nonterminal?
+          table[ptr.symbol] << ptr
+        end
+      end
     end
 
     def rrules
@@ -476,8 +487,8 @@ module Racc
       @rr_conflicts[ctok] = RRConflict.new(@ident, high, low, ctok)
     end
 
-    def sr_conflict!(shift, reduce)
-      @sr_conflicts[shift] = SRConflict.new(@ident, shift, reduce)
+    def sr_conflict!(token, srule, rrule)
+      @sr_conflicts[token] = SRConflict.new(self, token, srule, rrule)
     end
   end
 
@@ -535,10 +546,10 @@ module Racc
     end
   end
 
-  class SRConflict < Struct.new(:stateid, :shift, :reduce)
+  class SRConflict < Struct.new(:state, :symbol, :srules, :rrule)
     def to_s
-      sprintf('state %d: S/R conflict rule %d reduce and shift %s',
-              @stateid, reduce.ruleid, @shift.to_s)
+      "state #{state.ident}: S/R conflict on #{symbol} between shift rules " \
+      "#{srules} and reduce rule #{rrule}"
     end
   end
 
