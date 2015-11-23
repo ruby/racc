@@ -799,10 +799,8 @@ module Racc
       end
     end
 
-    # After we parse an instance of this non-terminal,
-    # what are all the locations in a Rule where we could possibly be?
-    # (Which tells us what all the Syms which could validly follow are,
-    # among other things...)
+    # If an instance of this NT comes next, then what rules could we be
+    # starting?
     def expand
       @expand ||= begin
         worklist = @heads.dup
