@@ -96,6 +96,7 @@ test/assets/scan.y
 test/assets/src.intp
 test/assets/start.y
 test/assets/syntax.y
+test/assets/twowaysql.y
 test/assets/unterm.y
 test/assets/useless.y
 test/assets/yyerr.y
