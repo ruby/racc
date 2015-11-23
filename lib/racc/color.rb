@@ -12,6 +12,13 @@ module Racc
       @color_enabled
     end
 
+    def self.without_color
+      saved = @color_enabled
+      @color_enabled = false
+      yield
+      @color_enabled = saved
+    end
+
     def red(text)
       return text unless Color.enabled?
       "\e[31m#{text}\e[0m"

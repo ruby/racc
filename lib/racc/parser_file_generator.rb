@@ -90,20 +90,22 @@ module Racc
     private
 
     def parser_file
-      shebang @params.interpreter if @params.make_executable?
-      notice
-      line
-      if @params.embed_runtime?
-        embed_library runtime_source()
-      else
-        require 'racc/parser.rb'
+      Color.without_color do
+        shebang(@params.interpreter) if @params.make_executable?
+        notice
+        line
+        if @params.embed_runtime?
+          embed_library(runtime_source)
+        else
+          require 'racc/parser.rb'
+        end
+        header
+        parser_class(@params.classname, @params.superclass) do
+          inner
+          state_transition_table
+        end
+        footer
       end
-      header
-      parser_class(@params.classname, @params.superclass) {
-        inner
-        state_transition_table
-      }
-      footer
     end
 
     c = ::RbConfig::CONFIG
