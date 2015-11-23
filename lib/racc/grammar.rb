@@ -110,7 +110,7 @@ module Racc
         end
       end
 
-      warnings
+      warnings.concat(@states.warnings)
     end
 
     # Grammar Definition Interface
@@ -462,7 +462,7 @@ module Racc
     end
 
     def to_s
-      "#<rule#{@ident}>"
+      "#{@target} : #{@symbols.map(&:to_s).join(' ')}"
     end
 
     def each(&block)
@@ -569,7 +569,12 @@ module Racc
     end
 
     def to_s
-      sprintf('(%d,%d %s)', @rule.ident, @index, (reduce? ? '#' : symbol.to_s))
+      result = "#{@rule.target} : " \
+        "#{@rule.symbols[0...@index].map(&:to_s).join(' ')} ."
+      unless reduce?
+        result << " #{rule.symbols[@index..-1].map(&:to_s).join(' ')}"
+      end
+      result
     end
 
     alias inspect to_s
@@ -759,7 +764,9 @@ module Racc
       end
     end
 
-    alias inspect to_s
+    def inspect
+      "<Sym #{value ? value.inspect : '$end'}>"
+    end
 
     def |(x)
       rule() | x.rule
