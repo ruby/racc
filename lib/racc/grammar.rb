@@ -702,12 +702,21 @@ module Racc
       @useless = false
     end
 
+    attr_reader :value
     attr_accessor :ident
     alias hash ident
 
-    attr_reader :value
-
     attr_accessor :display_name
+    attr_accessor :precedence
+    attr_accessor :assoc
+
+    # some tokens are written one way in the grammar, but the actual value
+    # expected from the lexer is different
+    # you can set this up using a 'convert' block
+    attr_accessor :serialized
+
+    attr_reader :heads
+    attr_reader :locate
 
     def dummy?
       @dummy
@@ -736,17 +745,6 @@ module Racc
     def string_symbol?
       @string
     end
-
-    # some tokens are written one way in the grammar, but the actual value
-    # expected from the lexer is different
-    # you can set this up using a 'convert' block
-    attr_accessor :serialized
-
-    attr_accessor :precedence
-    attr_accessor :assoc
-
-    attr_reader :heads
-    attr_reader :locate
 
     def to_s
       return @display_name.dup unless Color.enabled?
