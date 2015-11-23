@@ -19,6 +19,12 @@ module Racc
       @color_enabled = saved
     end
 
+    def bright(text)
+      return text unless Color.enabled?
+      text = text.gsub(/\e\[.*?m[^\e]*\e\[0m/, "\e[0m\\0\e[1m")
+      "\e[1m#{text}\e[0m"
+    end
+
     def red(text)
       return text unless Color.enabled?
       "\e[31m#{text}\e[0m"
