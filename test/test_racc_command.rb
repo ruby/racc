@@ -3,137 +3,140 @@ require File.expand_path(File.join(File.dirname(__FILE__), 'helper'))
 module Racc
   class TestRaccCommand < TestCase
     def test_syntax_y
-      assert_compile 'syntax.y', '-v'
-      assert_debugfile 'syntax.y', [0,0,0,0,0]
+      err = assert_compile 'syntax.y', '-v'
+      assert_no_warnings err
     end
 
     def test_percent_y
-      assert_compile 'percent.y'
-      assert_debugfile 'percent.y', []
+      err = assert_compile 'percent.y'
+      assert_no_warnings err
       assert_exec 'percent.y'
     end
 
     def test_scan_y
-      assert_compile 'scan.y'
-      assert_debugfile 'scan.y', []
+      err = assert_compile 'scan.y'
+      assert_no_warnings err
       assert_exec 'scan.y'
     end
 
     def test_newsyn_y
-      assert_compile 'newsyn.y'
-      assert_debugfile 'newsyn.y', []
+      err = assert_compile 'newsyn.y'
+      assert_warnings err, useless_terms: 1
     end
 
     def test_normal_y
-      assert_compile 'normal.y'
-      assert_debugfile 'normal.y', []
+      err = assert_compile 'normal.y'
+      assert_no_warnings err
 
-      assert_compile 'normal.y', '-vt'
-      assert_debugfile 'normal.y', []
+      err = assert_compile 'normal.y', '-vt'
+      assert_no_warnings err
     end
 
     def test_chk_y
-      assert_compile 'chk.y', '-vt'
-      assert_debugfile 'chk.y', []
+      err = assert_compile 'chk.y', '-vt'
+      assert_no_warnings err
       assert_exec 'chk.y'
     end
 
     def test_echk_y
-      assert_compile 'echk.y', '-E'
-      assert_debugfile 'echk.y', []
+      err = assert_compile 'echk.y', '-E'
+      assert_no_warnings err
       assert_exec 'echk.y'
     end
 
     def test_err_y
-      assert_compile 'err.y'
-      assert_debugfile 'err.y', []
+      err = assert_compile 'err.y'
+      assert_no_warnings err
       assert_exec 'err.y'
     end
 
     def test_mailp_y
-      assert_compile 'mailp.y'
-      assert_debugfile 'mailp.y', []
+      err = assert_compile 'mailp.y'
+      assert_no_warnings err
     end
 
     def test_conf_y
-      assert_compile 'conf.y', '-v'
-      assert_debugfile 'conf.y', [4,1,1,2]
+      err = assert_compile 'conf.y', '-v'
+      # conf.y also has 2 useless rules, when we start checking that again
+      assert_warnings err, sr_conflicts: 4, rr_conflicts: 1, useless_nts: 1
     end
 
     def test_rrconf_y
-      assert_compile 'rrconf.y'
-      assert_debugfile 'rrconf.y', [1,1,0,0]
+      err = assert_compile 'rrconf.y'
+      assert_warnings err, sr_conflicts: 1, rr_conflicts: 1
     end
 
     def test_useless_y
-      assert_compile 'useless.y'
-      assert_debugfile 'useless.y', [0,0,1,2]
+      err = assert_compile 'useless.y'
+      assert_warnings err, useless_nts: 1 # also 2 useless rules
     end
 
     def test_opt_y
-      assert_compile 'opt.y'
-      assert_debugfile 'opt.y', []
+      err = assert_compile 'opt.y'
+      assert_no_warnings err
       assert_exec 'opt.y'
     end
 
     def test_yyerr_y
-      assert_compile 'yyerr.y'
-      assert_debugfile 'yyerr.y', []
+      err = assert_compile 'yyerr.y'
+      assert_no_warnings err
       assert_exec 'yyerr.y'
     end
 
     def test_recv_y
-      assert_compile 'recv.y'
-      assert_debugfile 'recv.y', [5,10,1,4]
+      err = assert_compile 'recv.y'
+      # also 4 useless rules
+      assert_warnings err, sr_conflicts: 5, rr_conflicts: 10, useless_nts: 1
     end
 
     def test_ichk_y
-      assert_compile 'ichk.y'
-      assert_debugfile 'ichk.y', []
+      err = assert_compile 'ichk.y'
+      assert_no_warnings err
       assert_exec 'ichk.y'
     end
 
     def test_intp_y
-      assert_compile 'intp.y'
-      assert_debugfile 'intp.y', []
+      err = assert_compile 'intp.y'
+      assert_no_warnings err
       assert_exec 'intp.y'
     end
 
     def test_expect_y
-      assert_compile 'expect.y'
-      assert_debugfile 'expect.y', [1,0,0,0,1]
+      err = assert_compile 'expect.y'
+      # expect has 1 S/R conflict, but it is expected
+      assert_no_warnings err
     end
 
     def test_nullbug1_y
-      assert_compile 'nullbug1.y'
-      assert_debugfile 'nullbug1.y', [0,0,0,0]
+      err = assert_compile 'nullbug1.y'
+      assert_no_warnings err
     end
 
     def test_nullbug2_y
-      assert_compile 'nullbug2.y'
-      assert_debugfile 'nullbug2.y', [0,0,0,0]
+      err = assert_compile 'nullbug2.y'
+      assert_no_warnings err
     end
 
     def test_firstline_y
-      assert_compile 'firstline.y'
-      assert_debugfile 'firstline.y', []
+      err = assert_compile 'firstline.y'
+      assert_no_warnings err
     end
 
     def test_nonass_y
-      assert_compile 'nonass.y'
-      assert_debugfile 'nonass.y', []
+      err = assert_compile 'nonass.y'
+      assert_no_warnings err
       assert_exec 'nonass.y'
     end
 
     def test_digraph_y
-      assert_compile 'digraph.y'
-      assert_debugfile 'digraph.y', []
+      err = assert_compile 'digraph.y'
+      assert_no_warnings err
       assert_exec 'digraph.y'
     end
 
     def test_noend_y
-      assert_compile 'noend.y'
-      assert_debugfile 'noend.y', []
+      err = assert_compile 'noend.y'
+      assert_no_warnings err
     end
 
     def test_norule_y
@@ -164,120 +167,122 @@ module Racc
     # .y files from parser gem
 
     def test_ruby18
-      assert_compile 'ruby18.y'
-      assert_debugfile 'ruby18.y', []
+      err = assert_compile 'ruby18.y'
+      assert_warnings err, useless_terms: 1
       assert_output_unchanged 'ruby18.y'
     end
 
     def test_ruby22
-      assert_compile 'ruby22.y'
-      assert_debugfile 'ruby22.y', []
+      err = assert_compile 'ruby22.y'
+      assert_warnings err, useless_terms: 1
       assert_output_unchanged 'ruby22.y'
     end
 
     # .y file from csspool gem
 
     def test_csspool
-      assert_compile 'csspool.y'
-      assert_debugfile 'csspool.y', [5, 3]
+      err = assert_compile 'csspool.y'
+      assert_warnings err, sr_conflicts: 5, rr_conflicts: 3
       assert_output_unchanged 'csspool.y'
     end
 
     # .y file from opal gem
 
     def test_opal
-      assert_compile 'opal.y'
-      assert_debugfile 'opal.y', []
+      err = assert_compile 'opal.y'
+      assert_warnings err, useless_terms: 3
       assert_output_unchanged 'opal.y'
     end
 
     # .y file from journey gem
 
     def test_journey
-      assert_compile 'journey.y'
-      assert_debugfile 'journey.y', []
+      err = assert_compile 'journey.y'
+      assert_no_warnings err
       assert_output_unchanged 'journey.y'
     end
 
     # .y file from nokogiri gem
 
     def test_nokogiri_css
-      assert_compile 'nokogiri-css.y'
-      assert_debugfile 'nokogiri-css.y', [0, 1]
+      err = assert_compile 'nokogiri-css.y'
+      assert_warnings err, useless_terms: 1, rr_conflicts: 1
       assert_output_unchanged 'nokogiri-css.y'
     end
 
     # .y file from bibtex-ruby gem
 
     def test_bibtex
-      assert_compile 'bibtex.y'
-      assert_debugfile 'bibtex.y', [0, 0, 0, 0, 0]
+      err = assert_compile 'bibtex.y'
+      assert_no_warnings err
       assert_output_unchanged 'bibtex.y'
     end
 
     # .y file from edtf-ruby gem
 
     def test_edtf
-      assert_compile 'edtf.y'
-      assert_debugfile 'edtf.y', [0, 0, 0, 0, 0]
+      err = assert_compile 'edtf.y'
+      assert_warnings err, useless_terms: 2
       assert_output_unchanged 'edtf.y'
     end
 
     # .y file from namae gem
 
     def test_namae
-      assert_compile 'namae.y'
-      assert_debugfile 'namae.y', [0, 0, 0, 0, 0]
+      err = assert_compile 'namae.y'
+      assert_no_warnings err
       assert_output_unchanged 'namae.y'
     end
 
     # .y file from liquor gem
 
     def test_liquor
-      assert_compile 'liquor.y'
-      assert_debugfile 'liquor.y', [0, 0, 0, 0, 15]
+      err = assert_compile 'liquor.y'
+      # liquor has S/R conflicts, but they are expected
+      assert_warnings err, useless_terms: 1
       assert_output_unchanged 'liquor.y'
     end
 
     # .y file from nasl gem
 
     def test_nasl
-      assert_compile 'nasl.y'
-      assert_debugfile 'nasl.y', [0, 0, 0, 0, 1]
+      err = assert_compile 'nasl.y'
+      # nasl has 1 S/R conflict, but it is expected
+      assert_no_warnings err
       assert_output_unchanged 'nasl.y'
     end
 
     # .y file from riml gem
 
     def test_riml
-      assert_compile 'riml.y'
-      assert_debugfile 'riml.y', [289, 0, 0, 0]
+      err = assert_compile 'riml.y'
+      assert_warnings err, useless_terms: 1, sr_conflicts: 289
       assert_output_unchanged 'riml.y'
     end
 
     # .y file from ruby-php-serialization gem
 
     def test_php_serialization
-      assert_compile 'php_serialization.y'
-      assert_debugfile 'php_serialization.y', [0, 0, 0, 0]
+      err = assert_compile 'php_serialization.y'
+      assert_no_warnings err
       assert_output_unchanged 'php_serialization.y'
     end
 
     # .y file from huia language implementation
 
     def test_huia
-      assert_compile 'huia.y'
-      assert_debugfile 'huia.y', [285, 0, 0, 0]
+      err = assert_compile 'huia.y'
+      assert_warnings err, sr_conflicts: 285
       assert_output_unchanged 'huia.y'
     end
 
     # .y files from rdtool gem
 
     def test_rdtool
-      assert_compile 'rdblockparser.y'
-      assert_compile 'rdinlineparser.y'
-      assert_debugfile 'rdblockparser.y', [0, 0, 0, 0]
-      assert_debugfile 'rdinlineparser.y', [0, 0, 0, 0]
+      err1 = assert_compile 'rdblockparser.y'
+      err2 = assert_compile 'rdinlineparser.y'
+      assert_no_warnings err1
+      assert_no_warnings err2
       assert_output_unchanged 'rdblockparser.y'
       assert_output_unchanged 'rdinlineparser.y'
     end
@@ -285,56 +290,58 @@ module Racc
     # .y file from cast gem
 
     def test_cast
-      assert_compile 'cast.y'
-      assert_debugfile 'cast.y', [0, 0, 0, 0, 1]
+      err = assert_compile 'cast.y'
+      # cast has 1 S/R conflict, but it is expected
+      assert_no_warnings err
       assert_output_unchanged 'cast.y'
     end
 
     # .y file from cadenza gem
 
     def test_cadenza
-      assert_compile 'cadenza.y'
-      assert_debugfile 'cadenza.y', [0, 0, 0, 0, 37]
+      err = assert_compile 'cadenza.y'
+      # cadenza has 37 S/R conflicts, but they are expected
+      assert_no_warnings err
       assert_output_unchanged 'cadenza.y'
     end
 
     # .y file from mediacloth gem
 
     def test_mediacloth
-      assert_compile 'mediacloth.y'
-      assert_debugfile 'mediacloth.y', [0, 0, 0, 0]
+      err = assert_compile 'mediacloth.y'
+      assert_no_warnings err
       assert_output_unchanged 'mediacloth.y'
     end
 
     # .y file from twowaysql gem
 
     def test_twowaysql
-      assert_compile 'twowaysql.y'
-      assert_debugfile 'twowaysql.y', [4, 0, 0, 0]
+      err = assert_compile 'twowaysql.y'
+      assert_warnings err, sr_conflicts: 4
       assert_output_unchanged 'twowaysql.y'
     end
 
     # .y file from machete gem
 
     def test_machete
-      assert_compile 'machete.y'
-      assert_debugfile 'machete.y', [0, 0, 0, 0]
+      err = assert_compile 'machete.y'
+      assert_no_warnings err
       assert_output_unchanged 'machete.y'
     end
 
     # .y file from mof gem
 
     def test_mof
-      assert_compile 'mof.y'
-      assert_debugfile 'mof.y', [7, 4, 0, 0]
+      err = assert_compile 'mof.y'
+      assert_warnings err, useless_terms: 4, sr_conflicts: 7, rr_conflicts: 4
       assert_output_unchanged 'mof.y'
     end
 
     # .y file from tp_plus gem
 
     def test_tp_plus
-      assert_compile 'tp_plus.y'
-      assert_debugfile 'tp_plus.y', [21, 0, 0, 0]
+      err = assert_compile 'tp_plus.y'
+      assert_warnings err, useless_terms: 2, sr_conflicts: 21
       assert_output_unchanged 'tp_plus.y'
     end
   end
