@@ -9,4 +9,6 @@ targ : A list B
 
 list: list X
 
+blah: A B
+
 end
