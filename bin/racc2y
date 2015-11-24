@@ -39,7 +39,7 @@ def main
     exit 0
   }
   parser.on('--copyright', 'Prints copyright and quit.') {
-    puts Racc::Copyright
+    puts Racc::COPYRIGHT
     exit 0
   }
   parser.on('--help', 'Prints this message and quit.') {
