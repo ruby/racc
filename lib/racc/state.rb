@@ -387,7 +387,7 @@ module Racc
 
     public
 
-    def warnings
+    def warnings(verbose = false)
       warnings = []
 
       if should_report_srconflict?
