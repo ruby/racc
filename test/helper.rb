@@ -15,7 +15,6 @@ module Racc
     OUT_DIR   = File.join(TEST_DIR, 'out')
     TAB_DIR   = File.join(TEST_DIR, 'tab') # generated parsers go here
     LOG_DIR   = File.join(TEST_DIR, 'log')
-    ERR_DIR   = File.join(TEST_DIR, 'err')
     ASSET_DIR = File.join(TEST_DIR, 'assets') # test grammars
     REGRESS_DIR  = File.join(TEST_DIR, 'regress') # known-good generated outputs
 
@@ -25,13 +24,13 @@ module Racc
     ].join(':')
 
     def setup
-      [OUT_DIR, TAB_DIR, LOG_DIR, ERR_DIR].each do |dir|
+      [OUT_DIR, TAB_DIR, LOG_DIR].each do |dir|
         FileUtils.mkdir_p(dir)
       end
     end
 
     def teardown
-      [OUT_DIR, TAB_DIR, LOG_DIR, ERR_DIR].each do |dir|
+      [OUT_DIR, TAB_DIR, LOG_DIR].each do |dir|
         FileUtils.rm_rf(dir)
       end
     end
