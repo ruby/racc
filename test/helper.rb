@@ -12,10 +12,9 @@ module Racc
     TEST_DIR = File.join(PROJECT_DIR, 'test')
 
     RACC      = File.join(PROJECT_DIR, 'bin', 'racc')
-    OUT_DIR   = File.join(TEST_DIR, 'out')
     TAB_DIR   = File.join(TEST_DIR, 'tab') # generated parsers go here
     ASSET_DIR = File.join(TEST_DIR, 'assets') # test grammars
-    REGRESS_DIR  = File.join(TEST_DIR, 'regress') # known-good generated outputs
+    REGRESS_DIR = File.join(TEST_DIR, 'regress') # known-good generated outputs
 
     INC = [
       File.join(PROJECT_DIR, 'lib'),
@@ -23,22 +22,17 @@ module Racc
     ].join(':')
 
     def setup
-      [OUT_DIR, TAB_DIR].each do |dir|
-        FileUtils.mkdir_p(dir)
-      end
+      FileUtils.mkdir_p(TAB_DIR)
     end
 
     def teardown
-      [OUT_DIR, TAB_DIR].each do |dir|
-        FileUtils.rm_rf(dir)
-      end
+      FileUtils.rm_rf(TAB_DIR)
     end
 
     def assert_compile(asset, args = [])
       file = File.basename(asset, '.y')
       args = ([args].flatten) + [
         "#{ASSET_DIR}/#{file}.y",
-        "-O#{OUT_DIR}/#{file}",
         "-o#{TAB_DIR}/#{file}",
       ]
       racc "#{args.join(' ')}"
