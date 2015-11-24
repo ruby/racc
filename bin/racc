@@ -158,12 +158,15 @@ def main
       log_conflict(states)
     end
 
-    warnings = result.grammar.warnings
+    warnings = result.grammar.warnings(verbose)
     if warnings.any?
       $stderr.puts
       $stderr.puts warnings.map(&:to_s).join("\n\n")
       $stderr.puts
       $stderr.puts warning_summary(warnings)
+      if !verbose && warnings.any?(&:verbose_details?)
+        $stderr.puts "Run with --verbose for more details."
+      end
     end
 
     profiler.report

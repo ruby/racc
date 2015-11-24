@@ -88,7 +88,7 @@ module Racc
       state_transition_table.parser_class
     end
 
-    def warnings
+    def warnings(verbose)
       warnings = []
 
       @symboltable.each do |sym|
@@ -115,7 +115,7 @@ module Racc
         end
       end
 
-      warnings.concat(@states.warnings)
+      warnings.concat(@states.warnings(verbose))
     end
 
     # Grammar Definition Interface
