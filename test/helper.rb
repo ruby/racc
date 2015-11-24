@@ -14,7 +14,6 @@ module Racc
     RACC      = File.join(PROJECT_DIR, 'bin', 'racc')
     OUT_DIR   = File.join(TEST_DIR, 'out')
     TAB_DIR   = File.join(TEST_DIR, 'tab') # generated parsers go here
-    LOG_DIR   = File.join(TEST_DIR, 'log')
     ASSET_DIR = File.join(TEST_DIR, 'assets') # test grammars
     REGRESS_DIR  = File.join(TEST_DIR, 'regress') # known-good generated outputs
 
@@ -24,13 +23,13 @@ module Racc
     ].join(':')
 
     def setup
-      [OUT_DIR, TAB_DIR, LOG_DIR].each do |dir|
+      [OUT_DIR, TAB_DIR].each do |dir|
         FileUtils.mkdir_p(dir)
       end
     end
 
     def teardown
-      [OUT_DIR, TAB_DIR, LOG_DIR].each do |dir|
+      [OUT_DIR, TAB_DIR].each do |dir|
         FileUtils.rm_rf(dir)
       end
     end
@@ -45,27 +44,15 @@ module Racc
       racc "#{args.join(' ')}"
     end
 
-    def assert_debugfile(asset, ok)
-      file = File.basename(asset, '.y')
-      Dir.chdir(TEST_DIR) do
-        File.foreach("log/#{file}.y") do |line|
-          line.strip!
-          case line
-          when %r{\As/r conflicts}
-            assert_equal "s/r conflicts:#{ok[0]}", line
-          when %r{\Ar/r conflicts}
-            assert_equal "r/r conflicts:#{ok[1]}", line
-          when /\Auseless nts/
-            assert_equal "useless nts:#{ok[2]}", line
-          when /\Auseless rules/
-            assert_equal "useless rules:#{ok[3]}", line
-          when %r{\Aexpected s/r conflicts}
-            assert_equal "expected s/r conflicts:#{ok[4]}", line
-          else
-            raise "racc output unknown debug report! bad line: #{line}"
-          end
-        end
-      end
+    def assert_warnings(dbg_output, expected)
+      assert_equal expected[:useless_nts]   || 0, useless_nts(dbg_output)
+      assert_equal expected[:useless_terms] || 0, useless_terms(dbg_output)
+      assert_equal expected[:sr_conflicts]  || 0, sr_conflicts(dbg_output)
+      assert_equal expected[:rr_conflicts]  || 0, rr_conflicts(dbg_output)
+    end
+
+    def assert_no_warnings(dbg_output)
+      assert_warnings(dbg_output, {})
     end
 
     def assert_exec(asset)
@@ -87,21 +74,40 @@ module Racc
     end
 
     def racc(arg)
-      ruby "-S #{RACC} #{arg}"
+      ruby "#{RACC} #{arg}"
     end
 
     def ruby(arg)
       Dir.chdir(TEST_DIR) do
-        Tempfile.open 'test' do |io|
+        Tempfile.open('test') do |io|
           executable = ENV['_'] || Gem.ruby
           if File.basename(executable) == 'bundle'
             executable = executable.dup << ' exec ruby'
           end
-          cmd = "#{executable} -I #{INC} #{arg} 2>#{io.path}"
-          result = system(cmd)
-          assert(result, io.read)
+
+          result = system("#{executable} -I #{INC} #{arg} 2>#{io.path}")
+          io.flush
+          err = io.read
+          assert(result, err)
+          return err
         end
       end
+    end
+
+    def useless_nts(dbg_output)
+      dbg_output.scan(/Useless nonterminal/).size
+    end
+
+    def useless_terms(dbg_output)
+      dbg_output.scan(/Useless terminal/).size
+    end
+
+    def sr_conflicts(dbg_output)
+      dbg_output.scan(/Shift\/reduce conflict/).size
+    end
+
+    def rr_conflicts(dbg_output)
+      dbg_output.scan(/Reduce\/reduce conflict/).size
     end
   end
 end

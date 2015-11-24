@@ -153,9 +153,6 @@ def main
           Racc::LogFileGenerator.new(states).output(f)
         end
       end
-
-      log_useless(states.grammar)
-      log_conflict(states)
     end
 
     warnings = result.grammar.warnings(verbose)
@@ -180,30 +177,6 @@ end
 
 def make_filename(path, suffix)
   path.sub(/(?:\..*?)?\z/, suffix)
-end
-
-def log_conflict(states)
-  logging('w') {|f|
-    f.puts "expected s/r conflicts:#{states.grammar.n_expected_srconflicts}"
-    if states.should_report_srconflict?
-      f.puts "s/r conflicts:#{states.sr_conflicts.size}"
-    end
-    if states.rr_conflicts.any?
-      f.puts "r/r conflicts:#{states.rr_conflicts.size}"
-    end
-  }
-end
-
-def log_useless(grammar)
-  logging('a') {|f|
-    if grammar.useless_nonterminals.any?
-      f.puts "useless nts:#{grammar.useless_nonterminals.size}"
-    end
-  }
-end
-
-def logging(mode, &block)
-  File.open("log/#{File.basename(ARGV[0])}", mode, &block)
 end
 
 def warning_summary(warnings)
