@@ -120,6 +120,7 @@ test/regress/rdinlineparser
 test/regress/riml
 test/regress/ruby18
 test/regress/ruby22
+test/regress/twowaysql
 test/scandata/brace
 test/scandata/gvar
 test/scandata/normal
