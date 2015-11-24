@@ -78,6 +78,7 @@ test/assets/machete.y
 test/assets/macruby.y
 test/assets/mediacloth.y
 test/assets/mailp.y
+test/assets/mof.y
 test/assets/namae.y
 test/assets/nasl.y
 test/assets/newsyn.y
@@ -121,6 +122,7 @@ test/regress/huia
 test/regress/liquor
 test/regress/machete
 test/regress/mediacloth
+test/regress/mof
 test/regress/namae
 test/regress/nasl
 test/regress/nokogiri-css
