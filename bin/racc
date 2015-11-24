@@ -179,15 +179,6 @@ def make_filename(path, suffix)
   path.sub(/(?:\..*?)?\z/, suffix)
 end
 
-def report_conflict(states)
-  if states.should_report_srconflict?
-    $stderr.puts "#{states.sr_conflicts.size} shift/reduce conflicts"
-  end
-  if states.rr_conflicts.any?
-    $stderr.puts "#{states.rr_conflicts.size} reduce/reduce conflicts"
-  end
-end
-
 def log_conflict(states)
   logging('w') {|f|
     f.puts "expected s/r conflicts:#{states.grammar.n_expected_srconflicts}"
@@ -198,15 +189,6 @@ def log_conflict(states)
       f.puts "r/r conflicts:#{states.rr_conflicts.size}"
     end
   }
-end
-
-def report_useless(grammar)
-  if grammar.useless_nonterminals.any?
-    $stderr.puts "#{grammar.useless_nonterminals.size} useless nonterminals"
-  end
-  if grammar.start.useless?
-    $stderr.puts 'fatal: start symbol does not derive any sentence'
-  end
 end
 
 def log_useless(grammar)
