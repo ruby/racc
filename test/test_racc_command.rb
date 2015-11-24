@@ -166,13 +166,13 @@ module Racc
     def test_ruby18
       assert_compile 'ruby18.y'
       assert_debugfile 'ruby18.y', []
-      assert_output 'ruby18.y'
+      assert_output_unchanged 'ruby18.y'
     end
 
     def test_ruby22
       assert_compile 'ruby22.y'
       assert_debugfile 'ruby22.y', []
-      assert_output 'ruby22.y'
+      assert_output_unchanged 'ruby22.y'
     end
 
     # .y file from csspool gem
@@ -180,7 +180,7 @@ module Racc
     def test_csspool
       assert_compile 'csspool.y'
       assert_debugfile 'csspool.y', [5, 3]
-      assert_output 'csspool.y'
+      assert_output_unchanged 'csspool.y'
     end
 
     # .y file from opal gem
@@ -188,7 +188,7 @@ module Racc
     def test_opal
       assert_compile 'opal.y'
       assert_debugfile 'opal.y', []
-      assert_output 'opal.y'
+      assert_output_unchanged 'opal.y'
     end
 
     # .y file from journey gem
@@ -196,7 +196,7 @@ module Racc
     def test_journey
       assert_compile 'journey.y'
       assert_debugfile 'journey.y', []
-      assert_output 'journey.y'
+      assert_output_unchanged 'journey.y'
     end
 
     # .y file from nokogiri gem
@@ -204,7 +204,7 @@ module Racc
     def test_nokogiri_css
       assert_compile 'nokogiri-css.y'
       assert_debugfile 'nokogiri-css.y', [0, 1]
-      assert_output 'nokogiri-css.y'
+      assert_output_unchanged 'nokogiri-css.y'
     end
 
     # .y file from bibtex-ruby gem
@@ -212,7 +212,7 @@ module Racc
     def test_bibtex
       assert_compile 'bibtex.y'
       assert_debugfile 'bibtex.y', [0, 0, 0, 0, 0]
-      assert_output 'bibtex.y'
+      assert_output_unchanged 'bibtex.y'
     end
 
     # .y file from edtf-ruby gem
@@ -220,7 +220,7 @@ module Racc
     def test_edtf
       assert_compile 'edtf.y'
       assert_debugfile 'edtf.y', [0, 0, 0, 0, 0]
-      assert_output 'edtf.y'
+      assert_output_unchanged 'edtf.y'
     end
 
     # .y file from namae gem
@@ -228,7 +228,7 @@ module Racc
     def test_namae
       assert_compile 'namae.y'
       assert_debugfile 'namae.y', [0, 0, 0, 0, 0]
-      assert_output 'namae.y'
+      assert_output_unchanged 'namae.y'
     end
 
     # .y file from liquor gem
@@ -236,7 +236,7 @@ module Racc
     def test_liquor
       assert_compile 'liquor.y'
       assert_debugfile 'liquor.y', [0, 0, 0, 0, 15]
-      assert_output 'liquor.y'
+      assert_output_unchanged 'liquor.y'
     end
 
     # .y file from nasl gem
@@ -244,7 +244,7 @@ module Racc
     def test_nasl
       assert_compile 'nasl.y'
       assert_debugfile 'nasl.y', [0, 0, 0, 0, 1]
-      assert_output 'nasl.y'
+      assert_output_unchanged 'nasl.y'
     end
 
     # .y file from riml gem
@@ -252,7 +252,7 @@ module Racc
     def test_riml
       assert_compile 'riml.y'
       assert_debugfile 'riml.y', [289, 0, 0, 0]
-      assert_output 'riml.y'
+      assert_output_unchanged 'riml.y'
     end
 
     # .y file from ruby-php-serialization gem
@@ -260,7 +260,7 @@ module Racc
     def test_php_serialization
       assert_compile 'php_serialization.y'
       assert_debugfile 'php_serialization.y', [0, 0, 0, 0]
-      assert_output 'php_serialization.y'
+      assert_output_unchanged 'php_serialization.y'
     end
 
     # .y file from huia language implementation
@@ -268,7 +268,7 @@ module Racc
     def test_huia
       assert_compile 'huia.y'
       assert_debugfile 'huia.y', [285, 0, 0, 0]
-      assert_output 'huia.y'
+      assert_output_unchanged 'huia.y'
     end
 
     # .y files from rdtool gem
@@ -278,8 +278,8 @@ module Racc
       assert_compile 'rdinlineparser.y'
       assert_debugfile 'rdblockparser.y', [0, 0, 0, 0]
       assert_debugfile 'rdinlineparser.y', [0, 0, 0, 0]
-      assert_output 'rdblockparser.y'
-      assert_output 'rdinlineparser.y'
+      assert_output_unchanged 'rdblockparser.y'
+      assert_output_unchanged 'rdinlineparser.y'
     end
 
     # .y file from cast gem
@@ -287,7 +287,7 @@ module Racc
     def test_cast
       assert_compile 'cast.y'
       assert_debugfile 'cast.y', [0, 0, 0, 0, 1]
-      assert_output 'cast.y'
+      assert_output_unchanged 'cast.y'
     end
 
     # .y file from cadenza gem
@@ -295,7 +295,7 @@ module Racc
     def test_cadenza
       assert_compile 'cadenza.y'
       assert_debugfile 'cadenza.y', [0, 0, 0, 0, 37]
-      assert_output 'cadenza.y'
+      assert_output_unchanged 'cadenza.y'
     end
 
     # .y file from mediacloth gem
@@ -303,7 +303,7 @@ module Racc
     def test_mediacloth
       assert_compile 'mediacloth.y'
       assert_debugfile 'mediacloth.y', [0, 0, 0, 0]
-      assert_output 'mediacloth.y'
+      assert_output_unchanged 'mediacloth.y'
     end
 
     # .y file from twowaysql gem
@@ -311,7 +311,7 @@ module Racc
     def test_twowaysql
       assert_compile 'twowaysql.y'
       assert_debugfile 'twowaysql.y', [4, 0, 0, 0]
-      assert_output 'twowaysql.y'
+      assert_output_unchanged 'twowaysql.y'
     end
 
     # .y file from machete gem
@@ -319,7 +319,7 @@ module Racc
     def test_machete
       assert_compile 'machete.y'
       assert_debugfile 'machete.y', [0, 0, 0, 0]
-      assert_output 'machete.y'
+      assert_output_unchanged 'machete.y'
     end
 
     # .y file from mof gem
@@ -327,7 +327,7 @@ module Racc
     def test_mof
       assert_compile 'mof.y'
       assert_debugfile 'mof.y', [7, 4, 0, 0]
-      assert_output 'mof.y'
+      assert_output_unchanged 'mof.y'
     end
 
     # .y file from tp_plus gem
@@ -335,7 +335,7 @@ module Racc
     def test_tp_plus
       assert_compile 'tp_plus.y'
       assert_debugfile 'tp_plus.y', [21, 0, 0, 0]
-      assert_output 'tp_plus.y'
+      assert_output_unchanged 'tp_plus.y'
     end
   end
 end
