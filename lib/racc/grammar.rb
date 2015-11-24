@@ -6,7 +6,6 @@
 # For details of the GNU LGPL, see the file "COPYING".
 
 require 'racc/source_text'
-require 'racc/log_file_generator'
 require 'racc/exception'
 require 'racc/color'
 require 'racc/warning'

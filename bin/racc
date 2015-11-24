@@ -16,8 +16,6 @@ include Racc::Color
 def main
   output = nil
   debug_parser = false
-  make_logfile = false
-  logfilename = nil
   make_executable = false
   rubypath = nil
   embed_runtime = false
@@ -37,15 +35,8 @@ def main
   parser.on('-t', '--debug', 'Outputs debugging parser.') { |fl|
     debug_parser = fl
   }
-  parser.on('-v', '--verbose',
-            'Creates <filename>.output log file.') { |fl|
-    make_logfile = fl
+  parser.on('-v', '--verbose', 'Display extra diagnostic information.') {
     verbose = true
-  }
-  parser.on('-O', '--log-file=PATH',
-            'Log file name [<input>.output]') { |path|
-    make_logfile = true
-    logfilename = path
   }
   parser.on('-e', '--executable [RUBYPATH]', 'Makes executable parser.') { |path|
     executable = true
@@ -143,16 +134,6 @@ def main
     profiler.section('generation') do
       generator = Racc::ParserFileGenerator.new(states, params)
       generator.generate_parser_file(output)
-    end
-
-    if make_logfile
-      profiler.section('logging') do
-        $stderr.puts 'Creating log file...' if verbose
-        logfilename ||= make_filename(output || File.basename(input), '.output')
-        File.open(logfilename, 'w') do |f|
-          Racc::LogFileGenerator.new(states).output(f)
-        end
-      end
     end
 
     warnings = result.grammar.warnings(verbose)
