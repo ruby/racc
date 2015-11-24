@@ -28,6 +28,7 @@ lib/racc/source_text.rb
 lib/racc/state.rb
 lib/racc/state_transition_table.rb
 lib/racc/static.rb
+lib/racc/warning.rb
 rdoc/en/NEWS.en.rdoc
 rdoc/en/grammar.en.rdoc
 rdoc/ja/NEWS.ja.rdoc

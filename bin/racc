@@ -158,8 +158,12 @@ def main
       log_conflict(states)
     end
 
-    if result.grammar.warnings.any?
-      $stderr.puts result.grammar.warnings.join("\n\n")
+    warnings = result.grammar.warnings
+    if warnings.any?
+      $stderr.puts
+      $stderr.puts warnings.map(&:to_s).join("\n\n")
+      $stderr.puts
+      $stderr.puts warning_summary(warnings)
     end
 
     profiler.report
@@ -215,6 +219,28 @@ end
 
 def logging(mode, &block)
   File.open("log/#{File.basename(ARGV[0])}", mode, &block)
+end
+
+def warning_summary(warnings)
+  freq = Hash.new(0)
+  warnings.each { |w| freq[w.type] += 1 }
+  types = {
+    useless_terminal: 'useless terminal',
+    useless_nonterminal: 'useless nonterminal',
+    sr_conflict: 'shift/reduce conflict',
+    rr_conflict: 'reduce/reduce conflict'
+  }
+  order = [:useless_terminal, :useless_nonterminal, :sr_conflict, :rr_conflict]
+
+  freq.sort_by { |k, v| order.index(k) }.map { |k, v| pluralize(v, types[k]) }.join(', ')
+end
+
+def pluralize(count, noun)
+  if count == 1
+    "#{count} #{noun}"
+  else
+    "#{count} #{noun}s"
+  end
 end
 
 class RaccProfiler
