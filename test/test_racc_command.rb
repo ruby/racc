@@ -325,5 +325,13 @@ module Racc
       assert_debugfile 'machete.y', [0, 0, 0, 0]
       assert_output 'machete.y'
     end
+
+    # .y file from mof gem
+
+    def test_mof
+      assert_compile 'mof.y'
+      assert_debugfile 'mof.y', [7, 4, 0, 0]
+      assert_output 'mof.y'
+    end
   end
 end
