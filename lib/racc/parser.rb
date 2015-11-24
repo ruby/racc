@@ -150,9 +150,7 @@ end
 # Note: parser.rb is LGPL, but your parser is not.
 # Your own parser is completely yours.
 module Racc
-  unless defined?(Racc_No_Extensions)
-    Racc_No_Extensions = ENV['PURERUBY'] # :nodoc:
-  end
+  Racc_No_Extensions = ENV['PURERUBY'] # :nodoc:
 
   class Parser
     begin
