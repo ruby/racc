@@ -75,12 +75,8 @@ def main
     profiler = RaccProfiler.new(true)
   }
   parser.on('--version', 'Prints version and quits.') {
-    puts "racc version #{Racc::VERSION}"
-    if Racc::Parser.racc_runtime_type == 'ruby'
-      puts '(ruby core)'
-    else
-      puts '(c core)'
-    end
+    core = Racc::Parser.racc_runtime_type == 'ruby' ? '(ruby core)' : '(c core)'
+    puts "racc #{Racc::VERSION}, codename: #{Racc::CODENAME} #{core}"
     exit 0
   }
   parser.on('--copyright', 'Prints copyright and quits.') {
