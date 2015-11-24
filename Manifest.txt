@@ -105,6 +105,7 @@ test/assets/ruby21.y
 test/assets/ruby22.y
 test/assets/scan.y
 test/assets/syntax.y
+test/assets/tp_plus.y
 test/assets/twowaysql.y
 test/assets/unterm.y
 test/assets/useless.y
@@ -133,6 +134,8 @@ test/regress/rdinlineparser
 test/regress/riml
 test/regress/ruby18
 test/regress/ruby22
+test/regress/tp_plus
+test/regress/twowaysql
 test/scandata/brace
 test/scandata/gvar
 test/scandata/normal
