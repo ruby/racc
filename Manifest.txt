@@ -65,6 +65,7 @@ test/assets/infini.y
 test/assets/intp.y
 test/assets/journey.y
 test/assets/liquor.y
+test/assets/machete.y
 test/assets/macruby.y
 test/assets/mediacloth.y
 test/assets/mailp.y
@@ -109,6 +110,7 @@ test/regress/edtf
 test/regress/journey
 test/regress/huia
 test/regress/liquor
+test/regress/machete
 test/regress/mediacloth
 test/regress/namae
 test/regress/nasl

@@ -317,5 +317,13 @@ module Racc
       assert_debugfile 'twowaysql.y', [4, 0, 0, 0]
       assert_output 'twowaysql.y'
     end
+
+    # .y file from machete gem
+
+    def test_machete
+      assert_compile 'machete.y'
+      assert_debugfile 'machete.y', [0, 0, 0, 0]
+      assert_output 'machete.y'
+    end
   end
 end
