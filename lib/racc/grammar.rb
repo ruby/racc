@@ -9,12 +9,12 @@ require 'racc/source_text'
 require 'racc/log_file_generator'
 require 'racc/exception'
 require 'racc/color'
+require 'racc/warning'
 require 'set'
 
 module Racc
   class Grammar
     include Enumerable
-    include Racc::Color
 
     def initialize(filename = nil)
       @symboltable = SymbolTable.new
@@ -96,17 +96,21 @@ module Racc
 
         if sym.locate.empty?
           what = sym.terminal? ? 'terminal' : 'nonterminal'
-          warnings << bright("Useless #{what} #{sym} does not appear on the " \
-            'right side of any rule, neither is it the start symbol.')
+          type = "useless_#{what}".to_sym
+          warnings << Warning.new(type, "Useless #{what} #{sym} does not " \
+            'appear on the right side of any rule, neither is it the start ' \
+            'symbol.')
         elsif sym.can_derive.include?(sym)
           if sym.can_derive.one?
-            warnings << bright("Useless nonterminal #{sym} only appears on " \
-              'the right side of its own rules.')
+            warnings << Warning.new(:useless_nonterminal, 'Useless ' \
+              "nonterminal #{sym} only appears on the right side of its " \
+              'own rules.')
           else
-            warnings << (bright("Useless nonterminal #{sym} cannot be part " \
-              'of a valid parse tree, since there is no sequence of ' \
-              'reductions from it to the start symbol.') + 'It can only ' \
-              "reduce to: #{sym.can_derive.map(&:to_s).join(', ')}")
+            warnings << Warning.new(:useless_nonterminal, 'Useless ' \
+              "nonterminal #{sym} cannot be part of a valid parse tree, " \
+              'since, there is no sequence of reductions from it to the ' \
+              'start symbol.', 'It can only reduce to: ' \
+              "#{sym.can_derive.map(&:to_s).join(', ')}")
           end
         end
       end

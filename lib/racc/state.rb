@@ -13,7 +13,6 @@ require 'set'
 module Racc
   class States
     include Enumerable
-    include Racc::Color
 
     def initialize(grammar)
       @grammar = grammar
@@ -393,27 +392,27 @@ module Racc
 
       if should_report_srconflict?
         sr_conflicts.each do |sr|
-          msg = bright("Shift/reduce conflict on #{sr.symbol}, after the following input:\n")
-          msg << sr.state.path.reject(&:hidden).map(&:to_s).join(' ')
+          title = "Shift/reduce conflict on #{sr.symbol}, after the following input:"
+          detail = sr.state.path.reject(&:hidden).map(&:to_s).join(' ')
           if sr.srules.one?
-            msg << "\nThe following rule directs me to shift:\n"
+            detail << "\nThe following rule directs me to shift:\n"
           else
-            msg << "\nThe following rules direct me to shift:\n"
+            detail << "\nThe following rules direct me to shift:\n"
           end
-          msg << sr.srules.map(&:to_s).join("\n")
-          msg << "\nThe following rule directs me to reduce:\n"
-          msg << sr.rrule.ptrs.last.to_s
-          warnings << msg
+          detail << sr.srules.map(&:to_s).join("\n")
+          detail << "\nThe following rule directs me to reduce:\n"
+          detail << sr.rrule.ptrs.last.to_s
+          warnings << Warning.new(:sr_conflict, title, detail)
         end
       end
 
       rr_conflicts.each do |rr|
-        msg = bright("Reduce/reduce conflict on #{rr.symbol}, after the following input:\n")
-        msg << rr.state.path.reject(&:hidden).map(&:to_s).join(' ')
-        msg << "\nIt is possible to reduce by " \
+        title = "Reduce/reduce conflict on #{rr.symbol}, after the following input:"
+        detail = rr.state.path.reject(&:hidden).map(&:to_s).join(' ')
+        detail << "\nIt is possible to reduce by " \
                "#{rr.rules.size == 2 ? 'either' : 'any'} of these rules:\n"
-        msg << rr.rules.map(&:to_s).join("\n")
-        warnings << msg
+        detail << rr.rules.map(&:to_s).join("\n")
+        warnings << Warning.new(:rr_conflict, title, detail)
       end
 
       warnings
