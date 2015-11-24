@@ -333,5 +333,13 @@ module Racc
       assert_debugfile 'mof.y', [7, 4, 0, 0]
       assert_output 'mof.y'
     end
+
+    # .y file from tp_plus gem
+
+    def test_tp_plus
+      assert_compile 'tp_plus.y'
+      assert_debugfile 'tp_plus.y', [21, 0, 0, 0]
+      assert_output 'tp_plus.y'
+    end
   end
 end
