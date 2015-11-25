@@ -28,14 +28,14 @@ class Racc::GrammarFileScanner
     '(' => ')'
   }
 
-  attr_accessor :filename
+  attr_accessor :file
   attr_accessor :lineno
   attr_accessor :epilogue
 
-  def initialize(source, filename)
-    @filename = filename
-    @source   = source.force_encoding(Encoding::ASCII_8BIT)
-    @eof      = source.length
+  def initialize(file)
+    @file     = file
+    @source   = file.text.force_encoding(Encoding::ASCII_8BIT)
+    @eof      = @source.length
     @lineno   = 1
     @linehead = true  # are we at the beginning of a line?
     @in_block = false # are we in a 'rule' or 'convert' block?
@@ -46,7 +46,7 @@ class Racc::GrammarFileScanner
     @source.sub!(/\n+\Z/, "\n")
 
     # Used by Ragel-generated code:
-    @data = source.bytes.to_a
+    @data = @source.bytes.to_a
 
     %%write data;
   end
@@ -156,7 +156,7 @@ class Racc::GrammarFileScanner
         # an action block can only occur inside rule block
         if @in_block == :rule
           rl = RubyLexer.new(@source, p + 1)
-          yield token(:ACTION, Racc::Source::Text.new(rl.code, @filename, @lineno))
+          yield token(:ACTION, Racc::Source::Text.new(rl.code, @file.name, @lineno))
           @lineno += rl.code.scan(/\n|\r\n|\r/).size
           fexec rl.position + 1; # jump past the concluding '}'
         else

@@ -7,6 +7,8 @@
 
 module Racc
   module Source
+    Buffer = Struct.new(:name, :text)
+
     class Text < Struct.new(:text, :filename, :lineno)
       def to_s
         "#<Source::Text #{location}>"
