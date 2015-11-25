@@ -114,6 +114,13 @@ module Racc
         end
       end
 
+      @rules.each do |rule|
+        next unless rule.explicit_precedence && !rule.explicit_precedence_used?
+        warnings << Warning.new(:useless_prec, 'The explicit precedence ' \
+          'declaration on this rule does not resolve any conflicts and can ' \
+          "be removed:", rule.to_s)
+      end
+
       warnings.concat(@states.warnings(verbose))
     end
 
@@ -422,6 +429,7 @@ module Racc
 
       @ident = nil
       @precedence = precedence
+      @precedence_used = false # does explicit precedence actually resolve conflicts?
 
       @ptrs = (0..@symbols.size).map { |idx| LocationPointer.new(self, idx) }
 
@@ -464,6 +472,14 @@ module Racc
 
     def explicit_precedence
       @precedence
+    end
+
+    def explicit_precedence_used!
+      @precedence_used = true
+    end
+
+    def explicit_precedence_used?
+      @precedence_used
     end
 
     def inspect
