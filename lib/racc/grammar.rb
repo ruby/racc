@@ -766,12 +766,12 @@ module Racc
       return @display_name.dup unless Color.enabled?
       if terminal?
         if string_symbol?
-          Color.yellow(@display_name)
+          Color.string(@display_name)
         else
-          Color.light_green(@display_name)
+          Color.terminal(@display_name)
         end
       else
-        Color.light_purple(@display_name)
+        Color.nonterminal(@display_name)
       end
     end
 

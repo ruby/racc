@@ -35,21 +35,25 @@ module Racc
       "\e[32m#{text}\e[0m"
     end
 
-    def bold_white(text)
+    def violet(text)
       return text unless Color.enabled?
-      "\e[1;37m#{text}\e[0m"
-    end
-
-    def light_purple(text)
       "\e[1;35m#{text}\e[0m"
     end
 
-    def light_green(text)
-      "\e[1;32m#{text}\e[0m"
+    # Syntax highlighting for various types of symbols...
+    def nonterminal(text)
+      return text unless Color.enabled?
+      "\e[1;34m#{text}\e[0m" # blue
     end
 
-    def yellow(text)
-      "\e[1;33m#{text}\e[0m"
+    def terminal(text)
+      return text unless Color.enabled?
+      "\e[1;36m\e[4m#{text}\e[0m" # cyan, with underline
+    end
+
+    def string(text)
+      return text unless Color.enabled?
+      "\e[1;33m#{text}\e[0m" # bright yellow
     end
   end
 end
