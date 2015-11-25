@@ -9,13 +9,19 @@ module Racc
   module Source
     Buffer = Struct.new(:name, :text)
 
-    class Text < Struct.new(:text, :filename, :lineno)
+    class Text < Struct.new(:text, :buffer, :lineno)
+      # for source text which didn't come from a file
+      def self.from_string(str)
+        file = Source::Buffer.new('(string)', str)
+        new(str, file, 1)
+      end
+
       def to_s
         "#<Source::Text #{location}>"
       end
 
       def location
-        "#{@filename}:#{@lineno}"
+        "#{buffer.name}:#{lineno}"
       end
     end
   end
