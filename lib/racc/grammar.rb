@@ -389,20 +389,12 @@ module Racc
     def compute_nullable
       @symboltable.each { |t| t.null = false }
 
-      worklist = []
-      @symboltable.nonterminals.each do |sym|
-        if sym.heads.any?(&:reduce?)
-          sym.null = true
-          worklist.concat(sym.locate)
-        end
-      end
-
-      until worklist.empty?
-        rule = worklist.shift.rule
-        if !rule.target.nullable? && rule.symbols.all?(&:nullable?)
-          rule.target.null = true
-          worklist.concat(rule.target.locate)
-        end
+      seed = @symboltable.nonterminals.select { |nt| nt.heads.any?(&:reduce?) }
+      seed.each { |nt| nt.null = true }
+      Racc.set_closure(seed) do |sym|
+        nullable = sym.locate.map(&:rule).select { |rule| rule.symbols.all?(&:nullable?) }.map(&:target)
+        nullable.each { |nt| nt.null = true }
+        nullable
       end
     end
 
