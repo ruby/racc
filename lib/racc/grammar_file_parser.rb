@@ -39,7 +39,7 @@ module Racc
                   | seq(:PRECLOW, many1(:precdef), :PRECHIGH) { |*|
                       @grammar.end_precedence_declaration(false)
                     } \
-                  | seq(:START, :symbol) { |_, sym|
+                  | seq(:START, :symbol) { |_, (sym)|
                       @grammar.start_symbol = sym
                     } \
                   | seq(:TOKEN, :symbols) { |_, syms|
@@ -58,11 +58,11 @@ module Racc
                         end
                       end
                     } \
-                  | seq(:EXPECT, :DIGIT) { |_, (num, _lines)|
+                  | seq(:EXPECT, :DIGIT) { |_, (num)|
                       @grammar.n_expected_srconflicts = num
                     }
 
-    g.convdef     = seq(:symbol, :STRING) { |sym, (code, _lines)|
+    g.convdef     = seq(:symbol, :STRING) { |(sym), (code)|
                       sym.serialized = code
                     }
 
@@ -76,12 +76,12 @@ module Racc
                       @grammar.declare_precedence :Nonassoc, syms
                     }
 
-    g.symbols     = seq(:symbol) { |sym| [sym] } \
-                  | seq(:symbols, :symbol) { |list, sym| list << sym } \
+    g.symbols     = seq(:symbol) { |(sym)| [sym] } \
+                  | seq(:symbols, :symbol) { |list, (sym)| list << sym } \
                   | seq(:symbols, "|")
 
-    g.symbol      = seq(:SYMBOL) { |(sym, _lines)| @grammar.intern(sym, false) } \
-                  | seq(:STRING) { |(str, _lines)| @grammar.intern(str, false) }
+    g.symbol      = seq(:SYMBOL) { |(sym, lines)| [@grammar.intern(sym, false), lines] } \
+                  | seq(:STRING) { |(str, lines)| [@grammar.intern(str, false), lines] }
 
     g.options     = many(:SYMBOL) { |syms| syms.map(&:first).map(&:to_s) }
 
@@ -105,9 +105,15 @@ module Racc
                     }
 
     g.rule_item   = seq(:symbol) \
-                  | seq("|") { |_| OrMark.new(@scanner.lineno) } \
-                  | seq("=", :symbol) { |_, sym| Prec.new(sym, @scanner.lineno) } \
-                  | seq(:ACTION) { |(src, _lines)| UserAction.source_text(src) }
+                  | seq("|") { |(_, lines)|
+                      [OrMark.new(lines.first), lines]
+                    } \
+                  | seq("=", :symbol) { |_, (sym, lines)|
+                      [Prec.new(sym, lines.first), lines]
+                    } \
+                  | seq(:ACTION) { |(src, lines)|
+                      [UserAction.source_text(src, lines.first), lines]
+                    }
   end
 
   GrammarFileParser = grammar.parser_class
@@ -166,18 +172,22 @@ module Racc
 
     def add_rule_block(list)
       return if list.empty?
-      target = list.shift
+
+      items, lines = *list.transpose
+      target = items.shift
+
+      line_range = (lines.map(&:first).min)..(lines.map(&:last).max)
 
       if target.is_a?(OrMark) || target.is_a?(UserAction) || target.is_a?(Prec)
         fail(CompileError, "#{target.lineno}: unexpected symbol #{target.name}")
       end
 
-      split_array(list) { |obj| obj.is_a?(OrMark) }.each do |rule_items|
+      split_array(items) { |obj| obj.is_a?(OrMark) }.each do |rule_items|
         sprec, rule_items = rule_items.partition { |obj| obj.is_a?(Prec) }
         if sprec.empty?
-          add_rule(target, rule_items)
+          add_rule(target, rule_items, line_range)
         elsif sprec.one?
-          add_rule(target, rule_items, sprec.first.symbol)
+          add_rule(target, rule_items, line_range, sprec.first.symbol)
         else
           fail(CompileError, "'=<prec>' used twice in one rule")
         end
@@ -200,14 +210,14 @@ module Racc
       results
     end
 
-    def add_rule(target, list, prec = nil)
+    def add_rule(target, list, line_range, prec = nil)
       if list.last.kind_of?(UserAction)
         act = list.pop
       else
         act = UserAction.empty
       end
       list.map! { |s| s.kind_of?(UserAction) ? embedded_action(s, target) : s }
-      @grammar.add(Rule.new(target, list, act, prec))
+      @grammar.add(Rule.new(target, list, act, line_range, prec))
     end
 
     def embedded_action(act, target)

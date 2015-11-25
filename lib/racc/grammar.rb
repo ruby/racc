@@ -421,11 +421,12 @@ module Racc
   end
 
   class Rule
-    def initialize(target, syms, act, precedence = nil)
+    def initialize(target, syms, act, lines = nil, precedence = nil)
       @target = target # LHS of rule (may be `nil` if not yet known)
       @symbols = syms  # RHS of rule
       @action = act    # run this code when reducing
       @alternatives = []
+      @lines = lines
 
       @ident = nil
       @precedence = precedence
@@ -441,6 +442,7 @@ module Racc
     end
 
     attr_accessor :ident
+    attr_reader :lines
     attr_reader :symbols
     attr_reader :action
     attr_reader :target
@@ -520,8 +522,8 @@ module Racc
   end
 
   class UserAction
-    def UserAction.source_text(src)
-      new(src, nil)
+    def UserAction.source_text(src, lineno)
+      new(src, nil).tap { |act| act.lineno = lineno }
     end
 
     def UserAction.proc(pr = nil, &block)
@@ -544,6 +546,7 @@ module Racc
 
     attr_reader :source
     attr_reader :proc
+    attr_accessor :lineno
 
     def source?
       not @proc
