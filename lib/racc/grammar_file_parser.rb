@@ -152,7 +152,7 @@ module Racc
       yyparse @scanner, :yylex
       parse_user_code
 
-      @result.grammar.finished!
+      @grammar.finished!
       @result
     end
 
