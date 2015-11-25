@@ -9,6 +9,7 @@ require 'racc/source_text'
 require 'racc/exception'
 require 'racc/color'
 require 'racc/warning'
+require 'racc/util'
 require 'set'
 
 module Racc
@@ -824,38 +825,18 @@ module Racc
 
     # What NTs can this Sym be reduced down to (perhaps indirectly)?
     def can_derive
-      @can_derive ||= begin
-        worklist = @locate.map { |ptr| ptr.rule.target }
-        result   = Set.new
-
-        until worklist.empty?
-          sym = worklist.shift
-          if result.add?(sym)
-            worklist.concat(sym.locate.map { |ptr| ptr.rule.target })
-          end
-        end
-
-        result
+      @can_derive ||= Racc.set_closure(@locate.map { |ptr| ptr.rule.target }) do |sym|
+        sym.locate.map { |ptr| ptr.rule.target }
       end
     end
 
     # If an instance of this NT comes next, then what rules could we be
     # starting?
     def expand
-      @expand ||= begin
-        worklist = @heads.dup
-        result   = Set.new
-
-        until worklist.empty?
-          ptr = worklist.shift
-          if result.add?(ptr)
-            if (tok = ptr.symbol) && tok.nonterminal?
-              worklist.concat(tok.heads)
-            end
-          end
+      @expand ||= Racc.set_closure(@heads.dup) do |ptr|
+        if (sym = ptr.symbol) && sym.nonterminal?
+          sym.heads
         end
-
-        result
       end
     end
   end
