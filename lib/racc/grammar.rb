@@ -16,9 +16,8 @@ module Racc
   class Grammar
     include Enumerable
 
-    def initialize(filename = nil)
+    def initialize
       @symboltable = SymbolTable.new
-      @filename = filename
       @rules = []
       @start = nil
       @n_expected_srconflicts = nil
