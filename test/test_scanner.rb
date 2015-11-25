@@ -15,7 +15,7 @@ module Racc
         rebuilt = ''
         scanner.yylex do |token|
           break if token.nil?
-          rebuilt << token[1].text if token[0] == :ACTION
+          rebuilt << token[1][0].text if token[0] == :ACTION
         end
         rebuilt.chomp!("\n")
 
