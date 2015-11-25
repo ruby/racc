@@ -138,11 +138,7 @@ module Racc
     end
 
     def GrammarFileParser.parse_file(filename)
-      parse(File.read(filename), filename, 1)
-    end
-
-    def GrammarFileParser.parse(src, filename = '-', lineno = 1)
-      new.parse(src, filename, lineno)
+      new.parse(File.read(filename), filename, 1)
     end
 
     def parse(src, filename = '-', lineno = 1)
