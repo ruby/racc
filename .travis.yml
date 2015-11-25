@@ -16,3 +16,4 @@ install:
   - bundle install --retry 3
 script:
   - bundle exec rake test
+  - bundle exec rake test_pure
