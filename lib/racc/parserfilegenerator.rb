@@ -102,6 +102,7 @@ module Racc
       notice
       line
       if @params.embed_runtime?
+        embed_library info_source()
         embed_library runtime_source()
       else
         require 'racc/parser.rb'
@@ -131,6 +132,10 @@ module Racc
 
     def runtime_source
       SourceText.new(::Racc::PARSER_TEXT, 'racc/parser.rb', 1)
+    end
+
+    def info_source
+      SourceText.new(::Racc::INFO_TEXT, 'racc/info.rb', 1)
     end
 
     def embed_library(src)
