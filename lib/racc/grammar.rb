@@ -435,6 +435,7 @@ module Racc
     end
 
     attr_accessor :ident
+    attr_accessor :filename
     attr_reader :lines
     attr_reader :symbols
     attr_reader :action
