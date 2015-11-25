@@ -145,7 +145,7 @@ module Racc
       @filename = filename
       @lineno = lineno
       @scanner = GrammarFileScanner.new(src, @filename)
-      @grammar = Grammar.new(filename)
+      @grammar = Grammar.new
       @result = Result.new(@grammar, @filename)
       @embedded_action_seq = 0
 
