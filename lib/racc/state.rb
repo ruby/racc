@@ -321,7 +321,7 @@ module Racc
         else
           # conflict
           rtok = act.rule.precedence
-          case do_resolve_sr(stok, rtok)
+          case do_resolve_sr(stok, rtok, act.rule)
           when :Reduce
             # action is already set
 
@@ -347,9 +347,11 @@ module Racc
       :Nonassoc => :Error
     }
 
-    def do_resolve_sr(stok, rtok)
+    def do_resolve_sr(stok, rtok, rrule)
       return :CantResolve unless rtok && (rprec = rtok.precedence)
       return :CantResolve unless stok && (sprec = stok.precedence)
+
+      rrule.explicit_precedence_used!
 
       if rprec == sprec
         ASSOC[rtok.assoc] || (raise "racc: fatal: #{rtok}.assoc is not Left/Right/Nonassoc")
