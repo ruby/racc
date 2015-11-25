@@ -419,6 +419,7 @@ module Racc
       @action  = act    # run this code when reducing
       @alternatives = []
       @lines = lines
+      @file  = nil
 
       @ident = nil
       @precedence = precedence
@@ -434,7 +435,7 @@ module Racc
     end
 
     attr_accessor :ident
-    attr_accessor :filename
+    attr_accessor :file
     attr_reader :lines
     attr_reader :symbols
     attr_reader :action

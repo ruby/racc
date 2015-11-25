@@ -138,15 +138,14 @@ module Racc
     end
 
     def GrammarFileParser.parse_file(filename)
-      new.parse(File.read(filename), filename, 1)
+      new.parse(File.read(filename), filename)
     end
 
-    def parse(src, filename = '-', lineno = 1)
-      @filename = filename
-      @lineno = lineno
-      @scanner = GrammarFileScanner.new(src, @filename)
+    def parse(src, filename = '-')
+      @file    = Source::Buffer.new(filename, src)
+      @scanner = GrammarFileScanner.new(@file)
       @grammar = Grammar.new
-      @result = Result.new(@grammar, @filename)
+      @result  = Result.new(@grammar, filename)
       @embedded_action_seq = 0
 
       yyparse @scanner, :yylex
@@ -163,7 +162,7 @@ module Racc
     end
 
     def location
-      "#{@filename}:#{@lineno - 1 + @scanner.lineno}"
+      "#{@file.name}:#{@lineno - 1 + @scanner.lineno}"
     end
 
     def add_rule_block(list)
@@ -214,7 +213,7 @@ module Racc
       end
       list.map! { |s| s.kind_of?(UserAction) ? embedded_action(s, target) : s }
       rule = Rule.new(target, list, act, line_range, prec)
-      rule.filename = @filename
+      rule.file = @file
       @grammar.add(rule)
     end
 
@@ -233,7 +232,7 @@ module Racc
       blocks.each do |block|
         header, *body = block.lines.to_a
         label = canonical_label(header.sub(/\A-+/, ''))
-        add_user_code(label, Source::Text.new(body.join(''), @filename, line + 1))
+        add_user_code(label, Source::Text.new(body.join(''), @file.name, line + 1))
         line += (1 + body.size)
       end
     end
