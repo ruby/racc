@@ -6,7 +6,7 @@
 # For details of the GNU LGPL, see the file "COPYING".
 
 require 'enumerator'
-require 'racc/source_text'
+require 'racc/source'
 require 'racc/parser-text'
 require 'rbconfig'
 
@@ -124,7 +124,7 @@ module Racc
     end
 
     def runtime_source
-      SourceText.new(::Racc::PARSER_TEXT, 'racc/parser.rb', 1)
+      Source::Text.new(::Racc::PARSER_TEXT, 'racc/parser.rb', 1)
     end
 
     def embed_library(src)
@@ -396,7 +396,7 @@ module Racc
       while body.slice!(/\A[ \t\f]*(?:\n|\r\n|\r)/)
         line += 1
       end
-      SourceText.new(body, src.filename, line)
+      Source::Text.new(body, src.filename, line)
     end
 
     def make_delimiter(body)

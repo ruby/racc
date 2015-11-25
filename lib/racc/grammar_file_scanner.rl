@@ -2,7 +2,7 @@
 
 require 'ripper'
 require 'racc/exception'
-require 'racc/source_text'
+require 'racc/source'
 
 class Racc::GrammarFileScanner
   ReservedWords = {
@@ -156,7 +156,7 @@ class Racc::GrammarFileScanner
         # an action block can only occur inside rule block
         if @in_block == :rule
           rl = RubyLexer.new(@source, p + 1)
-          yield token(:ACTION, Racc::SourceText.new(rl.code, @filename, @lineno))
+          yield token(:ACTION, Racc::Source::Text.new(rl.code, @filename, @lineno))
           @lineno += rl.code.scan(/\n|\r\n|\r/).size
           fexec rl.position + 1; # jump past the concluding '}'
         else

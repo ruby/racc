@@ -5,7 +5,7 @@
 # the GNU LGPL, Lesser General Public License version 2.1.
 # For details of the GNU LGPL, see the file "COPYING".
 
-require 'racc/source_text'
+require 'racc/source'
 require 'racc/exception'
 require 'racc/color'
 require 'racc/warning'
