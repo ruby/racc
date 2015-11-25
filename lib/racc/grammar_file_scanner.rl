@@ -58,8 +58,18 @@ class Racc::GrammarFileScanner
     yield nil
   end
 
-  def tok
+  def tok_src
     @source[@ts...@te]
+  end
+
+  def token(type = nil, value = nil)
+    src_text  = tok_src
+    next_line = @lineno + src_text.scan(/\n|\r\n|\r/).size
+    type    ||= src_text
+    value   ||= block_given? ? yield(src_text) : src_text
+    result    = [type, [value, @lineno..next_line]]
+    @lineno   = next_line
+    result
   end
 
   def scan_error!(message)
@@ -102,63 +112,61 @@ class Racc::GrammarFileScanner
     #==========================
 
     main := |*
-      ws   => { @lineno += tok.scan(/\n|\r\n|\r/).size };
+      ws   => { @lineno += @source[@ts...@te].scan(/\n|\r\n|\r/).size };
       c_nl => { @lineno += 1; @linehead = true };
 
       # start of user code sections
       '----' => {
-        yield [:END, :end] if @in_block # pretend the block was closed properly
-        @epilogue = @source[@ts...@eof] # save the remainder of the file
-        fbreak;                         # return from yylex
+        yield token(:END, :end) if @in_block # pretend block was closed properly
+        @epilogue = @source[@ts...@eof]      # save the remainder of the file
+        fbreak;                              # return from yylex
       };
 
       symbol => {
+        symbol_src = tok_src
         if @linehead    # reserved words are only meaningful at line head
           if @in_block  # in rule/convert block, 'end' is the only special word
-            if tok == 'end'
-              yield [:END, :end]
+            if symbol_src == 'end'
+              yield token(:END, :end)
               @in_block = false
             else
-              yield [:SYMBOL, tok.to_sym]
+              yield token(:SYMBOL, &:to_sym)
             end
-          elsif tok == 'rule' || tok == 'convert'
-            @in_block = tok.to_sym
-            yield [ReservedWords[tok], @in_block]
+          elsif symbol_src == 'rule' || symbol_src == 'convert'
+            yield token(ReservedWords[symbol_src]) { @in_block = symbol_src.to_sym }
           else
-            yield [ReservedWords.fetch(tok, :SYMBOL), tok.to_sym]
+            yield token(ReservedWords.fetch(symbol_src, :SYMBOL), &:to_sym)
           end
         else
-          yield [:SYMBOL, tok.to_sym]
+          yield token(:SYMBOL, &:to_sym)
         end
         @linehead = false
       };
 
       integer => {
-        yield [:DIGIT, tok.to_i]
+        yield token(:DIGIT, &:to_i)
         @linehead = false
       };
       string  => {
-        str_content = tok
-        yield [:STRING, eval(str_content)]
+        yield token(:STRING) { |str_content| eval(str_content) }
         @linehead = false
-        @lineno += str_content.scan(/\n|\r\n|\r/).size
       };
 
       '{' => {
         # an action block can only occur inside rule block
         if @in_block == :rule
           rl = RubyLexer.new(@source, p + 1)
-          yield [:ACTION, Racc::SourceText.new(rl.code, @filename, @lineno)]
+          yield token(:ACTION, Racc::SourceText.new(rl.code, @filename, @lineno))
           @lineno += rl.code.scan(/\n|\r\n|\r/).size
           fexec rl.position + 1; # jump past the concluding '}'
         else
-          yield [tok, tok]
+          yield token
         end
       };
 
       c_any => {
-        @linehead = false if tok == '|'
-        yield [tok, tok]
+        @linehead = false if tok_src == '|'
+        yield token
       };
     *|;
   }%%

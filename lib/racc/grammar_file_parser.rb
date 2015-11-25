@@ -27,7 +27,7 @@ module Racc
                     }
 
     g.rubyconst   = separated_by1(:colon2, :SYMBOL) { |syms|
-                      syms.map(&:to_s).join('::')
+                      syms.map(&:first).map(&:to_s).join('::')
                     }
 
     g.colon2 = seq(':', ':')
@@ -58,11 +58,13 @@ module Racc
                         end
                       end
                     } \
-                  | seq(:EXPECT, :DIGIT) { |_, num|
+                  | seq(:EXPECT, :DIGIT) { |_, (num, _lines)|
                       @grammar.n_expected_srconflicts = num
                     }
 
-    g.convdef     = seq(:symbol, :STRING) { |sym, code| sym.serialized = code }
+    g.convdef     = seq(:symbol, :STRING) { |sym, (code, _lines)|
+                      sym.serialized = code
+                    }
 
     g.precdef     = seq(:LEFT, :symbols) { |_, syms|
                       @grammar.declare_precedence :Left, syms
@@ -78,10 +80,10 @@ module Racc
                   | seq(:symbols, :symbol) { |list, sym| list << sym } \
                   | seq(:symbols, "|")
 
-    g.symbol      = seq(:SYMBOL) { |sym| @grammar.intern(sym, false) } \
-                  | seq(:STRING) { |str| @grammar.intern(str, false) }
+    g.symbol      = seq(:SYMBOL) { |(sym, _lines)| @grammar.intern(sym, false) } \
+                  | seq(:STRING) { |(str, _lines)| @grammar.intern(str, false) }
 
-    g.options     = many(:SYMBOL) { |syms| syms.map(&:to_s) }
+    g.options     = many(:SYMBOL) { |syms| syms.map(&:first).map(&:to_s) }
 
     g.rules       = option(:rules_core) { |list| add_rule_block(list) }
 
@@ -105,7 +107,7 @@ module Racc
     g.rule_item   = seq(:symbol) \
                   | seq("|") { |_| OrMark.new(@scanner.lineno) } \
                   | seq("=", :symbol) { |_, sym| Prec.new(sym, @scanner.lineno) } \
-                  | seq(:ACTION) { |src| UserAction.source_text(src) }
+                  | seq(:ACTION) { |(src, _lines)| UserAction.source_text(src) }
   end
 
   GrammarFileParser = grammar.parser_class
