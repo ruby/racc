@@ -127,10 +127,10 @@ module Racc
 
   class GrammarFileParser # reopen
     class Result
-      def initialize(grammar, filename)
+      def initialize(grammar, file)
         @grammar = grammar
         @params = ParserFileGenerator::Params.new
-        @params.filename = filename
+        @params.file = file
       end
 
       attr_reader :grammar
@@ -145,7 +145,7 @@ module Racc
       @file    = Source::Buffer.new(filename, src)
       @scanner = GrammarFileScanner.new(@file)
       @grammar = Grammar.new
-      @result  = Result.new(@grammar, filename)
+      @result  = Result.new(@grammar, @file)
       @embedded_action_seq = 0
 
       yyparse @scanner, :yylex
@@ -232,7 +232,7 @@ module Racc
       blocks.each do |block|
         header, *body = block.lines.to_a
         label = canonical_label(header.sub(/\A-+/, ''))
-        add_user_code(label, Source::Text.new(body.join(''), @file.name, line + 1))
+        add_user_code(label, Source::Text.new(body.join(''), @file, line + 1))
         line += (1 + body.size)
       end
     end
