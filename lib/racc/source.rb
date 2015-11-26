@@ -26,7 +26,19 @@ module Racc
       end
 
       def spiffy(indent = 0)
-        cooked = text
+        highlights.sort_by!(&:from)
+
+        raw    = text
+        cooked = ''
+        offset = 0
+
+        highlights.each do |hilite|
+          cooked << raw[offset...hilite.from]
+          cooked << hilite.to_s
+          offset = hilite.to
+        end
+        cooked << raw[offset...raw.size]
+
         indent = ' ' * indent
         # convert leading tabs to spaces so we get indentation right
         cooked.gsub!(/^ *(\t+)/) { TAB_TO_SPACE * $1.size }
@@ -41,10 +53,10 @@ module Racc
       def initialize(name, text)
         @name = name
         @text = text
+        @highlights = []
       end
 
-      attr_reader :name
-      attr_reader :text
+      attr_reader :name, :text, :highlights
 
       # for source text which didn't come from a file
       def self.from_string(str)
@@ -108,10 +120,10 @@ module Racc
         @buffer = buffer
         @from   = from
         @to     = to
+        @highlights = []
       end
 
-      attr_reader :from
-      attr_reader :to
+      attr_reader :from, :to, :highlights
 
       def text
         @text ||= @buffer.text[@from...@to]
@@ -142,6 +154,21 @@ module Racc
         widths = lines.map { |line| line[/\A\s*/].gsub("\t", TAB_TO_SPACE).size }
         widths[0] += @buffer.column_for(@from)
         widths.min
+      end
+    end
+
+    class Highlight
+      def initialize(object, from, to)
+        @object = object # model object which this text represents
+        @from   = from   # offset WITHIN parent Buffer/Range
+        @to     = to
+        freeze
+      end
+
+      attr_reader :from, :to, :object
+
+      def to_s
+        object.to_s # code objects print themselves with color highlighting
       end
     end
   end
