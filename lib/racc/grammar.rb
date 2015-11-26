@@ -481,11 +481,15 @@ module Racc
     end
 
     def to_s
-      rule = "#{@target} : #{@symbols.reject(&:hidden).map(&:to_s).join(' ')}"
-      if @precedence
-        rule << ' ' << Color.explicit_prec('=' << @precedence.display_name)
+      if @source
+        @source.spiffy
+      else
+        rule = "#{@target} : #{@symbols.reject(&:hidden).map(&:to_s).join(' ')}"
+        if @precedence
+          rule << ' ' << Color.explicit_prec('=' << @precedence.display_name)
+        end
+        rule
       end
-      rule
     end
 
     def each(&block)
