@@ -421,7 +421,7 @@ module Racc
         detail = rr.state.path.reject(&:hidden).map(&:to_s).join(' ')
 
         if verbose
-          detail << "\nAt the point, the following rules are active:\n"
+          detail << "\nAt this point, the following rules are active:\n"
           detail << top_level_context(rr.state.path, rr.state, rr.symbol).map(&:to_s).join("\n")
         end
 
