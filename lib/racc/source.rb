@@ -113,6 +113,9 @@ module Racc
         @to     = to
       end
 
+      attr_reader :from
+      attr_reader :to
+
       def text
         @text ||= @buffer.text[@from...@to]
       end

@@ -67,7 +67,7 @@ class Racc::GrammarFileScanner
     next_line = @lineno + src_text.scan(/\n|\r\n|\r/).size
     type    ||= src_text
     value   ||= block_given? ? yield(src_text) : src_text
-    result    = [type, [value, @lineno..next_line]]
+    result    = [type, [value, Racc::Source::Range.new(file, @ts, @te)]]
     @lineno   = next_line
     result
   end
