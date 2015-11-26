@@ -12,9 +12,8 @@ module Racc
     # methods which can be used on any object which represents source text
     module TextObject
       def drop_leading_blank_lines
-        if blanks = text[/\A(?:[ \t\f\v]*(?:#{NL}))/]
-          # $' is post match
-          Source::Text.new($', buffer, lineno + blanks.scan(NL).size)
+        if text =~ /\A(?:[ \t\f\v]*(?:#{NL}))+/
+          slice($~.end(0), text.size)
         else
           self
         end
@@ -36,13 +35,33 @@ module Racc
       def lineno
         1
       end
+
+      # `from` is inclusive, `to` is exclusive
+      def slice(from, to)
+        Buffer.new(name, text[from...to])
+      end
     end
 
-    class Text < Struct.new(:text, :buffer, :lineno)
+    class Text
       include TextObject
 
+      def initialize(text, buffer, lineno)
+        @text = text
+        @buffer = buffer
+        @lineno = lineno
+        freeze
+      end
+
+      attr_reader :text
+      attr_reader :lineno
+
       def name
-        buffer.name
+        @buffer.name
+      end
+
+      def slice(from, to)
+        line = (from == 0) ? @lineno : @lineno + @text[0...from].scan(NL).size
+        Text.new(@text[from...to], @buffer, line)
       end
     end
   end
