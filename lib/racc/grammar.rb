@@ -414,9 +414,9 @@ module Racc
 
   class Rule
     def initialize(target, syms, act, lines = nil, precedence = nil)
-      @target = target # LHS of rule (may be `nil` if not yet known)
+      @target  = target # LHS of rule (may be `nil` if not yet known)
       @symbols = syms  # RHS of rule
-      @action = act    # run this code when reducing
+      @action  = act    # run this code when reducing
       @alternatives = []
       @lines = lines
 
