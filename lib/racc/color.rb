@@ -55,5 +55,10 @@ module Racc
       return text unless Color.enabled?
       "\e[1;33m#{text}\e[0m" # bright yellow
     end
+
+    def explicit_prec(text)
+      return text unless Color.enabled?
+      "\e[1;31m#{text}\e[0m" # bright reddish orange
+    end
   end
 end
