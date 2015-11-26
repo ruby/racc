@@ -39,7 +39,7 @@ class Racc::GrammarFileScanner
     @lineno   = 1
     @linehead = true  # are we at the beginning of a line?
     @in_block = false # are we in a 'rule' or 'convert' block?
-    @epilogue = ''
+    @epilogue = range(@eof, @eof) # empty by default
 
     # To make the parser generator output exactly match the legacy generator,
     # collapse excess trailing newlines into just one
@@ -62,12 +62,16 @@ class Racc::GrammarFileScanner
     @source[@ts...@te]
   end
 
+  def range(from, to)
+    Racc::Source::Range.new(@file, from, to)
+  end
+
   def token(type = nil, value = nil)
     src_text  = tok_src
     next_line = @lineno + src_text.scan(/\n|\r\n|\r/).size
     type    ||= src_text
     value   ||= block_given? ? yield(src_text) : src_text
-    result    = [type, [value, Racc::Source::Range.new(file, @ts, @te)]]
+    result    = [type, [value, range(@ts, @te)]]
     @lineno   = next_line
     result
   end
@@ -118,7 +122,7 @@ class Racc::GrammarFileScanner
       # start of user code sections
       '----' => {
         yield token(:END, :end) if @in_block # pretend block was closed properly
-        @epilogue = @source[@ts...@eof]      # save the remainder of the file
+        @epilogue = range(@ts, @eof)         # save the remainder of the file
         fbreak;                              # return from yylex
       };
 
@@ -156,7 +160,7 @@ class Racc::GrammarFileScanner
         # an action block can only occur inside rule block
         if @in_block == :rule
           rl = RubyLexer.new(@source, p + 1)
-          code = Racc::Source::Range.new(@file, p + 1, rl.position)
+          code = range(p + 1, rl.position)
           yield token(:ACTION, code)
           @lineno += code.text.scan(/\n|\r\n|\r/).size
           fexec rl.position + 1; # jump past the concluding '}'
