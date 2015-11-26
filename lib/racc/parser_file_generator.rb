@@ -124,17 +124,16 @@ module Racc
     end
 
     def runtime_source
-      buffer = Source::Buffer.new('racc/parser.rb', ::Racc::PARSER_TEXT)
-      Source::Text.new(::Racc::PARSER_TEXT, buffer, 1)
+      Source::Buffer.new('racc/parser.rb', ::Racc::PARSER_TEXT)
     end
 
     def embed_library(src)
-      line %[###### #{src.buffer.name} begin]
-      line %[unless $".index '#{src.buffer.name}']
-      line %[$".push '#{src.buffer.name}']
+      line %[###### #{src.name} begin]
+      line %[unless $".index '#{src.name}']
+      line %[$".push '#{src.name}']
       put src
       line %[end]
-      line %[###### #{src.buffer.name} end]
+      line %[###### #{src.name} end]
     end
 
     def require(feature)
@@ -216,13 +215,13 @@ module Racc
     def replace_location(src)
       sep = make_separator(src)
       @f.print 'Object.' if toplevel?
-      @f.puts "module_eval(<<'#{sep}', '#{src.buffer.name}', #{src.lineno})"
+      @f.puts "module_eval(<<'#{sep}', '#{src.name}', #{src.lineno})"
       yield
       @f.puts sep
     end
 
     def make_separator(src)
-      sep = unique_separator(src.buffer.name)
+      sep = unique_separator(src.name)
       sep *= 2 while src.text.index(sep)
       sep
     end
@@ -376,7 +375,7 @@ module Racc
               end
             %s
           End
-                    delim, src.buffer.name, src.lineno - 1,
+                    delim, src.name, src.lineno - 1,
                       rule.ident, decl,
                       src.text, retval,
                     delim
