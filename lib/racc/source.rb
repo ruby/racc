@@ -9,7 +9,11 @@ module Racc
   module Source
     NL = /\n|\r\n|\r/
 
-    Buffer = Struct.new(:name, :text)
+    class Buffer < Struct.new(:name, :text)
+      def lineno
+        1
+      end
+    end
 
     class Text < Struct.new(:text, :buffer, :lineno)
       # for source text which didn't come from a file
@@ -27,12 +31,16 @@ module Racc
         end
       end
 
+      def name
+        buffer.name
+      end
+
       def to_s
         "#<Source::Text #{location}>"
       end
 
       def location
-        "#{buffer.name}:#{lineno}"
+        "#{name}:#{lineno}"
       end
     end
   end
