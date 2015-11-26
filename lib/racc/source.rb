@@ -130,8 +130,10 @@ module Racc
       end
 
       def min_indent
-        lines = text.lines
-        lines.map { |line| line[/\A\s*/].gsub("\t", TAB_TO_SPACE).size }.min
+        @min_indent ||= begin
+          lines = text.lines
+          lines.map { |line| line[/\A\s*/].gsub("\t", TAB_TO_SPACE).size }.min
+        end
       end
     end
 
@@ -172,10 +174,12 @@ module Racc
       end
 
       def min_indent
-        lines  = text.lines
-        widths = lines.map { |line| line[/\A\s*/].gsub("\t", TAB_TO_SPACE).size }
-        widths[0] += @buffer.column_for(@from)
-        widths.min
+        @min_indent ||= begin
+          lines  = text.lines
+          widths = lines.map { |line| line[/\A\s*/].gsub("\t", TAB_TO_SPACE).size }
+          widths[0] += @buffer.column_for(@from)
+          widths.min
+        end
       end
     end
 
