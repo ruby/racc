@@ -356,18 +356,16 @@ module Racc
       if @params.result_var?
         decl = ', result'
         retval = "\n    result"
-        default_body = ''
       else
         decl = ''
         retval = ''
-        default_body = 'val[0]'
       end
       @grammar.each do |rule|
         line
         if rule.action.empty?
           line "# reduce #{rule.ident} omitted"
         else
-          src0 = rule.action.source || SourceText.new(default_body, __FILE__, 0)
+          src0 = rule.action.source
           src = remove_blank_lines(src0)
           delim = make_delimiter(src.text)
           @f.printf unindent_auto(<<-End),
