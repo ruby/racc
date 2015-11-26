@@ -7,7 +7,7 @@ module Racc
     end
 
     def to_s
-      msg = bright(title)
+      msg = violet('Warning: ') << bright(title)
       msg << "\n" << details if details
       msg
     end
