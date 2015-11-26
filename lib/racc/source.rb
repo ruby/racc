@@ -7,6 +7,8 @@
 
 module Racc
   module Source
+    NL = /\n|\r\n|\r/
+
     Buffer = Struct.new(:name, :text)
 
     class Text < Struct.new(:text, :buffer, :lineno)
@@ -14,6 +16,15 @@ module Racc
       def self.from_string(str)
         file = Source::Buffer.new('(string)', str)
         new(str, file, 1)
+      end
+
+      def drop_leading_blank_lines
+        if blanks = text[/\A(?:[ \t\f\v]*(?:#{NL}))/]
+          # $' is post match
+          Source::Text.new($', buffer, lineno + blanks.scan(NL).size)
+        else
+          self
+        end
       end
 
       def to_s
