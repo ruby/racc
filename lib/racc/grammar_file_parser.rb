@@ -112,8 +112,8 @@ module Racc
                       [Prec.new(sym, range.lineno),
                        Source::Range.new(@file, range.from - 1, range.to)]
                     } \
-                  | seq(:ACTION) { |(src, range)|
-                      [UserAction.source_text(src, range.lineno), range]
+                  | seq(:ACTION) { |(range)|
+                      [UserAction.source_text(range, range.lineno), range]
                     }
   end
 

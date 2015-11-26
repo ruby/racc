@@ -156,8 +156,9 @@ class Racc::GrammarFileScanner
         # an action block can only occur inside rule block
         if @in_block == :rule
           rl = RubyLexer.new(@source, p + 1)
-          yield token(:ACTION, Racc::Source::Text.new(rl.code, @file, @lineno))
-          @lineno += rl.code.scan(/\n|\r\n|\r/).size
+          code = Racc::Source::Range.new(@file, p + 1, rl.position)
+          yield token(:ACTION, code)
+          @lineno += code.text.scan(/\n|\r\n|\r/).size
           fexec rl.position + 1; # jump past the concluding '}'
         else
           yield token
@@ -184,7 +185,6 @@ class Racc::GrammarFileScanner
       while @position < @source.length && @source[@position] =~ /\s/
         @position += 1
       end
-      @code = @source[@start...@position]
 
       if @source[@position] != '}'
         # TODO: more detailed diagnostics
@@ -192,7 +192,7 @@ class Racc::GrammarFileScanner
       end
     end
 
-    attr_reader :position, :code
+    attr_reader :position
 
     (SCANNER_EVENTS - [:embexpr_beg, :embexpr_end, :lbrace, :rbrace]).each do |event|
       class_eval("def on_#{event}(tok); @position += tok.bytesize; end")
