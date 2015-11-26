@@ -9,7 +9,7 @@ require 'racc'
 require 'racc/grammar'
 require 'racc/grammar_file_scanner'
 require 'racc/parser_file_generator'
-require 'racc/source_text'
+require 'racc/source'
 
 module Racc
 
@@ -80,8 +80,8 @@ module Racc
                   | seq(:symbols, :symbol) { |list, (sym)| list << sym } \
                   | seq(:symbols, "|")
 
-    g.symbol      = seq(:SYMBOL) { |(sym, lines)| [@grammar.intern(sym, false), lines] } \
-                  | seq(:STRING) { |(str, lines)| [@grammar.intern(str, false), lines] }
+    g.symbol      = seq(:SYMBOL) { |(sym, range)| [@grammar.intern(sym, false), range] } \
+                  | seq(:STRING) { |(str, range)| [@grammar.intern(str, false), range] }
 
     g.options     = many(:SYMBOL) { |syms| syms.map(&:first).map(&:to_s) }
 
@@ -105,14 +105,15 @@ module Racc
                     }
 
     g.rule_item   = seq(:symbol) \
-                  | seq("|") { |(_, lines)|
-                      [OrMark.new(lines.first), lines]
+                  | seq("|") { |(_, range)|
+                      [OrMark.new(range.lineno), range]
                     } \
-                  | seq("=", :symbol) { |_, (sym, lines)|
-                      [Prec.new(sym, lines.first), lines]
+                  | seq("=", :symbol) { |_, (sym, range)|
+                      [Prec.new(sym, range.lineno),
+                       Source::Range.new(@file, range.from - 1, range.to)]
                     } \
-                  | seq(:ACTION) { |(src, lines)|
-                      [UserAction.source_text(src, lines.first), lines]
+                  | seq(:ACTION) { |(range)|
+                      [UserAction.source_text(range, range.lineno), range]
                     }
   end
 
@@ -127,10 +128,10 @@ module Racc
 
   class GrammarFileParser # reopen
     class Result
-      def initialize(grammar, filename)
+      def initialize(grammar, file)
         @grammar = grammar
         @params = ParserFileGenerator::Params.new
-        @params.filename = filename
+        @params.file = file
       end
 
       attr_reader :grammar
@@ -138,15 +139,14 @@ module Racc
     end
 
     def GrammarFileParser.parse_file(filename)
-      new.parse(File.read(filename), filename, 1)
+      new.parse(File.read(filename), filename)
     end
 
-    def parse(src, filename = '-', lineno = 1)
-      @filename = filename
-      @lineno = lineno
-      @scanner = GrammarFileScanner.new(src, @filename)
+    def parse(src, filename = '-')
+      @file    = Source::Buffer.new(filename, src)
+      @scanner = GrammarFileScanner.new(@file)
       @grammar = Grammar.new
-      @result = Result.new(@grammar, @filename)
+      @result  = Result.new(@grammar, @file)
       @embedded_action_seq = 0
 
       yyparse @scanner, :yylex
@@ -163,16 +163,16 @@ module Racc
     end
 
     def location
-      "#{@filename}:#{@lineno - 1 + @scanner.lineno}"
+      "#{@file.name}:#{@lineno - 1 + @scanner.lineno}"
     end
 
     def add_rule_block(list)
       return if list.empty?
 
-      items, lines = *list.transpose
+      items, ranges = *list.transpose
       target = items.shift
 
-      line_range = (lines.map(&:first).min)..(lines.map(&:last).max)
+      range = Source::Range.new(@file, ranges.map(&:from).min, ranges.map(&:to).max)
 
       if target.is_a?(OrMark) || target.is_a?(UserAction) || target.is_a?(Prec)
         fail(CompileError, "#{target.lineno}: unexpected symbol #{target.name}")
@@ -181,9 +181,9 @@ module Racc
       split_array(items) { |obj| obj.is_a?(OrMark) }.each do |rule_items|
         sprec, rule_items = rule_items.partition { |obj| obj.is_a?(Prec) }
         if sprec.empty?
-          add_rule(target, rule_items, line_range)
+          add_rule(target, rule_items, range)
         elsif sprec.one?
-          add_rule(target, rule_items, line_range, sprec.first.symbol)
+          add_rule(target, rule_items, range, sprec.first.symbol)
         else
           fail(CompileError, "'=<prec>' used twice in one rule")
         end
@@ -206,16 +206,14 @@ module Racc
       results
     end
 
-    def add_rule(target, list, line_range, prec = nil)
+    def add_rule(target, list, range, prec = nil)
       if list.last.kind_of?(UserAction)
         act = list.pop
       else
         act = UserAction.empty
       end
       list.map! { |s| s.kind_of?(UserAction) ? embedded_action(s, target) : s }
-      rule = Rule.new(target, list, act, line_range, prec)
-      rule.filename = @filename
-      @grammar.add(rule)
+      @grammar.add(Rule.new(target, list, act, range, prec))
     end
 
     def embedded_action(act, target)
@@ -228,13 +226,11 @@ module Racc
     # User Code Block
 
     def parse_user_code
-      line = @scanner.lineno
-      _, *blocks = *@scanner.epilogue.split(/^----/)
-      blocks.each do |block|
-        header, *body = block.lines.to_a
-        label = canonical_label(header.sub(/\A-+/, ''))
-        add_user_code(label, SourceText.new(body.join(''), @filename, line + 1))
-        line += (1 + body.size)
+      epilogue = @scanner.epilogue
+      epilogue.text.scan(/^----([^\n\r]*)(?:\n|\r\n|\r)(.*?)(?=^----|\Z)/m) do
+        label = canonical_label($~[1])
+        range = epilogue.slice($~.begin(2), $~.end(2))
+        add_user_code(label, range)
       end
     end
 

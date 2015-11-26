@@ -10,7 +10,8 @@ module Racc
         original = File.read(testfile)
         # wrap the Ruby source code in an action block
         wrapped  = "class Test\nrule\na : '*' {" << original << "\n}"
-        scanner  = Racc::GrammarFileScanner.new(wrapped, testfile)
+        file     = Source::Buffer.new(testfile, wrapped)
+        scanner  = Racc::GrammarFileScanner.new(file)
 
         rebuilt = ''
         scanner.yylex do |token|

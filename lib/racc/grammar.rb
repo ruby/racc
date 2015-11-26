@@ -5,7 +5,7 @@
 # the GNU LGPL, Lesser General Public License version 2.1.
 # For details of the GNU LGPL, see the file "COPYING".
 
-require 'racc/source_text'
+require 'racc/source'
 require 'racc/exception'
 require 'racc/color'
 require 'racc/warning'
@@ -413,12 +413,12 @@ module Racc
   end
 
   class Rule
-    def initialize(target, syms, act, lines = nil, precedence = nil)
+    def initialize(target, syms, act, source = nil, precedence = nil)
       @target  = target # LHS of rule (may be `nil` if not yet known)
       @symbols = syms  # RHS of rule
       @action  = act    # run this code when reducing
       @alternatives = []
-      @lines = lines
+      @source = source
 
       @ident = nil
       @precedence = precedence
@@ -434,8 +434,7 @@ module Racc
     end
 
     attr_accessor :ident
-    attr_accessor :filename
-    attr_reader :lines
+    attr_reader :source
     attr_reader :symbols
     attr_reader :action
     attr_reader :target
