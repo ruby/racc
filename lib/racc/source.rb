@@ -7,7 +7,9 @@
 
 module Racc
   module Source
-    NL = /\n|\r\n|\r/
+    NL           = /\n|\r\n|\r/
+    TAB_WIDTH    = 8
+    TAB_TO_SPACE = (' ' * TAB_WIDTH).freeze
 
     # methods which can be used on any object which represents source text
     module Text
@@ -21,6 +23,15 @@ module Racc
 
       def location
         "#{name}:#{lineno}"
+      end
+
+      def spiffy(indent = 0)
+        cooked = text
+        indent = ' ' * indent
+        # convert leading tabs to spaces so we get indentation right
+        cooked.gsub!(/^ *(\t+)/) { TAB_TO_SPACE * $1.size }
+        cooked = (' ' * column) << cooked if column > 0
+        cooked.gsub(/^ {#{min_indent}}/, indent)
       end
     end
 
@@ -42,6 +53,10 @@ module Racc
 
       def lineno
         1
+      end
+
+      def column
+        0
       end
 
       # `from` is inclusive, `to` is exclusive
@@ -79,6 +94,11 @@ module Racc
           offsets
         end
       end
+
+      def min_indent
+        lines = text.lines
+        lines.map { |line| line[/\A\s*/].gsub("\t", TAB_TO_SPACE).size }.min
+      end
     end
 
     class Range
@@ -105,12 +125,23 @@ module Racc
         @buffer.line_for(@from)
       end
 
+      def column
+        @buffer.column_for(@from)
+      end
+
       def slice(from, to)
         raise 'slice end must be >= start' if from > to
         max  = @to - @from
         to   = max if to > max
         from = max if from > max
         Range.new(@buffer, @from + from, @from + to)
+      end
+
+      def min_indent
+        lines  = text.lines
+        widths = lines.map { |line| line[/\A\s*/].gsub("\t", TAB_TO_SPACE).size }
+        widths[0] += @buffer.column_for(@from)
+        widths.min
       end
     end
   end
