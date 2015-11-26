@@ -24,8 +24,16 @@ module Racc
       end
     end
 
-    class Buffer < Struct.new(:name, :text)
+    class Buffer
       include TextObject
+
+      def initialize(name, text)
+        @name = name
+        @text = text
+      end
+
+      attr_reader :name
+      attr_reader :text
 
       # for source text which didn't come from a file
       def self.from_string(str)
