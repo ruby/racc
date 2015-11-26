@@ -56,7 +56,7 @@ module Racc
       end
     end
 
-    def assert_output_unchanged(asset)
+    def assert_parser_unchanged(asset)
       file = File.basename(asset, '.y')
 
       expected = File.read("#{REGRESS_DIR}/#{file}.rb")

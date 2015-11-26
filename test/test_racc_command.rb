@@ -169,13 +169,13 @@ module Racc
     def test_ruby18
       err = assert_compile 'ruby18.y'
       assert_warnings err, useless_terms: 1
-      assert_output_unchanged 'ruby18.y'
+      assert_parser_unchanged 'ruby18.y'
     end
 
     def test_ruby22
       err = assert_compile 'ruby22.y'
       assert_warnings err, useless_terms: 1
-      assert_output_unchanged 'ruby22.y'
+      assert_parser_unchanged 'ruby22.y'
     end
 
     # .y file from csspool gem
@@ -183,7 +183,7 @@ module Racc
     def test_csspool
       err = assert_compile 'csspool.y'
       assert_warnings err, sr_conflicts: 5, rr_conflicts: 3
-      assert_output_unchanged 'csspool.y'
+      assert_parser_unchanged 'csspool.y'
     end
 
     # .y file from opal gem
@@ -191,7 +191,7 @@ module Racc
     def test_opal
       err = assert_compile 'opal.y'
       assert_warnings err, useless_terms: 3
-      assert_output_unchanged 'opal.y'
+      assert_parser_unchanged 'opal.y'
     end
 
     # .y file from journey gem
@@ -199,7 +199,7 @@ module Racc
     def test_journey
       err = assert_compile 'journey.y'
       assert_no_warnings err
-      assert_output_unchanged 'journey.y'
+      assert_parser_unchanged 'journey.y'
     end
 
     # .y file from nokogiri gem
@@ -207,7 +207,7 @@ module Racc
     def test_nokogiri_css
       err = assert_compile 'nokogiri-css.y'
       assert_warnings err, useless_terms: 1, rr_conflicts: 1
-      assert_output_unchanged 'nokogiri-css.y'
+      assert_parser_unchanged 'nokogiri-css.y'
     end
 
     # .y file from bibtex-ruby gem
@@ -215,7 +215,7 @@ module Racc
     def test_bibtex
       err = assert_compile 'bibtex.y'
       assert_no_warnings err
-      assert_output_unchanged 'bibtex.y'
+      assert_parser_unchanged 'bibtex.y'
     end
 
     # .y file from edtf-ruby gem
@@ -223,7 +223,7 @@ module Racc
     def test_edtf
       err = assert_compile 'edtf.y'
       assert_warnings err, useless_terms: 2
-      assert_output_unchanged 'edtf.y'
+      assert_parser_unchanged 'edtf.y'
     end
 
     # .y file from namae gem
@@ -231,7 +231,7 @@ module Racc
     def test_namae
       err = assert_compile 'namae.y'
       assert_no_warnings err
-      assert_output_unchanged 'namae.y'
+      assert_parser_unchanged 'namae.y'
     end
 
     # .y file from liquor gem
@@ -240,7 +240,7 @@ module Racc
       err = assert_compile 'liquor.y'
       # liquor has S/R conflicts, but they are expected
       assert_warnings err, useless_terms: 1
-      assert_output_unchanged 'liquor.y'
+      assert_parser_unchanged 'liquor.y'
     end
 
     # .y file from nasl gem
@@ -249,7 +249,7 @@ module Racc
       err = assert_compile 'nasl.y'
       # nasl has 1 S/R conflict, but it is expected
       assert_no_warnings err
-      assert_output_unchanged 'nasl.y'
+      assert_parser_unchanged 'nasl.y'
     end
 
     # .y file from riml gem
@@ -257,7 +257,7 @@ module Racc
     def test_riml
       err = assert_compile 'riml.y'
       assert_warnings err, useless_terms: 1, sr_conflicts: 289
-      assert_output_unchanged 'riml.y'
+      assert_parser_unchanged 'riml.y'
     end
 
     # .y file from ruby-php-serialization gem
@@ -265,7 +265,7 @@ module Racc
     def test_php_serialization
       err = assert_compile 'php_serialization.y'
       assert_no_warnings err
-      assert_output_unchanged 'php_serialization.y'
+      assert_parser_unchanged 'php_serialization.y'
     end
 
     # .y file from huia language implementation
@@ -273,7 +273,7 @@ module Racc
     def test_huia
       err = assert_compile 'huia.y'
       assert_warnings err, sr_conflicts: 285
-      assert_output_unchanged 'huia.y'
+      assert_parser_unchanged 'huia.y'
     end
 
     # .y files from rdtool gem
@@ -283,8 +283,8 @@ module Racc
       err2 = assert_compile 'rdinlineparser.y'
       assert_no_warnings err1
       assert_no_warnings err2
-      assert_output_unchanged 'rdblockparser.y'
-      assert_output_unchanged 'rdinlineparser.y'
+      assert_parser_unchanged 'rdblockparser.y'
+      assert_parser_unchanged 'rdinlineparser.y'
     end
 
     # .y file from cast gem
@@ -293,7 +293,7 @@ module Racc
       err = assert_compile 'cast.y'
       # cast has 1 S/R conflict, but it is expected
       assert_no_warnings err
-      assert_output_unchanged 'cast.y'
+      assert_parser_unchanged 'cast.y'
     end
 
     # .y file from cadenza gem
@@ -302,7 +302,7 @@ module Racc
       err = assert_compile 'cadenza.y'
       # cadenza has 37 S/R conflicts, but they are expected
       assert_no_warnings err
-      assert_output_unchanged 'cadenza.y'
+      assert_parser_unchanged 'cadenza.y'
     end
 
     # .y file from mediacloth gem
@@ -310,7 +310,7 @@ module Racc
     def test_mediacloth
       err = assert_compile 'mediacloth.y'
       assert_no_warnings err
-      assert_output_unchanged 'mediacloth.y'
+      assert_parser_unchanged 'mediacloth.y'
     end
 
     # .y file from twowaysql gem
@@ -318,7 +318,7 @@ module Racc
     def test_twowaysql
       err = assert_compile 'twowaysql.y'
       assert_warnings err, sr_conflicts: 4
-      assert_output_unchanged 'twowaysql.y'
+      assert_parser_unchanged 'twowaysql.y'
     end
 
     # .y file from machete gem
@@ -326,7 +326,7 @@ module Racc
     def test_machete
       err = assert_compile 'machete.y'
       assert_no_warnings err
-      assert_output_unchanged 'machete.y'
+      assert_parser_unchanged 'machete.y'
     end
 
     # .y file from mof gem
@@ -334,7 +334,7 @@ module Racc
     def test_mof
       err = assert_compile 'mof.y'
       assert_warnings err, useless_terms: 4, sr_conflicts: 7, rr_conflicts: 4
-      assert_output_unchanged 'mof.y'
+      assert_parser_unchanged 'mof.y'
     end
 
     # .y file from tp_plus gem
@@ -342,7 +342,7 @@ module Racc
     def test_tp_plus
       err = assert_compile 'tp_plus.y'
       assert_warnings err, useless_terms: 2, sr_conflicts: 21
-      assert_output_unchanged 'tp_plus.y'
+      assert_parser_unchanged 'tp_plus.y'
     end
   end
 end
