@@ -6,8 +6,6 @@ README.rdoc
 Rakefile
 TODO
 bin/racc
-bin/racc2y
-bin/y2racc
 ext/racc/MANIFEST
 ext/racc/cparse.c
 ext/racc/depend
