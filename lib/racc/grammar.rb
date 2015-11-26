@@ -482,7 +482,11 @@ module Racc
     end
 
     def to_s
-      "#{@target} : #{@symbols.reject(&:hidden).map(&:to_s).join(' ')}"
+      rule = "#{@target} : #{@symbols.reject(&:hidden).map(&:to_s).join(' ')}"
+      if @precedence
+        rule << ' ' << Color.explicit_prec('=' << @precedence.display_name)
+      end
+      rule
     end
 
     def each(&block)
@@ -564,7 +568,7 @@ module Racc
 
   class Prec < Struct.new(:symbol, :lineno)
     def to_s
-      "=#{@symbol}"
+      Color.explicit_prec("=#{symbol.display_name}")
     end
   end
 
@@ -594,6 +598,9 @@ module Racc
         "#{@rule.symbols[0...@index].reject(&:hidden).map(&:to_s).join(' ')} ."
       unless reduce?
         result << " #{rule.symbols[@index..-1].reject(&:hidden).map(&:to_s).join(' ')}"
+      end
+      if sym = @rule.explicit_precedence
+        result << ' ' << Color.explicit_prec('=' << sym.display_name)
       end
       result
     end
