@@ -409,9 +409,9 @@ module Racc
           else
             detail << "\nThe following rules direct me to shift:\n"
           end
-          detail << sr.srules.map(&:to_s).join("\n")
+          detail << sr.srules.map { |ptr| ptr.rule.to_s }.join("\n")
           detail << "\nThe following rule directs me to reduce:\n"
-          detail << sr.rrule.ptrs.last.to_s
+          detail << sr.rrule.to_s
           warnings << Warning.new(:sr_conflict, title, detail)
         end
       end
