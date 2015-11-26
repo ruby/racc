@@ -42,28 +42,29 @@ module Racc
         cooked << raw[offset...raw.size]
       end
 
-      # ...and nicely indented, with location
+      # ...and with corrected indention...
+      def spiffier
+        cooked = spiffy
+        # convert leading tabs to spaces so we get indentation right
+        cooked.gsub!(/^ *(\t+)/) { TAB_TO_SPACE * $1.size }
+        cooked = (' ' * column) << cooked if column > 0
+        cooked.gsub!(/^ {#{min_indent}}/, '')
+        cooked
+      end
+
+      # ...and with location
       def spifferific
         loc = location << ': '
         max_width = text.lines.map(&:length).max
 
         if (max_width - min_indent + loc.length) > TERM_WIDTH
           # too wide to fit if we indent to make space for location...
-          indent = ''
+          "#{Color.bright(loc)}\n#{spiffier}"
         else
-          indent = ' ' * loc.length
-        end
-
-        cooked = spiffy
-        # convert leading tabs to spaces so we get indentation right
-        cooked.gsub!(/^ *(\t+)/) { TAB_TO_SPACE * $1.size }
-        cooked = (' ' * column) << cooked if column > 0
-        cooked.gsub!(/^ {#{min_indent}}/, indent)
-
-        if indent == ''
-          "#{Color.bright(loc)}\n#{cooked}"
-        else
-          cooked.slice!(/\A {#{loc.length}}/)
+          # add extra indentation at every line start EXCEPT the first
+          # (to make everything line up)
+          cooked = spiffier
+          cooked.gsub!(/(?<!\A)^/, ' ' * loc.length)
           "#{Color.bright(loc)}#{cooked}"
         end
       end
@@ -78,7 +79,8 @@ module Racc
         @highlights = []
       end
 
-      attr_reader :name, :text, :highlights
+      attr_reader :name, :text
+      attr_accessor :highlights
 
       # for source text which didn't come from a file
       def self.from_string(str)
@@ -89,13 +91,22 @@ module Racc
         1
       end
 
+      def lines
+        1..line_offsets[0][0]
+      end
+
       def column
         0
       end
 
       # `from` is inclusive, `to` is exclusive
       def slice(from, to)
-        Buffer.new(name, text[from...to])
+        Range.new(self, from, to).tap do |range|
+          range.highlights =
+            @highlights
+              .select { |h| h.from >= from && t.to <= to }
+              .map { |h| Highlight.new(h.object, h.from - from, h.to - from ) }
+        end
       end
 
       if Array.method_defined?(:bsearch)
@@ -147,7 +158,8 @@ module Racc
         @highlights = []
       end
 
-      attr_reader :from, :to, :highlights
+      attr_reader :from, :to
+      attr_accessor :highlights
 
       def text
         @text ||= @buffer.text[@from...@to]
@@ -161,6 +173,10 @@ module Racc
         @buffer.line_for(@from)
       end
 
+      def lines
+        (@buffer.line_for(@from))..(@buffer.line_for(@to))
+      end
+
       def column
         @buffer.column_for(@from)
       end
@@ -170,7 +186,12 @@ module Racc
         max  = @to - @from
         to   = max if to > max
         from = max if from > max
-        Range.new(@buffer, @from + from, @from + to)
+        Range.new(@buffer, @from + from, @from + to).tap do |range|
+          range.highlights =
+            @highlights
+              .select { |h| h.from >= from && h.to <= to }
+              .map { |h| Highlight.new(h.object, h.from - from, h.to - from) }
+        end
       end
 
       def min_indent
@@ -195,6 +216,49 @@ module Racc
 
       def to_s
         object.to_s # code objects print themselves with color highlighting
+      end
+    end
+
+    # A (sparse) set of lines from a Buffer or Range
+    class SparseLines
+      def initialize(textobj, line_ranges)
+        @textobj = textobj
+        @lines   = line_ranges.sort_by(&:begin)
+        freeze
+      end
+
+      def spifferific
+        cooked    = @textobj.spiffier.lines.to_a
+        base_line = @textobj.lineno
+        ranges    = canonicalize_ranges(@lines)
+        groups    = ranges.map { |r| cooked[(r.begin - base_line)..(r.end - base_line)] }
+        groups    = groups.map!(&:join)
+
+        loc_width = "#{@textobj.name}:#{ranges.last.begin}: ".length
+        max_width = @textobj.text.lines.map(&:length).max
+
+        if (max_width - @textobj.min_indent + loc_width) > TERM_WIDTH
+          loc = "#{@textobj.name}:#{ranges.first.begin}: "
+          "#{Color.bright(loc)}\n#{groups.join("...\n")}"
+        else
+          groups.zip(ranges).map! do |g, range|
+            g.gsub!(/(?<!\A)^/, ' ' * loc_width)
+            loc = "#{@textobj.name}:#{range.begin}: "
+            "#{Color.bright(loc)}#{g}"
+          end.join("...\n")
+        end
+      end
+
+      def canonicalize_ranges(ranges)
+        last = nil
+        ranges.each_with_object([]) do |range, result|
+          if !last || range.begin > last.end + (last.exclude_end? ? 0 : 1)
+            result << (last = range)
+          else
+            combined = last.begin..(range.end - (range.exclude_end? ? 1 : 0))
+            result[-1] = last = combined
+          end
+        end
       end
     end
   end

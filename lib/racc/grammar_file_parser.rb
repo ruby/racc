@@ -168,29 +168,52 @@ module Racc
 
     def add_rule_block(list)
       return if list.empty?
-
-      items, ranges = *list.transpose
-      target = items.shift
-
-      range = Source::Range.new(@file, ranges.map(&:from).min, ranges.map(&:to).max)
-
-      highlights = list
-                     .select { |obj, r| obj.is_a?(Sym) || obj.is_a?(Prec) }
-                     .map { |obj, r| Source::Highlight.new(obj,
-                                                           r.from - range.from,
-                                                           r.to - range.from) }
-      range.highlights.concat(highlights)
+      target, target_range = *list.shift
+      target_range.highlights << Source::Highlight.new(target, 0,
+                                   target_range.to - target_range.from)
 
       if target.is_a?(OrMark) || target.is_a?(UserAction) || target.is_a?(Prec)
         fail(CompileError, "#{target.lineno}: unexpected symbol #{target.name}")
       end
 
-      split_array(items) { |obj| obj.is_a?(OrMark) }.each do |rule_items|
-        sprec, rule_items = rule_items.partition { |obj| obj.is_a?(Prec) }
+      if list.empty? # only derivation rule is null
+        add_rule(target, [], target_range)
+        return
+      end
+
+      # record highlights which will be used when printing out rules
+      block_range = Source::Range.new(@file, target_range.from, list.last[1].to)
+      highlights = list
+                     .select { |obj, r| obj.is_a?(Sym) || obj.is_a?(Prec) }
+                     .map { |obj, r| Source::Highlight.new(obj,
+                                                           r.from - block_range.from,
+                                                           r.to - block_range.from) }
+      block_range.highlights = highlights.unshift(target_range.highlights[0])
+
+      ormark = nil # used for setting source code range for null rules
+      groups = split_array(list) { |obj, r| obj.is_a?(OrMark) ? ormark = r : false}
+      groups.each do |rule_items|
+        sprec, rule_items = rule_items.partition { |obj, r| obj.is_a?(Prec) }
+        items, ranges = *rule_items.transpose
+
+        if ranges
+          range = block_range.slice(ranges.map(&:from).min - block_range.from,
+                                    ranges.map(&:to).max   - block_range.from)
+          range = Source::SparseLines.new(block_range, [target_range.lines, range.lines])
+        else
+          # this is a null rule
+          if ormark
+            range = Source::SparseLines.new(block_range, [target_range.lines, ormark.lines])
+          else
+            # it's the first rule in the block as well
+            range = target_range
+          end
+        end
+
         if sprec.empty?
-          add_rule(target, rule_items, range)
+          add_rule(target, items || [], range)
         elsif sprec.one?
-          add_rule(target, rule_items, range, sprec.first.symbol)
+          add_rule(target, items || [], range, sprec[0][0].symbol)
         else
           fail(CompileError, "'=<prec>' used twice in one rule")
         end
