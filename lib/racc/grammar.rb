@@ -413,12 +413,12 @@ module Racc
   end
 
   class Rule
-    def initialize(target, syms, act, lines = nil, precedence = nil)
+    def initialize(target, syms, act, source = nil, precedence = nil)
       @target  = target # LHS of rule (may be `nil` if not yet known)
       @symbols = syms  # RHS of rule
       @action  = act    # run this code when reducing
       @alternatives = []
-      @lines = lines
+      @source = source
       @file  = nil
 
       @ident = nil
@@ -436,7 +436,7 @@ module Racc
 
     attr_accessor :ident
     attr_accessor :file
-    attr_reader :lines
+    attr_reader :source
     attr_reader :symbols
     attr_reader :action
     attr_reader :target

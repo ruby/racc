@@ -80,8 +80,8 @@ module Racc
                   | seq(:symbols, :symbol) { |list, (sym)| list << sym } \
                   | seq(:symbols, "|")
 
-    g.symbol      = seq(:SYMBOL) { |(sym, lines)| [@grammar.intern(sym, false), lines] } \
-                  | seq(:STRING) { |(str, lines)| [@grammar.intern(str, false), lines] }
+    g.symbol      = seq(:SYMBOL) { |(sym, range)| [@grammar.intern(sym, false), range] } \
+                  | seq(:STRING) { |(str, range)| [@grammar.intern(str, false), range] }
 
     g.options     = many(:SYMBOL) { |syms| syms.map(&:first).map(&:to_s) }
 
@@ -105,14 +105,15 @@ module Racc
                     }
 
     g.rule_item   = seq(:symbol) \
-                  | seq("|") { |(_, lines)|
-                      [OrMark.new(lines.first), lines]
+                  | seq("|") { |(_, range)|
+                      [OrMark.new(range.lineno), range]
                     } \
-                  | seq("=", :symbol) { |_, (sym, lines)|
-                      [Prec.new(sym, lines.first), lines]
+                  | seq("=", :symbol) { |_, (sym, range)|
+                      [Prec.new(sym, range.lineno),
+                       Source::Range.new(@file, range.from - 1, range.to)]
                     } \
-                  | seq(:ACTION) { |(src, lines)|
-                      [UserAction.source_text(src, lines.first), lines]
+                  | seq(:ACTION) { |(src, range)|
+                      [UserAction.source_text(src, range.lineno), range]
                     }
   end
 
@@ -168,10 +169,10 @@ module Racc
     def add_rule_block(list)
       return if list.empty?
 
-      items, lines = *list.transpose
+      items, ranges = *list.transpose
       target = items.shift
 
-      line_range = (lines.map(&:first).min)..(lines.map(&:last).max)
+      range = Source::Range.new(@file, ranges.map(&:from).min, ranges.map(&:to).max)
 
       if target.is_a?(OrMark) || target.is_a?(UserAction) || target.is_a?(Prec)
         fail(CompileError, "#{target.lineno}: unexpected symbol #{target.name}")
@@ -180,9 +181,9 @@ module Racc
       split_array(items) { |obj| obj.is_a?(OrMark) }.each do |rule_items|
         sprec, rule_items = rule_items.partition { |obj| obj.is_a?(Prec) }
         if sprec.empty?
-          add_rule(target, rule_items, line_range)
+          add_rule(target, rule_items, range)
         elsif sprec.one?
-          add_rule(target, rule_items, line_range, sprec.first.symbol)
+          add_rule(target, rule_items, range, sprec.first.symbol)
         else
           fail(CompileError, "'=<prec>' used twice in one rule")
         end
@@ -205,14 +206,14 @@ module Racc
       results
     end
 
-    def add_rule(target, list, line_range, prec = nil)
+    def add_rule(target, list, range, prec = nil)
       if list.last.kind_of?(UserAction)
         act = list.pop
       else
         act = UserAction.empty
       end
       list.map! { |s| s.kind_of?(UserAction) ? embedded_action(s, target) : s }
-      rule = Rule.new(target, list, act, line_range, prec)
+      rule = Rule.new(target, list, act, range, prec)
       rule.file = @file
       @grammar.add(rule)
     end
