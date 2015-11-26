@@ -55,18 +55,11 @@ module Racc
       # ...and with location
       def spifferific
         loc = location << ': '
-        max_width = text.lines.map(&:length).max
-
-        if (max_width - min_indent + loc.length) > TERM_WIDTH
-          # too wide to fit if we indent to make space for location...
-          "#{Color.bright(loc)}\n#{spiffier}"
-        else
-          # add extra indentation at every line start EXCEPT the first
-          # (to make everything line up)
-          cooked = spiffier
-          cooked.gsub!(/(?<!\A)^/, ' ' * loc.length)
-          "#{Color.bright(loc)}#{cooked}"
-        end
+        # add extra indentation at every line start EXCEPT the first
+        # (to make everything line up)
+        cooked = spiffier
+        cooked.gsub!(/(?<!\A)^/, ' ' * loc.length)
+        "#{Color.bright(loc)}#{cooked}"
       end
     end
 
@@ -235,18 +228,12 @@ module Racc
         groups    = groups.map!(&:join)
 
         loc_width = "#{@textobj.name}:#{ranges.last.begin}: ".length
-        max_width = @textobj.text.lines.map(&:length).max
 
-        if (max_width - @textobj.min_indent + loc_width) > TERM_WIDTH
-          loc = "#{@textobj.name}:#{ranges.first.begin}: "
-          "#{Color.bright(loc)}\n#{groups.join("...\n")}"
-        else
-          groups.zip(ranges).map! do |g, range|
-            g.gsub!(/(?<!\A)^/, ' ' * loc_width)
-            loc = "#{@textobj.name}:#{range.begin}: "
-            "#{Color.bright(loc)}#{g}"
-          end.join("...\n")
-        end
+        groups.zip(ranges).map! do |g, range|
+          g.gsub!(/(?<!\A)^/, ' ' * loc_width)
+          loc = "#{@textobj.name}:#{range.begin}: "
+          "#{Color.bright(loc)}#{g}"
+        end.join("...\n")
       end
 
       def canonicalize_ranges(ranges)
