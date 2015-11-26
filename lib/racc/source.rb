@@ -10,7 +10,7 @@ module Racc
     NL = /\n|\r\n|\r/
 
     # methods which can be used on any object which represents source text
-    module TextObject
+    module Text
       def drop_leading_blank_lines
         if text =~ /\A(?:[ \t\f\v]*(?:#{NL}))+/
           slice($~.end(0), text.size)
@@ -25,7 +25,7 @@ module Racc
     end
 
     class Buffer
-      include TextObject
+      include Text
 
       def initialize(name, text)
         @name = name
@@ -81,31 +81,8 @@ module Racc
       end
     end
 
-    class Text
-      include TextObject
-
-      def initialize(text, buffer, lineno)
-        @text   = text
-        @buffer = buffer
-        @lineno = lineno
-        freeze
-      end
-
-      attr_reader :text
-      attr_reader :lineno
-
-      def name
-        @buffer.name
-      end
-
-      def slice(from, to)
-        line = (from == 0) ? @lineno : @lineno + @text[0...from].scan(NL).size
-        Text.new(@text[from...to], @buffer, line)
-      end
-    end
-
     class Range
-      include TextObject
+      include Text
 
       def initialize(buffer, from, to)
         @buffer = buffer
