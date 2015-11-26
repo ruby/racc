@@ -10,6 +10,7 @@ module Racc
     NL           = /\n|\r\n|\r/
     TAB_WIDTH    = 8
     TAB_TO_SPACE = (' ' * TAB_WIDTH).freeze
+    TERM_WIDTH   = 80
 
     # methods which can be used on any object which represents source text
     module Text
@@ -25,7 +26,8 @@ module Racc
         "#{name}:#{lineno}"
       end
 
-      def spiffy(indent = 0)
+      # display with color highlights...
+      def spiffy
         highlights.sort_by!(&:from)
 
         raw    = text
@@ -38,12 +40,32 @@ module Racc
           offset = hilite.to
         end
         cooked << raw[offset...raw.size]
+      end
 
-        indent = ' ' * indent
+      # ...and nicely indented, with location
+      def spifferific
+        loc = location << ': '
+        max_width = text.lines.map(&:length).max
+
+        if (max_width - min_indent + loc.length) > TERM_WIDTH
+          # too wide to fit if we indent to make space for location...
+          indent = ''
+        else
+          indent = ' ' * loc.length
+        end
+
+        cooked = spiffy
         # convert leading tabs to spaces so we get indentation right
         cooked.gsub!(/^ *(\t+)/) { TAB_TO_SPACE * $1.size }
         cooked = (' ' * column) << cooked if column > 0
-        cooked.gsub(/^ {#{min_indent}}/, indent)
+        cooked.gsub!(/^ {#{min_indent}}/, indent)
+
+        if indent == ''
+          "#{Color.bright(loc)}\n#{cooked}"
+        else
+          cooked.slice!(/\A {#{loc.length}}/)
+          "#{Color.bright(loc)}#{cooked}"
+        end
       end
     end
 

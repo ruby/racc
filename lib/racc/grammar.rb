@@ -482,7 +482,7 @@ module Racc
 
     def to_s
       if @source
-        @source.spiffy
+        @source.spifferific
       else
         rule = "#{@target} : #{@symbols.reject(&:hidden).map(&:to_s).join(' ')}"
         if @precedence
