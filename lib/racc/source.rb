@@ -221,11 +221,11 @@ module Racc
       end
 
       def spifferific
-        cooked    = @textobj.spiffier.lines.to_a
+        cooked    = @textobj.spiffier.lines.map(&:chomp)
         base_line = @textobj.lineno
         ranges    = canonicalize_ranges(@lines)
         groups    = ranges.map { |r| cooked[(r.begin - base_line)..(r.end - base_line)] }
-        groups    = groups.map!(&:join)
+        groups    = groups.map! { |g| g.join("\n") }
 
         loc_width = "#{@textobj.name}:#{ranges.last.begin}: ".length
 
@@ -233,7 +233,7 @@ module Racc
           g.gsub!(/(?<!\A)^/, ' ' * loc_width)
           loc = "#{@textobj.name}:#{range.begin}: "
           "#{Color.bright(loc)}#{g}"
-        end.join("...\n")
+        end.join("\n...\n")
       end
 
       def canonicalize_ranges(ranges)
