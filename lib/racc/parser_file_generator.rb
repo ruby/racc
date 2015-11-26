@@ -366,8 +366,8 @@ module Racc
         if rule.action.empty?
           line "# reduce #{rule.ident} omitted"
         else
-          src0 = rule.action.source
-          src = remove_blank_lines(src0)
+          src0  = rule.action.source
+          src   = src0.drop_leading_blank_lines
           delim = make_delimiter(src.text)
           @f.printf unindent_auto(<<-End),
             module_eval(<<'%s', '%s', %d)
@@ -389,15 +389,6 @@ module Racc
         end
       End
       line
-    end
-
-    def remove_blank_lines(src)
-      body = src.text.dup
-      line = src.lineno
-      while body.slice!(/\A[ \t\f]*(?:\n|\r\n|\r)/)
-        line += 1
-      end
-      Source::Text.new(body, src.buffer, line)
     end
 
     def make_delimiter(body)
