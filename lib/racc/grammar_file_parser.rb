@@ -174,6 +174,13 @@ module Racc
 
       range = Source::Range.new(@file, ranges.map(&:from).min, ranges.map(&:to).max)
 
+      highlights = list
+                     .select { |obj, r| obj.is_a?(Sym) || obj.is_a?(Prec) }
+                     .map { |obj, r| Source::Highlight.new(obj,
+                                                           r.from - range.from,
+                                                           r.to - range.from) }
+      range.highlights.concat(highlights)
+
       if target.is_a?(OrMark) || target.is_a?(UserAction) || target.is_a?(Prec)
         fail(CompileError, "#{target.lineno}: unexpected symbol #{target.name}")
       end
