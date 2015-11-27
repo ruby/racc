@@ -116,8 +116,7 @@ module Racc
         end
       end
 
-      @rules.each do |rule|
-        next unless rule.explicit_precedence && !rule.explicit_precedence_used?
+      select { |r| r.explicit_precedence && !r.explicit_precedence_used? }.each do |rule|
         warnings << Warning.new(:useless_prec, 'The explicit precedence ' \
           'declaration on this rule does not resolve any conflicts and can ' \
           "be removed:", rule.to_s)
@@ -358,7 +357,7 @@ module Racc
       @closed = true
 
       # if 'start' nonterminal was not explicitly set, just take the first one
-      @start ||= @rules.map(&:target).detect { |sym| !sym.dummy? }
+      @start ||= map(&:target).detect { |sym| !sym.dummy? }
       fail CompileError, 'no rule in input' if @rules.empty?
       add_start_rule
       @rules.freeze
@@ -378,7 +377,7 @@ module Racc
           sym != @symboltable.error &&
           sym != @start &&
           (!sym.reachable.include?(@start) || !productive_symbols.include?(sym)) &&
-          @rules.none? { |r| r.explicit_precedence == sym }
+          none? { |rule| rule.explicit_precedence == sym }
         end
       end
     end
