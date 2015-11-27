@@ -43,7 +43,7 @@ module Racc
                       @grammar.start_symbol = sym
                     } \
                   | seq(:TOKEN, :symbols) { |_, syms|
-                      syms.each(&:should_be_terminal!)
+                      syms.each(&:declared_as_terminal!)
                     } \
                   | seq(:OPTION, :options) { |_, syms|
                       # TODO: pull setting of options into a separate methods

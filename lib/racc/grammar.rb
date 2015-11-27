@@ -364,6 +364,7 @@ module Racc
       @rules.freeze
 
       fix_ident
+      check_terminals
     end
 
     # A 'useless' Sym is one which can never be part of a valid parse
@@ -418,6 +419,19 @@ module Racc
       @rules.each_with_index(&:ident=)
       @rules.flat_map(&:ptrs).each_with_index(&:ident=)
       @symboltable.fix_ident
+    end
+
+    def check_terminals
+      @symboltable.check_terminals
+
+      bad_prec = select do |rule|
+        rule.explicit_precedence && rule.explicit_precedence.nonterminal?
+      end
+      unless bad_prec.empty?
+        raise CompileError, 'The following rules use nonterminals for ' \
+          'explicit precedence, which is not allowed: ' <<
+          Source::SparseLines.merge(bad_prec.map(&:source)).map(&:spifferific).join("\n\n")
+      end
     end
   end
 
@@ -693,24 +707,49 @@ module Racc
       @symbols = @terminals + @nonterminals
       # number Syms so terminals have the lower numbers
       @symbols.each_with_index(&:ident=)
-      check_terminals
     end
-
-    private
 
     def check_terminals
       # token declarations in Racc are optional
       # however, if you declare some tokens, you must declare them all
-      return unless @symbols.any?(&:should_be_terminal?)
-      @anchor.should_be_terminal!
-      @error.should_be_terminal!
-      terminals.select(&:string_symbol?).each(&:should_be_terminal!)
-      select(&:assoc).each(&:should_be_terminal!)
-      terminals.reject(&:should_be_terminal?).each do |t|
-        raise CompileError, "terminal #{t} not declared as terminal"
+      if any?(&:declared_as_terminal?)
+        # any symbol which has no derivation rules is a terminal
+        undeclared = terminals.reject do |t|
+          t.declared_as_terminal? || t.string_symbol? || t.locate.empty?
+        end
+        undeclared -= [@anchor, @error]
+        unless undeclared.empty?
+          locations = undeclared.flat_map(&:locate).map(&:rule).uniq
+          raise CompileError, "terminal#{'s' unless undeclared.one?} " \
+            "#{Racc.to_sentence(undeclared)} #{undeclared.one? ? 'was' : 'were'} " \
+            "not declared in a 'token' block:\n" <<
+            Source::SparseLines.merge(locations.map(&:source)).map(&:spifferific).join("\n\n")
+        end
+
+        wrongly_declared = nonterminals.select(&:declared_as_terminal?)
+        unless wrongly_declared.empty?
+          bad_rules = wrongly_declared.flat_map(&:heads).map(&:rule)
+          raise CompileError, "tokens #{Racc.to_sentence(wrongly_declared)} " \
+            "were declared in a 'token' block, but they also have derivation " \
+            "rules:\n" <<
+            Source::SparseLines.merge(bad_rules.map(&:source)).map(&:spifferific).join("\n\n")
+        end
       end
-      nonterminals.select(&:should_be_terminal?).each do |n|
-        raise CompileError, "symbol #{n} declared as terminal but is not terminal"
+
+      bad_strings = select { |s| s.string_symbol? && s.nonterminal? }
+      unless bad_strings.empty?
+        bad_rules = bad_strings.flat_map(&:heads).map(&:rule)
+        raise CompileError, 'you may not create derivation rules for a ' \
+          'string literal: ' <<
+          Source::SparseLines.merge(bad_rules.map(&:source)).map(&:spifferific).join("\n\n")
+      end
+
+      bad_prec = select { |s| s.assoc && s.nonterminal? }
+      unless bad_prec.empty?
+        bad_rules = bad_prec.flat_map(&:heads).map(&:rule)
+        raise CompileError, "tokens #{Racc.to_sentence(bad_prec)} appeared " \
+          "in a prechigh/preclow block, but they are not terminals:\n" <<
+          Source::SparseLines.merge(bad_rules.map(&:source)).map(&:spifferific).join("\n\n")
       end
     end
   end
@@ -722,7 +761,7 @@ module Racc
       @value  = value
       @dummy  = dummy
 
-      @should_be_terminal = false
+      @declared_terminal = false
       @precedence = nil
 
       case value
@@ -785,14 +824,12 @@ module Racc
       !heads.empty?
     end
 
-    def should_be_terminal!
-      @should_be_terminal = true
+    def declared_as_terminal!
+      @declared_terminal = true
     end
 
-    # has this Sym appeared in a token declaration, or in some other context
-    # where only a terminal should be used (such as associativity declaration)?
-    def should_be_terminal?
-      @should_be_terminal
+    def declared_as_terminal?
+      @declared_terminal
     end
 
     # is this a terminal which is written as a string literal in the grammar?

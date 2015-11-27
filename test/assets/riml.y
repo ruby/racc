@@ -39,6 +39,7 @@ token LET UNLET UNLET_BANG IDENTIFIER
 token DICT_VAL # like dict.key, 'key' is a DICT_VAL
 token SCOPE_MODIFIER SCOPE_MODIFIER_LITERAL SPECIAL_VAR_PREFIX
 token FINISH
+token IS ISNOT
 
 prechigh
   right '!'

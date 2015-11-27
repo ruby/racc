@@ -26,8 +26,8 @@
 class Liquor::Parser
   token comma dot endtag ident integer keyword lblock lblock2 lbracket
         linterp lparen op_div op_eq op_gt op_geq op_lt op_leq op_minus
-        op_mod op_mul op_neq op_not op_plus pipe plaintext rblock
-        rbracket rinterp rparen string tag_ident
+        op_mod op_mul op_neq op_not op_plus op_and op_or pipe plaintext
+        rblock rbracket rinterp rparen string tag_ident
 
   prechigh
     left dot

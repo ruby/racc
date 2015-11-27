@@ -220,6 +220,14 @@ module Racc
         freeze
       end
 
+      attr_reader :textobj, :lines
+
+      def self.merge(sparse)
+        sparse.group_by(&:textobj).map do |textobj, slines|
+          SparseLines.new(textobj, slines.flat_map(&:lines))
+        end
+      end
+
       def spifferific
         cooked    = @textobj.spiffier.lines.map(&:chomp)
         base_line = @textobj.lineno

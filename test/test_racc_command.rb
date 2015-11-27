@@ -21,7 +21,7 @@ module Racc
 
     def test_newsyn_y
       err = assert_compile 'newsyn.y'
-      assert_warnings err, useless_terms: 1
+      assert_no_warnings err
     end
 
     def test_normal_y
