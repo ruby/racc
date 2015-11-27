@@ -360,7 +360,12 @@ module Racc
       @start ||= map(&:target).detect { |sym| !sym.dummy? }
       fail CompileError, 'no rule in input' if @rules.empty?
       add_start_rule
+
       @rules.freeze
+      @symboltable.each do |ptr|
+        ptr.heads.freeze
+        ptr.locate.freeze
+      end
 
       fix_ident
       check_terminals
@@ -452,6 +457,7 @@ module Racc
       @precedence_used = false # does explicit precedence actually resolve conflicts?
 
       @ptrs = (0..@symbols.size).map { |idx| LocationPointer.new(self, idx) }
+      @ptrs.freeze
 
       # reverse lookup from each Sym in RHS to location in rule where it appears
       @symbols.each_with_index { |sym, idx| sym.locate << @ptrs[idx] }
