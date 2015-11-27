@@ -720,7 +720,7 @@ module Racc
       end
 
       @heads   = [] # RHS of rules which can reduce to this Sym
-      @locate  = [] # all rules which have this Sym on their RHS
+      @locate  = [] # all locations where this Sym appears on RHS of a rule
       @hidden  = false # don't show in diagnostic messages
     end
 
