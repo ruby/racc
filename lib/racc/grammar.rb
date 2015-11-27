@@ -60,10 +60,6 @@ module Racc
       @symboltable.nt_base
     end
 
-    def useless_nonterminals
-      @symboltable.nonterminals.select(&:useless?)
-    end
-
     def sr_conflicts
       @states.sr_conflicts
     end
@@ -90,9 +86,7 @@ module Racc
     def warnings(verbose)
       warnings = []
 
-      @symboltable.each do |sym|
-        next unless sym.useless?
-
+      useless_symbols.each do |sym|
         if sym.locate.empty?
           what = sym.terminal? ? 'terminal' : 'nonterminal'
           type = "useless_#{what}".to_sym
@@ -363,7 +357,22 @@ module Racc
 
       fix_ident
       compute_nullable
-      compute_useless
+    end
+
+    # A 'useless' Sym is one which can never be part of a valid parse
+    # tree, because there is no sequence of rules by which it
+    # could eventually reduce down to the 'start' node
+    def useless_symbols
+      raise 'Grammar not yet closed' unless @closed
+      @useless_symbols ||= begin
+        @symboltable.select do |sym|
+          !sym.dummy? &&
+          sym != @symboltable.error &&
+          sym != @start &&
+          !sym.reachable.include?(@start) &&
+          @rules.none? { |r| r.explicit_precedence == sym }
+        end
+      end
     end
 
     private
@@ -394,20 +403,6 @@ module Racc
         nullable = sym.locate.map(&:rule).select { |rule| rule.symbols.all?(&:nullable?) }.map(&:target)
         nullable.each { |nt| nt.null = true }
         nullable
-      end
-    end
-
-    # Sym#useless?
-    # A 'useless' Sym is one which can never be part of a valid parse
-    # tree, because there is no sequence of rules by which it
-    # could eventually reduce down to the 'start' node
-    def compute_useless
-      @symboltable.each do |sym|
-        sym.useless = !sym.dummy? &&
-                      sym != @symboltable.error &&
-                      sym != @start &&
-                      !sym.reachable.include?(@start) &&
-                      @rules.none? { |r| r.explicit_precedence == sym }
       end
     end
   end
@@ -735,7 +730,6 @@ module Racc
       @heads   = [] # RHS of rules which can reduce to this Sym
       @locate  = [] # all rules which have this Sym on their RHS
       @null    = false
-      @useless = false
       @hidden  = false # don't show in diagnostic messages
     end
 
@@ -815,14 +809,6 @@ module Racc
 
     def null=(n)
       @null = n
-    end
-
-    def useless?
-      @useless
-    end
-
-    def useless=(f)
-      @useless = f
     end
 
     # What NTs can be reached from this symbol, by traversing from the RHS of
