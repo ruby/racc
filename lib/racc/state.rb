@@ -8,6 +8,7 @@
 require 'racc/state_transition_table'
 require 'racc/exception'
 require 'racc/util'
+require 'racc/directed_graph'
 require 'forwardable'
 require 'set'
 
@@ -493,22 +494,6 @@ module Racc
       context -= [@grammar[0].ptrs[0]]
 
       context.sort_by(&:ident)
-    end
-  end
-
-  class DirectedGraph < Array
-    def initialize(size)
-      super(size) { [] }
-    end
-
-    def add_arrow(from, to)
-      self[from] << to
-    end
-
-    alias nodes each_index
-
-    def arrows(from, &block)
-      self[from].each(&block)
     end
   end
 
