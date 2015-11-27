@@ -68,7 +68,7 @@ module Racc
 
     def test_useless_y
       err = assert_compile 'useless.y'
-      assert_warnings err, useless_nts: 1 # also 2 useless rules
+      assert_warnings err, useless_nts: 2
     end
 
     def test_opt_y
