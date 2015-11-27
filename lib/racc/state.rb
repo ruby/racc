@@ -160,7 +160,7 @@ module Racc
           elsif @grammar.nullable_symbols.include?(tok)
             # if a nullable NT could come next, then we have to look past it
             # to see which terminals could appear next
-            look_past.add_arrow(goto.ident, next_goto.ident)
+            look_past.add_child(goto.ident, next_goto.ident)
           end
         end
       end
@@ -191,7 +191,7 @@ module Racc
           # this reduction, if this is the rule that was used?
           path(goto.from_state, ptr.rule).reverse_each do |preceding_goto|
             break if     preceding_goto.symbol.terminal?
-            includes.add_arrow(preceding_goto.ident, goto.ident)
+            includes.add_child(preceding_goto.ident, goto.ident)
             break unless @grammar.nullable_symbols.include?(preceding_goto.symbol)
           end
         end
@@ -253,7 +253,7 @@ module Racc
       stack.push(node)
       index[node] = stack_depth = stack.size
 
-      graph.arrows(node) do |next_node|
+      graph.children(node) do |next_node|
         unless index[next_node]
           traverse(next_node, traversed, index, stack, bitmap, graph)
         end
