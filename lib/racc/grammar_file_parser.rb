@@ -163,7 +163,7 @@ module Racc
     end
 
     def location
-      "#{@file.name}:#{@lineno - 1 + @scanner.lineno}"
+      "#{@file.name}:#{@scanner.lineno}"
     end
 
     def add_rule_block(list)
