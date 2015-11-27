@@ -68,6 +68,11 @@ module Racc
       @states.rr_conflicts
     end
 
+    def locations
+      raise 'Grammar not yet closed' unless @closed
+      @locations ||= @rules.flat_map(&:ptrs)
+    end
+
     def n_expected_srconflicts=(value)
       if @n_expected_srconflicts
         raise CompileError, "'expect' seen twice"

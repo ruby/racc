@@ -9,6 +9,8 @@ require 'racc/state_transition_table'
 require 'racc/exception'
 require 'racc/util'
 require 'racc/directed_graph'
+require 'racc/simulated_parse_context'
+
 require 'forwardable'
 require 'set'
 
@@ -398,11 +400,13 @@ module Racc
       if should_report_srconflict?
         sr_conflicts.each do |sr|
           title = "Shift/reduce conflict on #{sr.symbol}, after the following input:"
-          detail = sr.state.path.reject(&:hidden).map(&:to_s).join(' ')
+          detail = sr.state.path.reject(&:hidden).map(&:to_s).join(' ') << "\n"
 
           if verbose
-            detail << "\nAt this point, the following rules are active:\n"
-            detail << top_level_context(sr.state.path, sr.state, sr.symbol).map(&:to_s).join("\n")
+            context = SimulatedParseContext.from_path(@grammar, sr.state.path)
+                                           .lookahead!(sr.symbol)
+            # detail << "\n\nAt this point, the following rules are active:\n"
+            # detail << context.to_s << "\n"
           end
 
           if sr.srules.one?
@@ -413,6 +417,27 @@ module Racc
           detail << sr.srules.map { |ptr| ptr.rule.to_s }.join("\n")
           detail << "\nThe following rule directs me to reduce:\n"
           detail << sr.rrule.to_s
+
+          if verbose
+            scontext = context.dup.shift!(sr.symbol)
+            detail << "\n\nAfter shifting #{sr.symbol}, one path to a " \
+              "successful parse would be:\n"
+            detail << scontext.path_to_success.map(&:to_s).join(' ')
+
+            rcontext = context.reduce!(sr.rrule.target)
+            msg = catch :dead_end do
+              "\n\nAfter reducing to #{sr.rrule.target}, one path to a " \
+              "successful parse would be:\n" <<
+              rcontext.path_to_success.map(&:to_s).join(' ')
+            end
+            msg ||= "\n\nI can't see any way that reducing to " \
+              "#{sr.rrule.target} could possibly lead to a successful parse " \
+              'from this situation. But maybe if this parser state was ' \
+              "reached through a different input sequence, it could. I'm " \
+              'just a LALR parser generator and I can be pretty daft sometimes.'
+            detail << msg
+          end
+
           warnings << Warning.new(:sr_conflict, title, detail)
         end
       end
@@ -422,78 +447,31 @@ module Racc
         detail = rr.state.path.reject(&:hidden).map(&:to_s).join(' ')
 
         if verbose
-          detail << "\nAt this point, the following rules are active:\n"
-          detail << top_level_context(rr.state.path, rr.state, rr.symbol).map(&:to_s).join("\n")
+          context = SimulatedParseContext.from_path(@grammar, rr.state.path)
+                                         .lookahead!(rr.symbol)
+          # detail << "\n\nAt this point, the following rules are active:\n"
+          # detail << context.map(&:to_s).join("\n")
         end
 
-        detail << "\nIt is possible to reduce by " \
+        detail << "\n\nIt is possible to reduce by " \
                "#{rr.rules.size == 2 ? 'either' : 'any'} of these rules:\n"
         detail << rr.rules.map(&:to_s).join("\n")
+
+        if verbose
+          targets = rr.rules.map(&:target).uniq
+          if targets.size > 1
+            targets.each do |target|
+              detail << "\n\nAfter reducing to #{target}, one path to a successful parse would be:\n"
+              rcontext = context.dup.reduce!(target)
+              detail << rcontext.path_to_success.map(&:to_s).join(' ')
+            end
+          end
+        end
+
         warnings << Warning.new(:rr_conflict, title, detail)
       end
 
       warnings
-    end
-
-    # Starting from the derivation rule(s) for the start symbol and
-    # going down, what rules is `path` consistent with, given that the next
-    # token in the input is `lookahead`?
-    # Or: what locations could we be at in ALL rules, after `path`, in which
-    # `lookahead` is a valid lookahead token?
-    #
-    def top_level_context(path, resulting_state, lookahead)
-      # This is for diagnostics: to show where we are in the overall parse
-      # after following `path` to reach `resulting_state`
-      # The code is incredibly hairy and should be refactored, if a better way
-      # can be found to do this computation
-
-      context = Set.new(@states[0].closure)
-
-      path.each do |sym|
-        # take a step forward in all rules which have 'sym' as the next symbol
-        step = Set.new(context
-                 .select { |ptr| !ptr.reduce? && ptr.symbol == sym }
-                 .map(&:next))
-        # find lower-level rules which we might just be starting
-        starting = step.reduce(Set.new) do |set, ptr|
-          ptr.reduce? ? set : set.merge(ptr.symbol.expand)
-        end
-        # find higher-level location pointers in 'context' which are also
-        # relevant to the overall parse
-        others = (context - step).reject(&:reduce?)
-        step = Racc.set_closure(step) do |ptr|
-          # if we are in the middle of parsing "a : T1 . T2 T3", and there is
-          # another rule in 'context' which is "b : T1 . a", then the "b" rule
-          # is relevant, since after reducing "a", we might go on to reduce "b"
-          others.select { |other| ptr.rule.target == other.symbol }
-        end
-        # if we did this earlier, the Racc.set_closure block above would have
-        # returned a lot of unwanted results
-        context = step.merge(starting)
-      end
-
-      # now filter out rules which are not relevant given that the following
-      # token is `lookahead`
-      step = context.select do |ptr|
-        if ptr.reduce?
-          # reuse the lookahead calculation done earlier
-          rule = resulting_state.ritems.find { |r| r.rule == ptr.rule }
-          !rule || rule.lookahead[lookahead.ident] == 1
-        else
-          ptr.symbol == lookahead
-        end
-      end
-      # the `ptr.symbol == lookahead` condition above filtered out some higher-
-      # level location pointers which are relevant; add them back
-      others = (context - step).reject(&:reduce?)
-      context = Racc.set_closure(step) do |ptr|
-        others.select { |other| ptr.rule.target == other.symbol }
-      end
-
-      # don't show 'dummy' rule used to make sure a successful parse ends at EOF
-      context -= [@grammar[0].ptrs[0]]
-
-      context.sort_by(&:ident)
     end
   end
 
