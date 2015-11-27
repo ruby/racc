@@ -242,7 +242,9 @@ module Racc
           if !last || range.begin > last.end + (last.exclude_end? ? 0 : 1)
             result << (last = range)
           else
-            combined = last.begin..(range.end - (range.exclude_end? ? 1 : 0))
+            range_end = (range.end - (range.exclude_end? ? 1 : 0))
+            last_end  = (last.end  - (last.exclude_end?  ? 1 : 0))
+            combined = last.begin..(range_end > last_end ? range_end : last_end)
             result[-1] = last = combined
           end
         end
