@@ -407,6 +407,11 @@ module Racc
     private
 
     def add_start_rule
+      # We don't ever actually reduce to the dummy symbol; it is just there
+      # because every rule must have a target
+      # When building the parser states, we manually set the state where the
+      # first 'anchor' symbol is shifted to an 'accept state' -- one which
+      # successfully ends the parse
       r = Rule.new(@symboltable.dummy,
                    [@start, @symboltable.anchor, @symboltable.anchor],
                    UserAction.empty)
