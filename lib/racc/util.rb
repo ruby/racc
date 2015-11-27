@@ -12,7 +12,7 @@ module Racc
     result   = Set.new(seed)
 
     until worklist.empty?
-      if found = yield(worklist.shift)
+      if found = yield(worklist.shift, result)
         found.each do |member|
           worklist.push(member) if result.add?(member)
         end
