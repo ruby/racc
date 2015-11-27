@@ -99,8 +99,8 @@ module Racc
           warnings << Warning.new(type, "Useless #{what} #{sym} does not " \
             'appear on the right side of any rule, neither is it the start ' \
             'symbol.')
-        elsif sym.can_derive.include?(sym)
-          if sym.can_derive.one?
+        elsif sym.reachable.include?(sym)
+          if sym.reachable.one?
             warnings << Warning.new(:useless_nonterminal, 'Useless ' \
               "nonterminal #{sym} only appears on the right side of its " \
               'own rules.')
@@ -109,7 +109,7 @@ module Racc
               "nonterminal #{sym} cannot be part of a valid parse tree, " \
               'since, there is no sequence of reductions from it to the ' \
               'start symbol.', 'It can only reduce to: ' \
-              "#{sym.can_derive.map(&:to_s).join(', ')}")
+              "#{sym.reachable.map(&:to_s).join(', ')}")
           end
         end
       end
@@ -406,7 +406,7 @@ module Racc
         sym.useless = !sym.dummy? &&
                       sym != @symboltable.error &&
                       sym != @start &&
-                      !sym.can_derive.include?(@start) &&
+                      !sym.reachable.include?(@start) &&
                       @rules.none? { |r| r.explicit_precedence == sym }
       end
     end
@@ -825,9 +825,11 @@ module Racc
       @useless = f
     end
 
-    # What NTs can this Sym be reduced down to (perhaps indirectly)?
-    def can_derive
-      @can_derive ||= Racc.set_closure(@locate.map { |ptr| ptr.rule.target }) do |sym|
+    # What NTs can be reached from this symbol, by traversing from the RHS of
+    # a rule where the symbol appears, to the target of the rule, then to the
+    # RHS of its rules, and so on?
+    def reachable
+      @reachable ||= Racc.set_closure(@locate.map { |ptr| ptr.rule.target }) do |sym|
         sym.locate.map { |ptr| ptr.rule.target }
       end
     end
