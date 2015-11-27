@@ -21,7 +21,7 @@ module Racc
 
       assert_equal 0, @states.sr_conflicts.size
       assert_equal 0, @states.rr_conflicts.size
-      assert_equal 0, grammar.useless_nonterminals.size
+      assert_equal 0, grammar.useless_symbols.size
       assert_nil grammar.n_expected_srconflicts
     end
 
@@ -37,7 +37,7 @@ module Racc
 
       assert_equal 0, @states.sr_conflicts.size
       assert_equal 0, @states.rr_conflicts.size
-      assert_equal 0, grammar.useless_nonterminals.size
+      assert_equal 0, grammar.useless_symbols.size
       assert_nil grammar.n_expected_srconflicts
     end
   end
