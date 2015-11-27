@@ -356,8 +356,6 @@ module Racc
       @rules.freeze
 
       fix_ident
-
-      @symboltable.each { |sym| sym.null = nullable_symbols.include?(sym) }
     end
 
     # A 'useless' Sym is one which can never be part of a valid parse
@@ -379,6 +377,7 @@ module Racc
     # Can an empty sequence of tokens reduce to this nonterminal?
     # (Can it be produced out of "nothing"?)
     def nullable_symbols
+      raise 'Grammar not yet closed' unless @closed
       @nullable_symbols ||=
         Sym.set_closure(@symboltable.select { |nt| nt.heads.any?(&:reduce?) })
     end
@@ -722,7 +721,6 @@ module Racc
 
       @heads   = [] # RHS of rules which can reduce to this Sym
       @locate  = [] # all rules which have this Sym on their RHS
-      @null    = false
       @hidden  = false # don't show in diagnostic messages
     end
 
@@ -804,14 +802,6 @@ module Racc
 
     def rule
       Rule.new(nil, [self], UserAction.empty)
-    end
-
-    def nullable?
-      @null
-    end
-
-    def null=(n)
-      @null = n
     end
 
     # What NTs can be reached from this symbol, by traversing from the RHS of
