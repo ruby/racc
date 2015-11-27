@@ -93,7 +93,7 @@ module Racc
           warnings << Warning.new(type, "Useless #{what} #{sym} does not " \
             'appear on the right side of any rule, neither is it the start ' \
             'symbol.')
-        elsif sym.reachable.include?(sym)
+        elsif !sym.reachable.include?(@start) && sym.reachable.include?(sym)
           if sym.reachable.one?
             warnings << Warning.new(:useless_nonterminal, 'Useless ' \
               "nonterminal #{sym} only appears on the right side of its " \
@@ -101,10 +101,18 @@ module Racc
           else
             warnings << Warning.new(:useless_nonterminal, 'Useless ' \
               "nonterminal #{sym} cannot be part of a valid parse tree, " \
-              'since, there is no sequence of reductions from it to the ' \
+              'since there is no sequence of reductions from it to the ' \
               'start symbol.', 'It can only reduce to: ' \
               "#{sym.reachable.map(&:to_s).join(', ')}")
           end
+        elsif !productive_symbols.include?(sym)
+          warnings << Warning.new(:useless_nonterminal, 'Useless ' \
+            "nonterminal #{sym} can never be produced from a finite " \
+            'sequence of tokens', 'Its derivation rule' \
+            "#{'s all' unless sym.heads.one?} contain#{'s' if sym.heads.one?}" \
+            " #{'an ' if sym.heads.one?}infinite loop" \
+            "#{'s' unless sym.heads.one?}:\n" <<
+            sym.heads.map { |ptr| ptr.rule.to_s }.join("\n"))
         end
       end
 
@@ -368,9 +376,23 @@ module Racc
           !sym.dummy? &&
           sym != @symboltable.error &&
           sym != @start &&
-          !sym.reachable.include?(@start) &&
+          (!sym.reachable.include?(@start) || !productive_symbols.include?(sym)) &&
           @rules.none? { |r| r.explicit_precedence == sym }
         end
+      end
+    end
+
+    # A 'nonproductive' Sym, if taken as a starting point and then converted
+    # into a series of tokens by repeated substitution, would get stuck in an
+    # infinite loop and never reach a point where only terminals were left
+    # A 'productive' Sym, on the other hand, is not 'stuck' in an infinite loop
+    #
+    # (Even if it can be converted to an empty sequence of tokens; in other
+    # words, if it is nullable, then it is considered 'productive')
+    def productive_symbols
+      raise 'Grammar not yet closed' unless @closed
+      @productive_symbols ||= begin
+        Sym.set_closure(@symboltable.terminals + nullable_symbols.to_a)
       end
     end
 
