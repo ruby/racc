@@ -8,7 +8,7 @@ module Racc
   # given) will be yielded once; the block should either return `nil`, or an
   # `Enumerable` of more members
   def self.set_closure(seed, worklist = seed)
-    worklist = worklist.to_a
+    worklist = worklist.is_a?(Array) ? worklist.dup : worklist.to_a
     result   = Set.new(seed)
 
     until worklist.empty?
