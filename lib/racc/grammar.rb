@@ -128,7 +128,7 @@ module Racc
     # Grammar Definition Interface
 
     def add(rule)
-      raise ArgumentError, "rule added after the Grammar closed" if @closed
+      raise ArgumentError, "rule added after Grammar closed" if @closed
       @rules.push rule
     end
 
@@ -137,7 +137,7 @@ module Racc
     end
 
     def start_symbol=(s)
-      raise CompileError, "start symbol set twice'" if @start
+      raise CompileError, "start symbol set twice" if @start
       @start = s
     end
 
