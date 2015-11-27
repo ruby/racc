@@ -356,7 +356,8 @@ module Racc
       @rules.freeze
 
       fix_ident
-      compute_nullable
+
+      @symboltable.each { |sym| sym.null = nullable_symbols.include?(sym) }
     end
 
     # A 'useless' Sym is one which can never be part of a valid parse
@@ -375,6 +376,13 @@ module Racc
       end
     end
 
+    # Can an empty sequence of tokens reduce to this nonterminal?
+    # (Can it be produced out of "nothing"?)
+    def nullable_symbols
+      @nullable_symbols ||=
+        Sym.set_closure(@symboltable.select { |nt| nt.heads.any?(&:reduce?) })
+    end
+
     private
 
     def add_start_rule
@@ -389,21 +397,6 @@ module Racc
       @rules.each_with_index(&:ident=)
       @rules.flat_map(&:ptrs).each_with_index(&:ident=)
       @symboltable.fix_ident
-    end
-
-    # Sym#nullable?
-    # Can an empty sequence of tokens reduce to this nonterminal?
-    # (Can it be produced out of "nothing"?)
-    def compute_nullable
-      @symboltable.each { |t| t.null = false }
-
-      seed = @symboltable.nonterminals.select { |nt| nt.heads.any?(&:reduce?) }
-      seed.each { |nt| nt.null = true }
-      Racc.set_closure(seed) do |sym|
-        nullable = sym.locate.map(&:rule).select { |rule| rule.symbols.all?(&:nullable?) }.map(&:target)
-        nullable.each { |nt| nt.null = true }
-        nullable
-      end
     end
   end
 
@@ -749,6 +742,16 @@ module Racc
 
     attr_reader :heads
     attr_reader :locate
+
+    # Find a set of Syms with a common property
+    # The property extends to any Sym, which has a derivation rule whose RHS
+    # consists entirely of Syms with the property
+    def self.set_closure(seed)
+      Racc.set_closure(seed) do |sym, set|
+        rules = sym.locate.map(&:rule)
+        rules.select { |r| r.symbols.all? { |s| set.include?(s) }}.map(&:target)
+      end
+    end
 
     def dummy?
       @dummy
