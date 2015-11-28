@@ -17,20 +17,40 @@ module Racc
     include Enumerable
 
     def initialize
-      @symboltable = SymbolTable.new
+      @symbols = [] # all Syms used in a grammar
+      @cache   = {} # map of String/Symbol name -> Sym
       @rules = []
       @start = nil
+
       @n_expected_srconflicts = nil
+
       @prec_table = []
       @prec_table_closed = false
+
       @closed = false
       @states = States.new(self)
+
+      # 'dummy' and 'anchor' are used to make sure the parser runs over ALL the
+      # input tokens before concluding that the parse was successful
+      # an 'anchor' token is appended to the end of the token stream, and a
+      # 'dummy rule' is automatically added which reduces [start node, anchor]
+      # to 'dummy'
+      # only if the parse ends in 'dummy', is it considered successful
+
+      @dummy   = intern(:$start, true)
+      @anchor  = intern(false, true)   # Symbol ID = 0
+      @error   = intern(:error, false) # Symbol ID = 1
     end
 
     attr_reader :states
     attr_reader :start
-    attr_reader :symboltable
     attr_reader :n_expected_srconflicts
+    attr_reader :terminals
+    attr_reader :nonterminals
+    attr_reader :symbols
+    attr_reader :dummy
+    attr_reader :anchor
+    attr_reader :error
 
     def [](x)
       @rules[x]
@@ -48,16 +68,15 @@ module Racc
       "<Racc::Grammar>"
     end
 
-    def intern(value, dummy = false)
-      @symboltable.intern(value, dummy)
+    def intern(val, dummy = false)
+      @cache[val] ||= begin
+        Sym.new(val, dummy).tap { |sym| @symbols.push(sym) }
+      end
     end
 
-    def symbols
-      @symboltable.symbols
-    end
-
-    def nonterminal_base
-      @symboltable.nt_base
+    def delete_symbol(sym)
+      @symbols.delete(sym)
+      @cache.delete(sym.value)
     end
 
     def sr_conflicts
@@ -66,6 +85,10 @@ module Racc
 
     def rr_conflicts
       @states.rr_conflicts
+    end
+
+    def nonterminal_base
+      @terminals.size
     end
 
     def locations
@@ -223,7 +246,7 @@ module Racc
           @delayed.each do |rule|
             rule.replace(rhs, target) if rule.target == rhs
           end
-          @grammar.symboltable.delete(rhs)
+          @grammar.delete_symbol(rhs)
         else
           rhs.each_rule do |rule|
             rule.target = target
@@ -367,9 +390,9 @@ module Racc
       add_start_rule
 
       @rules.freeze
-      @symboltable.each do |ptr|
-        ptr.heads.freeze
-        ptr.locate.freeze
+      @symbols.each do |sym|
+        sym.heads.freeze
+        sym.locate.freeze
       end
 
       fix_ident
@@ -382,9 +405,9 @@ module Racc
     def useless_symbols
       raise 'Grammar not yet closed' unless @closed
       @useless_symbols ||= begin
-        @symboltable.select do |sym|
+        @symbols.select do |sym|
           !sym.dummy? &&
-          sym != @symboltable.error &&
+          sym != @error &&
           sym != @start &&
           (!sym.reachable.include?(@start) || !productive_symbols.include?(sym)) &&
           none? { |rule| rule.explicit_precedence == sym }
@@ -402,7 +425,7 @@ module Racc
     def productive_symbols
       raise 'Grammar not yet closed' unless @closed
       @productive_symbols ||= begin
-        Sym.set_closure(@symboltable.terminals + nullable_symbols.to_a)
+        Sym.set_closure(@terminals + nullable_symbols.to_a)
       end
     end
 
@@ -411,7 +434,7 @@ module Racc
     def nullable_symbols
       raise 'Grammar not yet closed' unless @closed
       @nullable_symbols ||=
-        Sym.set_closure(@symboltable.select { |nt| nt.heads.any?(&:reduce?) })
+        Sym.set_closure(@symbols.select { |nt| nt.heads.any?(&:reduce?) })
     end
 
     private
@@ -422,23 +445,63 @@ module Racc
       # When building the parser states, we manually set the state where the
       # first 'anchor' symbol is shifted to an 'accept state' -- one which
       # successfully ends the parse
-      r = Rule.new(@symboltable.dummy,
-                   [@start, @symboltable.anchor, @symboltable.anchor],
-                   UserAction.empty)
-      @rules.unshift(r)
+      @rules.unshift(Rule.new(@dummy, [@start, @anchor, @anchor], UserAction.empty))
     end
 
-    # Rule#ident
     def fix_ident
       @rules.each_with_index(&:ident=)
       @rules.flat_map(&:ptrs).each_with_index(&:ident=)
-      @symboltable.fix_ident
+
+      @terminals, @nonterminals = @symbols.partition(&:terminal?)
+      @symbols = @terminals + @nonterminals
+      # number Syms so terminals have the lower numbers
+      @symbols.each_with_index(&:ident=)
     end
 
     def check_terminals
-      @symboltable.check_terminals
+      # token declarations in Racc are optional
+      # however, if you declare some tokens, you must declare them all
+      if @symbols.any?(&:declared_as_terminal?)
+        # any symbol which has no derivation rules is a terminal
+        undeclared = terminals.reject do |t|
+          t.declared_as_terminal? || t.string_symbol? || t.locate.empty?
+        end
+        undeclared -= [@anchor, @error]
+        unless undeclared.empty?
+          locations = undeclared.flat_map(&:locate).map(&:rule).uniq
+          raise CompileError, "terminal#{'s' unless undeclared.one?} " \
+            "#{Racc.to_sentence(undeclared)} #{undeclared.one? ? 'was' : 'were'} " \
+            "not declared in a 'token' block:\n" <<
+            Source::SparseLines.merge(locations.map(&:source)).map(&:spifferific).join("\n\n")
+        end
 
-      bad_prec = select do |rule|
+        wrongly_declared = nonterminals.select(&:declared_as_terminal?)
+        unless wrongly_declared.empty?
+          bad_rules = wrongly_declared.flat_map(&:heads).map(&:rule)
+          raise CompileError, "tokens #{Racc.to_sentence(wrongly_declared)} " \
+            "were declared in a 'token' block, but they also have derivation " \
+            "rules:\n" <<
+            Source::SparseLines.merge(bad_rules.map(&:source)).map(&:spifferific).join("\n\n")
+        end
+      end
+
+      bad_strings = @symbols.select { |s| s.string_symbol? && s.nonterminal? }
+      unless bad_strings.empty?
+        bad_rules = bad_strings.flat_map(&:heads).map(&:rule)
+        raise CompileError, 'you may not create derivation rules for a ' \
+          'string literal: ' <<
+          Source::SparseLines.merge(bad_rules.map(&:source)).map(&:spifferific).join("\n\n")
+      end
+
+      bad_prec = @symbols.select { |s| s.assoc && s.nonterminal? }
+      unless bad_prec.empty?
+        bad_rules = bad_prec.flat_map(&:heads).map(&:rule)
+        raise CompileError, "tokens #{Racc.to_sentence(bad_prec)} appeared " \
+          "in a prechigh/preclow block, but they are not terminals:\n" <<
+          Source::SparseLines.merge(bad_rules.map(&:source)).map(&:spifferific).join("\n\n")
+      end
+
+      bad_prec = @rules.select do |rule|
         rule.explicit_precedence && rule.explicit_precedence.nonterminal?
       end
       unless bad_prec.empty?
@@ -664,108 +727,6 @@ module Racc
 
     def ptr_bug!
       raise "racc: fatal: pointer not exist: self: #{to_s}"
-    end
-  end
-
-  class SymbolTable
-    include Enumerable
-
-    def initialize
-      @symbols = [] # all Syms used in a grammar
-      @cache   = {} # map of String/Symbol name -> Sym
-
-      # 'dummy' and 'anchor' are used to make sure the parser runs over ALL the
-      # input tokens before concluding that the parse was successful
-      # an 'anchor' token is appended to the end of the token stream, and a
-      # 'dummy rule' is automatically added which reduces [start node, anchor]
-      # to 'dummy'
-      # only if the parse ends in 'dummy', is it considered successful
-
-      @dummy   = intern(:$start, true)
-      @anchor  = intern(false, true)   # Symbol ID = 0
-      @error   = intern(:error, false) # Symbol ID = 1
-    end
-
-    attr_reader :dummy
-    attr_reader :anchor
-    attr_reader :error
-
-    def [](id)
-      @symbols[id]
-    end
-
-    def intern(val, dummy = false)
-      @cache[val] ||= begin
-        Sym.new(val, dummy).tap { |sym| @symbols.push(sym) }
-      end
-    end
-
-    attr_reader :terminals
-    attr_reader :nonterminals
-    attr_reader :symbols
-
-    def delete(sym)
-      @symbols.delete(sym)
-      @cache.delete(sym.value)
-    end
-
-    def nt_base
-      @terminals.size
-    end
-
-    def each(&block)
-      @symbols.each(&block)
-    end
-
-    def fix_ident
-      @terminals, @nonterminals = @symbols.partition(&:terminal?)
-      @symbols = @terminals + @nonterminals
-      # number Syms so terminals have the lower numbers
-      @symbols.each_with_index(&:ident=)
-    end
-
-    def check_terminals
-      # token declarations in Racc are optional
-      # however, if you declare some tokens, you must declare them all
-      if any?(&:declared_as_terminal?)
-        # any symbol which has no derivation rules is a terminal
-        undeclared = terminals.reject do |t|
-          t.declared_as_terminal? || t.string_symbol? || t.locate.empty?
-        end
-        undeclared -= [@anchor, @error]
-        unless undeclared.empty?
-          locations = undeclared.flat_map(&:locate).map(&:rule).uniq
-          raise CompileError, "terminal#{'s' unless undeclared.one?} " \
-            "#{Racc.to_sentence(undeclared)} #{undeclared.one? ? 'was' : 'were'} " \
-            "not declared in a 'token' block:\n" <<
-            Source::SparseLines.merge(locations.map(&:source)).map(&:spifferific).join("\n\n")
-        end
-
-        wrongly_declared = nonterminals.select(&:declared_as_terminal?)
-        unless wrongly_declared.empty?
-          bad_rules = wrongly_declared.flat_map(&:heads).map(&:rule)
-          raise CompileError, "tokens #{Racc.to_sentence(wrongly_declared)} " \
-            "were declared in a 'token' block, but they also have derivation " \
-            "rules:\n" <<
-            Source::SparseLines.merge(bad_rules.map(&:source)).map(&:spifferific).join("\n\n")
-        end
-      end
-
-      bad_strings = select { |s| s.string_symbol? && s.nonterminal? }
-      unless bad_strings.empty?
-        bad_rules = bad_strings.flat_map(&:heads).map(&:rule)
-        raise CompileError, 'you may not create derivation rules for a ' \
-          'string literal: ' <<
-          Source::SparseLines.merge(bad_rules.map(&:source)).map(&:spifferific).join("\n\n")
-      end
-
-      bad_prec = select { |s| s.assoc && s.nonterminal? }
-      unless bad_prec.empty?
-        bad_rules = bad_prec.flat_map(&:heads).map(&:rule)
-        raise CompileError, "tokens #{Racc.to_sentence(bad_prec)} appeared " \
-          "in a prechigh/preclow block, but they are not terminals:\n" <<
-          Source::SparseLines.merge(bad_rules.map(&:source)).map(&:spifferific).join("\n\n")
-      end
     end
   end
 
