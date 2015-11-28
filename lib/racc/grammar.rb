@@ -69,9 +69,7 @@ module Racc
     end
 
     def intern(val, dummy = false)
-      @cache[val] ||= begin
-        Sym.new(val, dummy).tap { |sym| @symbols.push(sym) }
-      end
+      @cache[val] ||= Sym.new(val, self, dummy).tap { |sym| @symbols.push(sym) }
     end
 
     def delete_symbol(sym)
@@ -538,12 +536,13 @@ module Racc
     end
   end
 
-  # Stands terminal and nonterminal symbols.
+  # A terminal or nonterminal symbol
   class Sym
-    def initialize(value, dummy)
-      @ident  = nil
-      @value  = value
-      @dummy  = dummy
+    def initialize(value, grammar, dummy)
+      @ident   = nil
+      @value   = value
+      @dummy   = dummy
+      @grammar = grammar
 
       @declared_terminal = false
       @precedence = nil
@@ -645,6 +644,10 @@ module Racc
 
     def rule
       Rule.new(nil, [self], UserAction.empty)
+    end
+
+    def nullable?
+      @nullable ||= @grammar.nullable_symbols.include?(self)
     end
 
     # What NTs can be reached from this symbol, by traversing from the RHS of
