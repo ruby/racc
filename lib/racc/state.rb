@@ -158,7 +158,7 @@ module Racc
           if tok.terminal?
             # set bit for terminal which could be shifted after this reduction
             following_terminals[goto.ident] |= (1 << tok.ident)
-          elsif @grammar.nullable_symbols.include?(tok)
+          elsif tok.nullable?
             # if a nullable NT could come next, then we have to look past it
             # to see which terminals could appear next
             look_past.add_child(goto.ident, next_goto.ident)
@@ -193,7 +193,7 @@ module Racc
           path(goto.from_state, ptr.rule).reverse_each do |preceding_goto|
             break if     preceding_goto.symbol.terminal?
             includes.add_child(preceding_goto.ident, goto.ident)
-            break unless @grammar.nullable_symbols.include?(preceding_goto.symbol)
+            break unless preceding_goto.symbol.nullable?
           end
         end
       end
