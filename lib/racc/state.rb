@@ -20,7 +20,6 @@ module Racc
 
     def initialize(grammar)
       @grammar = grammar
-      @symboltable = grammar.symboltable
 
       @states = []
       @nfa_computed = false
@@ -300,7 +299,7 @@ module Racc
       rrules = Hash.new { |h,k| h[k] = [] }
 
       ritems.each do |item|
-        item.each_lookahead_token(@symboltable) do |sym|
+        item.each_lookahead_token(@grammar.symbols) do |sym|
           rrules[sym] << item.rule
         end
       end
@@ -364,7 +363,7 @@ module Racc
     end
 
     def set_accept
-      anch = @symboltable.anchor
+      anch = @grammar.anchor
       init_state = @states[0].gotos[@grammar.start].to_state
       targ_state = init_state.action[anch].goto_state
       acc_state  = targ_state.action[anch].goto_state

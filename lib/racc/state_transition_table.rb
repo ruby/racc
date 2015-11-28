@@ -76,7 +76,7 @@ module Racc
     end
 
     def token_table(grammar)
-      Hash[grammar.symboltable.terminals.map { |t| [t, t.ident]}]
+      Hash[grammar.terminals.map { |t| [t, t.ident]}]
     end
 
     # The action and goto tables use a clever trick for compression
@@ -140,7 +140,7 @@ module Racc
 
       # for each nonterminal, choose most common destination state after
       # reduce as the default destination state
-      grammar.symboltable.nonterminals.each do |tok|
+      grammar.nonterminals.each do |tok|
         freq = Hash.new(0)
         @states.each do |state|
           if goto = state.gotos[tok]
@@ -159,7 +159,7 @@ module Racc
       # now build goto table for each nonterminal, and record data which will
       # be used when overlaying all the individual goto tables into the main
       # goto table
-      grammar.symboltable.nonterminals.zip(t.goto_default).each do |tok, default|
+      grammar.nonterminals.zip(t.goto_default).each do |tok, default|
         array = @states.map do |state|
           if goto = state.gotos[tok]
             to_state = goto.to_state.ident
