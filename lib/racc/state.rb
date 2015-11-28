@@ -151,7 +151,7 @@ module Racc
       # can only validly appear after reduction A and not B, then we will choose
       # to perform reduction A)
       following_terminals = create_bitmap(@gotos.size)
-      look_past = DirectedGraph.new(@gotos.size)
+      look_past = Graph::Finite.new(@gotos.size)
       @gotos.each do |goto|
         goto.to_state.gotos.each do |tok, next_goto|
           if tok.terminal?
@@ -181,7 +181,7 @@ module Racc
       # after A, *and C is nullable*?
       # that means T1 can also appear after B, not just after C
 
-      includes = DirectedGraph.new(@gotos.size)
+      includes = Graph::Finite.new(@gotos.size)
       # look at the state transition triggered by each reduction in the grammar
       # (at each place in the state graph where that reduction can occur)
       @gotos.each do |goto|
