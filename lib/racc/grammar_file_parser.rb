@@ -10,10 +10,11 @@ require 'racc/grammar'
 require 'racc/grammar_file_scanner'
 require 'racc/parser_file_generator'
 require 'racc/source'
+require 'racc/dsl'
 
 module Racc
 
-  grammar = Grammar.define do
+  grammar = DSL.define_grammar do
     g = self
 
     g.class = seq(:CLASS, :cname, many(:param), :RULE, :rules, option(:END))

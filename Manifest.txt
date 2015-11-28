@@ -13,6 +13,7 @@ ext/racc/extconf.rb
 ext/racc/com/headius/racc/Cparse.java
 lib/racc.rb
 lib/racc/directed_graph.rb
+lib/racc/dsl.rb
 lib/racc/exception.rb
 lib/racc/grammar.rb
 lib/racc/grammar_file_parser.rb
