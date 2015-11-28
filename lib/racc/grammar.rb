@@ -482,9 +482,9 @@ module Racc
     end
   end
 
-  # A combination of a rule and a position in its RHS.
+  # A combination of a rule and a position in its RHS
   # Note that the number of pointers is more than the rule's RHS array,
-  # because pointer points to the right edge of the final symbol when reducing.
+  # because it points to the right edge of the final symbol when reducing
   #
   class LocationPointer
     def initialize(rule, i)
@@ -532,7 +532,7 @@ module Racc
     private
 
     def ptr_bug!
-      raise "racc: fatal: pointer not exist: self: #{to_s}"
+      raise "racc: fatal: pointer doesn't exist: self: #{to_s}"
     end
   end
 
@@ -560,7 +560,7 @@ module Racc
         @serialized = 'false'
         @string = false
       else
-        raise ArgumentError, "unknown symbol value: #{value.class}"
+        raise ArgumentError, "illegal symbol value: #{value.class}"
       end
 
       @heads   = [] # RHS of rules which can reduce to this Sym
