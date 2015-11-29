@@ -16,6 +16,7 @@ module Racc
       saved = @color_enabled
       @color_enabled = false
       yield
+    ensure
       @color_enabled = saved
     end
 
