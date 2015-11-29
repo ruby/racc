@@ -504,8 +504,12 @@ module Racc
     end
 
     def to_s
-      result = "#{@rule.target} : " \
-        "#{@rule.symbols[0...@index].reject(&:hidden).map(&:to_s).join(' ')} ."
+      result = "#{@rule.target} : "
+      if @index > 0
+        result << "#{@rule.symbols[0...@index].reject(&:hidden).map(&:to_s).join(' ')} ."
+      else
+        result << '.'
+      end
       unless reduce?
         result << " #{rule.symbols[@index..-1].reject(&:hidden).map(&:to_s).join(' ')}"
       end
