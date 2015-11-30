@@ -26,10 +26,10 @@ module Racc
 
     def test_normal_y
       err = assert_compile 'normal.y'
-      assert_no_warnings err
+      assert_warnings err, useless_prec: 1
 
       err = assert_compile 'normal.y', '-vt'
-      assert_no_warnings err
+      assert_warnings err, useless_prec: 1
     end
 
     def test_chk_y
@@ -191,7 +191,7 @@ module Racc
 
     def test_opal
       err = assert_compile 'opal.y', '--color -v'
-      assert_warnings err, useless_terms: 3
+      assert_warnings err, useless_terms: 3, useless_prec: 2
       assert_parser_unchanged 'opal.y'
       assert_output_unchanged 'opal.out', err
     end
