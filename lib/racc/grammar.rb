@@ -476,9 +476,13 @@ module Racc
     end
   end
 
-  class Prec < Struct.new(:symbol, :lineno)
+  class Prec < Struct.new(:symbol, :range)
     def to_s
-      Color.explicit_prec("=#{symbol.display_name}")
+      Color.explicit_prec(range.text)
+    end
+
+    def lineno
+      range.lineno
     end
   end
 
