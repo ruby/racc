@@ -1,8 +1,36 @@
 require 'racc/util'
+require 'racc/color'
+require 'tempfile'
 require 'set'
 
 module Racc
   module Graph
+    # Algorithms which work on any of the graph implementations below
+    module Algorithms
+      def to_gif(options={})
+        filename = options[:filename] || "graph.gif"
+        filename <<= ".gif" unless filename.end_with?(".gif")
+        Tempfile.open("graph") do |f|
+          f.write(self.to_dot(options))
+          f.flush
+          `dot -Tgif #{f.path} -o "#{filename}"`
+        end
+      end
+
+      def to_dot(options={})
+        s = "digraph {\n"
+        s <<= "graph [label=\"#{options[:title]}\"]\n" if options[:title]
+        (options[:highlight] || []).each do |node|
+          s <<= "\"#{node.hash}\" [style=filled fillcolor=gold]\n"
+        end
+        s <<= nodes.map do |node|
+          %{"#{node.hash}" [label="#{node_caption(node)}"]} <<
+          children(node).map { |child| %{"#{node.hash}" -> "#{child.hash}"} }.join("\n")
+        end.join("\n")
+        s << "}"
+      end
+    end
+
     # An implementation which is fast when the exact number of nodes is known
     # in advance, and each one can be identified by an integer
     class Finite < Array
@@ -141,6 +169,8 @@ module Racc
     # this means we can add as many nodes as we want
     # Graph::Node can also be subclassed and have extra methods added
     class Generic
+      include Algorithms
+
       def initialize
         @nodes = Set.new
         @start = nil
@@ -214,6 +244,10 @@ module Racc
 
         paths.each_value { |path| path.shift } # drop cached total costs
         paths
+      end
+
+      def node_caption(node)
+        Color.without_color { node.ptr.to_s }
       end
     end
 
