@@ -63,10 +63,22 @@ module Racc
       actual   = File.read("#{TAB_DIR}/#{file}")
       result   = (expected == actual)
 
-      assert(result, "Output of test/assets/#{file}.y differed from " \
+      assert(result, "Output of test/assets/#{asset} differed from " \
         "expectation. Try compiling it and diff with test/regress/#{file}.rb:" \
-        "\nruby -I./lib ./bin/racc -o tmp/#{file} test/assets/#{file}.y; " \
+        "\nruby -I./lib ./bin/racc -o tmp/#{file} test/assets/#{asset}; " \
         "colordiff tmp/#{file} test/regress/#{file}.rb")
+    end
+
+    def assert_output_unchanged(file, actual)
+      expected = File.read("#{REGRESS_DIR}/#{file}")
+      result   = (expected == actual)
+
+      asset = File.basename(file, '.out') + '.y'
+      assert(result, "Console output of test/assets/#{asset} differed from " \
+        'expectation. Try compiling it and diff stderr with ' \
+        "test/regress/#{file}:\nruby -I./lib ./bin/racc --color -o /dev/null " \
+        "test/assets/#{asset} 2>tmp/#{file}; colordiff tmp/#{file} " \
+        "test/regress/#{file}")
     end
 
     def racc(arg)
