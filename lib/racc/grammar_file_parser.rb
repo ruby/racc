@@ -183,12 +183,14 @@ module Racc
       end
 
       # record highlights which will be used when printing out rules
-      block_range = Source::Range.new(@file, target_range.from, list.last[1].to)
-      highlights = list
-                     .select { |obj, r| obj.is_a?(Sym) || obj.is_a?(Prec) }
-                     .map { |obj, r| Source::Highlight.new(obj,
-                                                           r.from - block_range.from,
-                                                           r.to - block_range.from) }
+      block_end   = list.last[1].to
+      block_end  += 1 if list.last[0].is_a?(UserAction) # show terminating }
+      block_range = Source::Range.new(@file, target_range.from, block_end)
+      highlights  = list
+                      .select { |obj, r| obj.is_a?(Sym) || obj.is_a?(Prec) }
+                      .map { |obj, r| Source::Highlight.new(obj,
+                                                            r.from - block_range.from,
+                                                            r.to - block_range.from) }
       block_range.highlights = highlights.unshift(target_range.highlights[0])
 
       ormark = nil # used for setting source code range for null rules
