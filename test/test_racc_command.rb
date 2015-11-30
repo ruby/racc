@@ -181,9 +181,10 @@ module Racc
     # .y file from csspool gem
 
     def test_csspool
-      err = assert_compile 'csspool.y'
+      err = assert_compile 'csspool.y', '--color -v'
       assert_warnings err, sr_conflicts: 5, rr_conflicts: 3
       assert_parser_unchanged 'csspool.y'
+      assert_output_unchanged 'csspool.out', err
     end
 
     # .y file from opal gem
