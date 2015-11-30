@@ -25,8 +25,9 @@ module Racc
     end
 
     def test_normal_y
-      err = assert_compile 'normal.y'
+      err = assert_compile 'normal.y', '--color'
       assert_warnings err, useless_prec: 1
+      assert_output_unchanged 'normal.out', '--color', err
 
       err = assert_compile 'normal.y', '-vt'
       assert_warnings err, useless_prec: 1

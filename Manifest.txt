@@ -123,6 +123,7 @@ test/regress/mof.rb
 test/regress/namae.rb
 test/regress/nasl.rb
 test/regress/nokogiri-css.rb
+test/regress/normal.out
 test/regress/opal.out
 test/regress/opal.rb
 test/regress/php_serialization.rb

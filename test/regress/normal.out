@@ -1,0 +1,5 @@
+
+[1;35mWarning: [0m[1mThe explicit precedence declaration on this rule does not resolve any conflicts and can be removed:[0m
+[1mnormal.y:20: [0m[1;34mnonterminal[0m: [1;36m[4mA[0m [1;33m"+"[0m [1;36m[4mB[0m  [1;31m= A[0m
+
+1 useless '=' precedence declaration
