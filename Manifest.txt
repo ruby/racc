@@ -152,3 +152,4 @@ test/test_grammar_file_parser.rb
 test/test_racc_command.rb
 test/test_scan_y.rb
 test/test_scanner.rb
+test/test_simulated_parse.rb
