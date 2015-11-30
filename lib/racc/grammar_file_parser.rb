@@ -109,9 +109,9 @@ module Racc
                   | seq("|") { |(_, range)|
                       [OrMark.new(range.lineno), range]
                     } \
-                  | seq("=", :symbol) { |_, (sym, range)|
-                      [Prec.new(sym, range.lineno),
-                       Source::Range.new(@file, range.from - 1, range.to)]
+                  | seq("=", :symbol) { |(_, range1), (sym, range2)|
+                      range = Source::Range.new(@file, range1.from, range2.to)
+                      [Prec.new(sym, range), range]
                     } \
                   | seq(:ACTION) { |(range)|
                       [UserAction.source_text(range, range.lineno), range]
