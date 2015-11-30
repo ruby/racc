@@ -190,9 +190,10 @@ module Racc
     # .y file from opal gem
 
     def test_opal
-      err = assert_compile 'opal.y'
+      err = assert_compile 'opal.y', '--color -v'
       assert_warnings err, useless_terms: 3
       assert_parser_unchanged 'opal.y'
+      assert_output_unchanged 'opal.out', err
     end
 
     # .y file from journey gem
