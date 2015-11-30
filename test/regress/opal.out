@@ -1,0 +1,28 @@
+Parsing grammar file...
+Generating LALR states...
+Resolving 968 states...
+Creating parser file...
+
+[1;35mWarning: [0m[1mUseless terminal [0m[1;36m[4mk__ENCODING__[0m[1m does not appear on the right side of any rule, neither is it the start symbol.[0m
+
+[1;35mWarning: [0m[1mUseless terminal [0m[1;36m[4mtUMINUS_NUM[0m[1m does not appear on the right side of any rule, neither is it the start symbol.[0m
+
+[1;35mWarning: [0m[1mUseless terminal [0m[1;36m[4mARRAY_BEG[0m[1m does not appear on the right side of any rule, neither is it the start symbol.[0m
+
+[1;35mWarning: [0m[1mThe explicit precedence declaration on this rule does not resolve any conflicts and can be removed:[0m
+[1mopal.y:1412: [0m[1;34mnumeric[0m: [1;36m[4mtINTEGER[0m
+...
+[1mopal.y:1428: [0m       | [1;33m"+@NUM"[0m [1;36m[4mtINTEGER[0m [1;31m=tLOWEST[0m
+                      {
+                        result = new_int(val[1])
+                      }
+
+[1;35mWarning: [0m[1mThe explicit precedence declaration on this rule does not resolve any conflicts and can be removed:[0m
+[1mopal.y:1412: [0m[1;34mnumeric[0m: [1;36m[4mtINTEGER[0m
+...
+[1mopal.y:1432: [0m       | [1;33m"+@NUM"[0m [1;36m[4mtFLOAT[0m   [1;31m=tLOWEST[0m
+                      {
+                        result = new_float(val[1])
+                      }
+
+3 useless terminals, 2 useless '=' precedence declarations
