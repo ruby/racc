@@ -1,0 +1,5 @@
+
+Warning: [1mThe explicit precedence declaration on this rule does not resolve any conflicts and can be removed:[0m
+[1mnormal.y:20: [0mnonterminal: A "+" B  = A
+
+1 useless '=' precedence declaration
