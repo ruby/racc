@@ -401,13 +401,6 @@ module Racc
           title = "Shift/reduce conflict on #{sr.symbol}, after the following input:"
           detail = sr.state.path.reject(&:hidden).map(&:to_s).join(' ') << "\n"
 
-          if verbose
-            context = SimulatedParseContext.from_path(@grammar, sr.state.path)
-                                           .lookahead!(sr.symbol)
-            # detail << "\n\nAt this point, the following rules are active:\n"
-            # detail << context.to_s << "\n"
-          end
-
           if sr.srules.one?
             detail << "\nThe following rule directs me to shift:\n"
           else
@@ -418,16 +411,18 @@ module Racc
           detail << sr.rrule.to_s
 
           if verbose
-            scontext = context.dup.shift!(sr.symbol)
+            scontext = SimulatedParseContext.from_path(@grammar, sr.state.path)
+            scontext.shift!(sr.symbol)
             detail << "\n\nAfter shifting #{sr.symbol}, one path to a " \
               "successful parse would be:\n"
             detail << scontext.path_to_success.map(&:to_s).join(' ')
 
-            rcontext = context.reduce!(sr.rrule.target)
+            rcontext = SimulatedParseContext.from_path(@grammar, sr.state.path)
+            rcontext.reduce!(sr.rrule.target).consume!(sr.symbol)
             msg = catch :dead_end do
               "\n\nAfter reducing to #{sr.rrule.target}, one path to a " \
               "successful parse would be:\n" <<
-              rcontext.path_to_success.map(&:to_s).join(' ')
+              rcontext.path_to_success.unshift(sr.symbol).map(&:to_s).join(' ')
             end
             msg ||= "\n\nI can't see any way that reducing to " \
               "#{sr.rrule.target} could possibly lead to a successful parse " \
@@ -445,13 +440,6 @@ module Racc
         title = "Reduce/reduce conflict on #{rr.symbol}, after the following input:"
         detail = rr.state.path.reject(&:hidden).map(&:to_s).join(' ')
 
-        if verbose
-          context = SimulatedParseContext.from_path(@grammar, rr.state.path)
-                                         .lookahead!(rr.symbol)
-          # detail << "\n\nAt this point, the following rules are active:\n"
-          # detail << context.map(&:to_s).join("\n")
-        end
-
         detail << "\n\nIt is possible to reduce by " \
                "#{rr.rules.size == 2 ? 'either' : 'any'} of these rules:\n"
         detail << rr.rules.map(&:to_s).join("\n")
@@ -460,9 +448,11 @@ module Racc
           targets = rr.rules.map(&:target).uniq
           if targets.size > 1
             targets.each do |target|
-              detail << "\n\nAfter reducing to #{target}, one path to a successful parse would be:\n"
-              rcontext = context.dup.reduce!(target)
-              detail << rcontext.path_to_success.map(&:to_s).join(' ')
+              rcontext = SimulatedParseContext.from_path(@grammar, rr.state.path)
+                                              .reduce!(target).consume!(rr.symbol)
+              detail << "\n\nAfter reducing to #{target}, one path to a " \
+                "successful parse would be:\n"
+              detail << rcontext.path_to_success.unshift(rr.symbol).map(&:to_s).join(' ')
             end
           end
         end
