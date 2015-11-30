@@ -101,9 +101,11 @@ module Racc
 
         table.each do |sym, core|
           # each possible 'core' corresponds to one LALR state
+
           unless dest = states[core]
             # not registered yet
-            dest = State.new(@states.size, core, state.path.dup << sym)
+            path = state.path.dup << sym
+            dest = State.new(@states.size, core, path.freeze)
             @states << dest
             worklist << dest
             states[core] = dest
