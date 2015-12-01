@@ -28,45 +28,49 @@ def main
 
   parser = OptionParser.new
   parser.banner = "Usage: #{File.basename($0)} [options] <input>"
+  parser.separator 'General:'
   parser.on('-o', '--output-file=PATH',
             'Output file name [<input>.rb]') { |name|
     output = name
   }
-  parser.on('-t', '--debug', 'Outputs debugging parser.') { |fl|
-    debug_parser = fl
+  parser.on('-C', '--check-only', 'Check syntax and quit immediately') {
+    check_only = true
   }
-  parser.on('-v', '--verbose', 'Display extra diagnostic information.') {
-    verbose = true
-  }
-  parser.on('-e', '--executable [RUBYPATH]', 'Makes executable parser.') { |path|
-    executable = true
-    rubypath = (path == 'ruby' ? nil : path)
-  }
-  parser.on('-E', '--embedded', "Embeds Racc runtime in output.") {
-    embed_runtime = true
-  }
-  parser.on('--superclass=CLASSNAME',
-            'Uses CLASSNAME instead of Racc::Parser.') {|name|
-    superclass = name
-  }
-  parser.on('-C', '--check-only', 'Checks syntax and quits immediately.') { |fl|
-    check_only = fl
-  }
-  parser.on('--[no-]color', 'Force colored output on or off.') { |fl|
-    Racc::Color.enabled = fl
-  }
-  parser.on('--version', 'Prints version and quits.') {
+  parser.on('--version', 'Print version and quit') {
     core = Racc::Parser.racc_runtime_type == 'ruby' ? '(ruby core)' : '(c core)'
     puts "racc #{Racc::VERSION}, codename: #{Racc::CODENAME} #{core}"
     exit 0
   }
-  parser.on('--copyright', 'Prints copyright and quits.') {
+  parser.on('--copyright', 'Print copyright and quit') {
     puts Racc::COPYRIGHT
     exit 0
   }
-  parser.on('--help', 'Prints this message and quits.') {
+  parser.on('--help', 'Print this message and quit') {
     puts parser.help
     exit 1
+  }
+  parser.separator 'Console output:'
+  parser.on('-v', '--verbose', 'Display extra diagnostic information') {
+    verbose = true
+  }
+  parser.on('--[no-]color', 'Force colored output on or off') { |fl|
+    Racc::Color.enabled = fl
+  }
+  parser.separator 'Ruby parser code output:'
+  parser.on('-t', '--debug', 'Output debugging parser') {
+    debug_parser = true
+  }
+  parser.on('-e', '--executable [RUBYPATH]', 'Output executable parser') { |path|
+    executable = true
+    rubypath = (path == 'ruby' ? nil : path)
+  }
+  parser.on('-E', '--embedded', "Embed Racc runtime in output") {
+    embed_runtime = true
+  }
+  parser.on('--superclass=CLASSNAME',
+            'Use CLASSNAME as superclass instead of Racc::Parser') { |name|
+    superclass = name
+  }
   }
 
   begin
