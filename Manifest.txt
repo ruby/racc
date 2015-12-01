@@ -113,6 +113,7 @@ test/regress/cadenza.rb
 test/regress/cast.rb
 test/regress/csspool.out
 test/regress/csspool.rb
+test/regress/edtf.out
 test/regress/edtf.rb
 test/regress/journey.rb
 test/regress/huia.rb
