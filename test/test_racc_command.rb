@@ -349,5 +349,13 @@ module Racc
       assert_warnings err, useless_terms: 2, sr_conflicts: 21
       assert_parser_unchanged 'tp_plus.y'
     end
+
+    # .y file from eye_of_newt gem
+
+    def test_eye_of_newt
+      err = assert_compile 'eye-of-newt.y'
+      assert_warnings err, sr_conflicts: 7, rr_conflicts: 5
+      assert_parser_unchanged 'eye-of-newt.y'
+    end
   end
 end
