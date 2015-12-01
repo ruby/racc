@@ -62,6 +62,7 @@ test/assets/edtf.y
 test/assets/err.y
 test/assets/error_recovery.y
 test/assets/expect.y
+test/assets/eye-of-newt.y
 test/assets/firstline.y
 test/assets/huia.y
 test/assets/ichk.y
@@ -115,6 +116,7 @@ test/regress/csspool.out
 test/regress/csspool.rb
 test/regress/edtf.out
 test/regress/edtf.rb
+test/regress/eye-of-newt.rb
 test/regress/journey.rb
 test/regress/huia.rb
 test/regress/liquor.rb
