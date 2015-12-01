@@ -120,6 +120,7 @@ test/regress/huia.rb
 test/regress/liquor.rb
 test/regress/machete.rb
 test/regress/mediacloth.rb
+test/regress/mof.out
 test/regress/mof.rb
 test/regress/namae.rb
 test/regress/nasl.rb
