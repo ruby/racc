@@ -224,9 +224,10 @@ module Racc
     # .y file from edtf-ruby gem
 
     def test_edtf
-      err = assert_compile 'edtf.y'
+      err = assert_compile 'edtf.y', '-v'
       assert_warnings err, useless_terms: 2
       assert_parser_unchanged 'edtf.y'
+      assert_output_unchanged 'edtf.out', err
     end
 
     # .y file from namae gem
