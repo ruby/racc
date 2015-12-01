@@ -336,9 +336,10 @@ module Racc
     # .y file from mof gem
 
     def test_mof
-      err = assert_compile 'mof.y'
+      err = assert_compile 'mof.y', '-v --color'
       assert_warnings err, useless_terms: 4, sr_conflicts: 7, rr_conflicts: 4
       assert_parser_unchanged 'mof.y'
+      assert_output_unchanged 'mof.out', err
     end
 
     # .y file from tp_plus gem
