@@ -400,8 +400,14 @@ module Racc
 
       if should_report_srconflict?
         sr_conflicts.each do |sr|
-          title = "Shift/reduce conflict on #{sr.symbol}, after the following input:"
-          detail = sr.state.path.reject(&:hidden).map(&:to_s).join(' ') << "\n"
+          title = "Shift/reduce conflict on #{sr.symbol},"
+          if sr.state.path.reject(&:hidden).empty?
+            title << ' at the beginning of the parse.'
+            detail = ''
+          else
+            title << ' after the following input:'
+            detail = sr.state.path.reject(&:hidden).map(&:to_s).join(' ') << "\n"
+          end
 
           if sr.srules.one?
             detail << "\nThe following rule directs me to shift:\n"
@@ -439,10 +445,16 @@ module Racc
       end
 
       rr_conflicts.each do |rr|
-        title = "Reduce/reduce conflict on #{rr.symbol}, after the following input:"
-        detail = rr.state.path.reject(&:hidden).map(&:to_s).join(' ')
+        title = "Reduce/reduce conflict on #{rr.symbol},"
+        if rr.state.path.reject(&:hidden).empty?
+          title << ' at the beginning of the parse.'
+          detail = ''
+        else
+          title << ' after the following input:'
+          detail = rr.state.path.reject(&:hidden).map(&:to_s).join(' ') << "\n"
+        end
 
-        detail << "\n\nIt is possible to reduce by " \
+        detail << "\nIt is possible to reduce by " \
                "#{rr.rules.size == 2 ? 'either' : 'any'} of these rules:\n"
         detail << rr.rules.map(&:to_s).join("\n")
 
