@@ -185,7 +185,7 @@ module Racc
       err = assert_compile 'csspool.y', '--color -v'
       assert_warnings err, sr_conflicts: 5, rr_conflicts: 3
       assert_parser_unchanged 'csspool.y'
-      assert_output_unchanged 'csspool.out', err
+      assert_output_unchanged 'csspool.out', '--color -v', err
     end
 
     # .y file from opal gem
@@ -194,7 +194,7 @@ module Racc
       err = assert_compile 'opal.y', '--color -v'
       assert_warnings err, useless_terms: 3, useless_prec: 2
       assert_parser_unchanged 'opal.y'
-      assert_output_unchanged 'opal.out', err
+      assert_output_unchanged 'opal.out', '--color -v', err
     end
 
     # .y file from journey gem
@@ -227,7 +227,7 @@ module Racc
       err = assert_compile 'edtf.y', '-v'
       assert_warnings err, useless_terms: 2
       assert_parser_unchanged 'edtf.y'
-      assert_output_unchanged 'edtf.out', err
+      assert_output_unchanged 'edtf.out', '-v', err
     end
 
     # .y file from namae gem
@@ -339,7 +339,7 @@ module Racc
       err = assert_compile 'mof.y', '-v --color'
       assert_warnings err, useless_terms: 4, sr_conflicts: 7, rr_conflicts: 4
       assert_parser_unchanged 'mof.y'
-      assert_output_unchanged 'mof.out', err
+      assert_output_unchanged 'mof.out', '-v --color', err
     end
 
     # .y file from tp_plus gem

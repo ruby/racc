@@ -33,13 +33,18 @@ module Racc
       FileUtils.rm_rf(File.join(PROJECT_DIR, TAB_DIR))
     end
 
-    def assert_compile(asset, args = [])
+    def assert_compile(asset, args = '', expect_success = true)
       file = File.basename(asset, '.y')
-      args = ([args].flatten) + [
+      args = [
+        args,
         "#{ASSET_DIR}/#{file}.y",
         "-o#{TAB_DIR}/#{file}",
       ]
-      racc "#{args.join(' ')}"
+      racc "#{args.join(' ')}", expect_success
+    end
+
+    def assert_error(asset, args = '')
+      assert_compile asset, args, false
     end
 
     def assert_warnings(dbg_output, expected)
@@ -74,7 +79,8 @@ module Racc
         "colordiff tmp/#{file} test/regress/#{file}.rb")
     end
 
-    def assert_output_unchanged(file, actual)
+    def assert_output_unchanged(file, args, actual = nil)
+      actual, args = args, nil if actual == nil
       result = Dir.chdir(PROJECT_DIR) do
         File.read("#{REGRESS_DIR}/#{file}") == actual
       end
@@ -82,16 +88,16 @@ module Racc
       asset = File.basename(file, '.out') + '.y'
       assert(result, "Console output of test/assets/#{asset} differed from " \
         'expectation. Try compiling it and diff stderr with ' \
-        "test/regress/#{file}:\nruby -I./lib ./bin/racc --color -o /dev/null " \
+        "test/regress/#{file}:\nruby -I./lib ./bin/racc #{args} -o /dev/null " \
         "test/assets/#{asset} 2>tmp/#{file}; colordiff tmp/#{file} " \
         "test/regress/#{file}")
     end
 
-    def racc(arg)
-      ruby "#{RACC} #{arg}"
+    def racc(arg, expect_success = true)
+      ruby "#{RACC} #{arg}", expect_success
     end
 
-    def ruby(arg)
+    def ruby(arg, expect_success = true)
       Dir.chdir(PROJECT_DIR) do
         Tempfile.open('test') do |io|
           executable = ENV['_'] || Gem.ruby
@@ -102,7 +108,7 @@ module Racc
           result = system("#{executable} -I #{INC} #{arg} 2>#{io.path}")
           io.flush
           err = io.read
-          assert(result, err)
+          assert(result, err) if expect_success
           return err
         end
       end
