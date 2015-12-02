@@ -1,0 +1,30 @@
+Parsing grammar file...
+Generating LALR states...
+Resolving 15 states...
+Creating parser file...
+
+[1;35mWarning: [0m[1mReduce/reduce conflict on [0m[1;33m"]"[0m[1m, after the following input:[0m
+[1;34mA[0m
+
+It is possible to reduce by either of these rules:
+[1mlr_not_lalr2.y:12: [0m[1;34mE[0m: [1;34mA[0m
+[1mlr_not_lalr2.y:13: [0m[1;34mF[0m: [1;34mA[0m
+
+After reducing to [1;34mE[0m, one path to a successful parse would be:
+[1;33m"]"[0m (reduce to [1;34mS[0m)
+
+I can't see any way that reducing to [1;34mF[0m could possibly lead to a successful parse from this situation. But maybe if this parser state was reached through a different input sequence, it could. I'm just a LALR parser generator and I can be pretty daft sometimes.
+
+[1;35mWarning: [0m[1mReduce/reduce conflict on [0m[1;33m")"[0m[1m, after the following input:[0m
+[1;34mA[0m
+
+It is possible to reduce by either of these rules:
+[1mlr_not_lalr2.y:12: [0m[1;34mE[0m: [1;34mA[0m
+[1mlr_not_lalr2.y:13: [0m[1;34mF[0m: [1;34mA[0m
+
+I can't see any way that reducing to [1;34mE[0m could possibly lead to a successful parse from this situation. But maybe if this parser state was reached through a different input sequence, it could. I'm just a LALR parser generator and I can be pretty daft sometimes.
+
+After reducing to [1;34mF[0m, one path to a successful parse would be:
+[1;33m")"[0m (reduce to [1;34mS[0m)
+
+2 reduce/reduce conflicts

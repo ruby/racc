@@ -97,7 +97,7 @@ module Racc
 
           rcontext = SimulatedParseContext.from_path(@grammar, @path)
                                           .reduce!(@rrule.target).consume!(@sym)
-          result << (catch :dead_end do
+          result << ((catch :dead_end do
             "\n\nAfter reducing to #{@rrule.target}, one path to a " \
             "successful parse would be:\n" <<
             rcontext.path_to_success.unshift(@sym).map(&:to_s).join(' ')
@@ -105,7 +105,7 @@ module Racc
             "#{@rrule.target} could possibly lead to a successful parse " \
             'from this situation. But maybe if this parser state was ' \
             "reached through a different input sequence, it could. I'm " \
-            'just a LALR parser generator and I can be pretty daft sometimes.'
+            'just a LALR parser generator and I can be pretty daft sometimes.')
         end
 
         result
@@ -149,9 +149,15 @@ module Racc
             targets.each do |target|
               rcontext = SimulatedParseContext.from_path(@grammar, @path)
                                               .reduce!(target).consume!(@sym)
-              result << "\n\nAfter reducing to #{target}, one path to a " \
+              result << ((catch :dead_end do
+                "\n\nAfter reducing to #{target}, one path to a " \
                 "successful parse would be:\n" <<
                 rcontext.path_to_success.unshift(@sym).map(&:to_s).join(' ')
+              end) || "\n\nI can't see any way that reducing to " \
+                "#{target} could possibly lead to a successful parse " \
+                'from this situation. But maybe if this parser state was ' \
+                "reached through a different input sequence, it could. I'm " \
+                'just a LALR parser generator and I can be pretty daft sometimes.')
             end
           end
         end

@@ -71,6 +71,8 @@ test/assets/infini.y
 test/assets/intp.y
 test/assets/journey.y
 test/assets/liquor.y
+test/assets/lr_not_lalr.y
+test/assets/lr_not_lalr2.y
 test/assets/machete.y
 test/assets/macruby.y
 test/assets/mediacloth.y
@@ -123,6 +125,8 @@ test/regress/eye-of-newt.rb
 test/regress/journey.rb
 test/regress/huia.rb
 test/regress/liquor.rb
+test/regress/lr_not_lalr.out
+test/regress/lr_not_lalr2.out
 test/regress/machete.rb
 test/regress/mediacloth.rb
 test/regress/mof.out

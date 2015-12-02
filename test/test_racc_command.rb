@@ -81,6 +81,14 @@ module Racc
       assert_output_unchanged 'badprec1.out', '--color', err
     end
 
+    def test_not_lalr
+      # grammars which are LR(1), but not LALR(1)
+      err = assert_compile 'lr_not_lalr.y', '--color -v'
+      assert_output_unchanged 'lr_not_lalr.out', '--color -v', err
+      err = assert_compile 'lr_not_lalr2.y', '--color -v'
+      assert_output_unchanged 'lr_not_lalr2.out', '--color -v', err
+    end
+
     def test_opt_y
       err = assert_compile 'opt.y'
       assert_no_warnings err
