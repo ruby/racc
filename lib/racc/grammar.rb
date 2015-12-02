@@ -189,7 +189,7 @@ module Racc
 
       # if 'start' nonterminal was not explicitly set, just take the first one
       @start ||= map(&:target).detect { |sym| !sym.dummy? }
-      fail CompileError, 'no rule in input' if @rules.empty?
+      fail CompileError, 'no rules in input' if @rules.empty?
       add_start_rule
 
       @rules.freeze
