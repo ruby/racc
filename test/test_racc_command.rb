@@ -58,8 +58,7 @@ module Racc
 
     def test_conf_y
       err = assert_compile 'conf.y', '-v'
-      # conf.y also has 2 useless rules, when we start checking that again
-      assert_warnings err, sr_conflicts: 4, rr_conflicts: 1, useless_nts: 1
+      assert_warnings err, sr_conflicts: 4, useless_nts: 1
     end
 
     def test_rrconf_y
@@ -70,6 +69,11 @@ module Racc
     def test_useless_y
       err = assert_compile 'useless.y'
       assert_warnings err, useless_nts: 2
+    end
+
+    def test_duplicate_y
+      err = assert_error 'duplicate.y'
+      assert_output_unchanged 'duplicate.out', err
     end
 
     def test_opt_y

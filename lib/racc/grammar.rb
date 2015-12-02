@@ -201,6 +201,7 @@ module Racc
 
       fix_ident
       check_terminals
+      check_rules
     end
 
     # A 'useless' Sym is one which can never be part of a valid parse
@@ -312,6 +313,16 @@ module Racc
         raise CompileError, 'The following rules use nonterminals for ' \
           'explicit precedence, which is not allowed: ' <<
           Source::SparseLines.merge(bad_prec.map(&:source)).map(&:spifferific).join("\n\n")
+      end
+    end
+
+    def check_rules
+      @rules.group_by(&:target).each_value do |same_lhs|
+        same_lhs.group_by(&:symbols).each_value do |same_rhs|
+          next unless same_rhs.size > 1
+          raise CompileError, "The following rules are duplicates:\n" <<
+            Source::SparseLines.merge(same_rhs.map(&:source)).map(&:spifferific).join("\n\n")
+        end
       end
     end
   end

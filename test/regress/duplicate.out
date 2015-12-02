@@ -1,0 +1,4 @@
+Error: test/assets/duplicate.y: The following rules are duplicates:
+duplicate.y:6: c: A
+
+duplicate.y:7: c: A

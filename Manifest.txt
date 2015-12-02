@@ -56,6 +56,7 @@ test/assets/chk.y
 test/assets/conf.y
 test/assets/csspool.y
 test/assets/digraph.y
+test/assets/duplicate.y
 test/assets/echk.y
 test/assets/edtf.y
 test/assets/err.y
@@ -113,6 +114,7 @@ test/regress/cadenza.rb
 test/regress/cast.rb
 test/regress/csspool.out
 test/regress/csspool.rb
+test/regress/duplicate.out
 test/regress/edtf.out
 test/regress/edtf.rb
 test/regress/eye-of-newt.rb
