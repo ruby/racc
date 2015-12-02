@@ -136,13 +136,7 @@ module Racc
               "#{sym.reachable.map(&:to_s).join(', ')}")
           end
         elsif !productive_symbols.include?(sym)
-          warnings << Warning.new(:useless_nonterminal, 'Useless ' \
-            "nonterminal #{sym} can never be produced from a finite " \
-            'sequence of tokens', 'Its derivation rule' \
-            "#{'s all' unless sym.heads.one?} contain#{'s' if sym.heads.one?}" \
-            " #{'an ' if sym.heads.one?}infinite loop" \
-            "#{'s' unless sym.heads.one?}:\n" <<
-            sym.heads.map { |ptr| ptr.rule.to_s }.join("\n"))
+          warnings << Warning::InfiniteLoop.new(sym)
         end
       end
 
