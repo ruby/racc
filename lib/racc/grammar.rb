@@ -33,9 +33,10 @@ module Racc
       # 'dummy' and 'anchor' are used to make sure the parser runs over ALL the
       # input tokens before concluding that the parse was successful
       # an 'anchor' token is appended to the end of the token stream, and a
-      # 'dummy rule' is automatically added which reduces [start node, anchor]
-      # to 'dummy'
-      # only if the parse ends in 'dummy', is it considered successful
+      # 'dummy rule' is automatically added which looks like:
+      # dummy : start anchor anchor
+      # We never actually reduce to the dummy symbol; instead, we manually set
+      # 'dummy : start anchor . anchor' to be an 'accept state'
 
       @dummy   = intern(:$start, true)
       @anchor  = intern(false, true)   # Symbol ID = 0
