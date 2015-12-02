@@ -382,19 +382,23 @@ module Racc
     end
 
     def inspect
-      "#<Racc::Rule id=#{@ident} (#{@target})>"
+      "#<Racc::Rule id=#{@ident} #{display}>"
     end
 
     def to_s
       if @source
         @source.spifferific
       else
-        rule = "#{@target} : #{@symbols.reject(&:hidden).map(&:to_s).join(' ')}"
-        if @precedence
-          rule << ' ' << Color.explicit_prec('=' << @precedence.display_name)
-        end
-        rule
+        display
       end
+    end
+
+    def display
+      rule = "#{@target} : #{@symbols.reject(&:hidden).map(&:to_s).join(' ')}"
+      if @precedence
+        rule << ' ' << Color.explicit_prec('=' << @precedence.display_name)
+      end
+      rule
     end
 
     def each(&block)
