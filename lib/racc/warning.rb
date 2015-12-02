@@ -115,5 +115,53 @@ module Racc
         :sr_conflict
       end
     end
+
+    class RRConflict < Warning
+      def initialize(conflict, grammar, verbose)
+        @grammar = grammar
+        @path    = conflict.state.path
+        @sym     = conflict.symbol
+        @rules   = conflict.rules
+        @verbose = verbose
+      end
+
+      def title
+        "Reduce/reduce conflict on #{@sym}," <<
+          (@path.reject(&:hidden).empty? ?
+            ' at the beginning of the parse.' :
+            ' after the following input:')
+      end
+
+      def details
+        if @path.reject(&:hidden).empty?
+          result = ''
+        else
+          result = @path.reject(&:hidden).map(&:to_s).join(' ') << "\n"
+        end
+
+        result << "\nIt is possible to reduce by " \
+               "#{@rules.size == 2 ? 'either' : 'any'} of these rules:\n" <<
+               @rules.map(&:to_s).join("\n")
+
+        if @verbose
+          targets = @rules.map(&:target).uniq
+          if targets.size > 1
+            targets.each do |target|
+              rcontext = SimulatedParseContext.from_path(@grammar, @path)
+                                              .reduce!(target).consume!(@sym)
+              result << "\n\nAfter reducing to #{target}, one path to a " \
+                "successful parse would be:\n" <<
+                rcontext.path_to_success.unshift(@sym).map(&:to_s).join(' ')
+            end
+          end
+        end
+
+        result
+      end
+
+      def type
+        :rr_conflict
+      end
+    end
   end
 end

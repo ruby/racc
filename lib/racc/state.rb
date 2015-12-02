@@ -402,37 +402,7 @@ module Racc
         warnings.concat(sr_conflicts.map { |sr| Warning::SRConflict.new(sr, @grammar, verbose) })
       end
 
-      rr_conflicts.each do |rr|
-        title = "Reduce/reduce conflict on #{rr.symbol},"
-        if rr.state.path.reject(&:hidden).empty?
-          title << ' at the beginning of the parse.'
-          detail = ''
-        else
-          title << ' after the following input:'
-          detail = rr.state.path.reject(&:hidden).map(&:to_s).join(' ') << "\n"
-        end
-
-        detail << "\nIt is possible to reduce by " \
-               "#{rr.rules.size == 2 ? 'either' : 'any'} of these rules:\n"
-        detail << rr.rules.map(&:to_s).join("\n")
-
-        if verbose
-          targets = rr.rules.map(&:target).uniq
-          if targets.size > 1
-            targets.each do |target|
-              rcontext = SimulatedParseContext.from_path(@grammar, rr.state.path)
-                                              .reduce!(target).consume!(rr.symbol)
-              detail << "\n\nAfter reducing to #{target}, one path to a " \
-                "successful parse would be:\n"
-              detail << rcontext.path_to_success.unshift(rr.symbol).map(&:to_s).join(' ')
-            end
-          end
-        end
-
-        warnings << Warning.new(:rr_conflict, title, detail)
-      end
-
-      warnings
+      warnings.concat(rr_conflicts.map { |rr| Warning::RRConflict.new(rr, @grammar, verbose) })
     end
   end
 
