@@ -49,6 +49,7 @@ sample/lists.y
 sample/syntax.y
 sample/yyerr.y
 test/assets/badprec1.y
+test/assets/badsyntax.y
 test/assets/bench.y
 test/assets/bibtex.y
 test/assets/cadenza.y
@@ -113,6 +114,7 @@ test/assets/useless.y
 test/assets/yyerr.y
 test/helper.rb
 test/regress/badprec1.out
+test/regress/badsyntax.out
 test/regress/bibtex.rb
 test/regress/cadenza.rb
 test/regress/cast.rb

@@ -160,11 +160,7 @@ module Racc
     private
 
     def on_error(_tok, val, _values)
-      fail CompileError, "#{location}: unexpected token #{val.inspect}"
-    end
-
-    def location
-      "#{@file.name}:#{@scanner.lineno}"
+      fail(CompileError, "#{@scanner.lineno}: unexpected token #{val[0].inspect}")
     end
 
     def add_rule_block(list)
