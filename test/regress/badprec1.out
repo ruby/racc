@@ -1,0 +1,2 @@
+[31mError: [0m[1mtest/assets/badprec1.y:[0m The following rule uses nonterminals for explicit precedence, which is not allowed:
+[1mbadprec1.y:6: [0m[1;34mtarg[0m : [1;36m[4mA[0m [1;36m[4mB[0m [1;31m=blah[0m

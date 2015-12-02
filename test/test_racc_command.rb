@@ -76,6 +76,11 @@ module Racc
       assert_output_unchanged 'duplicate.out', err
     end
 
+    def test_badprec1_y
+      err = assert_error 'badprec1.y', '--color'
+      assert_output_unchanged 'badprec1.out', '--color', err
+    end
+
     def test_opt_y
       err = assert_compile 'opt.y'
       assert_no_warnings err

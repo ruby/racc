@@ -310,8 +310,9 @@ module Racc
         rule.explicit_precedence && rule.explicit_precedence.nonterminal?
       end
       unless bad_prec.empty?
-        raise CompileError, 'The following rules use nonterminals for ' \
-          'explicit precedence, which is not allowed: ' <<
+        raise CompileError, "The following rule#{'s' unless bad_prec.one?} " \
+          "use#{'s' if bad_prec.one?} nonterminals for explicit precedence, " \
+          "which is not allowed:\n" <<
           Source::SparseLines.merge(bad_prec.map(&:source)).map(&:spifferific).join("\n\n")
       end
     end
