@@ -4,6 +4,49 @@ require 'racc/simulated_parse_context'
 module Racc
   include Racc::Color
 
+  # Categorize warnings according to entity which warning relates to
+  # This can be used to avoid issuing a general warning when a more specific
+  # and informative warning has already been registered
+  class Warnings
+    include Enumerable
+
+    def initialize
+      @rules   = Hash.new { |h,k| h[k] = [] }
+      @states  = Hash.new { |h,k| h[k] = [] }
+      @symbols = Hash.new { |h,k| h[k] = [] }
+    end
+
+    def add_for_rule(rule, warning)
+      @rules[rule] << warning
+    end
+
+    def add_for_state(state, warning)
+      @states[state] << warning
+    end
+
+    def add_for_symbol(symbol, warning)
+      @symbols[symbol] << warning
+    end
+
+    def each(&block)
+      @symbols.keys.sort_by(&:ident).each { |k| @symbols[k].each(&block) }
+      @rules.keys.sort_by(&:ident).each   { |k| @rules[k].each(&block) }
+      @states.keys.sort_by(&:ident).each  { |k| @states[k].each(&block) }
+    end
+
+    def for_rule(rule)
+      @rules[rule]
+    end
+
+    def for_state(state)
+      @states[state]
+    end
+
+    def for_symbol(symbol)
+      @symbols[symbol]
+    end
+  end
+
   class Warning < Struct.new(:type, :title, :details)
     def initialize(type, title, details = nil)
       super

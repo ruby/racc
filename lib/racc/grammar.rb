@@ -115,37 +115,37 @@ module Racc
     end
 
     def warnings(verbose)
-      warnings = []
+      warnings = Warnings.new
 
       useless_symbols.each do |sym|
         if sym.locate.empty?
           what = sym.terminal? ? 'terminal' : 'nonterminal'
           type = "useless_#{what}".to_sym
-          warnings << Warning.new(type, "Useless #{what} #{sym} does not " \
+          warnings.add_for_symbol(sym, Warning.new(type, "Useless #{what} #{sym} does not " \
             'appear on the right side of any rule, neither is it the start ' \
-            'symbol.')
+            'symbol.'))
         elsif !sym.reachable.include?(@start) && sym.reachable.include?(sym)
           if sym.reachable.one?
-            warnings << Warning.new(:useless_nonterminal, 'Useless ' \
+            warnings.add_for_symbol(sym, Warning.new(:useless_nonterminal, 'Useless ' \
               "nonterminal #{sym} only appears on the right side of its " \
-              'own rules.')
+              'own rules.'))
           else
-            warnings << Warning.new(:useless_nonterminal, 'Useless ' \
+            warnings.add_for_symbol(sym, Warning.new(:useless_nonterminal, 'Useless ' \
               "nonterminal #{sym} cannot be part of a valid parse tree, " \
               'since there is no sequence of reductions from it to the ' \
               'start symbol.', 'It can only reduce to: ' \
-              "#{sym.reachable.map(&:to_s).join(', ')}")
+              "#{sym.reachable.map(&:to_s).join(', ')}"))
           end
         elsif !productive_symbols.include?(sym)
-          warnings << Warning::InfiniteLoop.new(sym)
+          warnings.add_for_symbol(sym, Warning::InfiniteLoop.new(sym))
         end
       end
 
       select { |r| r.explicit_precedence && !r.explicit_precedence_used? }.each do |rule|
-        warnings << Warning::UselessPrecedence.new(rule)
+        warnings.add_for_rule(rule, Warning::UselessPrecedence.new(rule))
       end
 
-      warnings.concat(@states.warnings(verbose))
+      @states.warnings(warnings, verbose)
     end
 
     # Grammar Definition Interface

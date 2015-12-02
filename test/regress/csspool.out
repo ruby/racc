@@ -3,6 +3,39 @@ Generating LALR states...
 Resolving 360 states...
 Creating parser file...
 
+[1;35mWarning: [0m[1mReduce/reduce conflict on [0m[1;36m[4m$end[0m[1m, after the following input:[0m
+[1;34mcharset[0m
+
+It is possible to reduce by either of these rules:
+[1mcsspool.y:31: [0m[1;34mstylesheet[0m
+...
+[1mcsspool.y:35: [0m  | [1;34mcharset[0m
+[1mcsspool.y:31: [0m[1;34mstylesheet[0m
+...
+[1mcsspool.y:39: [0m  |
+
+[1;35mWarning: [0m[1mReduce/reduce conflict on [0m[1;36m[4m$end[0m[1m, after the following input:[0m
+[1;34mimport[0m
+
+It is possible to reduce by either of these rules:
+[1mcsspool.y:31: [0m[1;34mstylesheet[0m
+...
+[1mcsspool.y:36: [0m  | [1;34mimport[0m
+[1mcsspool.y:31: [0m[1;34mstylesheet[0m
+...
+[1mcsspool.y:39: [0m  |
+
+[1;35mWarning: [0m[1mReduce/reduce conflict on [0m[1;36m[4m$end[0m[1m, after the following input:[0m
+[1;34mnamespace[0m
+
+It is possible to reduce by either of these rules:
+[1mcsspool.y:31: [0m[1;34mstylesheet[0m
+...
+[1mcsspool.y:37: [0m  | [1;34mnamespace[0m
+[1mcsspool.y:31: [0m[1;34mstylesheet[0m
+...
+[1mcsspool.y:39: [0m  |
+
 [1;35mWarning: [0m[1mShift/reduce conflict on [0m[1;36m[4mSEMI[0m[1m, after the following input:[0m
 [1;34mstart_fontface_rule[0m [1;36m[4mSEMI[0m
 
@@ -89,38 +122,5 @@ After shifting [1;36m[4mS[0m, one path to a successful parse would be:
 
 After reducing to [1;34mcalc_value[0m, one path to a successful parse would be:
 [1;36m[4mS[0m (reduce to [1;34moptional_space[0m) [1;36m[4mSTAR[0m [1;34mcalc_value[0m (reduce to [1;34mcalc_product[0m) (reduce to [1;34mcalc_sum[0m) [1;36m[4mRPAREN[0m [1;34moptional_space[0m (reduce to [1;34mcalc[0m) (reduce to [1;34mterm[0m) [1;34moperator[0m [1;34mexpr[0m (reduce to [1;34mexpr[0m) [1;36m[4mRPAREN[0m (reduce to [1;34mfunction[0m) (reduce to [1;34murl_match_fn[0m) [1;36m[4mCOMMA[0m [1;34murl_match_fns[0m (reduce to [1;34murl_match_fns[0m) [1;36m[4mLBRACE[0m (reduce to [1;34mstart_document_query[0m) [1;34mbody[0m [1;36m[4mRBRACE[0m (reduce to [1;34mdocument_query[0m) (reduce to [1;34mconditional_rule[0m) [1;34mbody[0m (reduce to [1;34mbody[0m) (reduce to [1;34mstylesheet[0m) (reduce to [1;34mdocument[0m)
-
-[1;35mWarning: [0m[1mReduce/reduce conflict on [0m[1;36m[4m$end[0m[1m, after the following input:[0m
-[1;34mcharset[0m
-
-It is possible to reduce by either of these rules:
-[1mcsspool.y:31: [0m[1;34mstylesheet[0m
-...
-[1mcsspool.y:35: [0m  | [1;34mcharset[0m
-[1mcsspool.y:31: [0m[1;34mstylesheet[0m
-...
-[1mcsspool.y:39: [0m  |
-
-[1;35mWarning: [0m[1mReduce/reduce conflict on [0m[1;36m[4m$end[0m[1m, after the following input:[0m
-[1;34mimport[0m
-
-It is possible to reduce by either of these rules:
-[1mcsspool.y:31: [0m[1;34mstylesheet[0m
-...
-[1mcsspool.y:36: [0m  | [1;34mimport[0m
-[1mcsspool.y:31: [0m[1;34mstylesheet[0m
-...
-[1mcsspool.y:39: [0m  |
-
-[1;35mWarning: [0m[1mReduce/reduce conflict on [0m[1;36m[4m$end[0m[1m, after the following input:[0m
-[1;34mnamespace[0m
-
-It is possible to reduce by either of these rules:
-[1mcsspool.y:31: [0m[1;34mstylesheet[0m
-...
-[1mcsspool.y:37: [0m  | [1;34mnamespace[0m
-[1mcsspool.y:31: [0m[1;34mstylesheet[0m
-...
-[1mcsspool.y:39: [0m  |
 
 5 shift/reduce conflicts, 3 reduce/reduce conflicts

@@ -395,14 +395,18 @@ module Racc
 
     public
 
-    def warnings(verbose = false)
-      warnings = []
-
+    def warnings(warnings, verbose = false)
       if should_report_srconflict?
-        warnings.concat(sr_conflicts.map { |sr| Warning::SRConflict.new(sr, @grammar, verbose) })
+        sr_conflicts.each do |sr|
+          warnings.add_for_state(sr.state, Warning::SRConflict.new(sr, @grammar, verbose))
+        end
       end
 
-      warnings.concat(rr_conflicts.map { |rr| Warning::RRConflict.new(rr, @grammar, verbose) })
+      rr_conflicts.each do |rr|
+        warnings.add_for_state(rr.state, Warning::RRConflict.new(rr, @grammar, verbose))
+      end
+
+      warnings
     end
   end
 
