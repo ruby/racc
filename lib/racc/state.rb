@@ -490,9 +490,10 @@ module Racc
                      # that Sym next
       @action = {}   # Sym -> Shift/Reduce/Accept/Error describing what we will
                      # do if we encounter that Sym next
-      @defact = nil  # if this state is totally unambiguous as to what to do
-                     # next, then just perform this action (don't use action
-                     # table)
+      @defact = nil  # if action table has no entry for a certain lookahead
+                     # token, perform this action instead
+                     # (if action table is empty, just perform this action
+                     # without even checking the lookahead token)
       @rr_conflicts = {}
       @sr_conflicts = {}
     end
