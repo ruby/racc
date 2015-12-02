@@ -399,49 +399,7 @@ module Racc
       warnings = []
 
       if should_report_srconflict?
-        sr_conflicts.each do |sr|
-          title = "Shift/reduce conflict on #{sr.symbol},"
-          if sr.state.path.reject(&:hidden).empty?
-            title << ' at the beginning of the parse.'
-            detail = ''
-          else
-            title << ' after the following input:'
-            detail = sr.state.path.reject(&:hidden).map(&:to_s).join(' ') << "\n"
-          end
-
-          if sr.srules.one?
-            detail << "\nThe following rule directs me to shift:\n"
-          else
-            detail << "\nThe following rules direct me to shift:\n"
-          end
-          detail << sr.srules.map { |ptr| ptr.rule.to_s }.join("\n")
-          detail << "\nThe following rule directs me to reduce:\n"
-          detail << sr.rrule.to_s
-
-          if verbose
-            scontext = SimulatedParseContext.from_path(@grammar, sr.state.path)
-            scontext.shift!(sr.symbol)
-            detail << "\n\nAfter shifting #{sr.symbol}, one path to a " \
-              "successful parse would be:\n"
-            detail << scontext.path_to_success.map(&:to_s).join(' ')
-
-            rcontext = SimulatedParseContext.from_path(@grammar, sr.state.path)
-            rcontext.reduce!(sr.rrule.target).consume!(sr.symbol)
-            msg = catch :dead_end do
-              "\n\nAfter reducing to #{sr.rrule.target}, one path to a " \
-              "successful parse would be:\n" <<
-              rcontext.path_to_success.unshift(sr.symbol).map(&:to_s).join(' ')
-            end
-            msg ||= "\n\nI can't see any way that reducing to " \
-              "#{sr.rrule.target} could possibly lead to a successful parse " \
-              'from this situation. But maybe if this parser state was ' \
-              "reached through a different input sequence, it could. I'm " \
-              'just a LALR parser generator and I can be pretty daft sometimes.'
-            detail << msg
-          end
-
-          warnings << Warning.new(:sr_conflict, title, detail)
-        end
+        warnings.concat(sr_conflicts.map { |sr| Warning::SRConflict.new(sr, @grammar, verbose) })
       end
 
       rr_conflicts.each do |rr|
