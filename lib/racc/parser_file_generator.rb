@@ -5,7 +5,6 @@
 # the GNU LGPL, Lesser General Public License version 2.1.
 # For details of the GNU LGPL, see the file "COPYING".
 
-require 'enumerator'
 require 'racc/source'
 require 'racc/parser-text'
 require 'rbconfig'
