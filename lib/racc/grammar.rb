@@ -69,7 +69,11 @@ module Racc
     end
 
     def intern(val, dummy = false)
-      @cache[val] ||= Sym.new(val, self, dummy).tap { |sym| @symbols.push(sym) }
+      if @closed
+        @cache[val] || (raise "No such symbol: #{val}")
+      else
+        @cache[val] ||= Sym.new(val, self, dummy).tap { |sym| @symbols.push(sym) }
+      end
     end
 
     def delete_symbol(sym)
@@ -200,6 +204,7 @@ module Racc
         sym.heads.freeze
         sym.locate.freeze
       end
+      @cache.freeze
 
       fix_ident
       check_terminals
