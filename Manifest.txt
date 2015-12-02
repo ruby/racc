@@ -27,7 +27,6 @@ lib/racc/simulated_parse_context.rb
 lib/racc/source.rb
 lib/racc/state.rb
 lib/racc/state_transition_table.rb
-lib/racc/static.rb
 lib/racc/util.rb
 lib/racc/warning.rb
 rdoc/en/NEWS.en.rdoc

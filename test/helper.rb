@@ -1,6 +1,12 @@
 $VERBOSE = true
+
 require 'minitest/autorun'
-require 'racc/static'
+
+require 'racc'
+require 'racc/parser'
+require 'racc/grammar_file_parser'
+require 'racc/parser_file_generator'
+
 require 'fileutils'
 require 'tempfile'
 require 'timeout'
