@@ -39,5 +39,24 @@ module Racc
         :useless_nonterminal
       end
     end
+
+    class UselessPrecedence < Warning
+      def initialize(rule)
+        @rule = rule
+      end
+
+      def title
+        'The explicit precedence declaration on this rule does not resolve ' \
+        'any conflicts and can be removed:'
+      end
+
+      def details
+        @rule.to_s
+      end
+
+      def type
+        :useless_prec
+      end
+    end
   end
 end

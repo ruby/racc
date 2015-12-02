@@ -141,9 +141,7 @@ module Racc
       end
 
       select { |r| r.explicit_precedence && !r.explicit_precedence_used? }.each do |rule|
-        warnings << Warning.new(:useless_prec, 'The explicit precedence ' \
-          'declaration on this rule does not resolve any conflicts and can ' \
-          "be removed:", rule.to_s)
+        warnings << Warning::UselessPrecedence.new(rule)
       end
 
       warnings.concat(@states.warnings(verbose))
