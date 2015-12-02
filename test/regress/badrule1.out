@@ -1,0 +1,2 @@
+[31mError: [0m[1mtest/assets/badrule1.y:[0m you may not create derivation rules for a string literal:
+[1mbadrule1.y:3: [0m[1;33m"string"[0m: [1;36m[4ma[0m [1;36m[4mb[0m [1;36m[4mc[0m

@@ -294,7 +294,7 @@ module Racc
       unless bad_strings.empty?
         bad_rules = bad_strings.flat_map(&:heads).map(&:rule)
         raise CompileError, 'you may not create derivation rules for a ' \
-          'string literal: ' <<
+          "string literal:\n" <<
           Source::SparseLines.merge(bad_rules.map(&:source)).map(&:spifferific).join("\n\n")
       end
 
@@ -645,12 +645,10 @@ module Racc
 
     def to_s
       return @display_name.dup unless Color.enabled?
-      if terminal?
-        if string_symbol?
-          Color.string(@display_name)
-        else
-          Color.terminal(@display_name)
-        end
+      if string_symbol?
+        Color.string(@display_name)
+      elsif terminal?
+        Color.terminal(@display_name)
       else
         Color.nonterminal(@display_name)
       end

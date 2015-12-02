@@ -86,6 +86,11 @@ module Racc
       assert_output_unchanged 'badsyntax.out', '--color', err
     end
 
+    def test_badrule1_y
+      err = assert_error 'badrule1.y', '--color'
+      assert_output_unchanged 'badrule1.out', '--color', err
+    end
+
     def test_not_lalr
       # grammars which are LR(1), but not LALR(1)
       err = assert_compile 'lr_not_lalr.y', '--color -v'
