@@ -14,13 +14,11 @@ require 'timeout'
 module Racc
   class TestCase < Minitest::Test
     PROJECT_DIR = File.expand_path(File.join(File.dirname(__FILE__), '..'))
+    RACC        = File.join(PROJECT_DIR, 'bin', 'racc')
 
-    TEST_DIR = File.join(PROJECT_DIR, 'test')
-
-    RACC      = File.join(PROJECT_DIR, 'bin', 'racc')
-    TAB_DIR   = File.join(TEST_DIR, 'tab') # generated parsers go here
-    ASSET_DIR = File.join(TEST_DIR, 'assets') # test grammars
-    REGRESS_DIR = File.join(TEST_DIR, 'regress') # known-good generated outputs
+    TAB_DIR     = File.join('test', 'tab')     # generated parsers go here
+    ASSET_DIR   = File.join('test', 'assets')  # test grammars
+    REGRESS_DIR = File.join('test', 'regress') # known-good generated outputs
 
     INC = [
       File.join(PROJECT_DIR, 'lib'),
@@ -28,11 +26,11 @@ module Racc
     ].join(':')
 
     def setup
-      FileUtils.mkdir_p(TAB_DIR)
+      FileUtils.mkdir_p(File.join(PROJECT_DIR, TAB_DIR))
     end
 
     def teardown
-      FileUtils.rm_rf(TAB_DIR)
+      FileUtils.rm_rf(File.join(PROJECT_DIR, TAB_DIR))
     end
 
     def assert_compile(asset, args = [])
@@ -58,7 +56,7 @@ module Racc
 
     def assert_exec(asset)
       file = File.basename(asset, '.y')
-      Dir.chdir(TEST_DIR) do
+      Dir.chdir(PROJECT_DIR) do
         ruby("#{TAB_DIR}/#{file}")
       end
     end
@@ -66,9 +64,9 @@ module Racc
     def assert_parser_unchanged(asset)
       file = File.basename(asset, '.y')
 
-      expected = File.read("#{REGRESS_DIR}/#{file}.rb")
-      actual   = File.read("#{TAB_DIR}/#{file}")
-      result   = (expected == actual)
+      result = Dir.chdir(PROJECT_DIR) do
+        File.read("#{REGRESS_DIR}/#{file}.rb") == File.read("#{TAB_DIR}/#{file}")
+      end
 
       assert(result, "Output of test/assets/#{asset} differed from " \
         "expectation. Try compiling it and diff with test/regress/#{file}.rb:" \
@@ -77,8 +75,9 @@ module Racc
     end
 
     def assert_output_unchanged(file, actual)
-      expected = File.read("#{REGRESS_DIR}/#{file}")
-      result   = (expected == actual)
+      result = Dir.chdir(PROJECT_DIR) do
+        File.read("#{REGRESS_DIR}/#{file}") == actual
+      end
 
       asset = File.basename(file, '.out') + '.y'
       assert(result, "Console output of test/assets/#{asset} differed from " \
@@ -93,7 +92,7 @@ module Racc
     end
 
     def ruby(arg)
-      Dir.chdir(TEST_DIR) do
+      Dir.chdir(PROJECT_DIR) do
         Tempfile.open('test') do |io|
           executable = ENV['_'] || Gem.ruby
           if File.basename(executable) == 'bundle'

@@ -534,7 +534,7 @@ end   # module Intp
 
 begin
   tree = nil
-  fname = 'assets/src.intp'
+  fname = 'test/assets/src.intp'
   File.open(fname) {|f|
     tree = Intp::Parser.new.parse(f, fname)
   }
