@@ -8,20 +8,26 @@
 # For details of LGPL, see the file "COPYING".
 
 require 'racc/static'
+require 'racc/dot_file_generator'
+require 'racc/simulated_parser_automaton'
 require 'racc/color'
 require 'optparse'
 
 include Racc::Color
 
 def main
-  output = nil
-  debug_parser = false
+  dst_file = nil
+  output   = :ruby
+
+  debug_parser    = false
   make_executable = false
-  rubypath = nil
-  embed_runtime = false
-  superclass = nil
-  check_only = false
-  verbose = false
+  rubypath        = nil
+  embed_runtime   = false
+  superclass      = nil
+  check_only      = false
+  verbose         = false
+  input_tokens    = nil
+
   profiler = RaccProfiler.new(!!ENV['PROFILE'])
 
   Racc::Color.enabled = $stderr.tty?
@@ -30,8 +36,11 @@ def main
   parser.banner = "Usage: #{File.basename($0)} [options] <input>"
   parser.separator 'General:'
   parser.on('-o', '--output-file=PATH',
-            'Output file name [<input>.rb]') { |name|
-    output = name
+            'Output file name [<input>.rb / <input>.dot]') { |name|
+    dst_file = name
+  }
+  parser.on('-V', '--graphviz', 'Output a Graphviz DOT file showing parser states') {
+    output = :dot
   }
   parser.on('-C', '--check-only', 'Check syntax and quit immediately') {
     check_only = true
@@ -56,7 +65,7 @@ def main
   parser.on('--[no-]color', 'Force colored output on or off') { |fl|
     Racc::Color.enabled = fl
   }
-  parser.separator 'Ruby parser code output:'
+  parser.separator 'When generating Ruby parser code (the default):'
   parser.on('-t', '--debug', 'Output debugging parser') {
     debug_parser = true
   }
@@ -71,6 +80,9 @@ def main
             'Use CLASSNAME as superclass instead of Racc::Parser') { |name|
     superclass = name
   }
+  parser.separator 'When generating a DOT state graph:'
+  parser.on('--input=TOKENS', 'Show states traversed when parsing TOKENS') { |tokstr|
+    input_tokens = tokstr.split(/\s+/)
   }
 
   begin
@@ -81,25 +93,33 @@ def main
     exit 1
   end
 
-  if ARGV.empty?
-    $stderr.puts 'no input'
-    $stderr.puts
-    $stderr.puts parser.help
-    exit 1
-  elsif ARGV.size > 1
-    $stderr.puts 'too many inputs'
+  fail = lambda do |msg|
+    $stderr.puts msg
     $stderr.puts
     $stderr.puts parser.help
     exit 1
   end
+
+  if output == :dot
+    fail['racc: -t and -V options are incompatible'] if debug_parser
+    fail['racc: -e and -V options are incompatible'] if make_executable
+    fail['racc: -E and -V options are incompatible'] if embed_runtime
+    fail['racc: --superclass and -V options are incompatible'] if superclass
+  end
+
+  if ARGV.empty?
+    fail['racc: No input file']
+  elsif ARGV.size > 1
+    fail['racc: Too many input files']
+  end
   input = ARGV[0]
 
   begin
-    if output.nil?
-      output = make_filename(input, '.rb')
-      if File.exist?(output)
-        $stderr.puts "'#{output}' already exists. Please use '-o #{output}' if " \
-          'you are sure that you want to overwrite this file.'
+    if dst_file.nil?
+      dst_file = make_filename(input, format_extension(output))
+      if File.exist?(dst_file)
+        $stderr.puts "racc: '#{dst_file}' already exists. Please use '-o " \
+          "#{dst_file}' if you are sure that you want to overwrite this file."
         exit 1
       end
     end
@@ -124,20 +144,34 @@ def main
       states.compute_dfa
     end
 
-    $stderr.puts 'Creating parser file...' if verbose
-    params = result.params.dup
-    # Overwrites parameters given by a grammar file with command line options.
-    params.superclass = superclass if superclass
-    # From command line option
-    if make_executable
-      params.make_executable = true
-      params.interpreter = rubypath
-    end
-    params.debug_parser = debug_parser
-    params.embed_runtime = embed_runtime
-    profiler.section('generation') do
-      generator = Racc::ParserFileGenerator.new(states, params)
-      generator.generate_parser_file(output)
+    if output == :ruby
+      $stderr.puts 'Creating parser file...' if verbose
+
+      params = result.params.dup
+      # Overwrite parameters given by a grammar file with command line options
+      params.superclass = superclass if superclass
+      if make_executable
+        params.make_executable = true
+        params.interpreter = rubypath
+      end
+      params.debug_parser = debug_parser
+      params.embed_runtime = embed_runtime
+
+      profiler.section('generation') do
+        generator = Racc::ParserFileGenerator.new(states, params)
+        generator.generate_parser_file(dst_file)
+      end
+    elsif output == :dot
+      if input_tokens
+        tokens    = input_tokens.map { |t| result.grammar.intern(t.to_sym) }
+        automaton = Racc::SimulatedParserAutomaton::TraversedStates.new(states)
+        tokens.each { |t| automaton.consume(t) }
+        automaton.consume(result.grammar.intern(false)) # eof
+        generator = Racc::DotFileGenerator.new(states, automaton.traversed)
+      else
+        generator = Racc::DotFileGenerator.new(states)
+      end
+      generator.generate_dot_file(dst_file)
     end
 
     warnings = result.grammar.warnings(verbose)
@@ -163,6 +197,14 @@ end
 
 def make_filename(path, suffix)
   path.sub(/(?:\..*?)?\z/, suffix)
+end
+
+def format_extension(format)
+  case format
+  when :ruby then '.rb'
+  when :dot  then '.dot'
+  else raise "Unknown format: #{format}"
+  end
 end
 
 def warning_summary(warnings)

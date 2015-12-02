@@ -13,6 +13,7 @@ ext/racc/extconf.rb
 ext/racc/com/headius/racc/Cparse.java
 lib/racc.rb
 lib/racc/directed_graph.rb
+lib/racc/dot_file_generator.rb
 lib/racc/dsl.rb
 lib/racc/exception.rb
 lib/racc/grammar.rb
@@ -24,6 +25,7 @@ lib/racc/parser-text.rb
 lib/racc/parser.rb
 lib/racc/parser_file_generator.rb
 lib/racc/simulated_parse_context.rb
+lib/racc/simulated_parser_automaton.rb
 lib/racc/source.rb
 lib/racc/state.rb
 lib/racc/state_transition_table.rb
