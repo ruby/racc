@@ -77,24 +77,23 @@ def main
     superclass = name
   }
 
-  begin
-    parser.parse!
-  rescue OptionParser::ParseError => err
-    $stderr.puts err.message
+  fail = proc do |err|
+    $stderr.puts "#{red('Error: ')}#{err}"
+    $stderr.puts
     $stderr.puts parser.help
     exit 1
   end
 
+  begin
+    parser.parse!
+  rescue OptionParser::ParseError => err
+    fail[err.message]
+  end
+
   if ARGV.empty?
-    $stderr.puts 'no input'
-    $stderr.puts
-    $stderr.puts parser.help
-    exit 1
+    fail['no input file']
   elsif ARGV.size > 1
-    $stderr.puts 'too many inputs'
-    $stderr.puts
-    $stderr.puts parser.help
-    exit 1
+    fail['too many input files']
   end
   input = ARGV[0]
 
