@@ -17,14 +17,16 @@ require 'optparse'
 include Racc::Color
 
 def main
-  output = nil
-  debug_parser = false
+  output_file = nil
+  check_only  = false
+  verbose     = false
+
+  debug_parser    = false
   make_executable = false
-  rubypath = nil
-  embed_runtime = false
-  superclass = nil
-  check_only = false
-  verbose = false
+  rubypath        = nil
+  embed_runtime   = false
+  superclass      = nil
+
   profiler = RaccProfiler.new(!!ENV['PROFILE'])
 
   Racc::Color.enabled = $stderr.tty?
@@ -34,7 +36,7 @@ def main
   parser.separator 'General:'
   parser.on('-o', '--output-file=PATH',
             'Output file name [<input>.rb]') { |name|
-    output = name
+    output_file = name
   }
   parser.on('-C', '--check-only', 'Check syntax and quit immediately') {
     check_only = true
@@ -97,11 +99,11 @@ def main
   input = ARGV[0]
 
   begin
-    if output.nil?
-      output = make_filename(input, '.rb')
-      if File.exist?(output)
-        $stderr.puts "'#{output}' already exists. Please use '-o #{output}' if " \
-          'you are sure that you want to overwrite this file.'
+    if output_file.nil?
+      output_file = make_filename(input, '.rb')
+      if File.exist?(output_file)
+        $stderr.puts "'#{output_file}' already exists. Please use '-o " \
+          "#{output_file}' if you are sure that you want to overwrite this file."
         exit 1
       end
     end
@@ -128,18 +130,17 @@ def main
 
     $stderr.puts 'Creating parser file...' if verbose
     params = result.params.dup
-    # Overwrites parameters given by a grammar file with command line options.
+    # Overwrite parameters from grammar file with command line options
     params.superclass = superclass if superclass
-    # From command line option
     if make_executable
       params.make_executable = true
       params.interpreter = rubypath
     end
-    params.debug_parser = debug_parser
+    params.debug_parser  = debug_parser
     params.embed_runtime = embed_runtime
     profiler.section('generation') do
       generator = Racc::ParserFileGenerator.new(states, params)
-      generator.generate_parser_file(output)
+      generator.generate_parser_file(output_file)
     end
 
     warnings = result.grammar.warnings(verbose)
@@ -156,7 +157,7 @@ def main
     profiler.report
   rescue Racc::CompileError, Errno::ENOENT, Errno::EPERM => err
     raise if $DEBUG
-    lineno = err.message.slice!(/\A\d+:/).to_s
+    lineno   = err.message.slice!(/\A\d+:/).to_s
     location = lineno.empty? ? bright("#{input}:") : bright("#{input}:#{lineno}")
     $stderr.puts "#{red('Error: ')}#{location} #{err.message.strip}"
     exit 1
