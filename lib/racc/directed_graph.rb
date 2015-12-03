@@ -129,7 +129,11 @@ module Racc
       end
 
       def reachable
-        Racc.set_closure([@start]) { |node| self[node] }
+        reachable_from([@start])
+      end
+
+      def reachable_from(nodes)
+        Racc.set_closure(nodes) { |node| self[node] }
       end
 
       def leaves
@@ -179,12 +183,6 @@ module Racc
       # All nodes which can reach a node in `dests` (and `dests` themselves)
       def can_reach(dests)
         Racc.set_closure(dests) { |node| self[@offset + node] }
-      end
-
-      def reachable_from(nodes)
-        Racc.set_closure(nodes) do |node|
-          self[node]
-        end
       end
     end
 
