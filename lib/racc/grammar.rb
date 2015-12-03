@@ -283,9 +283,10 @@ module Racc
         wrongly_declared = nonterminals.select(&:declared_as_terminal?)
         unless wrongly_declared.empty?
           bad_rules = wrongly_declared.flat_map(&:heads).map(&:rule)
-          raise CompileError, "tokens #{Racc.to_sentence(wrongly_declared)} " \
-            "were declared in a 'token' block, but they also have derivation " \
-            "rules:\n" <<
+          raise CompileError, "token#{'s' unless wrongly_declared.one?} " \
+            "#{Racc.to_sentence(wrongly_declared)} were declared in a 'token'" \
+            " block, but #{wrongly_declared.one? ? 'it also has' : 'they also have'}" \
+            " derivation rules:\n" <<
             Source::SparseLines.merge(bad_rules.map(&:source)).map(&:spifferific).join("\n\n")
         end
       end

@@ -1,0 +1,4 @@
+[31mError: [0m[1mtest/assets/badrule2.y:[0m tokens [1;34mA[0m and [1;34mB[0m were declared in a 'token' block, but they also have derivation rules:
+[1mbadrule2.y:5: [0m[1;34mA[0m : [1;33m"hello"[0m
+
+[1mbadrule2.y:6: [0m[1;34mB[0m : [1;33m"goodbye"[0m
