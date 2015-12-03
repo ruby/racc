@@ -11,6 +11,14 @@ Creating parser file...
 
 [1;35mWarning: [0m[1mUseless terminal [0m[1;33m"-"[0m[1m does not appear on the right side of any rule, neither is it the start symbol.[0m
 
+[1;35mWarning: [0m[1mThis rule will never be used due to low precedence:[0m
+[1mmof.y:429: [0m[1;34mnamespace_opt[0m
+                 : /* empty */
+
+When the next token is [1;36m[4mIDENTIFIER[0m, it is overridden by this higher-precedence rule:
+[1mmof.y:434: [0m[1;34mnamespaceHandle[0m
+                 : [1;36m[4mIDENTIFIER[0m
+
 [1;35mWarning: [0m[1mShift/reduce conflict on [0m[1;36m[4mQUALIFIER[0m[1m, at the beginning of the parse.[0m
 
 The following rule directs me to shift:
@@ -201,4 +209,4 @@ After shifting [1;36m[4mIDENTIFIER[0m, one path to a successful parse would b
 After reducing to [1;34mnamespace_opt[0m, one path to a successful parse would be:
 [1;36m[4mIDENTIFIER[0m (reduce to [1;34mclassName[0m) [1;33m"."[0m [1;34mkeyValuePairList[0m (reduce to [1;34mmodelPath[0m) (reduce to [1;34mobjectHandle[0m) (reduce to [1;34mreferenceInitializer[0m) (reduce to [1;34minitializer[0m) (reduce to [1;34mkeyValuePair[0m) [1;34mkeyValuePairs[0m (reduce to [1;34mkeyValuePairList[0m) (reduce to [1;34mmodelPath[0m) (reduce to [1;34mobjectHandle[0m) (reduce to [1;34mreferenceInitializer[0m) (reduce to [1;34minitializer[0m) (reduce to [1;34mdefaultValue[0m) (reduce to [1;34mdefaultValue_opt[0m) (reduce to [1;34mqualifierType[0m) [1;34mscope[0m [1;34mdefaultFlavor_opt[0m [1;33m";"[0m (reduce to [1;34mqualifierDeclaration[0m) (reduce to [1;34mmofProduction[0m) (reduce to [1;34mmofSpecification[0m)
 
-4 useless terminals, 7 shift/reduce conflicts, 4 reduce/reduce conflicts
+4 useless terminals, 1 useless rule, 7 shift/reduce conflicts, 4 reduce/reduce conflicts

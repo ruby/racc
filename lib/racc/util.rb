@@ -22,15 +22,15 @@ module Racc
     result
   end
 
-  def self.to_sentence(words)
+  def self.to_sentence(words, conjunction = 'and')
     raise "Can't make a sentence out of zero words" if words.none?
     if words.one?
       words[0]
     elsif words.size == 2
-      "#{words[0]} and #{words[1]}"
+      "#{words[0]} #{conjunction} #{words[1]}"
     else
       tail = words.pop
-      "#{words.join(', ')} and #{tail}"
+      "#{words.join(', ')} #{conjunction} #{tail}"
     end
   end
 end

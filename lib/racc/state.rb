@@ -310,7 +310,12 @@ module Racc
         # If there is a conflict, reduce with the rule which appeared
         # first in the source
         state.action[sym] = Reduce.new(rules[0])
-        state.rr_conflict!(sym, rules) if rules.size > 1
+        if rules.size > 1
+          state.rr_conflict!(sym, rules)
+          rules.drop(1).each do |rule|
+            rule.overridden_by[sym] << rules[0]
+          end
+        end
       end
     end
 
@@ -331,6 +336,7 @@ module Racc
 
           when :Shift
             # overwrite
+            act.rule.overridden_by[stok].merge(state.srules[stok].map(&:rule))
             state.action[stok] = Shift.new(goto.to_state)
 
           when :Error
@@ -338,8 +344,10 @@ module Racc
 
           when :CantResolve
             # shift as default
+            srules = state.srules[stok]
+            act.rule.overridden_by[stok].merge(srules.map(&:rule))
             state.action[stok] = Shift.new(goto.to_state)
-            state.sr_conflict!(stok, state.srules[stok], act.rule)
+            state.sr_conflict!(stok, srules, act.rule)
           end
         end
       end
@@ -395,15 +403,35 @@ module Racc
 
     public
 
+    def useless_rules
+      raise 'State transitions not yet computed' unless @dfa_computed
+      used_rules = Set.new
+      @states.each do |state|
+        state.action.each do |tok, act|
+          used_rules << act.rule if act.is_a?(Reduce)
+        end
+        used_rules << state.defact.rule if state.defact.is_a?(Reduce)
+      end
+      Set.new(@grammar) - used_rules
+    end
+
     def warnings(warnings, verbose = false)
+      useless_rules.each do |rule|
+        next unless warnings.for_rule(rule).empty? &&
+                    !rule.overridden_by.empty?
+        warnings.add_for_rule(rule, Warning::RuleAlwaysOverridden.new(rule))
+      end
+
       if should_report_srconflict?
         sr_conflicts.each do |sr|
-          warnings.add_for_state(sr.state, Warning::SRConflict.new(sr, @grammar, verbose))
+          warnings.add_for_state(sr.state,
+            Warning::SRConflict.new(sr, @grammar, verbose))
         end
       end
 
       rr_conflicts.each do |rr|
-        warnings.add_for_state(rr.state, Warning::RRConflict.new(rr, @grammar, verbose))
+        warnings.add_for_state(rr.state,
+          Warning::RRConflict.new(rr, @grammar, verbose))
       end
 
       warnings

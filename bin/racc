@@ -174,11 +174,12 @@ def warning_summary(warnings)
     useless_terminal: 'useless terminal',
     useless_nonterminal: 'useless nonterminal',
     useless_prec: "useless '=' precedence declaration",
+    useless_rule: 'useless rule',
     sr_conflict: 'shift/reduce conflict',
     rr_conflict: 'reduce/reduce conflict'
   }
   order = [:useless_terminal, :useless_nonterminal, :useless_prec,
-           :sr_conflict, :rr_conflict]
+           :useless_rule, :sr_conflict, :rr_conflict]
 
   freq.sort_by { |k, v| order.index(k) }.map { |k, v| pluralize(v, types[k]) }.join(', ')
 end

@@ -113,8 +113,7 @@ module Racc
 
     def test_recv_y
       err = assert_compile 'recv.y'
-      # also 4 useless rules
-      assert_warnings err, sr_conflicts: 5, rr_conflicts: 10, useless_nts: 1
+      assert_warnings err, sr_conflicts: 5, useless_rules: 3, rr_conflicts: 10, useless_nts: 1
     end
 
     def test_ichk_y
@@ -364,7 +363,7 @@ module Racc
 
     def test_mof
       err = assert_compile 'mof.y', '-v --color'
-      assert_warnings err, useless_terms: 4, sr_conflicts: 7, rr_conflicts: 4
+      assert_warnings err, useless_terms: 4, useless_rules: 1, sr_conflicts: 7, rr_conflicts: 4
       assert_parser_unchanged 'mof.y'
       assert_output_unchanged 'mof.out', '-v --color', err
     end

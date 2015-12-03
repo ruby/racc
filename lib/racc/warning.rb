@@ -103,6 +103,40 @@ module Racc
       end
     end
 
+    class RuleAlwaysOverridden < Warning
+      def initialize(rule)
+        @rule = rule
+      end
+
+      def title
+        'This rule will never be used due to low precedence:'
+      end
+
+      def details
+        @rule.to_s << "\n\n" << @rule.overridden_by.group_by do |token, rules|
+          rules
+        end.map do |rules, tokens|
+          tokens = tokens.map(&:first)
+          connective = if tokens.one?
+            ''
+          elsif tokens.size == 2
+            'either '
+          else
+            'any of '
+          end
+
+          "When the next token is #{connective}#{Racc.to_sentence(tokens, 'or')}" \
+          ", it is overridden by #{rules.one? ? 'this' : 'these'} " \
+          "higher-precedence rule#{'s' unless rules.one?}:\n" <<
+          Source::SparseLines.merge(rules.map(&:source)).map(&:spifferific).join("\n\n")
+        end.join("\n\n")
+      end
+
+      def type
+        :useless_rule
+      end
+    end
+
     class SRConflict < Warning
       def initialize(conflict, grammar, verbose)
         @grammar = grammar

@@ -393,6 +393,12 @@ module Racc
       @precedence_used
     end
 
+    # higher-priority rules which prevent this one from reducing
+    # (keys are lookahead tokens at point where this rule is overridden)
+    def overridden_by
+      @overridden_by ||= Hash.new { |h,k| h[k] = Set.new }
+    end
+
     def inspect
       "#<Racc::Rule id=#{@ident} #{display}>"
     end

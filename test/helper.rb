@@ -53,6 +53,7 @@ module Racc
       assert_equal expected[:sr_conflicts]  || 0, sr_conflicts(dbg_output)
       assert_equal expected[:rr_conflicts]  || 0, rr_conflicts(dbg_output)
       assert_equal expected[:useless_prec]  || 0, useless_prec(dbg_output)
+      assert_equal expected[:useless_rules] || 0, useless_rules(dbg_output)
     end
 
     def assert_no_warnings(dbg_output)
@@ -132,6 +133,10 @@ module Racc
 
     def useless_prec(dbg_output)
       dbg_output.scan(/The explicit precedence declaration on this rule/).size
+    end
+
+    def useless_rules(dbg_output)
+      dbg_output.scan(/This rule will never be used due to low precedence/).size
     end
   end
 end
