@@ -1,0 +1,2 @@
+[31mError: [0m[1mtest/assets/badprec2.y:[0m token [1;34mblah[0m appeared in a prechigh/preclow block, but it is not a terminal:
+[1mbadprec2.y:14: [0m[1;34mblah[0m: [1;36m[4mB[0m [1;36m[4mC[0m

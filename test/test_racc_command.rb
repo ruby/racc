@@ -81,6 +81,11 @@ module Racc
       assert_output_unchanged 'badprec1.out', '--color', err
     end
 
+    def test_badprec2_y
+      err = assert_error 'badprec2.y', '--color'
+      assert_output_unchanged 'badprec2.out', '--color', err
+    end
+
     def test_badsyntax_y
       err = assert_error 'badsyntax.y', '--color'
       assert_output_unchanged 'badsyntax.out', '--color', err

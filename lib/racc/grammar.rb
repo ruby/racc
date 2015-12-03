@@ -301,8 +301,10 @@ module Racc
       bad_prec = @symbols.select { |s| s.assoc && s.nonterminal? }
       unless bad_prec.empty?
         bad_rules = bad_prec.flat_map(&:heads).map(&:rule)
-        raise CompileError, "tokens #{Racc.to_sentence(bad_prec)} appeared " \
-          "in a prechigh/preclow block, but they are not terminals:\n" <<
+        raise CompileError, "token#{'s' unless bad_prec.one?} " \
+          "#{Racc.to_sentence(bad_prec)} appeared in a prechigh/preclow " \
+          "block, but #{bad_prec.one? ? 'it is not a' : 'they are not'} " \
+          "terminal#{'s' unless bad_prec.one?}:\n" <<
           Source::SparseLines.merge(bad_rules.map(&:source)).map(&:spifferific).join("\n\n")
       end
 
