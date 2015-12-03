@@ -366,7 +366,8 @@ module Racc
       rrule.explicit_precedence_used!
 
       if rprec == sprec
-        ASSOC[rtok.assoc] || (raise "racc: fatal: #{rtok}.assoc is not Left/Right/Nonassoc")
+        ASSOC[rtok.assoc] ||
+        (raise "racc: fatal: #{rtok}.assoc is not Left/Right/Nonassoc")
       else
         (rprec > sprec) ? :Reduce : :Shift
       end
@@ -387,7 +388,7 @@ module Racc
       state.defact ||= begin
         freq = Hash.new(0)
         state.action.each do |tok, act|
-          freq[act.rule] += 1 if act.kind_of?(Reduce)
+          freq[act.rule] += 1 if act.is_a?(Reduce)
         end
 
         if freq.empty?
@@ -500,7 +501,7 @@ module Racc
     # {Sym -> LocationPointers within rules which direct us to shift that Sym}
     def srules
       @srules ||= begin
-        closure.each_with_object(Hash.new { |h,k| h[k] = []}) do |ptr, table|
+        closure.each_with_object(Hash.new { |h,k| h[k] = [] }) do |ptr, table|
           next if ptr.reduce? || ptr.symbol.nonterminal?
           table[ptr.symbol] << ptr
         end
