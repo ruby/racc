@@ -7,6 +7,56 @@ module Racc
   module Graph
     # Algorithms which work on any of the graph implementations below
     module Algorithms
+      # shortest path between nodes; both start and end points are included
+      def shortest_path(start, dest)
+        # Dijkstra's algorithm
+        return [start] if start == dest
+
+        visited  = Set[start]
+        worklist = [start]
+        paths    = {start => [start]}
+
+        until visited.include?(dest)
+          return nil if worklist.empty?
+          node = worklist.shift
+          node_path = paths[node]
+
+          children(node) do |child|
+            child_path = paths[child]
+            if child_path.nil? || child_path.size > node_path.size + 1
+              paths[child] = node_path.dup << child
+            end
+            worklist << child unless visited.include?(child)
+          end
+
+          visited << node
+        end
+
+        paths[dest]
+      end
+
+      # { node -> shortest path to it from start node }
+      # if a block is provided, it is a 'cost function'
+      # all paths include both start and end points
+      def shortest_paths
+        # again, Dijkstra's algorithm
+        paths = {@start => [0, @start]} # cache total path cost
+
+        Racc.set_closure([@start]) do |node|
+          node_path = paths[node]
+          children(node) do |child|
+            child_path = paths[child]
+            cost = block_given? ? yield(node, child) : 1
+            if child_path.nil? || child_path[0] > node_path[0] + cost
+              paths[child] = node_path.dup.tap { |p| p[0] += cost } << child
+            end
+          end
+        end
+
+        paths.each_value { |p| p.shift } # drop cached total costs
+        paths
+      end
+
       def to_gif(options={})
         filename = options[:filename] || "graph.gif"
         filename <<= ".gif" unless filename.end_with?(".gif")
@@ -34,8 +84,15 @@ module Racc
     # An implementation which is fast when the exact number of nodes is known
     # in advance, and each one can be identified by an integer
     class Finite < Array
+      include Algorithms
+
       def initialize(size)
         super(size) { Set.new }
+        @start = nil
+      end
+
+      def start=(idx)
+        @start = idx
       end
 
       def add_child(from, to)
@@ -55,61 +112,12 @@ module Racc
         result
       end
 
-      def reachable(start)
-        Racc.set_closure([start]) { |node| self[node] }
+      def reachable
+        Racc.set_closure([@start]) { |node| self[node] }
       end
 
-      def leaves(start)
-        reachable(start).select { |node| self[node].empty? }
-      end
-
-      # shortest path between nodes; both start and end points are included
-      def path(start, dest)
-        # Dijkstra's algorithm
-        return [start] if start == dest
-
-        visited  = Set[start]
-        worklist = children(start)
-        paths    = {start => [start]}
-
-        until visited.include?(dest)
-          return nil if worklist.empty?
-          node = worklist.min_by { |n| paths[n].size }
-          node_path = paths[node]
-
-          children(node) do |child|
-            child_path = paths[child]
-            if child_path.nil? || child_path.size > node_path.size + 1
-              paths[child] = node_path.dup << child
-            end
-            worklist << child unless visited.include?(child)
-          end
-
-          visited << node
-        end
-
-        paths[dest]
-      end
-
-      # { node -> shortest path to it }
-      # if a block is provided, it is a 'cost function'
-      def all_paths(start)
-        # again, Dijkstra's algorithm
-        paths = {start => [0, start]} # cache total path cost
-
-        Racc.set_closure([start]) do |node|
-          node_path = paths[node]
-          children(node) do |child|
-            child_path = paths[child]
-            cost = block_given? ? yield(node, child) : 1
-            if child_path.nil? || child_path[0] > node_path[0] + cost
-              paths[child] = node_path.dup.tap { |p| p[0] += cost } << child
-            end
-          end
-        end
-
-        paths.each_value { |p| p.shift } # drop cached total costs
-        paths
+      def leaves
+        reachable.select { |node| self[node].empty? }
       end
 
       def dup
@@ -202,7 +210,8 @@ module Racc
         to.in.delete(from)
       end
 
-      def children(node)
+      def children(node, &block)
+        node.out.each(&block) if block_given?
         node.out
       end
 
@@ -220,30 +229,6 @@ module Racc
 
       def leaves
         @nodes.select { |node| node.out.empty? }
-      end
-
-      # { node -> shortest path to it }
-      # if a block is provided, it is a 'cost function'
-      # all paths include both start and end points
-      def all_paths
-        return {} if @start == nil
-
-        # Dijkstra's algorithm
-        paths = {@start => [0, @start]} # cache total cost of path
-
-        Racc.set_closure([@start]) do |node|
-          node_path = paths[node]
-          node.out.each do |child|
-            child_path = paths[child]
-            cost = block_given? ? yield(node, child) : 1
-            if child_path.nil? || child_path[0] > node_path[0] + cost
-              paths[child] = node_path.dup.tap { |p| p[0] += cost } << child
-            end
-          end
-        end
-
-        paths.each_value { |path| path.shift } # drop cached total costs
-        paths
       end
 
       def node_caption(node)

@@ -69,7 +69,7 @@ module Racc
       super.tap { |set| set.delete(@start) }
     end
 
-    def all_paths
+    def shortest_paths
       super.tap { |h| h.delete(@start) }.tap { |h| h.each_value { |path| path.shift }}
     end
 
@@ -138,7 +138,7 @@ module Racc
     # what (sample) sequence of terminals/NTs could lead to a successful parse
     # from here?
     def path_to_success
-      paths = all_paths do |_, node|
+      paths = shortest_paths do |_, node|
         # this cost function helps find the path to a successful parse which
         # can be described most succinctly
         node.ptr.rule.symbols.size - node.ptr.index + 1
