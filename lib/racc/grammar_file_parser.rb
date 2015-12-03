@@ -97,12 +97,14 @@ module Racc
                       add_rule_block(list)
                       list.clear
                     } \
-                  | seq(:rules_core, ':') { |list, _|
-                      # terminating ; was missing, so the previous token was
-                      # actually a new LHS
+                  | seq(:rules_core, ':') { |list, (_, colon_range)|
+                      # terminating ; may have been missing, in which case the
+                      # previous token was actually a new LHS
+                      # if it wasn't missing, we will just call add_rule_block
+                      # with an empty list, which won't do anything
                       next_target = list.pop
                       add_rule_block(list)
-                      [next_target]
+                      [next_target, [':', colon_range]]
                     }
 
     g.rule_item   = seq(:symbol) \
@@ -189,24 +191,20 @@ module Racc
                                                             r.to - block_range.from) }
       block_range.highlights = highlights.unshift(target_range.highlights[0])
 
-      ormark = nil # used for setting source code range for null rules
-      groups = split_array(list) { |obj, r| obj.is_a?(OrMark) ? ormark = r : false}
+      groups = split_array(list) { |obj, r| obj.is_a?(OrMark) }
       groups.each do |rule_items|
         sprec, rule_items = rule_items.partition { |obj, r| obj.is_a?(Prec) }
-        items, ranges = *rule_items.transpose
+        items, ranges     = *rule_items.transpose
+
+        if items
+          items.shift # drop OrMark or ':'
+          ranges.shift unless ranges.one?
+        end
 
         if ranges
           range = block_range.slice(ranges.map(&:from).min - block_range.from,
                                     ranges.map(&:to).max   - block_range.from)
           range = Source::SparseLines.new(block_range, [target_range.lines, range.lines])
-        else
-          # this is a null rule
-          if ormark
-            range = Source::SparseLines.new(block_range, [target_range.lines, ormark.lines])
-          else
-            # it's the first rule in the block as well
-            range = target_range
-          end
         end
 
         if sprec.empty?
@@ -225,7 +223,7 @@ module Racc
       while index < array.size
         obj = array[index]
         if yield obj
-          chunk = []
+          chunk = [obj]
           results << chunk
         else
           chunk << obj
