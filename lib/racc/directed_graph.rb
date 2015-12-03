@@ -57,6 +57,22 @@ module Racc
         paths
       end
 
+      # only paths with no loops will be found
+      # start and end points are included
+      # this can be very slow on graphs with a lot of transitions!
+      def all_paths(src, dest, current=src, traversed=[src], result=[])
+        children(current) do |child|
+          if child == dest
+            result << (traversed.dup << child)
+          elsif !traversed.include?(child)
+            traversed.push(child)
+            all_paths(src, dest, child, traversed, result)
+            traversed.pop
+          end
+        end
+        result
+      end
+
       def to_gif(options={})
         filename = options[:filename] || "graph.gif"
         filename <<= ".gif" unless filename.end_with?(".gif")

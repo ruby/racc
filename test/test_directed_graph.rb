@@ -35,6 +35,13 @@ module Racc
       assert_equal [@a],         paths[@a]
     end
 
+    def test_all_paths
+      @graph.add_child(@b, @d)
+      @graph.add_child(@a, @d)
+      paths = @graph.all_paths(@a, @d)
+      assert_equal Set[[@a, @d], [@a, @b, @d], [@a, @c, @d]], Set.new(paths)
+    end
+
     def test_leaves
       assert_equal [@b, @d], @graph.leaves.to_a
     end
