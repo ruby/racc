@@ -11,7 +11,6 @@ require 'racc/util'
 require 'racc/directed_graph'
 require 'racc/simulated_parse_context'
 
-require 'forwardable'
 require 'set'
 
 module Racc
@@ -33,6 +32,10 @@ module Racc
     attr_reader :grammar
     attr_reader :actions
 
+    def each(&block)
+      @states.each(&block)
+    end
+
     def size
       @states.size
     end
@@ -42,10 +45,6 @@ module Racc
     end
 
     alias to_s inspect
-
-    extend Forwardable
-
-    def_delegator "@states",  :each
 
     def should_report_srconflict?
       sr_conflicts.any? && (sr_conflicts.size != @grammar.n_expected_srconflicts)
