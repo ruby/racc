@@ -26,6 +26,7 @@ lib/racc/parser_file_generator.rb
 lib/racc/simulated_parse_context.rb
 lib/racc/source.rb
 lib/racc/state.rb
+lib/racc/state_summary_generator.rb
 lib/racc/state_transition_table.rb
 lib/racc/util.rb
 lib/racc/warning.rb
