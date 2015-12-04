@@ -28,7 +28,6 @@ module Racc
       @prec_table_closed = false
 
       @closed = false
-      @states = States.new(self)
 
       # 'dummy' and 'anchor' are used to make sure the parser runs over ALL the
       # input tokens before concluding that the parse was successful
@@ -43,7 +42,6 @@ module Racc
       @error   = intern(:error, false) # Symbol ID = 1
     end
 
-    attr_reader :states
     attr_reader :start
     attr_reader :n_expected_srconflicts
     attr_reader :terminals
@@ -82,12 +80,17 @@ module Racc
       @cache.delete(sym.value)
     end
 
+    def states
+      raise 'Grammar not yet closed' unless @closed
+      @states ||= States.new(self)
+    end
+
     def sr_conflicts
-      @states.sr_conflicts
+      states.sr_conflicts
     end
 
     def rr_conflicts
-      @states.rr_conflicts
+      states.rr_conflicts
     end
 
     def nonterminal_base
@@ -107,7 +110,7 @@ module Racc
     end
 
     def state_transition_table
-      @states.state_transition_table
+      states.state_transition_table
     end
 
     def parser_class
@@ -145,7 +148,7 @@ module Racc
         warnings.add_for_rule(rule, Warning::UselessPrecedence.new(rule))
       end
 
-      @states.warnings(warnings, verbose)
+      states.warnings(warnings, verbose)
     end
 
     # Grammar Definition Interface

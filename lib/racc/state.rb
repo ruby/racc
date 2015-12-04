@@ -19,14 +19,17 @@ module Racc
 
     def initialize(grammar)
       @grammar = grammar
+      @states  = []
+      @gotos   = [] # all state transitions performed when reducing
+                    # Goto is also used for state transitions when shifting,
+                    # but those objects don't go in this array
 
-      @states = []
-      @nfa_computed = false
-      @dfa_computed = false
+      generate_states
+      compute_lookahead
 
-      @gotos = [] # all state transitions performed when reducing
-                  # Goto is also used for state transitions when shifting,
-                  # but those objects don't go in this array
+      @states.each { |state| resolve(state) }
+      set_accept
+      @states.each { |state| pack(state) }
     end
 
     attr_reader :grammar
@@ -59,18 +62,7 @@ module Racc
     end
 
     def state_transition_table
-      @state_transition_table ||= StateTransitionTable.generate(compute_dfa)
-    end
-
-    # NFA (Non-deterministic Finite Automaton) Computation
-
-    public
-
-    def compute_nfa
-      return self if @nfa_computed
-      generate_states
-      @nfa_computed = true
-      self
+      @state_transition_table ||= StateTransitionTable.generate(self)
     end
 
     private
@@ -121,25 +113,6 @@ module Racc
         end
       end
     end
-
-    # DFA (Deterministic Finite Automaton) Generation
-
-    public
-
-    def compute_dfa
-      return self if @dfa_computed
-      compute_nfa
-      compute_lookahead
-
-      @states.each { |state| resolve(state) }
-      set_accept
-      @states.each { |state| pack(state) }
-
-      @dfa_computed = true
-      self
-    end
-
-    private
 
     def compute_lookahead
       # lookahead algorithm ver.3 -- from bison 1.26
@@ -404,7 +377,6 @@ module Racc
     public
 
     def useless_rules
-      raise 'State transitions not yet computed' unless @dfa_computed
       used_rules = Set.new
       @states.each do |state|
         state.action.each do |tok, act|

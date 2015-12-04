@@ -6,7 +6,7 @@ module Racc
       file = File.join(ASSET_DIR, 'scan.y')
       parser = Racc::GrammarFileParser.new
       @result = parser.parse(File.read(file), File.basename(file))
-      @states = Racc::States.new(@result.grammar).compute_nfa.compute_dfa
+      @states = @result.grammar.states
     end
 
     def test_compile

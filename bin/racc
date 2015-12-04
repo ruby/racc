@@ -117,14 +117,9 @@ def main
       exit 0
     end
 
-    $stderr.puts 'Generating LALR states...' if verbose
+    $stderr.puts 'Generating and resolving LALR states...' if verbose
     states = profiler.section('nfa') do
-      result.grammar.states.compute_nfa
-    end
-
-    $stderr.puts "Resolving #{states.size} states..." if verbose
-    profiler.section('dfa') do
-      states.compute_dfa
+      result.grammar.states
     end
 
     $stderr.puts 'Creating parser file...' if verbose
