@@ -140,7 +140,7 @@ module Racc
     class SRConflict < Warning
       def initialize(conflict, grammar, verbose)
         @grammar = grammar
-        @path    = conflict.state.path
+        @path    = conflict.state.shortest_summarized_path
         @srules  = conflict.srules
         @rrule   = conflict.rrule
         @sym     = conflict.symbol
@@ -196,7 +196,7 @@ module Racc
     class RRConflict < Warning
       def initialize(conflict, grammar, verbose)
         @grammar = grammar
-        @path    = conflict.state.path
+        @path    = conflict.state.shortest_summarized_path
         @sym     = conflict.symbol
         @rules   = conflict.rules
         @verbose = verbose

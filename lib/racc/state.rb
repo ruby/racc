@@ -39,6 +39,10 @@ module Racc
       @states.each(&block)
     end
 
+    def [](idx)
+      @states[idx]
+    end
+
     def size
       @states.size
     end
@@ -69,10 +73,10 @@ module Racc
 
     def generate_states
       # create start state
-      start = State.new(0, Set[@grammar[0].ptrs[0]], [])
+      start = State.new(0, Set[@grammar[0].ptrs[0]], self)
 
       @states << start
-      states = {start.core => start}
+      states   = {start.core => start}
       worklist = [start]
 
       until worklist.empty?
@@ -95,9 +99,8 @@ module Racc
 
           unless dest = states[core]
             # not registered yet
-            path = state.path.dup << sym
-            dest = State.new(@states.size, core, path.freeze)
-            @states << dest
+            dest  = State.new(@states.size, core, self)
+            @states  << dest
             worklist << dest
             states[core] = dest
           end
@@ -408,15 +411,85 @@ module Racc
 
       warnings
     end
+
+    def summarized_transition_graph
+      # this graph does not have vectors for reduce operations -- rather,
+      # the nodes where the reduces go to have vectors for the reduced NTs
+      @stgraph ||= each_with_object(Graph::Labeled.new(size)) do |s, graph|
+        s.gotos.each do |tok, goto|
+          graph.add_vector(s.ident, goto.to_state.ident, tok)
+        end
+      end.tap { |graph| graph.start = 0 }
+    end
+
+    def detailed_transition_graph
+      # this graph does not have vectors for 'gotos' -- rather, the vectors
+      # run from nodes where a reduce is initiated, to the nodes where the
+      # 'gotos' could reach after reducing
+      @dtgraph ||= begin
+        graph = Graph::Labeled.new(size)
+
+        each do |s|
+          s.action.each do |tok, act|
+            next unless act.is_a?(Shift)
+            graph.add_vector(s.ident, act.goto_state.ident, tok)
+          end
+        end
+
+        # now add vectors for reduces
+        reduce_vectors = Set.new
+        add_reduce_vectors = proc do |s, act|
+          possible_reduce_destinations(s, act.rule).each do |dest|
+            label = ReduceStep.new(s, dest, act.rule, act.rule.target)
+            reduce_vectors << [s.ident, dest.ident, label]
+          end
+        end
+
+        each do |s|
+          s.action.each do |tok, act|
+            next unless act.is_a?(Reduce)
+            add_reduce_vectors[s, act]
+          end
+          if s.defact.is_a?(Reduce)
+            add_reduce_vectors[s, s.defact]
+          end
+          # defact could also be Accept or Error...
+        end
+
+        reduce_vectors.each do |from, to, label|
+          graph.add_vector(from, to, label)
+        end
+
+        graph.start = 0
+        graph
+      end
+    end
+
+    def shortest_summarized_paths
+      @shortest_spaths ||= summarized_transition_graph.shortest_vector_paths
+    end
+
+    def shortest_detailed_paths
+      @shortest_dpaths ||= detailed_transition_graph.shortest_vector_paths
+    end
+
+    def possible_reduce_destinations(state, rule)
+      # after popping states off the stack and following the goto,
+      # what states might we end up in?
+      sgraph = summarized_transition_graph
+      steps_back = rule.symbols.size
+      dest_indices = steps_back.times.reduce([state.ident]) do |dsts, _|
+        dsts.map { |dst| sgraph.parents(dst) }.reduce(Set.new, &:merge)
+      end
+      dest_indices.map { |idx| self[idx].gotos[rule.target].to_state }.uniq
+    end
   end
 
   class State
-    def initialize(ident, core, path)
+    def initialize(ident, core, states)
       @ident = ident # ID number used to provide a canonical ordering
       @core  = core  # LocationPointers to all the possible positions within the
                      # RHS of a rule where we could be when in this state
-      @path  = path  # sample sequence of terms/nonterms which would lead here
-                     # (for diagnostics)
 
       @gotos  = {}   # Sym -> Goto describing state transition if we encounter
                      # that Sym next
@@ -428,11 +501,11 @@ module Racc
                      # without even checking the lookahead token)
       @rr_conflicts = {}
       @sr_conflicts = {}
+      @states = states
     end
 
     attr_reader :ident
     attr_reader :core
-    attr_reader :path
     attr_reader :gotos
     attr_reader :action
     attr_accessor :defact # default action
@@ -505,6 +578,20 @@ module Racc
     def sr_conflict!(token, srule, rrule)
       @sr_conflicts[token] = SRConflict.new(self, token, srule, rrule)
     end
+
+    def shortest_summarized_path
+      # samples sequence of terminals/NTs which would lead here
+      # from start state (for diagnostics)
+      @sspath ||= @states.shortest_summarized_paths[@ident]
+    end
+
+    def shortest_detailed_path
+      # sample sequence of terminals/reduces which would lead here
+      # from start state (for diagnostics)
+      @sdpath ||= @states.shortest_detailed_paths[@ident].reject do |step|
+        step.is_a?(ReduceStep) && step.symbol.hidden
+      end
+    end
   end
 
   # Represents a transition between states in the grammar
@@ -573,5 +660,17 @@ module Racc
       "state #{state.ident}: R/R conflict on #{symbol} between reduce rules " \
       "#{rrules}"
     end
+  end
+
+  # Specifically for detailed_transition_graph
+  class ReduceStep
+    def initialize(from, to, rule, symbol)
+      @from   = from
+      @to     = to
+      @rule   = rule
+      @symbol = symbol
+    end
+
+    attr_reader :from, :to, :rule, :symbol
   end
 end
