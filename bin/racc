@@ -106,8 +106,9 @@ def main
     if output_file.nil?
       output_file = make_filename(input, '.rb')
       if File.exist?(output_file)
-        $stderr.puts "'#{output_file}' already exists. Please use '-o " \
-          "#{output_file}' if you are sure that you want to overwrite this file."
+        $stderr.puts "#{red('Error: ')}'#{output_file}' already exists. " \
+          "Please use '-o #{output_file}' if you are sure that you want to " \
+          "overwrite this file."
         exit 1
       end
     end
