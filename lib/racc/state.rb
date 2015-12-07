@@ -444,7 +444,7 @@ module Racc
     # `state_idx`?
     def actions_to_reach_reduce(state_idx, target)
       rule = target.heads.map(&:rule).min_by do |r|
-        r.symbols.flat_map { |rs| @grammar.shortest_productions[rs] }.size
+        r.symbols.flat_map(&:shortest_production).size
       end
 
       actions, cur_state = [], state_idx
