@@ -2,11 +2,11 @@ Parsing grammar file...
 Generating and resolving LALR states...
 Creating parser file...
 
-[1;35mWarning: [0m[1mUseless terminal [0m[1;36m[4mk__ENCODING__[0m[1m does not appear on the right side of any rule, neither is it the start symbol.[0m
+[1;35mWarning: [0m[1mUseless terminal [0m[1;36m[4mk__ENCODING__[0m[1m does not appear on the right side of any rule[0m
 
-[1;35mWarning: [0m[1mUseless terminal [0m[1;36m[4mtUMINUS_NUM[0m[1m does not appear on the right side of any rule, neither is it the start symbol.[0m
+[1;35mWarning: [0m[1mUseless terminal [0m[1;36m[4mtUMINUS_NUM[0m[1m does not appear on the right side of any rule[0m
 
-[1;35mWarning: [0m[1mUseless terminal [0m[1;36m[4mARRAY_BEG[0m[1m does not appear on the right side of any rule, neither is it the start symbol.[0m
+[1;35mWarning: [0m[1mUseless terminal [0m[1;36m[4mARRAY_BEG[0m[1m does not appear on the right side of any rule[0m
 
 [1;35mWarning: [0m[1mThe explicit precedence declaration on this rule does not resolve any conflicts and can be removed:[0m
 [1mopal.y:1412: [0m[1;34mnumeric[0m: [1;36m[4mtINTEGER[0m

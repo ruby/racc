@@ -122,11 +122,11 @@ module Racc
 
       useless_symbols.each do |sym|
         if sym.locate.empty?
-          what = sym.terminal? ? 'terminal' : 'nonterminal'
-          type = "useless_#{what}".to_sym
-          warnings.add_for_symbol(sym, Warning.new(type, "Useless #{what} #{sym} does not " \
-            'appear on the right side of any rule, neither is it the start ' \
-            'symbol.'))
+          if sym.terminal?
+            warnings.add_for_symbol(sym, Warning::UnusedTerminal.new(sym))
+          else
+            warnings.add_for_symbol(sym, Warning::UnusedNonterminal.new(sym))
+          end
         elsif !sym.reachable.include?(@start) && sym.reachable.include?(sym)
           if sym.reachable.one?
             warnings.add_for_symbol(sym, Warning.new(:useless_nonterminal, 'Useless ' \

@@ -63,6 +63,35 @@ module Racc
       type == :sr_conflict || type == :rr_conflict
     end
 
+    class UnusedTerminal < Warning
+      def initialize(sym)
+        @sym = sym
+      end
+
+      def title
+        "Useless terminal #{@sym} does not appear on the right side of any rule"
+      end
+
+      def type
+        :useless_terminal
+      end
+    end
+
+    class UnusedNonterminal < Warning
+      def initialize(sym)
+        @sym = sym
+      end
+
+      def title
+        "Useless nonterminal #{@sym} does not appear on the right side of " \
+          "any rule, neither is it the start symbol"
+      end
+
+      def type
+        :useless_nonterminal
+      end
+    end
+
     class InfiniteLoop < Warning
       def initialize(sym)
         @sym = sym

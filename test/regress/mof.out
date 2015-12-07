@@ -2,13 +2,13 @@ Parsing grammar file...
 Generating and resolving LALR states...
 Creating parser file...
 
-[1;35mWarning: [0m[1mUseless terminal [0m[1;33m"*"[0m[1m does not appear on the right side of any rule, neither is it the start symbol.[0m
+[1;35mWarning: [0m[1mUseless terminal [0m[1;33m"*"[0m[1m does not appear on the right side of any rule[0m
 
-[1;35mWarning: [0m[1mUseless terminal [0m[1;33m"/"[0m[1m does not appear on the right side of any rule, neither is it the start symbol.[0m
+[1;35mWarning: [0m[1mUseless terminal [0m[1;33m"/"[0m[1m does not appear on the right side of any rule[0m
 
-[1;35mWarning: [0m[1mUseless terminal [0m[1;33m"+"[0m[1m does not appear on the right side of any rule, neither is it the start symbol.[0m
+[1;35mWarning: [0m[1mUseless terminal [0m[1;33m"+"[0m[1m does not appear on the right side of any rule[0m
 
-[1;35mWarning: [0m[1mUseless terminal [0m[1;33m"-"[0m[1m does not appear on the right side of any rule, neither is it the start symbol.[0m
+[1;35mWarning: [0m[1mUseless terminal [0m[1;33m"-"[0m[1m does not appear on the right side of any rule[0m
 
 [1;35mWarning: [0m[1mThis rule will never be used due to low precedence:[0m
 [1mmof.y:429: [0m[1;34mnamespace_opt[0m

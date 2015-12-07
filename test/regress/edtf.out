@@ -2,8 +2,8 @@ Parsing grammar file...
 Generating and resolving LALR states...
 Creating parser file...
 
-Warning: Useless terminal UNMATCHED does not appear on the right side of any rule, neither is it the start symbol.
+Warning: Useless terminal UNMATCHED does not appear on the right side of any rule
 
-Warning: Useless terminal PUA does not appear on the right side of any rule, neither is it the start symbol.
+Warning: Useless terminal PUA does not appear on the right side of any rule
 
 2 useless terminals
