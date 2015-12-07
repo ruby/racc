@@ -142,6 +142,8 @@ module Racc
           end
         end
       end
+      look_past.freeze
+
       # traverse graph with arrows connecting reductions which could occur
       # directly after another without shifting any terminal first (because the
       # reduced nonterminal is null)
@@ -174,6 +176,7 @@ module Racc
           end
         end
       end
+      includes.freeze
 
       walk_graph(following_terminals, includes)
 
@@ -419,7 +422,7 @@ module Racc
         s.gotos.each do |tok, goto|
           graph.add_vector(s.ident, goto.to_state.ident, tok)
         end
-      end.tap { |graph| graph.start = 0 }
+      end.tap { |graph| graph.start = 0 }.freeze
     end
 
     # Like `transition_graph`, but rather than vectors labeled with NTs, we
@@ -435,7 +438,7 @@ module Racc
           end
           graph.add_vector(s.ident, goto.to_state.ident, path)
         end
-      end.tap { |graph| graph.start = 0 }
+      end.tap { |graph| graph.start = 0 }.freeze
     end
 
     # What series of shifts/reduces can produce `target`, starting from state

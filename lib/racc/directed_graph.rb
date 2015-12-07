@@ -143,6 +143,10 @@ module Racc
       def dup
         super.map!(&:dup)
       end
+
+      def freeze
+        each(&:freeze)
+      end
     end
 
     # Like Graph::Finite, but with backpointers from children to parents as well
@@ -293,6 +297,10 @@ module Racc
       def dup
         super.map!(&:dup)
       end
+
+      def freeze
+        each(&:freeze)
+      end
     end
 
     # This implementation uses an object for each node, rather than identifying
@@ -356,6 +364,11 @@ module Racc
 
       def node_caption(node)
         Color.without_color { node.ptr.to_s }
+      end
+
+      def freeze
+        super
+        @nodes.each(&:freeze)
       end
     end
 
