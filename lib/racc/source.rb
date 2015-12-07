@@ -228,6 +228,10 @@ module Racc
         end
       end
 
+      def self.render(sparse)
+        merge(sparse).map(&:spifferific).join("\n\n")
+      end
+
       def spifferific
         cooked    = @textobj.spiffier.lines.map(&:chomp)
         base_line = @textobj.lineno

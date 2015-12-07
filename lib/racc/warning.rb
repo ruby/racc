@@ -128,7 +128,7 @@ module Racc
           "When the next token is #{connective}#{Racc.to_sentence(tokens, 'or')}" \
           ", it is overridden by #{rules.one? ? 'this' : 'these'} " \
           "higher-precedence rule#{'s' unless rules.one?}:\n" <<
-          Source::SparseLines.merge(rules.map(&:source)).map(&:spifferific).join("\n\n")
+          Source::SparseLines.render(rules.map(&:source))
         end.join("\n\n")
       end
 
