@@ -103,9 +103,7 @@ module Racc
     end
 
     def n_expected_srconflicts=(value)
-      if @n_expected_srconflicts
-        raise CompileError, "'expect' seen twice"
-      end
+      raise CompileError, "'expect' seen twice" if @n_expected_srconflicts
       @n_expected_srconflicts = value
     end
 
