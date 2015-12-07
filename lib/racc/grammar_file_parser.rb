@@ -244,7 +244,7 @@ module Racc
     end
 
     def embedded_action(act, target)
-      sym = @grammar.intern("@#{@embedded_action_seq += 1}".to_sym, true)
+      sym = @grammar.intern("@action#{@embedded_action_seq += 1}".to_sym, true)
       @grammar.add(Rule.new(sym, [], act))
       sym
     end

@@ -542,7 +542,7 @@ Racc_token_to_s_table = [
   "row_contents",
   "list_item",
   "list_contents",
-  "@1",
+  "@action1",
   "dictionary_term",
   "dictionary_contents",
   "dictionary_definition",

@@ -641,7 +641,7 @@ Racc_token_to_s_table = [
   "$start",
   "document",
   "stylesheet",
-  "@1",
+  "@action1",
   "charset",
   "import",
   "namespace",
