@@ -201,9 +201,8 @@ module Racc
       check_rules
     end
 
-    # A 'useless' Sym is one which can never be part of a valid parse
-    # tree, because there is no sequence of rules by which it
-    # could eventually reduce down to the 'start' node
+    # A useless symbol can never be a part of any valid parse tree, and is not
+    # used for a =<sym> precedence declaration either
     def useless_symbols
       raise 'Grammar not yet closed' unless @closed
       @useless_symbols ||= begin
