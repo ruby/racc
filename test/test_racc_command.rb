@@ -365,6 +365,7 @@ module Racc
       err = assert_compile 'twowaysql.y'
       assert_warnings err, sr_conflicts: 4
       assert_parser_unchanged 'twowaysql.y'
+      assert_html_unchanged   'twowaysql.y'
     end
 
     # .y file from machete gem

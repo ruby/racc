@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>LR parser states for test/assets/twowaysql.y</title>
+    <style type='text/css'>
+      table           { border-collapse: collapse }
+      th, td          { padding: 0.25rem; text-align: left; border: 1px solid #ccc; }
+
+      table.core td   { border: none }
+      table.core tr   { border: 1px solid #ccc }
+      table.path      { border: 2px solid #ccc }
+      table.action    { border: 2px solid #ccc }
+    </style>
+  </head>
+  <body>
+    <!-- details for each state -->
+    
+      <h2><a name="state0">State 0 (start state)</a></h2>
+
+      <p><table class='core'>
+        <tr><td><span style='color: #36318D'>$start</span></td><td><b>:</b></td><td><b>.</b> <span style='color: #36318D'>sql</span> <span style='color: #239449; text-decoration: underline'>$end</span> <span style='color: #239449; text-decoration: underline'>$end</span> </td></tr>
+      </table></p>
+
+      
+
+      <p>
+      
+        From here, we reduce by <span style='color: #36318D'>stmt_list</span> <b>:</b> regardless of what token
+        comes next.<br/>
+        
+          (This takes us to <a href='#state2'>2</a>)
+        
+      
+      </p>
+      <hr>
+    
+      <h2><a name="state1">State 1</a></h2>
+
+      <p><table class='core'>
+        <tr><td><span style='color: #36318D'>$start</span></td><td><b>:</b></td><td><span style='color: #36318D'>sql</span> <b>.</b> <span style='color: #239449; text-decoration: underline'>$end</span> <span style='color: #239449; text-decoration: underline'>$end</span> </td></tr>
+      </table></p>
+
+      <p>
+        This state can be reached from the start state by:<br/>
+        <table class='path'><thead><tr><th><b>Action:</b></th><th><b>Stack:</b></th></tr></thead><tbody><tr><td>Reduce to <span style='color: #36318D'>stmt_list</span> by:<br/><span style='color: #36318D'>stmt_list</span> <b>:</b></td><td> <span style='color: #36318D'>stmt_list</span></td></tr><tr><td>Reduce to <span style='color: #36318D'>sql</span> by:<br/><span style='color: #36318D'>sql</span> <b>:</b> <span style='color: #36318D'>stmt_list</span></td><td> <span style='color: #36318D'>sql</span></td></tr></tbody></table>
+      </p>
+
+      <p>
+      
+        Action table:<br/>
+        <table class='action'><thead><tr><th><b>Lookahead token</b></th><th><b>Action</b></th></tr></thead><tbody><tr><td><span style='color: #239449; text-decoration: underline'>$end</span></td><td>Shift and go to state <a href='#state3'>3</a></td></tr><tr><td>Other</td><td>Error</td></tr></tbody></table>
+      
+      </p>
+      <hr>
+    
+      <h2><a name="state2">State 2</a></h2>
+
+      <p><table class='core'>
+        <tr><td><span style='color: #36318D'>sql</span></td><td><b>:</b></td><td><span style='color: #36318D'>stmt_list</span> <b>.</b> </td></tr><tr><td><span style='color: #36318D'>stmt_list</span></td><td><b>:</b></td><td><span style='color: #36318D'>stmt_list</span> <b>.</b> <span style='color: #36318D'>stmt</span> </td></tr>
+      </table></p>
+
+      <p>
+        This state can be reached from the start state by:<br/>
+        <table class='path'><thead><tr><th><b>Action:</b></th><th><b>Stack:</b></th></tr></thead><tbody><tr><td>Reduce to <span style='color: #36318D'>stmt_list</span> by:<br/><span style='color: #36318D'>stmt_list</span> <b>:</b></td><td> <span style='color: #36318D'>stmt_list</span></td></tr></tbody></table>
+      </p>
+
+      <p>
+      
+        Action table:<br/>
+        <table class='action'><thead><tr><th><b>Lookahead token</b></th><th><b>Action</b></th></tr></thead><tbody><tr><td><span style='color: #239449; text-decoration: underline'>BEGIN</span></td><td>Shift and go to state <a href='#state8'>8</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>IF</span></td><td>Shift and go to state <a href='#state9'>9</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>AND</span></td><td>Shift and go to state <a href='#state12'>12</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>OR</span></td><td>Shift and go to state <a href='#state13'>13</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>IDENT</span></td><td>Shift and go to state <a href='#state10'>10</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>STRING_LITERAL</span></td><td>Shift and go to state <a href='#state11'>11</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>SPACES</span></td><td>Shift and go to state <a href='#state14'>14</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>COMMA</span></td><td>Shift and go to state <a href='#state15'>15</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>LPAREN</span></td><td>Shift and go to state <a href='#state16'>16</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>RPAREN</span></td><td>Shift and go to state <a href='#state17'>17</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>QUESTION</span></td><td>Shift and go to state <a href='#state18'>18</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>ACTUAL_COMMENT</span></td><td>Shift and go to state <a href='#state19'>19</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>BIND_VARIABLE</span></td><td>Shift and go to state <a href='#state22'>22</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>PAREN_BIND_VARIABLE</span></td><td>Shift and go to state <a href='#state23'>23</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>EMBED_VARIABLE</span></td><td>Shift and go to state <a href='#state24'>24</a></td></tr><tr><td>Other</td><td>Reduce by <span style='color: #36318D'>sql</span> <b>:</b> <span style='color: #36318D'>stmt_list</span><br/>(This takes us to <a href='#state1'>1</a>)</td></tr></tbody></table>
+      
+      </p>
+      <hr>
+    
+      <h2><a name="state3">State 3</a></h2>
+
+      <p><table class='core'>
+        <tr><td><span style='color: #36318D'>$start</span></td><td><b>:</b></td><td><span style='color: #36318D'>sql</span> <span style='color: #239449; text-decoration: underline'>$end</span> <b>.</b> <span style='color: #239449; text-decoration: underline'>$end</span> </td></tr>
+      </table></p>
+
+      <p>
+        This state can be reached from the start state by:<br/>
+        <table class='path'><thead><tr><th><b>Action:</b></th><th><b>Stack:</b></th></tr></thead><tbody><tr><td>Reduce to <span style='color: #36318D'>stmt_list</span> by:<br/><span style='color: #36318D'>stmt_list</span> <b>:</b></td><td> <span style='color: #36318D'>stmt_list</span></td></tr><tr><td>Reduce to <span style='color: #36318D'>sql</span> by:<br/><span style='color: #36318D'>sql</span> <b>:</b> <span style='color: #36318D'>stmt_list</span></td><td> <span style='color: #36318D'>sql</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>$end</span></td><td> <span style='color: #36318D'>sql</span> <span style='color: #239449; text-decoration: underline'>$end</span></td></tr></tbody></table>
+      </p>
+
+      <p>
+      
+        Action table:<br/>
+        <table class='action'><thead><tr><th><b>Lookahead token</b></th><th><b>Action</b></th></tr></thead><tbody><tr><td><span style='color: #239449; text-decoration: underline'>$end</span></td><td>Shift and go to state <a href='#state25'>25</a></td></tr><tr><td>Other</td><td>Error</td></tr></tbody></table>
+      
+      </p>
+      <hr>
+    
+      <h2><a name="state4">State 4</a></h2>
+
+      <p><table class='core'>
+        <tr><td><span style='color: #36318D'>stmt_list</span></td><td><b>:</b></td><td><span style='color: #36318D'>stmt_list</span> <span style='color: #36318D'>stmt</span> <b>.</b> </td></tr>
+      </table></p>
+
+      <p>
+        This state can be reached from the start state by:<br/>
+        <table class='path'><thead><tr><th><b>Action:</b></th><th><b>Stack:</b></th></tr></thead><tbody><tr><td>Reduce to <span style='color: #36318D'>stmt_list</span> by:<br/><span style='color: #36318D'>stmt_list</span> <b>:</b></td><td> <span style='color: #36318D'>stmt_list</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>IDENT</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>IDENT</span></td></tr><tr><td>Reduce to <span style='color: #36318D'>primary</span> by:<br/><span style='color: #36318D'>primary</span> <b>:</b> <span style='color: #239449; text-decoration: underline'>IDENT</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #36318D'>primary</span></td></tr><tr><td>Reduce to <span style='color: #36318D'>stmt</span> by:<br/><span style='color: #36318D'>stmt</span> <b>:</b> <span style='color: #36318D'>primary</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #36318D'>stmt</span></td></tr></tbody></table>
+      </p>
+
+      <p>
+      
+        From here, we reduce by <span style='color: #36318D'>stmt_list</span> <b>:</b> <span style='color: #36318D'>stmt_list</span> <span style='color: #36318D'>stmt</span> regardless of what token
+        comes next.<br/>
+        
+          (This can take us to <a href='#state2'>2</a>, <a href='#state26'>26</a>, <a href='#state27'>27</a>, <a href='#state41'>41</a> or <a href='#state42'>42</a>)
+        
+      
+      </p>
+      <hr>
+    
+      <h2><a name="state5">State 5</a></h2>
+
+      <p><table class='core'>
+        <tr><td><span style='color: #36318D'>stmt</span></td><td><b>:</b></td><td><span style='color: #36318D'>primary</span> <b>.</b> </td></tr>
+      </table></p>
+
+      <p>
+        This state can be reached from the start state by:<br/>
+        <table class='path'><thead><tr><th><b>Action:</b></th><th><b>Stack:</b></th></tr></thead><tbody><tr><td>Reduce to <span style='color: #36318D'>stmt_list</span> by:<br/><span style='color: #36318D'>stmt_list</span> <b>:</b></td><td> <span style='color: #36318D'>stmt_list</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>IDENT</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>IDENT</span></td></tr><tr><td>Reduce to <span style='color: #36318D'>primary</span> by:<br/><span style='color: #36318D'>primary</span> <b>:</b> <span style='color: #239449; text-decoration: underline'>IDENT</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #36318D'>primary</span></td></tr></tbody></table>
+      </p>
+
+      <p>
+      
+        From here, we reduce by <span style='color: #36318D'>stmt</span> <b>:</b> <span style='color: #36318D'>primary</span> regardless of what token
+        comes next.<br/>
+        
+          (This takes us to <a href='#state4'>4</a>)
+        
+      
+      </p>
+      <hr>
+    
+      <h2><a name="state6">State 6</a></h2>
+
+      <p><table class='core'>
+        <tr><td><span style='color: #36318D'>stmt</span></td><td><b>:</b></td><td><span style='color: #36318D'>if_stmt</span> <b>.</b> </td></tr>
+      </table></p>
+
+      <p>
+        This state can be reached from the start state by:<br/>
+        <table class='path'><thead><tr><th><b>Action:</b></th><th><b>Stack:</b></th></tr></thead><tbody><tr><td>Reduce to <span style='color: #36318D'>stmt_list</span> by:<br/><span style='color: #36318D'>stmt_list</span> <b>:</b></td><td> <span style='color: #36318D'>stmt_list</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>IF</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>IF</span></td></tr><tr><td>Reduce to <span style='color: #36318D'>stmt_list</span> by:<br/><span style='color: #36318D'>stmt_list</span> <b>:</b></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>IF</span> <span style='color: #36318D'>stmt_list</span></td></tr><tr><td>Reduce to <span style='color: #36318D'>sub_stmt</span> by:<br/><span style='color: #36318D'>sub_stmt</span> <b>:</b> <span style='color: #36318D'>stmt_list</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>IF</span> <span style='color: #36318D'>sub_stmt</span></td></tr><tr><td>Reduce to <span style='color: #36318D'>else_stmt</span> by:<br/><span style='color: #36318D'>else_stmt</span> <b>:</b></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>IF</span> <span style='color: #36318D'>sub_stmt</span> <span style='color: #36318D'>else_stmt</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>END</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>IF</span> <span style='color: #36318D'>sub_stmt</span> <span style='color: #36318D'>else_stmt</span> <span style='color: #239449; text-decoration: underline'>END</span></td></tr><tr><td>Reduce to <span style='color: #36318D'>if_stmt</span> by:<br/><span style='color: #36318D'>if_stmt</span> <b>:</b> <span style='color: #239449; text-decoration: underline'>IF</span> <span style='color: #36318D'>sub_stmt</span> <span style='color: #36318D'>else_stmt</span> <span style='color: #239449; text-decoration: underline'>END</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #36318D'>if_stmt</span></td></tr></tbody></table>
+      </p>
+
+      <p>
+      
+        From here, we reduce by <span style='color: #36318D'>stmt</span> <b>:</b> <span style='color: #36318D'>if_stmt</span> regardless of what token
+        comes next.<br/>
+        
+          (This takes us to <a href='#state4'>4</a>)
+        
+      
+      </p>
+      <hr>
+    
+      <h2><a name="state7">State 7</a></h2>
+
+      <p><table class='core'>
+        <tr><td><span style='color: #36318D'>stmt</span></td><td><b>:</b></td><td><span style='color: #36318D'>begin_stmt</span> <b>.</b> </td></tr>
+      </table></p>
+
+      <p>
+        This state can be reached from the start state by:<br/>
+        <table class='path'><thead><tr><th><b>Action:</b></th><th><b>Stack:</b></th></tr></thead><tbody><tr><td>Reduce to <span style='color: #36318D'>stmt_list</span> by:<br/><span style='color: #36318D'>stmt_list</span> <b>:</b></td><td> <span style='color: #36318D'>stmt_list</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>BEGIN</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>BEGIN</span></td></tr><tr><td>Reduce to <span style='color: #36318D'>stmt_list</span> by:<br/><span style='color: #36318D'>stmt_list</span> <b>:</b></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>BEGIN</span> <span style='color: #36318D'>stmt_list</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>END</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>BEGIN</span> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>END</span></td></tr><tr><td>Reduce to <span style='color: #36318D'>begin_stmt</span> by:<br/><span style='color: #36318D'>begin_stmt</span> <b>:</b> <span style='color: #239449; text-decoration: underline'>BEGIN</span> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>END</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #36318D'>begin_stmt</span></td></tr></tbody></table>
+      </p>
+
+      <p>
+      
+        From here, we reduce by <span style='color: #36318D'>stmt</span> <b>:</b> <span style='color: #36318D'>begin_stmt</span> regardless of what token
+        comes next.<br/>
+        
+          (This takes us to <a href='#state4'>4</a>)
+        
+      
+      </p>
+      <hr>
+    
+      <h2><a name="state8">State 8</a></h2>
+
+      <p><table class='core'>
+        <tr><td><span style='color: #36318D'>begin_stmt</span></td><td><b>:</b></td><td><span style='color: #239449; text-decoration: underline'>BEGIN</span> <b>.</b> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>END</span> </td></tr>
+      </table></p>
+
+      <p>
+        This state can be reached from the start state by:<br/>
+        <table class='path'><thead><tr><th><b>Action:</b></th><th><b>Stack:</b></th></tr></thead><tbody><tr><td>Reduce to <span style='color: #36318D'>stmt_list</span> by:<br/><span style='color: #36318D'>stmt_list</span> <b>:</b></td><td> <span style='color: #36318D'>stmt_list</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>BEGIN</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>BEGIN</span></td></tr></tbody></table>
+      </p>
+
+      <p>
+      
+        From here, we reduce by <span style='color: #36318D'>stmt_list</span> <b>:</b> regardless of what token
+        comes next.<br/>
+        
+          (This takes us to <a href='#state26'>26</a>)
+        
+      
+      </p>
+      <hr>
+    
+      <h2><a name="state9">State 9</a></h2>
+
+      <p><table class='core'>
+        <tr><td><span style='color: #36318D'>if_stmt</span></td><td><b>:</b></td><td><span style='color: #239449; text-decoration: underline'>IF</span> <b>.</b> <span style='color: #36318D'>sub_stmt</span> <span style='color: #36318D'>else_stmt</span> <span style='color: #239449; text-decoration: underline'>END</span> </td></tr>
+      </table></p>
+
+      <p>
+        This state can be reached from the start state by:<br/>
+        <table class='path'><thead><tr><th><b>Action:</b></th><th><b>Stack:</b></th></tr></thead><tbody><tr><td>Reduce to <span style='color: #36318D'>stmt_list</span> by:<br/><span style='color: #36318D'>stmt_list</span> <b>:</b></td><td> <span style='color: #36318D'>stmt_list</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>IF</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>IF</span></td></tr></tbody></table>
+      </p>
+
+      <p>
+      
+        Action table:<br/>
+        <table class='action'><thead><tr><th><b>Lookahead token</b></th><th><b>Action</b></th></tr></thead><tbody><tr><td><span style='color: #239449; text-decoration: underline'>AND</span></td><td>Shift and go to state <a href='#state31'>31</a><br/>(<span style='color: red'>Overridden:</span> reduce by <span style='color: #36318D'>stmt_list</span> <b>:</b>)</td></tr><tr><td><span style='color: #239449; text-decoration: underline'>OR</span></td><td>Shift and go to state <a href='#state32'>32</a><br/>(<span style='color: red'>Overridden:</span> reduce by <span style='color: #36318D'>stmt_list</span> <b>:</b>)</td></tr><tr><td>Other</td><td>Reduce by <span style='color: #36318D'>stmt_list</span> <b>:</b><br/>(This takes us to <a href='#state27'>27</a>)</td></tr></tbody></table>
+      
+      </p>
+      <hr>
+    
+      <h2><a name="state10">State 10</a></h2>
+
+      <p><table class='core'>
+        <tr><td><span style='color: #36318D'>primary</span></td><td><b>:</b></td><td><span style='color: #239449; text-decoration: underline'>IDENT</span> <b>.</b> </td></tr>
+      </table></p>
+
+      <p>
+        This state can be reached from the start state by:<br/>
+        <table class='path'><thead><tr><th><b>Action:</b></th><th><b>Stack:</b></th></tr></thead><tbody><tr><td>Reduce to <span style='color: #36318D'>stmt_list</span> by:<br/><span style='color: #36318D'>stmt_list</span> <b>:</b></td><td> <span style='color: #36318D'>stmt_list</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>IDENT</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>IDENT</span></td></tr></tbody></table>
+      </p>
+
+      <p>
+      
+        From here, we reduce by <span style='color: #36318D'>primary</span> <b>:</b> <span style='color: #239449; text-decoration: underline'>IDENT</span> regardless of what token
+        comes next.<br/>
+        
+          (This takes us to <a href='#state5'>5</a>)
+        
+      
+      </p>
+      <hr>
+    
+      <h2><a name="state11">State 11</a></h2>
+
+      <p><table class='core'>
+        <tr><td><span style='color: #36318D'>primary</span></td><td><b>:</b></td><td><span style='color: #239449; text-decoration: underline'>STRING_LITERAL</span> <b>.</b> </td></tr>
+      </table></p>
+
+      <p>
+        This state can be reached from the start state by:<br/>
+        <table class='path'><thead><tr><th><b>Action:</b></th><th><b>Stack:</b></th></tr></thead><tbody><tr><td>Reduce to <span style='color: #36318D'>stmt_list</span> by:<br/><span style='color: #36318D'>stmt_list</span> <b>:</b></td><td> <span style='color: #36318D'>stmt_list</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>STRING_LITERAL</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>STRING_LITERAL</span></td></tr></tbody></table>
+      </p>
+
+      <p>
+      
+        From here, we reduce by <span style='color: #36318D'>primary</span> <b>:</b> <span style='color: #239449; text-decoration: underline'>STRING_LITERAL</span> regardless of what token
+        comes next.<br/>
+        
+          (This takes us to <a href='#state5'>5</a>)
+        
+      
+      </p>
+      <hr>
+    
+      <h2><a name="state12">State 12</a></h2>
+
+      <p><table class='core'>
+        <tr><td><span style='color: #36318D'>primary</span></td><td><b>:</b></td><td><span style='color: #239449; text-decoration: underline'>AND</span> <b>.</b> </td></tr>
+      </table></p>
+
+      <p>
+        This state can be reached from the start state by:<br/>
+        <table class='path'><thead><tr><th><b>Action:</b></th><th><b>Stack:</b></th></tr></thead><tbody><tr><td>Reduce to <span style='color: #36318D'>stmt_list</span> by:<br/><span style='color: #36318D'>stmt_list</span> <b>:</b></td><td> <span style='color: #36318D'>stmt_list</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>AND</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>AND</span></td></tr></tbody></table>
+      </p>
+
+      <p>
+      
+        From here, we reduce by <span style='color: #36318D'>primary</span> <b>:</b> <span style='color: #239449; text-decoration: underline'>AND</span> regardless of what token
+        comes next.<br/>
+        
+          (This takes us to <a href='#state5'>5</a>)
+        
+      
+      </p>
+      <hr>
+    
+      <h2><a name="state13">State 13</a></h2>
+
+      <p><table class='core'>
+        <tr><td><span style='color: #36318D'>primary</span></td><td><b>:</b></td><td><span style='color: #239449; text-decoration: underline'>OR</span> <b>.</b> </td></tr>
+      </table></p>
+
+      <p>
+        This state can be reached from the start state by:<br/>
+        <table class='path'><thead><tr><th><b>Action:</b></th><th><b>Stack:</b></th></tr></thead><tbody><tr><td>Reduce to <span style='color: #36318D'>stmt_list</span> by:<br/><span style='color: #36318D'>stmt_list</span> <b>:</b></td><td> <span style='color: #36318D'>stmt_list</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>OR</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>OR</span></td></tr></tbody></table>
+      </p>
+
+      <p>
+      
+        From here, we reduce by <span style='color: #36318D'>primary</span> <b>:</b> <span style='color: #239449; text-decoration: underline'>OR</span> regardless of what token
+        comes next.<br/>
+        
+          (This takes us to <a href='#state5'>5</a>)
+        
+      
+      </p>
+      <hr>
+    
+      <h2><a name="state14">State 14</a></h2>
+
+      <p><table class='core'>
+        <tr><td><span style='color: #36318D'>primary</span></td><td><b>:</b></td><td><span style='color: #239449; text-decoration: underline'>SPACES</span> <b>.</b> </td></tr>
+      </table></p>
+
+      <p>
+        This state can be reached from the start state by:<br/>
+        <table class='path'><thead><tr><th><b>Action:</b></th><th><b>Stack:</b></th></tr></thead><tbody><tr><td>Reduce to <span style='color: #36318D'>stmt_list</span> by:<br/><span style='color: #36318D'>stmt_list</span> <b>:</b></td><td> <span style='color: #36318D'>stmt_list</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>SPACES</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>SPACES</span></td></tr></tbody></table>
+      </p>
+
+      <p>
+      
+        From here, we reduce by <span style='color: #36318D'>primary</span> <b>:</b> <span style='color: #239449; text-decoration: underline'>SPACES</span> regardless of what token
+        comes next.<br/>
+        
+          (This takes us to <a href='#state5'>5</a>)
+        
+      
+      </p>
+      <hr>
+    
+      <h2><a name="state15">State 15</a></h2>
+
+      <p><table class='core'>
+        <tr><td><span style='color: #36318D'>primary</span></td><td><b>:</b></td><td><span style='color: #239449; text-decoration: underline'>COMMA</span> <b>.</b> </td></tr>
+      </table></p>
+
+      <p>
+        This state can be reached from the start state by:<br/>
+        <table class='path'><thead><tr><th><b>Action:</b></th><th><b>Stack:</b></th></tr></thead><tbody><tr><td>Reduce to <span style='color: #36318D'>stmt_list</span> by:<br/><span style='color: #36318D'>stmt_list</span> <b>:</b></td><td> <span style='color: #36318D'>stmt_list</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>COMMA</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>COMMA</span></td></tr></tbody></table>
+      </p>
+
+      <p>
+      
+        From here, we reduce by <span style='color: #36318D'>primary</span> <b>:</b> <span style='color: #239449; text-decoration: underline'>COMMA</span> regardless of what token
+        comes next.<br/>
+        
+          (This takes us to <a href='#state5'>5</a>)
+        
+      
+      </p>
+      <hr>
+    
+      <h2><a name="state16">State 16</a></h2>
+
+      <p><table class='core'>
+        <tr><td><span style='color: #36318D'>primary</span></td><td><b>:</b></td><td><span style='color: #239449; text-decoration: underline'>LPAREN</span> <b>.</b> </td></tr>
+      </table></p>
+
+      <p>
+        This state can be reached from the start state by:<br/>
+        <table class='path'><thead><tr><th><b>Action:</b></th><th><b>Stack:</b></th></tr></thead><tbody><tr><td>Reduce to <span style='color: #36318D'>stmt_list</span> by:<br/><span style='color: #36318D'>stmt_list</span> <b>:</b></td><td> <span style='color: #36318D'>stmt_list</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>LPAREN</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>LPAREN</span></td></tr></tbody></table>
+      </p>
+
+      <p>
+      
+        From here, we reduce by <span style='color: #36318D'>primary</span> <b>:</b> <span style='color: #239449; text-decoration: underline'>LPAREN</span> regardless of what token
+        comes next.<br/>
+        
+          (This takes us to <a href='#state5'>5</a>)
+        
+      
+      </p>
+      <hr>
+    
+      <h2><a name="state17">State 17</a></h2>
+
+      <p><table class='core'>
+        <tr><td><span style='color: #36318D'>primary</span></td><td><b>:</b></td><td><span style='color: #239449; text-decoration: underline'>RPAREN</span> <b>.</b> </td></tr>
+      </table></p>
+
+      <p>
+        This state can be reached from the start state by:<br/>
+        <table class='path'><thead><tr><th><b>Action:</b></th><th><b>Stack:</b></th></tr></thead><tbody><tr><td>Reduce to <span style='color: #36318D'>stmt_list</span> by:<br/><span style='color: #36318D'>stmt_list</span> <b>:</b></td><td> <span style='color: #36318D'>stmt_list</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>RPAREN</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>RPAREN</span></td></tr></tbody></table>
+      </p>
+
+      <p>
+      
+        From here, we reduce by <span style='color: #36318D'>primary</span> <b>:</b> <span style='color: #239449; text-decoration: underline'>RPAREN</span> regardless of what token
+        comes next.<br/>
+        
+          (This takes us to <a href='#state5'>5</a>)
+        
+      
+      </p>
+      <hr>
+    
+      <h2><a name="state18">State 18</a></h2>
+
+      <p><table class='core'>
+        <tr><td><span style='color: #36318D'>primary</span></td><td><b>:</b></td><td><span style='color: #239449; text-decoration: underline'>QUESTION</span> <b>.</b> </td></tr>
+      </table></p>
+
+      <p>
+        This state can be reached from the start state by:<br/>
+        <table class='path'><thead><tr><th><b>Action:</b></th><th><b>Stack:</b></th></tr></thead><tbody><tr><td>Reduce to <span style='color: #36318D'>stmt_list</span> by:<br/><span style='color: #36318D'>stmt_list</span> <b>:</b></td><td> <span style='color: #36318D'>stmt_list</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>QUESTION</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>QUESTION</span></td></tr></tbody></table>
+      </p>
+
+      <p>
+      
+        From here, we reduce by <span style='color: #36318D'>primary</span> <b>:</b> <span style='color: #239449; text-decoration: underline'>QUESTION</span> regardless of what token
+        comes next.<br/>
+        
+          (This takes us to <a href='#state5'>5</a>)
+        
+      
+      </p>
+      <hr>
+    
+      <h2><a name="state19">State 19</a></h2>
+
+      <p><table class='core'>
+        <tr><td><span style='color: #36318D'>primary</span></td><td><b>:</b></td><td><span style='color: #239449; text-decoration: underline'>ACTUAL_COMMENT</span> <b>.</b> </td></tr>
+      </table></p>
+
+      <p>
+        This state can be reached from the start state by:<br/>
+        <table class='path'><thead><tr><th><b>Action:</b></th><th><b>Stack:</b></th></tr></thead><tbody><tr><td>Reduce to <span style='color: #36318D'>stmt_list</span> by:<br/><span style='color: #36318D'>stmt_list</span> <b>:</b></td><td> <span style='color: #36318D'>stmt_list</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>ACTUAL_COMMENT</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>ACTUAL_COMMENT</span></td></tr></tbody></table>
+      </p>
+
+      <p>
+      
+        From here, we reduce by <span style='color: #36318D'>primary</span> <b>:</b> <span style='color: #239449; text-decoration: underline'>ACTUAL_COMMENT</span> regardless of what token
+        comes next.<br/>
+        
+          (This takes us to <a href='#state5'>5</a>)
+        
+      
+      </p>
+      <hr>
+    
+      <h2><a name="state20">State 20</a></h2>
+
+      <p><table class='core'>
+        <tr><td><span style='color: #36318D'>primary</span></td><td><b>:</b></td><td><span style='color: #36318D'>bind_var</span> <b>.</b> </td></tr>
+      </table></p>
+
+      <p>
+        This state can be reached from the start state by:<br/>
+        <table class='path'><thead><tr><th><b>Action:</b></th><th><b>Stack:</b></th></tr></thead><tbody><tr><td>Reduce to <span style='color: #36318D'>stmt_list</span> by:<br/><span style='color: #36318D'>stmt_list</span> <b>:</b></td><td> <span style='color: #36318D'>stmt_list</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>PAREN_BIND_VARIABLE</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>PAREN_BIND_VARIABLE</span></td></tr><tr><td>Reduce to <span style='color: #36318D'>bind_var</span> by:<br/><span style='color: #36318D'>bind_var</span> <b>:</b> <span style='color: #239449; text-decoration: underline'>PAREN_BIND_VARIABLE</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #36318D'>bind_var</span></td></tr></tbody></table>
+      </p>
+
+      <p>
+      
+        From here, we reduce by <span style='color: #36318D'>primary</span> <b>:</b> <span style='color: #36318D'>bind_var</span> regardless of what token
+        comes next.<br/>
+        
+          (This takes us to <a href='#state5'>5</a>)
+        
+      
+      </p>
+      <hr>
+    
+      <h2><a name="state21">State 21</a></h2>
+
+      <p><table class='core'>
+        <tr><td><span style='color: #36318D'>primary</span></td><td><b>:</b></td><td><span style='color: #36318D'>embed_var</span> <b>.</b> </td></tr>
+      </table></p>
+
+      <p>
+        This state can be reached from the start state by:<br/>
+        <table class='path'><thead><tr><th><b>Action:</b></th><th><b>Stack:</b></th></tr></thead><tbody><tr><td>Reduce to <span style='color: #36318D'>stmt_list</span> by:<br/><span style='color: #36318D'>stmt_list</span> <b>:</b></td><td> <span style='color: #36318D'>stmt_list</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>EMBED_VARIABLE</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>EMBED_VARIABLE</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>IDENT</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>EMBED_VARIABLE</span> <span style='color: #239449; text-decoration: underline'>IDENT</span></td></tr><tr><td>Reduce to <span style='color: #36318D'>embed_var</span> by:<br/><span style='color: #36318D'>embed_var</span> <b>:</b> <span style='color: #239449; text-decoration: underline'>EMBED_VARIABLE</span> <span style='color: #239449; text-decoration: underline'>IDENT</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #36318D'>embed_var</span></td></tr></tbody></table>
+      </p>
+
+      <p>
+      
+        From here, we reduce by <span style='color: #36318D'>primary</span> <b>:</b> <span style='color: #36318D'>embed_var</span> regardless of what token
+        comes next.<br/>
+        
+          (This takes us to <a href='#state5'>5</a>)
+        
+      
+      </p>
+      <hr>
+    
+      <h2><a name="state22">State 22</a></h2>
+
+      <p><table class='core'>
+        <tr><td><span style='color: #36318D'>bind_var</span></td><td><b>:</b></td><td><span style='color: #239449; text-decoration: underline'>BIND_VARIABLE</span> <b>.</b> <span style='color: #239449; text-decoration: underline'>STRING_LITERAL</span> </td></tr><tr><td><span style='color: #36318D'>bind_var</span></td><td><b>:</b></td><td><span style='color: #239449; text-decoration: underline'>BIND_VARIABLE</span> <b>.</b> <span style='color: #239449; text-decoration: underline'>SPACES</span> <span style='color: #239449; text-decoration: underline'>STRING_LITERAL</span> </td></tr><tr><td><span style='color: #36318D'>bind_var</span></td><td><b>:</b></td><td><span style='color: #239449; text-decoration: underline'>BIND_VARIABLE</span> <b>.</b> <span style='color: #239449; text-decoration: underline'>IDENT</span> </td></tr><tr><td><span style='color: #36318D'>bind_var</span></td><td><b>:</b></td><td><span style='color: #239449; text-decoration: underline'>BIND_VARIABLE</span> <b>.</b> <span style='color: #239449; text-decoration: underline'>SPACES</span> <span style='color: #239449; text-decoration: underline'>IDENT</span> </td></tr>
+      </table></p>
+
+      <p>
+        This state can be reached from the start state by:<br/>
+        <table class='path'><thead><tr><th><b>Action:</b></th><th><b>Stack:</b></th></tr></thead><tbody><tr><td>Reduce to <span style='color: #36318D'>stmt_list</span> by:<br/><span style='color: #36318D'>stmt_list</span> <b>:</b></td><td> <span style='color: #36318D'>stmt_list</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>BIND_VARIABLE</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>BIND_VARIABLE</span></td></tr></tbody></table>
+      </p>
+
+      <p>
+      
+        Action table:<br/>
+        <table class='action'><thead><tr><th><b>Lookahead token</b></th><th><b>Action</b></th></tr></thead><tbody><tr><td><span style='color: #239449; text-decoration: underline'>IDENT</span></td><td>Shift and go to state <a href='#state35'>35</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>STRING_LITERAL</span></td><td>Shift and go to state <a href='#state33'>33</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>SPACES</span></td><td>Shift and go to state <a href='#state34'>34</a></td></tr><tr><td>Other</td><td>Error</td></tr></tbody></table>
+      
+      </p>
+      <hr>
+    
+      <h2><a name="state23">State 23</a></h2>
+
+      <p><table class='core'>
+        <tr><td><span style='color: #36318D'>bind_var</span></td><td><b>:</b></td><td><span style='color: #239449; text-decoration: underline'>PAREN_BIND_VARIABLE</span> <b>.</b> </td></tr>
+      </table></p>
+
+      <p>
+        This state can be reached from the start state by:<br/>
+        <table class='path'><thead><tr><th><b>Action:</b></th><th><b>Stack:</b></th></tr></thead><tbody><tr><td>Reduce to <span style='color: #36318D'>stmt_list</span> by:<br/><span style='color: #36318D'>stmt_list</span> <b>:</b></td><td> <span style='color: #36318D'>stmt_list</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>PAREN_BIND_VARIABLE</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>PAREN_BIND_VARIABLE</span></td></tr></tbody></table>
+      </p>
+
+      <p>
+      
+        From here, we reduce by <span style='color: #36318D'>bind_var</span> <b>:</b> <span style='color: #239449; text-decoration: underline'>PAREN_BIND_VARIABLE</span> regardless of what token
+        comes next.<br/>
+        
+          (This takes us to <a href='#state20'>20</a>)
+        
+      
+      </p>
+      <hr>
+    
+      <h2><a name="state24">State 24</a></h2>
+
+      <p><table class='core'>
+        <tr><td><span style='color: #36318D'>embed_var</span></td><td><b>:</b></td><td><span style='color: #239449; text-decoration: underline'>EMBED_VARIABLE</span> <b>.</b> <span style='color: #239449; text-decoration: underline'>IDENT</span> </td></tr><tr><td><span style='color: #36318D'>embed_var</span></td><td><b>:</b></td><td><span style='color: #239449; text-decoration: underline'>EMBED_VARIABLE</span> <b>.</b> <span style='color: #239449; text-decoration: underline'>SPACES</span> <span style='color: #239449; text-decoration: underline'>IDENT</span> </td></tr>
+      </table></p>
+
+      <p>
+        This state can be reached from the start state by:<br/>
+        <table class='path'><thead><tr><th><b>Action:</b></th><th><b>Stack:</b></th></tr></thead><tbody><tr><td>Reduce to <span style='color: #36318D'>stmt_list</span> by:<br/><span style='color: #36318D'>stmt_list</span> <b>:</b></td><td> <span style='color: #36318D'>stmt_list</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>EMBED_VARIABLE</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>EMBED_VARIABLE</span></td></tr></tbody></table>
+      </p>
+
+      <p>
+      
+        Action table:<br/>
+        <table class='action'><thead><tr><th><b>Lookahead token</b></th><th><b>Action</b></th></tr></thead><tbody><tr><td><span style='color: #239449; text-decoration: underline'>IDENT</span></td><td>Shift and go to state <a href='#state36'>36</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>SPACES</span></td><td>Shift and go to state <a href='#state37'>37</a></td></tr><tr><td>Other</td><td>Error</td></tr></tbody></table>
+      
+      </p>
+      <hr>
+    
+      <h2><a name="state25">State 25 (end state)</a></h2>
+
+      <p><table class='core'>
+        <tr><td><span style='color: #36318D'>$start</span></td><td><b>:</b></td><td><span style='color: #36318D'>sql</span> <span style='color: #239449; text-decoration: underline'>$end</span> <span style='color: #239449; text-decoration: underline'>$end</span> <b>.</b> </td></tr>
+      </table></p>
+
+      <p>
+        This state can be reached from the start state by:<br/>
+        <table class='path'><thead><tr><th><b>Action:</b></th><th><b>Stack:</b></th></tr></thead><tbody><tr><td>Reduce to <span style='color: #36318D'>stmt_list</span> by:<br/><span style='color: #36318D'>stmt_list</span> <b>:</b></td><td> <span style='color: #36318D'>stmt_list</span></td></tr><tr><td>Reduce to <span style='color: #36318D'>sql</span> by:<br/><span style='color: #36318D'>sql</span> <b>:</b> <span style='color: #36318D'>stmt_list</span></td><td> <span style='color: #36318D'>sql</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>$end</span></td><td> <span style='color: #36318D'>sql</span> <span style='color: #239449; text-decoration: underline'>$end</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>$end</span></td><td> <span style='color: #36318D'>sql</span> <span style='color: #239449; text-decoration: underline'>$end</span> <span style='color: #239449; text-decoration: underline'>$end</span></td></tr></tbody></table>
+      </p>
+
+      <p>
+      
+        From here, we stop parsing and return success regardless of what token
+        comes next.<br/>
+        
+      
+      </p>
+      <hr>
+    
+      <h2><a name="state26">State 26</a></h2>
+
+      <p><table class='core'>
+        <tr><td><span style='color: #36318D'>stmt_list</span></td><td><b>:</b></td><td><span style='color: #36318D'>stmt_list</span> <b>.</b> <span style='color: #36318D'>stmt</span> </td></tr><tr><td><span style='color: #36318D'>begin_stmt</span></td><td><b>:</b></td><td><span style='color: #239449; text-decoration: underline'>BEGIN</span> <span style='color: #36318D'>stmt_list</span> <b>.</b> <span style='color: #239449; text-decoration: underline'>END</span> </td></tr>
+      </table></p>
+
+      <p>
+        This state can be reached from the start state by:<br/>
+        <table class='path'><thead><tr><th><b>Action:</b></th><th><b>Stack:</b></th></tr></thead><tbody><tr><td>Reduce to <span style='color: #36318D'>stmt_list</span> by:<br/><span style='color: #36318D'>stmt_list</span> <b>:</b></td><td> <span style='color: #36318D'>stmt_list</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>BEGIN</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>BEGIN</span></td></tr><tr><td>Reduce to <span style='color: #36318D'>stmt_list</span> by:<br/><span style='color: #36318D'>stmt_list</span> <b>:</b></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>BEGIN</span> <span style='color: #36318D'>stmt_list</span></td></tr></tbody></table>
+      </p>
+
+      <p>
+      
+        Action table:<br/>
+        <table class='action'><thead><tr><th><b>Lookahead token</b></th><th><b>Action</b></th></tr></thead><tbody><tr><td><span style='color: #239449; text-decoration: underline'>BEGIN</span></td><td>Shift and go to state <a href='#state8'>8</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>END</span></td><td>Shift and go to state <a href='#state38'>38</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>IF</span></td><td>Shift and go to state <a href='#state9'>9</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>AND</span></td><td>Shift and go to state <a href='#state12'>12</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>OR</span></td><td>Shift and go to state <a href='#state13'>13</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>IDENT</span></td><td>Shift and go to state <a href='#state10'>10</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>STRING_LITERAL</span></td><td>Shift and go to state <a href='#state11'>11</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>SPACES</span></td><td>Shift and go to state <a href='#state14'>14</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>COMMA</span></td><td>Shift and go to state <a href='#state15'>15</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>LPAREN</span></td><td>Shift and go to state <a href='#state16'>16</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>RPAREN</span></td><td>Shift and go to state <a href='#state17'>17</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>QUESTION</span></td><td>Shift and go to state <a href='#state18'>18</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>ACTUAL_COMMENT</span></td><td>Shift and go to state <a href='#state19'>19</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>BIND_VARIABLE</span></td><td>Shift and go to state <a href='#state22'>22</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>PAREN_BIND_VARIABLE</span></td><td>Shift and go to state <a href='#state23'>23</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>EMBED_VARIABLE</span></td><td>Shift and go to state <a href='#state24'>24</a></td></tr><tr><td>Other</td><td>Error</td></tr></tbody></table>
+      
+      </p>
+      <hr>
+    
+      <h2><a name="state27">State 27</a></h2>
+
+      <p><table class='core'>
+        <tr><td><span style='color: #36318D'>stmt_list</span></td><td><b>:</b></td><td><span style='color: #36318D'>stmt_list</span> <b>.</b> <span style='color: #36318D'>stmt</span> </td></tr><tr><td><span style='color: #36318D'>sub_stmt</span></td><td><b>:</b></td><td><span style='color: #36318D'>stmt_list</span> <b>.</b> </td></tr>
+      </table></p>
+
+      <p>
+        This state can be reached from the start state by:<br/>
+        <table class='path'><thead><tr><th><b>Action:</b></th><th><b>Stack:</b></th></tr></thead><tbody><tr><td>Reduce to <span style='color: #36318D'>stmt_list</span> by:<br/><span style='color: #36318D'>stmt_list</span> <b>:</b></td><td> <span style='color: #36318D'>stmt_list</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>IF</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>IF</span></td></tr><tr><td>Reduce to <span style='color: #36318D'>stmt_list</span> by:<br/><span style='color: #36318D'>stmt_list</span> <b>:</b></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>IF</span> <span style='color: #36318D'>stmt_list</span></td></tr></tbody></table>
+      </p>
+
+      <p>
+      
+        Action table:<br/>
+        <table class='action'><thead><tr><th><b>Lookahead token</b></th><th><b>Action</b></th></tr></thead><tbody><tr><td><span style='color: #239449; text-decoration: underline'>BEGIN</span></td><td>Shift and go to state <a href='#state8'>8</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>IF</span></td><td>Shift and go to state <a href='#state9'>9</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>AND</span></td><td>Shift and go to state <a href='#state12'>12</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>OR</span></td><td>Shift and go to state <a href='#state13'>13</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>IDENT</span></td><td>Shift and go to state <a href='#state10'>10</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>STRING_LITERAL</span></td><td>Shift and go to state <a href='#state11'>11</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>SPACES</span></td><td>Shift and go to state <a href='#state14'>14</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>COMMA</span></td><td>Shift and go to state <a href='#state15'>15</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>LPAREN</span></td><td>Shift and go to state <a href='#state16'>16</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>RPAREN</span></td><td>Shift and go to state <a href='#state17'>17</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>QUESTION</span></td><td>Shift and go to state <a href='#state18'>18</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>ACTUAL_COMMENT</span></td><td>Shift and go to state <a href='#state19'>19</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>BIND_VARIABLE</span></td><td>Shift and go to state <a href='#state22'>22</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>PAREN_BIND_VARIABLE</span></td><td>Shift and go to state <a href='#state23'>23</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>EMBED_VARIABLE</span></td><td>Shift and go to state <a href='#state24'>24</a></td></tr><tr><td>Other</td><td>Reduce by <span style='color: #36318D'>sub_stmt</span> <b>:</b> <span style='color: #36318D'>stmt_list</span><br/>(This can take us to <a href='#state28'>28</a> or <a href='#state47'>47</a>)</td></tr></tbody></table>
+      
+      </p>
+      <hr>
+    
+      <h2><a name="state28">State 28</a></h2>
+
+      <p><table class='core'>
+        <tr><td><span style='color: #36318D'>if_stmt</span></td><td><b>:</b></td><td><span style='color: #239449; text-decoration: underline'>IF</span> <span style='color: #36318D'>sub_stmt</span> <b>.</b> <span style='color: #36318D'>else_stmt</span> <span style='color: #239449; text-decoration: underline'>END</span> </td></tr>
+      </table></p>
+
+      <p>
+        This state can be reached from the start state by:<br/>
+        <table class='path'><thead><tr><th><b>Action:</b></th><th><b>Stack:</b></th></tr></thead><tbody><tr><td>Reduce to <span style='color: #36318D'>stmt_list</span> by:<br/><span style='color: #36318D'>stmt_list</span> <b>:</b></td><td> <span style='color: #36318D'>stmt_list</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>IF</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>IF</span></td></tr><tr><td>Reduce to <span style='color: #36318D'>stmt_list</span> by:<br/><span style='color: #36318D'>stmt_list</span> <b>:</b></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>IF</span> <span style='color: #36318D'>stmt_list</span></td></tr><tr><td>Reduce to <span style='color: #36318D'>sub_stmt</span> by:<br/><span style='color: #36318D'>sub_stmt</span> <b>:</b> <span style='color: #36318D'>stmt_list</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>IF</span> <span style='color: #36318D'>sub_stmt</span></td></tr></tbody></table>
+      </p>
+
+      <p>
+      
+        Action table:<br/>
+        <table class='action'><thead><tr><th><b>Lookahead token</b></th><th><b>Action</b></th></tr></thead><tbody><tr><td><span style='color: #239449; text-decoration: underline'>ELSE</span></td><td>Shift and go to state <a href='#state40'>40</a></td></tr><tr><td>Other</td><td>Reduce by <span style='color: #36318D'>else_stmt</span> <b>:</b><br/>(This takes us to <a href='#state39'>39</a>)</td></tr></tbody></table>
+      
+      </p>
+      <hr>
+    
+      <h2><a name="state29">State 29</a></h2>
+
+      <p><table class='core'>
+        <tr><td><span style='color: #36318D'>sub_stmt</span></td><td><b>:</b></td><td><span style='color: #36318D'>and_stmt</span> <b>.</b> </td></tr>
+      </table></p>
+
+      <p>
+        This state can be reached from the start state by:<br/>
+        <table class='path'><thead><tr><th><b>Action:</b></th><th><b>Stack:</b></th></tr></thead><tbody><tr><td>Reduce to <span style='color: #36318D'>stmt_list</span> by:<br/><span style='color: #36318D'>stmt_list</span> <b>:</b></td><td> <span style='color: #36318D'>stmt_list</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>IF</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>IF</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>AND</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>IF</span> <span style='color: #239449; text-decoration: underline'>AND</span></td></tr><tr><td>Reduce to <span style='color: #36318D'>stmt_list</span> by:<br/><span style='color: #36318D'>stmt_list</span> <b>:</b></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>IF</span> <span style='color: #239449; text-decoration: underline'>AND</span> <span style='color: #36318D'>stmt_list</span></td></tr><tr><td>Reduce to <span style='color: #36318D'>and_stmt</span> by:<br/><span style='color: #36318D'>and_stmt</span> <b>:</b> <span style='color: #239449; text-decoration: underline'>AND</span> <span style='color: #36318D'>stmt_list</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>IF</span> <span style='color: #36318D'>and_stmt</span></td></tr></tbody></table>
+      </p>
+
+      <p>
+      
+        From here, we reduce by <span style='color: #36318D'>sub_stmt</span> <b>:</b> <span style='color: #36318D'>and_stmt</span> regardless of what token
+        comes next.<br/>
+        
+          (This can take us to <a href='#state28'>28</a> or <a href='#state47'>47</a>)
+        
+      
+      </p>
+      <hr>
+    
+      <h2><a name="state30">State 30</a></h2>
+
+      <p><table class='core'>
+        <tr><td><span style='color: #36318D'>sub_stmt</span></td><td><b>:</b></td><td><span style='color: #36318D'>or_stmt</span> <b>.</b> </td></tr>
+      </table></p>
+
+      <p>
+        This state can be reached from the start state by:<br/>
+        <table class='path'><thead><tr><th><b>Action:</b></th><th><b>Stack:</b></th></tr></thead><tbody><tr><td>Reduce to <span style='color: #36318D'>stmt_list</span> by:<br/><span style='color: #36318D'>stmt_list</span> <b>:</b></td><td> <span style='color: #36318D'>stmt_list</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>IF</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>IF</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>OR</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>IF</span> <span style='color: #239449; text-decoration: underline'>OR</span></td></tr><tr><td>Reduce to <span style='color: #36318D'>stmt_list</span> by:<br/><span style='color: #36318D'>stmt_list</span> <b>:</b></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>IF</span> <span style='color: #239449; text-decoration: underline'>OR</span> <span style='color: #36318D'>stmt_list</span></td></tr><tr><td>Reduce to <span style='color: #36318D'>or_stmt</span> by:<br/><span style='color: #36318D'>or_stmt</span> <b>:</b> <span style='color: #239449; text-decoration: underline'>OR</span> <span style='color: #36318D'>stmt_list</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>IF</span> <span style='color: #36318D'>or_stmt</span></td></tr></tbody></table>
+      </p>
+
+      <p>
+      
+        From here, we reduce by <span style='color: #36318D'>sub_stmt</span> <b>:</b> <span style='color: #36318D'>or_stmt</span> regardless of what token
+        comes next.<br/>
+        
+          (This can take us to <a href='#state28'>28</a> or <a href='#state47'>47</a>)
+        
+      
+      </p>
+      <hr>
+    
+      <h2><a name="state31">State 31</a></h2>
+
+      <p><table class='core'>
+        <tr><td><span style='color: #36318D'>and_stmt</span></td><td><b>:</b></td><td><span style='color: #239449; text-decoration: underline'>AND</span> <b>.</b> <span style='color: #36318D'>stmt_list</span> </td></tr>
+      </table></p>
+
+      <p>
+        This state can be reached from the start state by:<br/>
+        <table class='path'><thead><tr><th><b>Action:</b></th><th><b>Stack:</b></th></tr></thead><tbody><tr><td>Reduce to <span style='color: #36318D'>stmt_list</span> by:<br/><span style='color: #36318D'>stmt_list</span> <b>:</b></td><td> <span style='color: #36318D'>stmt_list</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>IF</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>IF</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>AND</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>IF</span> <span style='color: #239449; text-decoration: underline'>AND</span></td></tr></tbody></table>
+      </p>
+
+      <p>
+      
+        From here, we reduce by <span style='color: #36318D'>stmt_list</span> <b>:</b> regardless of what token
+        comes next.<br/>
+        
+          (This takes us to <a href='#state41'>41</a>)
+        
+      
+      </p>
+      <hr>
+    
+      <h2><a name="state32">State 32</a></h2>
+
+      <p><table class='core'>
+        <tr><td><span style='color: #36318D'>or_stmt</span></td><td><b>:</b></td><td><span style='color: #239449; text-decoration: underline'>OR</span> <b>.</b> <span style='color: #36318D'>stmt_list</span> </td></tr>
+      </table></p>
+
+      <p>
+        This state can be reached from the start state by:<br/>
+        <table class='path'><thead><tr><th><b>Action:</b></th><th><b>Stack:</b></th></tr></thead><tbody><tr><td>Reduce to <span style='color: #36318D'>stmt_list</span> by:<br/><span style='color: #36318D'>stmt_list</span> <b>:</b></td><td> <span style='color: #36318D'>stmt_list</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>IF</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>IF</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>OR</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>IF</span> <span style='color: #239449; text-decoration: underline'>OR</span></td></tr></tbody></table>
+      </p>
+
+      <p>
+      
+        From here, we reduce by <span style='color: #36318D'>stmt_list</span> <b>:</b> regardless of what token
+        comes next.<br/>
+        
+          (This takes us to <a href='#state42'>42</a>)
+        
+      
+      </p>
+      <hr>
+    
+      <h2><a name="state33">State 33</a></h2>
+
+      <p><table class='core'>
+        <tr><td><span style='color: #36318D'>bind_var</span></td><td><b>:</b></td><td><span style='color: #239449; text-decoration: underline'>BIND_VARIABLE</span> <span style='color: #239449; text-decoration: underline'>STRING_LITERAL</span> <b>.</b> </td></tr>
+      </table></p>
+
+      <p>
+        This state can be reached from the start state by:<br/>
+        <table class='path'><thead><tr><th><b>Action:</b></th><th><b>Stack:</b></th></tr></thead><tbody><tr><td>Reduce to <span style='color: #36318D'>stmt_list</span> by:<br/><span style='color: #36318D'>stmt_list</span> <b>:</b></td><td> <span style='color: #36318D'>stmt_list</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>BIND_VARIABLE</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>BIND_VARIABLE</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>STRING_LITERAL</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>BIND_VARIABLE</span> <span style='color: #239449; text-decoration: underline'>STRING_LITERAL</span></td></tr></tbody></table>
+      </p>
+
+      <p>
+      
+        From here, we reduce by <span style='color: #36318D'>bind_var</span> <b>:</b> <span style='color: #239449; text-decoration: underline'>BIND_VARIABLE</span> <span style='color: #239449; text-decoration: underline'>STRING_LITERAL</span> regardless of what token
+        comes next.<br/>
+        
+          (This takes us to <a href='#state20'>20</a>)
+        
+      
+      </p>
+      <hr>
+    
+      <h2><a name="state34">State 34</a></h2>
+
+      <p><table class='core'>
+        <tr><td><span style='color: #36318D'>bind_var</span></td><td><b>:</b></td><td><span style='color: #239449; text-decoration: underline'>BIND_VARIABLE</span> <span style='color: #239449; text-decoration: underline'>SPACES</span> <b>.</b> <span style='color: #239449; text-decoration: underline'>STRING_LITERAL</span> </td></tr><tr><td><span style='color: #36318D'>bind_var</span></td><td><b>:</b></td><td><span style='color: #239449; text-decoration: underline'>BIND_VARIABLE</span> <span style='color: #239449; text-decoration: underline'>SPACES</span> <b>.</b> <span style='color: #239449; text-decoration: underline'>IDENT</span> </td></tr>
+      </table></p>
+
+      <p>
+        This state can be reached from the start state by:<br/>
+        <table class='path'><thead><tr><th><b>Action:</b></th><th><b>Stack:</b></th></tr></thead><tbody><tr><td>Reduce to <span style='color: #36318D'>stmt_list</span> by:<br/><span style='color: #36318D'>stmt_list</span> <b>:</b></td><td> <span style='color: #36318D'>stmt_list</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>BIND_VARIABLE</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>BIND_VARIABLE</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>SPACES</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>BIND_VARIABLE</span> <span style='color: #239449; text-decoration: underline'>SPACES</span></td></tr></tbody></table>
+      </p>
+
+      <p>
+      
+        Action table:<br/>
+        <table class='action'><thead><tr><th><b>Lookahead token</b></th><th><b>Action</b></th></tr></thead><tbody><tr><td><span style='color: #239449; text-decoration: underline'>IDENT</span></td><td>Shift and go to state <a href='#state44'>44</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>STRING_LITERAL</span></td><td>Shift and go to state <a href='#state43'>43</a></td></tr><tr><td>Other</td><td>Error</td></tr></tbody></table>
+      
+      </p>
+      <hr>
+    
+      <h2><a name="state35">State 35</a></h2>
+
+      <p><table class='core'>
+        <tr><td><span style='color: #36318D'>bind_var</span></td><td><b>:</b></td><td><span style='color: #239449; text-decoration: underline'>BIND_VARIABLE</span> <span style='color: #239449; text-decoration: underline'>IDENT</span> <b>.</b> </td></tr>
+      </table></p>
+
+      <p>
+        This state can be reached from the start state by:<br/>
+        <table class='path'><thead><tr><th><b>Action:</b></th><th><b>Stack:</b></th></tr></thead><tbody><tr><td>Reduce to <span style='color: #36318D'>stmt_list</span> by:<br/><span style='color: #36318D'>stmt_list</span> <b>:</b></td><td> <span style='color: #36318D'>stmt_list</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>BIND_VARIABLE</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>BIND_VARIABLE</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>IDENT</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>BIND_VARIABLE</span> <span style='color: #239449; text-decoration: underline'>IDENT</span></td></tr></tbody></table>
+      </p>
+
+      <p>
+      
+        From here, we reduce by <span style='color: #36318D'>bind_var</span> <b>:</b> <span style='color: #239449; text-decoration: underline'>BIND_VARIABLE</span> <span style='color: #239449; text-decoration: underline'>IDENT</span> regardless of what token
+        comes next.<br/>
+        
+          (This takes us to <a href='#state20'>20</a>)
+        
+      
+      </p>
+      <hr>
+    
+      <h2><a name="state36">State 36</a></h2>
+
+      <p><table class='core'>
+        <tr><td><span style='color: #36318D'>embed_var</span></td><td><b>:</b></td><td><span style='color: #239449; text-decoration: underline'>EMBED_VARIABLE</span> <span style='color: #239449; text-decoration: underline'>IDENT</span> <b>.</b> </td></tr>
+      </table></p>
+
+      <p>
+        This state can be reached from the start state by:<br/>
+        <table class='path'><thead><tr><th><b>Action:</b></th><th><b>Stack:</b></th></tr></thead><tbody><tr><td>Reduce to <span style='color: #36318D'>stmt_list</span> by:<br/><span style='color: #36318D'>stmt_list</span> <b>:</b></td><td> <span style='color: #36318D'>stmt_list</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>EMBED_VARIABLE</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>EMBED_VARIABLE</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>IDENT</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>EMBED_VARIABLE</span> <span style='color: #239449; text-decoration: underline'>IDENT</span></td></tr></tbody></table>
+      </p>
+
+      <p>
+      
+        From here, we reduce by <span style='color: #36318D'>embed_var</span> <b>:</b> <span style='color: #239449; text-decoration: underline'>EMBED_VARIABLE</span> <span style='color: #239449; text-decoration: underline'>IDENT</span> regardless of what token
+        comes next.<br/>
+        
+          (This takes us to <a href='#state21'>21</a>)
+        
+      
+      </p>
+      <hr>
+    
+      <h2><a name="state37">State 37</a></h2>
+
+      <p><table class='core'>
+        <tr><td><span style='color: #36318D'>embed_var</span></td><td><b>:</b></td><td><span style='color: #239449; text-decoration: underline'>EMBED_VARIABLE</span> <span style='color: #239449; text-decoration: underline'>SPACES</span> <b>.</b> <span style='color: #239449; text-decoration: underline'>IDENT</span> </td></tr>
+      </table></p>
+
+      <p>
+        This state can be reached from the start state by:<br/>
+        <table class='path'><thead><tr><th><b>Action:</b></th><th><b>Stack:</b></th></tr></thead><tbody><tr><td>Reduce to <span style='color: #36318D'>stmt_list</span> by:<br/><span style='color: #36318D'>stmt_list</span> <b>:</b></td><td> <span style='color: #36318D'>stmt_list</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>EMBED_VARIABLE</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>EMBED_VARIABLE</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>SPACES</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>EMBED_VARIABLE</span> <span style='color: #239449; text-decoration: underline'>SPACES</span></td></tr></tbody></table>
+      </p>
+
+      <p>
+      
+        Action table:<br/>
+        <table class='action'><thead><tr><th><b>Lookahead token</b></th><th><b>Action</b></th></tr></thead><tbody><tr><td><span style='color: #239449; text-decoration: underline'>IDENT</span></td><td>Shift and go to state <a href='#state45'>45</a></td></tr><tr><td>Other</td><td>Error</td></tr></tbody></table>
+      
+      </p>
+      <hr>
+    
+      <h2><a name="state38">State 38</a></h2>
+
+      <p><table class='core'>
+        <tr><td><span style='color: #36318D'>begin_stmt</span></td><td><b>:</b></td><td><span style='color: #239449; text-decoration: underline'>BEGIN</span> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>END</span> <b>.</b> </td></tr>
+      </table></p>
+
+      <p>
+        This state can be reached from the start state by:<br/>
+        <table class='path'><thead><tr><th><b>Action:</b></th><th><b>Stack:</b></th></tr></thead><tbody><tr><td>Reduce to <span style='color: #36318D'>stmt_list</span> by:<br/><span style='color: #36318D'>stmt_list</span> <b>:</b></td><td> <span style='color: #36318D'>stmt_list</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>BEGIN</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>BEGIN</span></td></tr><tr><td>Reduce to <span style='color: #36318D'>stmt_list</span> by:<br/><span style='color: #36318D'>stmt_list</span> <b>:</b></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>BEGIN</span> <span style='color: #36318D'>stmt_list</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>END</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>BEGIN</span> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>END</span></td></tr></tbody></table>
+      </p>
+
+      <p>
+      
+        From here, we reduce by <span style='color: #36318D'>begin_stmt</span> <b>:</b> <span style='color: #239449; text-decoration: underline'>BEGIN</span> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>END</span> regardless of what token
+        comes next.<br/>
+        
+          (This takes us to <a href='#state7'>7</a>)
+        
+      
+      </p>
+      <hr>
+    
+      <h2><a name="state39">State 39</a></h2>
+
+      <p><table class='core'>
+        <tr><td><span style='color: #36318D'>if_stmt</span></td><td><b>:</b></td><td><span style='color: #239449; text-decoration: underline'>IF</span> <span style='color: #36318D'>sub_stmt</span> <span style='color: #36318D'>else_stmt</span> <b>.</b> <span style='color: #239449; text-decoration: underline'>END</span> </td></tr>
+      </table></p>
+
+      <p>
+        This state can be reached from the start state by:<br/>
+        <table class='path'><thead><tr><th><b>Action:</b></th><th><b>Stack:</b></th></tr></thead><tbody><tr><td>Reduce to <span style='color: #36318D'>stmt_list</span> by:<br/><span style='color: #36318D'>stmt_list</span> <b>:</b></td><td> <span style='color: #36318D'>stmt_list</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>IF</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>IF</span></td></tr><tr><td>Reduce to <span style='color: #36318D'>stmt_list</span> by:<br/><span style='color: #36318D'>stmt_list</span> <b>:</b></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>IF</span> <span style='color: #36318D'>stmt_list</span></td></tr><tr><td>Reduce to <span style='color: #36318D'>sub_stmt</span> by:<br/><span style='color: #36318D'>sub_stmt</span> <b>:</b> <span style='color: #36318D'>stmt_list</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>IF</span> <span style='color: #36318D'>sub_stmt</span></td></tr><tr><td>Reduce to <span style='color: #36318D'>else_stmt</span> by:<br/><span style='color: #36318D'>else_stmt</span> <b>:</b></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>IF</span> <span style='color: #36318D'>sub_stmt</span> <span style='color: #36318D'>else_stmt</span></td></tr></tbody></table>
+      </p>
+
+      <p>
+      
+        Action table:<br/>
+        <table class='action'><thead><tr><th><b>Lookahead token</b></th><th><b>Action</b></th></tr></thead><tbody><tr><td><span style='color: #239449; text-decoration: underline'>END</span></td><td>Shift and go to state <a href='#state46'>46</a></td></tr><tr><td>Other</td><td>Error</td></tr></tbody></table>
+      
+      </p>
+      <hr>
+    
+      <h2><a name="state40">State 40</a></h2>
+
+      <p><table class='core'>
+        <tr><td><span style='color: #36318D'>else_stmt</span></td><td><b>:</b></td><td><span style='color: #239449; text-decoration: underline'>ELSE</span> <b>.</b> <span style='color: #36318D'>sub_stmt</span> </td></tr>
+      </table></p>
+
+      <p>
+        This state can be reached from the start state by:<br/>
+        <table class='path'><thead><tr><th><b>Action:</b></th><th><b>Stack:</b></th></tr></thead><tbody><tr><td>Reduce to <span style='color: #36318D'>stmt_list</span> by:<br/><span style='color: #36318D'>stmt_list</span> <b>:</b></td><td> <span style='color: #36318D'>stmt_list</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>IF</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>IF</span></td></tr><tr><td>Reduce to <span style='color: #36318D'>stmt_list</span> by:<br/><span style='color: #36318D'>stmt_list</span> <b>:</b></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>IF</span> <span style='color: #36318D'>stmt_list</span></td></tr><tr><td>Reduce to <span style='color: #36318D'>sub_stmt</span> by:<br/><span style='color: #36318D'>sub_stmt</span> <b>:</b> <span style='color: #36318D'>stmt_list</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>IF</span> <span style='color: #36318D'>sub_stmt</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>ELSE</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>IF</span> <span style='color: #36318D'>sub_stmt</span> <span style='color: #239449; text-decoration: underline'>ELSE</span></td></tr></tbody></table>
+      </p>
+
+      <p>
+      
+        Action table:<br/>
+        <table class='action'><thead><tr><th><b>Lookahead token</b></th><th><b>Action</b></th></tr></thead><tbody><tr><td><span style='color: #239449; text-decoration: underline'>AND</span></td><td>Shift and go to state <a href='#state31'>31</a><br/>(<span style='color: red'>Overridden:</span> reduce by <span style='color: #36318D'>stmt_list</span> <b>:</b>)</td></tr><tr><td><span style='color: #239449; text-decoration: underline'>OR</span></td><td>Shift and go to state <a href='#state32'>32</a><br/>(<span style='color: red'>Overridden:</span> reduce by <span style='color: #36318D'>stmt_list</span> <b>:</b>)</td></tr><tr><td>Other</td><td>Reduce by <span style='color: #36318D'>stmt_list</span> <b>:</b><br/>(This takes us to <a href='#state27'>27</a>)</td></tr></tbody></table>
+      
+      </p>
+      <hr>
+    
+      <h2><a name="state41">State 41</a></h2>
+
+      <p><table class='core'>
+        <tr><td><span style='color: #36318D'>stmt_list</span></td><td><b>:</b></td><td><span style='color: #36318D'>stmt_list</span> <b>.</b> <span style='color: #36318D'>stmt</span> </td></tr><tr><td><span style='color: #36318D'>and_stmt</span></td><td><b>:</b></td><td><span style='color: #239449; text-decoration: underline'>AND</span> <span style='color: #36318D'>stmt_list</span> <b>.</b> </td></tr>
+      </table></p>
+
+      <p>
+        This state can be reached from the start state by:<br/>
+        <table class='path'><thead><tr><th><b>Action:</b></th><th><b>Stack:</b></th></tr></thead><tbody><tr><td>Reduce to <span style='color: #36318D'>stmt_list</span> by:<br/><span style='color: #36318D'>stmt_list</span> <b>:</b></td><td> <span style='color: #36318D'>stmt_list</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>IF</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>IF</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>AND</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>IF</span> <span style='color: #239449; text-decoration: underline'>AND</span></td></tr><tr><td>Reduce to <span style='color: #36318D'>stmt_list</span> by:<br/><span style='color: #36318D'>stmt_list</span> <b>:</b></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>IF</span> <span style='color: #239449; text-decoration: underline'>AND</span> <span style='color: #36318D'>stmt_list</span></td></tr></tbody></table>
+      </p>
+
+      <p>
+      
+        Action table:<br/>
+        <table class='action'><thead><tr><th><b>Lookahead token</b></th><th><b>Action</b></th></tr></thead><tbody><tr><td><span style='color: #239449; text-decoration: underline'>BEGIN</span></td><td>Shift and go to state <a href='#state8'>8</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>IF</span></td><td>Shift and go to state <a href='#state9'>9</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>AND</span></td><td>Shift and go to state <a href='#state12'>12</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>OR</span></td><td>Shift and go to state <a href='#state13'>13</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>IDENT</span></td><td>Shift and go to state <a href='#state10'>10</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>STRING_LITERAL</span></td><td>Shift and go to state <a href='#state11'>11</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>SPACES</span></td><td>Shift and go to state <a href='#state14'>14</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>COMMA</span></td><td>Shift and go to state <a href='#state15'>15</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>LPAREN</span></td><td>Shift and go to state <a href='#state16'>16</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>RPAREN</span></td><td>Shift and go to state <a href='#state17'>17</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>QUESTION</span></td><td>Shift and go to state <a href='#state18'>18</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>ACTUAL_COMMENT</span></td><td>Shift and go to state <a href='#state19'>19</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>BIND_VARIABLE</span></td><td>Shift and go to state <a href='#state22'>22</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>PAREN_BIND_VARIABLE</span></td><td>Shift and go to state <a href='#state23'>23</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>EMBED_VARIABLE</span></td><td>Shift and go to state <a href='#state24'>24</a></td></tr><tr><td>Other</td><td>Reduce by <span style='color: #36318D'>and_stmt</span> <b>:</b> <span style='color: #239449; text-decoration: underline'>AND</span> <span style='color: #36318D'>stmt_list</span><br/>(This takes us to <a href='#state29'>29</a>)</td></tr></tbody></table>
+      
+      </p>
+      <hr>
+    
+      <h2><a name="state42">State 42</a></h2>
+
+      <p><table class='core'>
+        <tr><td><span style='color: #36318D'>stmt_list</span></td><td><b>:</b></td><td><span style='color: #36318D'>stmt_list</span> <b>.</b> <span style='color: #36318D'>stmt</span> </td></tr><tr><td><span style='color: #36318D'>or_stmt</span></td><td><b>:</b></td><td><span style='color: #239449; text-decoration: underline'>OR</span> <span style='color: #36318D'>stmt_list</span> <b>.</b> </td></tr>
+      </table></p>
+
+      <p>
+        This state can be reached from the start state by:<br/>
+        <table class='path'><thead><tr><th><b>Action:</b></th><th><b>Stack:</b></th></tr></thead><tbody><tr><td>Reduce to <span style='color: #36318D'>stmt_list</span> by:<br/><span style='color: #36318D'>stmt_list</span> <b>:</b></td><td> <span style='color: #36318D'>stmt_list</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>IF</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>IF</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>OR</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>IF</span> <span style='color: #239449; text-decoration: underline'>OR</span></td></tr><tr><td>Reduce to <span style='color: #36318D'>stmt_list</span> by:<br/><span style='color: #36318D'>stmt_list</span> <b>:</b></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>IF</span> <span style='color: #239449; text-decoration: underline'>OR</span> <span style='color: #36318D'>stmt_list</span></td></tr></tbody></table>
+      </p>
+
+      <p>
+      
+        Action table:<br/>
+        <table class='action'><thead><tr><th><b>Lookahead token</b></th><th><b>Action</b></th></tr></thead><tbody><tr><td><span style='color: #239449; text-decoration: underline'>BEGIN</span></td><td>Shift and go to state <a href='#state8'>8</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>IF</span></td><td>Shift and go to state <a href='#state9'>9</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>AND</span></td><td>Shift and go to state <a href='#state12'>12</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>OR</span></td><td>Shift and go to state <a href='#state13'>13</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>IDENT</span></td><td>Shift and go to state <a href='#state10'>10</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>STRING_LITERAL</span></td><td>Shift and go to state <a href='#state11'>11</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>SPACES</span></td><td>Shift and go to state <a href='#state14'>14</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>COMMA</span></td><td>Shift and go to state <a href='#state15'>15</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>LPAREN</span></td><td>Shift and go to state <a href='#state16'>16</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>RPAREN</span></td><td>Shift and go to state <a href='#state17'>17</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>QUESTION</span></td><td>Shift and go to state <a href='#state18'>18</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>ACTUAL_COMMENT</span></td><td>Shift and go to state <a href='#state19'>19</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>BIND_VARIABLE</span></td><td>Shift and go to state <a href='#state22'>22</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>PAREN_BIND_VARIABLE</span></td><td>Shift and go to state <a href='#state23'>23</a></td></tr><tr><td><span style='color: #239449; text-decoration: underline'>EMBED_VARIABLE</span></td><td>Shift and go to state <a href='#state24'>24</a></td></tr><tr><td>Other</td><td>Reduce by <span style='color: #36318D'>or_stmt</span> <b>:</b> <span style='color: #239449; text-decoration: underline'>OR</span> <span style='color: #36318D'>stmt_list</span><br/>(This takes us to <a href='#state30'>30</a>)</td></tr></tbody></table>
+      
+      </p>
+      <hr>
+    
+      <h2><a name="state43">State 43</a></h2>
+
+      <p><table class='core'>
+        <tr><td><span style='color: #36318D'>bind_var</span></td><td><b>:</b></td><td><span style='color: #239449; text-decoration: underline'>BIND_VARIABLE</span> <span style='color: #239449; text-decoration: underline'>SPACES</span> <span style='color: #239449; text-decoration: underline'>STRING_LITERAL</span> <b>.</b> </td></tr>
+      </table></p>
+
+      <p>
+        This state can be reached from the start state by:<br/>
+        <table class='path'><thead><tr><th><b>Action:</b></th><th><b>Stack:</b></th></tr></thead><tbody><tr><td>Reduce to <span style='color: #36318D'>stmt_list</span> by:<br/><span style='color: #36318D'>stmt_list</span> <b>:</b></td><td> <span style='color: #36318D'>stmt_list</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>BIND_VARIABLE</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>BIND_VARIABLE</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>SPACES</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>BIND_VARIABLE</span> <span style='color: #239449; text-decoration: underline'>SPACES</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>STRING_LITERAL</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>BIND_VARIABLE</span> <span style='color: #239449; text-decoration: underline'>SPACES</span> <span style='color: #239449; text-decoration: underline'>STRING_LITERAL</span></td></tr></tbody></table>
+      </p>
+
+      <p>
+      
+        From here, we reduce by <span style='color: #36318D'>bind_var</span> <b>:</b> <span style='color: #239449; text-decoration: underline'>BIND_VARIABLE</span> <span style='color: #239449; text-decoration: underline'>SPACES</span> <span style='color: #239449; text-decoration: underline'>STRING_LITERAL</span> regardless of what token
+        comes next.<br/>
+        
+          (This takes us to <a href='#state20'>20</a>)
+        
+      
+      </p>
+      <hr>
+    
+      <h2><a name="state44">State 44</a></h2>
+
+      <p><table class='core'>
+        <tr><td><span style='color: #36318D'>bind_var</span></td><td><b>:</b></td><td><span style='color: #239449; text-decoration: underline'>BIND_VARIABLE</span> <span style='color: #239449; text-decoration: underline'>SPACES</span> <span style='color: #239449; text-decoration: underline'>IDENT</span> <b>.</b> </td></tr>
+      </table></p>
+
+      <p>
+        This state can be reached from the start state by:<br/>
+        <table class='path'><thead><tr><th><b>Action:</b></th><th><b>Stack:</b></th></tr></thead><tbody><tr><td>Reduce to <span style='color: #36318D'>stmt_list</span> by:<br/><span style='color: #36318D'>stmt_list</span> <b>:</b></td><td> <span style='color: #36318D'>stmt_list</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>BIND_VARIABLE</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>BIND_VARIABLE</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>SPACES</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>BIND_VARIABLE</span> <span style='color: #239449; text-decoration: underline'>SPACES</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>IDENT</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>BIND_VARIABLE</span> <span style='color: #239449; text-decoration: underline'>SPACES</span> <span style='color: #239449; text-decoration: underline'>IDENT</span></td></tr></tbody></table>
+      </p>
+
+      <p>
+      
+        From here, we reduce by <span style='color: #36318D'>bind_var</span> <b>:</b> <span style='color: #239449; text-decoration: underline'>BIND_VARIABLE</span> <span style='color: #239449; text-decoration: underline'>SPACES</span> <span style='color: #239449; text-decoration: underline'>IDENT</span> regardless of what token
+        comes next.<br/>
+        
+          (This takes us to <a href='#state20'>20</a>)
+        
+      
+      </p>
+      <hr>
+    
+      <h2><a name="state45">State 45</a></h2>
+
+      <p><table class='core'>
+        <tr><td><span style='color: #36318D'>embed_var</span></td><td><b>:</b></td><td><span style='color: #239449; text-decoration: underline'>EMBED_VARIABLE</span> <span style='color: #239449; text-decoration: underline'>SPACES</span> <span style='color: #239449; text-decoration: underline'>IDENT</span> <b>.</b> </td></tr>
+      </table></p>
+
+      <p>
+        This state can be reached from the start state by:<br/>
+        <table class='path'><thead><tr><th><b>Action:</b></th><th><b>Stack:</b></th></tr></thead><tbody><tr><td>Reduce to <span style='color: #36318D'>stmt_list</span> by:<br/><span style='color: #36318D'>stmt_list</span> <b>:</b></td><td> <span style='color: #36318D'>stmt_list</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>EMBED_VARIABLE</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>EMBED_VARIABLE</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>SPACES</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>EMBED_VARIABLE</span> <span style='color: #239449; text-decoration: underline'>SPACES</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>IDENT</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>EMBED_VARIABLE</span> <span style='color: #239449; text-decoration: underline'>SPACES</span> <span style='color: #239449; text-decoration: underline'>IDENT</span></td></tr></tbody></table>
+      </p>
+
+      <p>
+      
+        From here, we reduce by <span style='color: #36318D'>embed_var</span> <b>:</b> <span style='color: #239449; text-decoration: underline'>EMBED_VARIABLE</span> <span style='color: #239449; text-decoration: underline'>SPACES</span> <span style='color: #239449; text-decoration: underline'>IDENT</span> regardless of what token
+        comes next.<br/>
+        
+          (This takes us to <a href='#state21'>21</a>)
+        
+      
+      </p>
+      <hr>
+    
+      <h2><a name="state46">State 46</a></h2>
+
+      <p><table class='core'>
+        <tr><td><span style='color: #36318D'>if_stmt</span></td><td><b>:</b></td><td><span style='color: #239449; text-decoration: underline'>IF</span> <span style='color: #36318D'>sub_stmt</span> <span style='color: #36318D'>else_stmt</span> <span style='color: #239449; text-decoration: underline'>END</span> <b>.</b> </td></tr>
+      </table></p>
+
+      <p>
+        This state can be reached from the start state by:<br/>
+        <table class='path'><thead><tr><th><b>Action:</b></th><th><b>Stack:</b></th></tr></thead><tbody><tr><td>Reduce to <span style='color: #36318D'>stmt_list</span> by:<br/><span style='color: #36318D'>stmt_list</span> <b>:</b></td><td> <span style='color: #36318D'>stmt_list</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>IF</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>IF</span></td></tr><tr><td>Reduce to <span style='color: #36318D'>stmt_list</span> by:<br/><span style='color: #36318D'>stmt_list</span> <b>:</b></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>IF</span> <span style='color: #36318D'>stmt_list</span></td></tr><tr><td>Reduce to <span style='color: #36318D'>sub_stmt</span> by:<br/><span style='color: #36318D'>sub_stmt</span> <b>:</b> <span style='color: #36318D'>stmt_list</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>IF</span> <span style='color: #36318D'>sub_stmt</span></td></tr><tr><td>Reduce to <span style='color: #36318D'>else_stmt</span> by:<br/><span style='color: #36318D'>else_stmt</span> <b>:</b></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>IF</span> <span style='color: #36318D'>sub_stmt</span> <span style='color: #36318D'>else_stmt</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>END</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>IF</span> <span style='color: #36318D'>sub_stmt</span> <span style='color: #36318D'>else_stmt</span> <span style='color: #239449; text-decoration: underline'>END</span></td></tr></tbody></table>
+      </p>
+
+      <p>
+      
+        From here, we reduce by <span style='color: #36318D'>if_stmt</span> <b>:</b> <span style='color: #239449; text-decoration: underline'>IF</span> <span style='color: #36318D'>sub_stmt</span> <span style='color: #36318D'>else_stmt</span> <span style='color: #239449; text-decoration: underline'>END</span> regardless of what token
+        comes next.<br/>
+        
+          (This takes us to <a href='#state6'>6</a>)
+        
+      
+      </p>
+      <hr>
+    
+      <h2><a name="state47">State 47</a></h2>
+
+      <p><table class='core'>
+        <tr><td><span style='color: #36318D'>else_stmt</span></td><td><b>:</b></td><td><span style='color: #239449; text-decoration: underline'>ELSE</span> <span style='color: #36318D'>sub_stmt</span> <b>.</b> </td></tr>
+      </table></p>
+
+      <p>
+        This state can be reached from the start state by:<br/>
+        <table class='path'><thead><tr><th><b>Action:</b></th><th><b>Stack:</b></th></tr></thead><tbody><tr><td>Reduce to <span style='color: #36318D'>stmt_list</span> by:<br/><span style='color: #36318D'>stmt_list</span> <b>:</b></td><td> <span style='color: #36318D'>stmt_list</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>IF</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>IF</span></td></tr><tr><td>Reduce to <span style='color: #36318D'>stmt_list</span> by:<br/><span style='color: #36318D'>stmt_list</span> <b>:</b></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>IF</span> <span style='color: #36318D'>stmt_list</span></td></tr><tr><td>Reduce to <span style='color: #36318D'>sub_stmt</span> by:<br/><span style='color: #36318D'>sub_stmt</span> <b>:</b> <span style='color: #36318D'>stmt_list</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>IF</span> <span style='color: #36318D'>sub_stmt</span></td></tr><tr><td>Shift <span style='color: #239449; text-decoration: underline'>ELSE</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>IF</span> <span style='color: #36318D'>sub_stmt</span> <span style='color: #239449; text-decoration: underline'>ELSE</span></td></tr><tr><td>Reduce to <span style='color: #36318D'>stmt_list</span> by:<br/><span style='color: #36318D'>stmt_list</span> <b>:</b></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>IF</span> <span style='color: #36318D'>sub_stmt</span> <span style='color: #239449; text-decoration: underline'>ELSE</span> <span style='color: #36318D'>stmt_list</span></td></tr><tr><td>Reduce to <span style='color: #36318D'>sub_stmt</span> by:<br/><span style='color: #36318D'>sub_stmt</span> <b>:</b> <span style='color: #36318D'>stmt_list</span></td><td> <span style='color: #36318D'>stmt_list</span> <span style='color: #239449; text-decoration: underline'>IF</span> <span style='color: #36318D'>sub_stmt</span> <span style='color: #239449; text-decoration: underline'>ELSE</span> <span style='color: #36318D'>sub_stmt</span></td></tr></tbody></table>
+      </p>
+
+      <p>
+      
+        From here, we reduce by <span style='color: #36318D'>else_stmt</span> <b>:</b> <span style='color: #239449; text-decoration: underline'>ELSE</span> <span style='color: #36318D'>sub_stmt</span> regardless of what token
+        comes next.<br/>
+        
+          (This takes us to <a href='#state39'>39</a>)
+        
+      
+      </p>
+      <hr>
+    
+    <!-- indexes -->
+  </body>
+</html>

@@ -156,6 +156,7 @@ test/regress/riml.rb
 test/regress/ruby18.rb
 test/regress/ruby22.rb
 test/regress/tp_plus.rb
+test/regress/twowaysql.html
 test/regress/twowaysql.rb
 test/scandata/blockcomment
 test/scandata/brace
