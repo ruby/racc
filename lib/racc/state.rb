@@ -576,8 +576,8 @@ module Racc
       @rr_conflicts[sym] = RRConflict.new(self, sym, rules)
     end
 
-    def sr_conflict!(token, srule, rrule)
-      @sr_conflicts[token] = SRConflict.new(self, token, srule, rrule)
+    def sr_conflict!(token, srules, rrule)
+      @sr_conflicts[token] = SRConflict.new(self, token, srules, rrule)
     end
 
     def shortest_summarized_path
