@@ -6,7 +6,8 @@ require 'hoe'
 gem 'rake-compiler', '>= 0.4.1'
 
 Hoe.plugin :debugging, :doofus, :git, :gemspec, :bundler
-$: << '.' # instead of require_relative for 1.8 compatibility
+
+$:.unshift(File.dirname(__FILE__) + '/lib')
 
 def java?
   /java/ === RUBY_PLATFORM
@@ -44,7 +45,6 @@ HOE = Hoe.spec 'racc' do
   end
 
   self.clean_globs << "lib/#{self.name}/*.{so,bundle,dll,jar}" # from hoe/compiler
-
 end
 
 def add_file_to_gem relative_path
@@ -85,7 +85,6 @@ unless jruby?
   end
 
   task :compile => 'lib/racc/parser-text.rb'
-  #
 else
   # JRUBY
   require "rake/javaextensiontask"
@@ -118,6 +117,15 @@ task :test => :compile
 require 'rubocop/rake_task'
 RuboCop::RakeTask.new(:rubocop) do |task|
   task.options = ['-a', '-D']
+end
+
+task :pry, [:grammar_file] do |t, args|
+  require 'pry'
+  require 'racc'
+  require 'racc/grammar_file_parser'
+  puts "Parsing #{args[:grammar_file]}"
+  grammar = Racc::GrammarFileParser.parse_file(args[:grammar_file]).grammar
+  grammar.pry
 end
 
 Hoe.add_include_dirs('.:lib/racc')
