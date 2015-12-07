@@ -501,6 +501,8 @@ module Racc
       @rr_conflicts = {}
       @sr_conflicts = {}
       @states = states
+
+      @core.freeze
     end
 
     attr_reader :ident
