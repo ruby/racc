@@ -40,14 +40,14 @@ module Racc
       print_symbol(rule.target)
       @output << '</td><td><b>:</b></td><td>'
       if ptr.index > 0
-        rule.symbols[0...ptr.index].reject(&:hidden).each do |sym|
+        rule.symbols[0...ptr.index].reject(&:hidden?).each do |sym|
           print_symbol(sym)
           @output << ' '
         end
       end
       @output << '<b>.</b> '
       unless ptr.reduce?
-        rule.symbols[ptr.index..-1].reject(&:hidden).each do |sym|
+        rule.symbols[ptr.index..-1].reject(&:hidden?).each do |sym|
           print_symbol(sym)
           @output << ' '
         end
@@ -81,7 +81,7 @@ module Racc
 
     def print_symbols(syms)
       syms.each do |sym|
-        next if sym.hidden
+        next if sym.hidden?
         @output << ' '
         print_symbol(sym)
       end
@@ -122,7 +122,7 @@ module Racc
           print_symbols(stack)
           @output << '</td></tr>'
         else
-          rhs     = step.rule.symbols.reject(&:hidden)
+          rhs     = step.rule.symbols.reject(&:hidden?)
           reduced = rhs.size.times.map { stack.pop }.reverse
           stack << step.symbol
 

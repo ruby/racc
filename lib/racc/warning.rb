@@ -149,16 +149,16 @@ module Racc
 
       def title
         "Shift/reduce conflict on #{@sym}," <<
-          (@path.reject(&:hidden).empty? ?
+          (@path.reject(&:hidden?).empty? ?
             ' at the beginning of the parse.' :
             ' after the following input:')
       end
 
       def details
-        if @path.reject(&:hidden).empty?
+        if @path.reject(&:hidden?).empty?
           result = ''
         else
-          result = @path.reject(&:hidden).map(&:to_s).join(' ') << "\n"
+          result = @path.reject(&:hidden?).map(&:to_s).join(' ') << "\n"
         end
 
         result << "\nThe following rule#{'s' unless @srules.one?} " \
@@ -204,16 +204,16 @@ module Racc
 
       def title
         "Reduce/reduce conflict on #{@sym}," <<
-          (@path.reject(&:hidden).empty? ?
+          (@path.reject(&:hidden?).empty? ?
             ' at the beginning of the parse.' :
             ' after the following input:')
       end
 
       def details
-        if @path.reject(&:hidden).empty?
+        if @path.reject(&:hidden?).empty?
           result = ''
         else
-          result = @path.reject(&:hidden).map(&:to_s).join(' ') << "\n"
+          result = @path.reject(&:hidden?).map(&:to_s).join(' ') << "\n"
         end
 
         result << "\nIt is possible to reduce by " \

@@ -443,7 +443,7 @@ module Racc
     end
 
     def display
-      rule = "#{@target} : #{@symbols.reject(&:hidden).map(&:to_s).join(' ')}"
+      rule = "#{@target} : #{@symbols.reject(&:hidden?).map(&:to_s).join(' ')}"
       if @precedence
         rule << ' ' << Color.explicit_prec('=' << @precedence.display_name)
       end
@@ -561,12 +561,12 @@ module Racc
     def to_s
       result = "#{@rule.target} : "
       if @index > 0
-        result << "#{@rule.symbols[0...@index].reject(&:hidden).map(&:to_s).join(' ')} ."
+        result << "#{@rule.symbols[0...@index].reject(&:hidden?).map(&:to_s).join(' ')} ."
       else
         result << '.'
       end
       unless reduce?
-        result << " #{rule.symbols[@index..-1].reject(&:hidden).map(&:to_s).join(' ')}"
+        result << " #{rule.symbols[@index..-1].reject(&:hidden?).map(&:to_s).join(' ')}"
       end
       if sym = @rule.explicit_precedence
         result << ' ' << Color.explicit_prec('=' << sym.display_name)
@@ -624,7 +624,6 @@ module Racc
 
       @heads   = [] # RHS of rules which can reduce to this Sym
       @locate  = [] # all locations where this Sym appears on RHS of a rule
-      @hidden  = false # don't show in diagnostic messages
     end
 
     attr_reader :value
@@ -634,7 +633,6 @@ module Racc
     attr_accessor :display_name
     attr_accessor :precedence
     attr_accessor :assoc
-    attr_accessor :hidden
 
     # some tokens are written one way in the grammar, but the actual value
     # expected from the lexer is different
@@ -656,6 +654,12 @@ module Racc
 
     def generated?
       @genned
+    end
+
+    # Don't show in diagnostic messages... EXCEPT very technical diagnostics
+    # which show the internal parser states
+    def hidden?
+      @genned && @value != :$start && @value != false && @value != :error
     end
 
     def terminal?

@@ -586,7 +586,7 @@ module Racc
       # sample sequence of terminals/reduces which would lead here
       # from start state (for diagnostics)
       @sdpath ||= @states.shortest_detailed_paths[@ident].reject do |step|
-        step.is_a?(ReduceStep) && step.symbol.hidden
+        step.is_a?(ReduceStep) && step.symbol.hidden?
       end
     end
   end
