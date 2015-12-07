@@ -9,7 +9,6 @@ require 'racc/state_transition_table'
 require 'racc/exception'
 require 'racc/util'
 require 'racc/directed_graph'
-require 'racc/simulated_parse_context'
 
 require 'set'
 
@@ -672,5 +671,9 @@ module Racc
     end
 
     attr_reader :from, :to, :rule, :symbol
+
+    def to_s
+      "(reduce to #{@symbol})"
+    end
   end
 end

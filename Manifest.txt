@@ -23,7 +23,7 @@ lib/racc/info.rb
 lib/racc/parser-text.rb
 lib/racc/parser.rb
 lib/racc/parser_file_generator.rb
-lib/racc/simulated_parse_context.rb
+lib/racc/simulated_automaton.rb
 lib/racc/source.rb
 lib/racc/state.rb
 lib/racc/state_summary_generator.rb
@@ -179,4 +179,3 @@ test/test_grammar_file_parser.rb
 test/test_racc_command.rb
 test/test_scan_y.rb
 test/test_scanner.rb
-test/test_simulated_parse.rb

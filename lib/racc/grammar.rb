@@ -710,6 +710,10 @@ module Racc
       @nullable ||= @grammar.nullable_symbols.include?(self)
     end
 
+    def shortest_production
+      @shortest_prod ||= @grammar.shortest_productions[self]
+    end
+
     # What NTs can be reached from this symbol, by traversing from the RHS of
     # a rule where the symbol appears, to the target of the rule, then to the
     # RHS of its rules, and so on?

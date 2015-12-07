@@ -1,5 +1,5 @@
 require 'racc/color'
-require 'racc/simulated_parse_context'
+require 'racc/simulated_automaton'
 
 module Racc
   include Racc::Color
@@ -216,21 +216,23 @@ module Racc
           @rrule.to_s
 
         if @verbose
-          scontext = SimulatedParseContext.from_path(@grammar, @path).shift!(@sym)
+          sauto = SimulatedAutomaton.from_path(@grammar, @path).consume!(@sym)
           result << "\n\nAfter shifting #{@sym}, one path to a successful " \
-            "parse would be:\n" << scontext.path_to_success.map(&:to_s).join(' ')
+            "parse would be:\n" << sauto.path_to_success.map(&:to_s).join(' ')
 
-          rcontext = SimulatedParseContext.from_path(@grammar, @path)
-                                          .reduce!(@rrule.target).consume!(@sym)
-          result << ((catch :dead_end do
-            "\n\nAfter reducing to #{@rrule.target}, one path to a " \
-            "successful parse would be:\n" <<
-            rcontext.path_to_success.unshift(@sym).map(&:to_s).join(' ')
-          end) || "\n\nI can't see any way that reducing to " \
-            "#{@rrule.target} could possibly lead to a successful parse " \
-            'from this situation. But maybe if this parser state was ' \
-            "reached through a different input sequence, it could. I'm " \
-            'just a LALR parser generator and I can be pretty daft sometimes.')
+          rauto = SimulatedAutomaton.from_path(@grammar, @path)
+                                    .reduce_by!(@rrule).consume!(@sym)
+          path  = rauto.path_to_success
+          if path
+            result << "\n\nAfter reducing to #{@rrule.target}, one path to a " \
+              "successful parse would be:\n" << path.unshift(@sym).map(&:to_s).join(' ')
+          else
+            result << "\n\nI can't see any way that reducing to " \
+              "#{@rrule.target} could possibly lead to a successful parse " \
+              'from this situation. But maybe if this parser state was ' \
+              "reached through a different input sequence, it could. I'm " \
+              'just a LALR parser generator and I can be pretty daft sometimes.'
+          end
         end
 
         result
@@ -269,20 +271,23 @@ module Racc
                @rules.map(&:to_s).join("\n")
 
         if @verbose
-          targets = @rules.map(&:target).uniq
+          targets = @rules.group_by(&:target)
           if targets.size > 1
-            targets.each do |target|
-              rcontext = SimulatedParseContext.from_path(@grammar, @path)
-                                              .reduce!(target).consume!(@sym)
-              result << ((catch :dead_end do
-                "\n\nAfter reducing to #{target}, one path to a " \
-                "successful parse would be:\n" <<
-                rcontext.path_to_success.unshift(@sym).map(&:to_s).join(' ')
-              end) || "\n\nI can't see any way that reducing to " \
-                "#{target} could possibly lead to a successful parse " \
-                'from this situation. But maybe if this parser state was ' \
-                "reached through a different input sequence, it could. I'm " \
-                'just a LALR parser generator and I can be pretty daft sometimes.')
+            targets.each do |target, rules|
+              rauto = SimulatedAutomaton.from_path(@grammar, @path)
+                                        .reduce_by!(rules.first).consume!(@sym)
+              path  = rauto.path_to_success
+              if path
+                result << "\n\nAfter reducing to #{target}, one path to a " \
+                  "successful parse would be:\n" <<
+                  path.unshift(@sym).map(&:to_s).join(' ')
+              else
+                result << "\n\nI can't see any way that reducing to " \
+                  "#{target} could possibly lead to a successful parse " \
+                  'from this situation. But maybe if this parser state was ' \
+                  "reached through a different input sequence, it could. I'm " \
+                  'just a LALR parser generator and I can be pretty daft sometimes.'
+              end
             end
           end
         end
