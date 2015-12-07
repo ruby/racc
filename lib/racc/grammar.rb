@@ -251,7 +251,7 @@ module Racc
         worklist = result.keys
         while sym = worklist.shift
           sym.locate.each do |ptr|
-            target = ptr.rule.target
+            target = ptr.target
             rules  = target.heads.map(&:rule)
             rules.reject! { |r| r.symbols.any? { |rs| !result.key?(rs) }}
             next if rules.empty?
@@ -557,6 +557,10 @@ module Racc
       @rule.symbols[@index]
     end
 
+    def target
+      @rule.target
+    end
+
     def to_s
       result = "#{@rule.target} : "
       if @index > 0
@@ -718,8 +722,8 @@ module Racc
     # a rule where the symbol appears, to the target of the rule, then to the
     # RHS of its rules, and so on?
     def reachable
-      @reachable ||= Racc.set_closure(@locate.map { |ptr| ptr.rule.target }) do |sym|
-        sym.locate.map { |ptr| ptr.rule.target }
+      @reachable ||= Racc.set_closure(@locate.map(&:target)) do |sym|
+        sym.locate.map(&:target)
       end
     end
 

@@ -99,7 +99,7 @@ module Racc
       # The state stack will guide us
       # How many symbols could we reduce the stack size by for each reduce
       # reachable from this state?
-      core = @state.core.group_by { |ptr| [ptr.rule.target, ptr.index] }
+      core = @state.core.group_by { |ptr| [ptr.target, ptr.index] }
 
       core.map do |(target, offset), ptrs|
         ptr = ptrs.min_by do |p|
@@ -140,7 +140,7 @@ module Racc
       end
 
       reduce_by!(ptr.rule)
-      actions << ReduceStep.new(initial_state, @state, ptr.rule, ptr.rule.target)
+      actions << ReduceStep.new(initial_state, @state, ptr.rule, ptr.target)
     end
 
     def dup
