@@ -113,6 +113,25 @@ module Racc
       end
     end
 
+    class UnreachableNonterminal < Warning
+      def initialize(sym)
+        @sym = sym
+      end
+
+      def title
+        "Useless nonterminal #{sym} cannot be part of a valid parse tree, " \
+          'since there is no sequence of reductions from it to the start symbol.'
+      end
+
+      def details
+        "It can only reduce to: #{sym.reachable.map(&:to_s).join(', ')}"
+      end
+
+      def type
+        :useless_nonterminal
+      end
+    end
+
     class UselessPrecedence < Warning
       def initialize(rule)
         @rule = rule

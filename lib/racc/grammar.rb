@@ -133,11 +133,7 @@ module Racc
               "nonterminal #{sym} only appears on the right side of its " \
               'own rules.'))
           else
-            warnings.add_for_symbol(sym, Warning.new(:useless_nonterminal, 'Useless ' \
-              "nonterminal #{sym} cannot be part of a valid parse tree, " \
-              'since there is no sequence of reductions from it to the ' \
-              'start symbol.', 'It can only reduce to: ' \
-              "#{sym.reachable.map(&:to_s).join(', ')}"))
+            warnings.add_for_symbol(sym, Warning::UnreachableNonterminal.new(sym))
           end
         elsif !productive_symbols.include?(sym)
           warnings.add_for_symbol(sym, Warning::InfiniteLoop.new(sym))
