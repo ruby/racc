@@ -35,6 +35,7 @@ HOE = Hoe.spec 'racc' do
   dependency 'hoe-bundler',   '~> 1.2',   :developer
 
   dependency 'rubocop',       '~> 0.34',  :developer
+  dependency 'pry',           '~> 0.10',  :developer
 
   if java?
     self.spec_extras[:platform]   = 'java'
