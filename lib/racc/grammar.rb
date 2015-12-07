@@ -245,6 +245,32 @@ module Racc
         Sym.set_closure(@symbols.select { |nt| nt.heads.any?(&:reduce?) })
     end
 
+    # What is the shortest series of terminals which can reduce to each NT?
+    def shortest_productions
+      @shortest_productions ||= begin
+        # nullable symbols can expand to... nothing
+        # terminals just map to themselves
+        result = Hash[nullable_symbols.map { |sym| [sym, []] } +
+                      terminals.map { |t| [t, [t]] }]
+
+        worklist = result.keys
+        while sym = worklist.shift
+          sym.locate.each do |ptr|
+            target = ptr.rule.target
+            rules  = target.heads.map(&:rule)
+            rules.reject! { |r| r.symbols.any? { |rs| !result.key?(rs) }}
+            next if rules.empty?
+            best   = rules.map { |r| r.symbols.flat_map { |rs| result[rs] }}.min_by(&:size)
+            if !result.key?(target) || best.size < result[target].size
+              result[target] = best
+              worklist.push(target)
+            end
+          end
+        end
+        result
+      end
+    end
+
     private
 
     def add_start_rule

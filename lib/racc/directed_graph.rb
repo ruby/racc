@@ -278,7 +278,7 @@ module Racc
           node_path = paths[node]
           vectors(node) do |label, child|
             child_path = paths[child]
-            cost = block_given? ? yield(node, child) : 1
+            cost = block_given? ? yield(label) : 1
             if child_path.nil? || child_path[0] > node_path[0] + cost
               paths[child] = node_path.dup.tap { |p| p[0] += cost } << label
             end

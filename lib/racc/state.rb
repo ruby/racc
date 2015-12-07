@@ -412,74 +412,71 @@ module Racc
       warnings
     end
 
-    def summarized_transition_graph
+    def transition_graph
       # this graph does not have vectors for reduce operations -- rather,
       # the nodes where the reduces go to have vectors for the reduced NTs
-      @stgraph ||= each_with_object(Graph::Labeled.new(size)) do |s, graph|
+      @tgraph ||= each_with_object(Graph::Labeled.new(size)) do |s, graph|
         s.gotos.each do |tok, goto|
           graph.add_vector(s.ident, goto.to_state.ident, tok)
         end
       end.tap { |graph| graph.start = 0 }
     end
 
+    # Like `transition_graph`, but rather than vectors labeled with NTs, we
+    # have vectors labeled with the shortest series of terminals and reduce
+    # operations which could take us through the same transition
     def detailed_transition_graph
-      # this graph does not have vectors for 'gotos' -- rather, the vectors
-      # run from nodes where a reduce is initiated, to the nodes where the
-      # 'gotos' could reach after reducing
-      @dtgraph ||= begin
-        graph = Graph::Labeled.new(size)
-
-        each do |s|
-          s.action.each do |tok, act|
-            next unless act.is_a?(Shift)
-            graph.add_vector(s.ident, act.goto_state.ident, tok)
+      @dtgraph ||= each_with_object(Graph::Labeled.new(size)) do |s, graph|
+        s.gotos.each do |tok, goto|
+          path = if tok.terminal?
+            [tok]
+          else
+            actions_to_reach_reduce(s.ident, tok)
           end
+          graph.add_vector(s.ident, goto.to_state.ident, path)
         end
+      end.tap { |graph| graph.start = 0 }
+    end
 
-        # now add vectors for reduces
-        reduce_vectors = Set.new
-        add_reduce_vectors = proc do |s, act|
-          possible_reduce_destinations(s, act.rule).each do |dest|
-            label = ReduceStep.new(s, dest, act.rule, act.rule.target)
-            reduce_vectors << [s.ident, dest.ident, label]
-          end
-        end
-
-        each do |s|
-          s.action.each do |tok, act|
-            next unless act.is_a?(Reduce)
-            add_reduce_vectors[s, act]
-          end
-          if s.defact.is_a?(Reduce)
-            add_reduce_vectors[s, s.defact]
-          end
-          # defact could also be Accept or Error...
-        end
-
-        reduce_vectors.each do |from, to, label|
-          graph.add_vector(from, to, label)
-        end
-
-        graph.start = 0
-        graph
+    # What series of shifts/reduces can produce `target`, starting from state
+    # `state_idx`?
+    def actions_to_reach_reduce(state_idx, target)
+      rule = target.heads.map(&:rule).min_by do |r|
+        r.symbols.flat_map { |rs| @grammar.shortest_productions[rs] }.size
       end
+
+      actions, cur_state = [], state_idx
+      rule.symbols.each do |sym|
+        if sym.terminal?
+          actions << sym
+        else
+          actions.concat(actions_to_reach_reduce(cur_state, sym))
+        end
+        cur_state = transition_graph[cur_state][sym]
+      end
+      cur_state = transition_graph[state_idx][target]
+
+      actions << ReduceStep.new(state_idx, cur_state, rule, target)
     end
 
     def shortest_summarized_paths
-      @shortest_spaths ||= summarized_transition_graph.shortest_vector_paths
+      @shortest_spaths ||= transition_graph.shortest_vector_paths
     end
 
     def shortest_detailed_paths
-      @shortest_dpaths ||= detailed_transition_graph.shortest_vector_paths
+      @shortest_dpaths ||= begin
+        paths = detailed_transition_graph.shortest_vector_paths(&:size)
+        Hash[paths.map { |state, steps| [state, steps.flatten] }]
+      end
     end
 
     def possible_reduce_destinations(state, rule)
       # after popping states off the stack and following the goto,
       # what states might we end up in?
-      sgraph = summarized_transition_graph
+      graph = transition_graph
       steps_back = rule.symbols.size
       dest_indices = steps_back.times.reduce([state.ident]) do |dsts, _|
-        dsts.map { |dst| sgraph.parents(dst) }.reduce(Set.new, &:merge)
+        dsts.map { |dst| graph.parents(dst) }.reduce(Set.new, &:merge)
       end
       dest_indices.map { |idx| self[idx].gotos[rule.target].to_state }.uniq
     end
