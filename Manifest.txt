@@ -53,6 +53,7 @@ test/assets/badprec1.y
 test/assets/badprec2.y
 test/assets/badrule1.y
 test/assets/badrule2.y
+test/assets/badrule3.y
 test/assets/badsyntax.y
 test/assets/bench.y
 test/assets/bibtex.y
@@ -121,6 +122,7 @@ test/regress/badprec1.out
 test/regress/badprec2.out
 test/regress/badrule1.out
 test/regress/badrule2.out
+test/regress/badrule3.out
 test/regress/badsyntax.out
 test/regress/bibtex.rb
 test/regress/cadenza.rb

@@ -1,0 +1,2 @@
+[31mError: [0m[1mtest/assets/badrule3.y:[0m You cannot create rules for the error symbol:
+[1mbadrule3.y:4: [0m[1;34merror[0m: [1;36m[4ma[0m [1;36m[4mb[0m

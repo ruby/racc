@@ -356,6 +356,12 @@ module Racc
             Source::SparseLines.merge(same_rhs.map(&:source)).map(&:spifferific).join("\n\n")
         end
       end
+
+      unless @error.heads.empty?
+        raise CompileError, "You cannot create rules for the error symbol:\n" <<
+          Source::SparseLines.merge(@error.heads.map { |ptr| ptr.rule.source} )
+            .map(&:spifferific).join("\n\n")
+      end
     end
   end
 
