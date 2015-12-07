@@ -94,6 +94,20 @@ module Racc
         "test/regress/#{file}")
     end
 
+    def assert_html_unchanged(asset)
+      assert_compile asset, '-S'
+
+      file = File.basename(asset, '.y')
+      result = Dir.chdir(PROJECT_DIR) do
+        File.read("#{REGRESS_DIR}/#{file}.html") == File.read("#{TAB_DIR}/#{file}")
+      end
+
+      assert(result, "HTML state summary for test/assets/#{asset} differed from " \
+        "expectation. Try compiling it and diff with test/regress/#{file}.html:" \
+        "\nruby -I./lib ./bin/racc -S -o tmp/#{file} test/assets/#{asset}; " \
+        "colordiff tmp/#{file} test/regress/#{file}.html")
+    end
+
     def racc(arg, expect_success = true)
       ruby "#{RACC} #{arg}", expect_success
     end

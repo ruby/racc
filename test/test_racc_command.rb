@@ -227,6 +227,7 @@ module Racc
       assert_warnings err, sr_conflicts: 5, rr_conflicts: 3
       assert_parser_unchanged 'csspool.y'
       assert_output_unchanged 'csspool.out', '--color -v', err
+      assert_html_unchanged   'csspool.y'
     end
 
     # .y file from opal gem

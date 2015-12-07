@@ -127,6 +127,7 @@ test/regress/badsyntax.out
 test/regress/bibtex.rb
 test/regress/cadenza.rb
 test/regress/cast.rb
+test/regress/csspool.html
 test/regress/csspool.out
 test/regress/csspool.rb
 test/regress/duplicate.out
