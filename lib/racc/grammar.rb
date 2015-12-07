@@ -561,15 +561,23 @@ module Racc
       @rule.target
     end
 
+    def preceding
+      @rule.symbols[0...@index]
+    end
+
+    def following
+      @rule.symbols[@index..-1]
+    end
+
     def to_s
       result = "#{@rule.target} : "
       if @index > 0
-        result << "#{@rule.symbols[0...@index].reject(&:hidden?).map(&:to_s).join(' ')} ."
+        result << "#{preceding.reject(&:hidden?).map(&:to_s).join(' ')} ."
       else
         result << '.'
       end
       unless reduce?
-        result << " #{rule.symbols[@index..-1].reject(&:hidden?).map(&:to_s).join(' ')}"
+        result << " #{following.reject(&:hidden?).map(&:to_s).join(' ')}"
       end
       if sym = @rule.explicit_precedence
         result << ' ' << Color.explicit_prec('=' << sym.display_name)

@@ -39,18 +39,14 @@ module Racc
       @output << '<tr><td>'
       print_symbol(rule.target)
       @output << '</td><td><b>:</b></td><td>'
-      if ptr.index > 0
-        rule.symbols[0...ptr.index].reject(&:hidden?).each do |sym|
-          print_symbol(sym)
-          @output << ' '
-        end
+      ptr.preceding.reject(&:hidden?).each do |sym|
+        print_symbol(sym)
+        @output << ' '
       end
       @output << '<b>.</b> '
-      unless ptr.reduce?
-        rule.symbols[ptr.index..-1].reject(&:hidden?).each do |sym|
-          print_symbol(sym)
-          @output << ' '
-        end
+      ptr.following.reject(&:hidden?).each do |sym|
+        print_symbol(sym)
+        @output << ' '
       end
       if sym = rule.explicit_precedence
         print_explicit_prec(sym)

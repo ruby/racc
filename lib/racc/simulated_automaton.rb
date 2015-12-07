@@ -105,8 +105,7 @@ module Racc
         ptr = ptrs.min_by do |p|
           # how many terminals will it take to reach reduce, if we try to
           # follow this rule?
-          remaining_syms = p.rule.symbols[p.index..-1]
-          remaining_syms.flat_map(&:shortest_production).size
+          p.following.flat_map(&:shortest_production).size
         end
 
         automaton = self.dup
@@ -130,7 +129,7 @@ module Racc
       actions = []
       initial_state = @state
 
-      ptr.rule.symbols[ptr.index..-1].each do |sym|
+      ptr.following.each do |sym|
         if sym.terminal?
           actions << sym
           consume!(sym)
