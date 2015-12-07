@@ -38,8 +38,8 @@ module Racc
       # 'dummy : start anchor . anchor' to be an 'accept state'
 
       @dummy   = intern(:$start, true)
-      @anchor  = intern(false, true)   # Symbol ID = 0
-      @error   = intern(:error, false) # Symbol ID = 1
+      @anchor  = intern(false,   true) # Symbol ID = 0
+      @error   = intern(:error,  true) # Symbol ID = 1
     end
 
     attr_reader :start
@@ -67,11 +67,11 @@ module Racc
       "<Racc::Grammar>"
     end
 
-    def intern(val, dummy = false)
+    def intern(val, generated = false)
       if @closed
         @cache[val] || (raise "No such symbol: #{val}")
       else
-        @cache[val] ||= Sym.new(val, self, dummy).tap { |sym| @symbols.push(sym) }
+        @cache[val] ||= Sym.new(val, self, generated).tap { |sym| @symbols.push(sym) }
       end
     end
 
@@ -191,7 +191,7 @@ module Racc
       @closed = true
 
       # if 'start' nonterminal was not explicitly set, just take the first one
-      @start ||= map(&:target).detect { |sym| !sym.dummy? }
+      @start ||= map(&:target).detect { |sym| !sym.generated? }
       fail CompileError, 'no rules in input' if @rules.empty?
       add_start_rule
 
@@ -214,8 +214,7 @@ module Racc
       raise 'Grammar not yet closed' unless @closed
       @useless_symbols ||= begin
         @symbols.select do |sym|
-          !sym.dummy? &&
-          sym != @error &&
+          !sym.generated? &&
           sym != @start &&
           (!sym.reachable.include?(@start) || !productive_symbols.include?(sym)) &&
           none? { |rule| rule.explicit_precedence == sym }
@@ -598,10 +597,10 @@ module Racc
 
   # A terminal or nonterminal symbol
   class Sym
-    def initialize(value, grammar, dummy)
+    def initialize(value, grammar, generated)
       @ident   = nil
       @value   = value
-      @dummy   = dummy
+      @genned  = generated
       @grammar = grammar
 
       @declared_terminal = false
@@ -655,8 +654,8 @@ module Racc
       end
     end
 
-    def dummy?
-      @dummy
+    def generated?
+      @genned
     end
 
     def terminal?
