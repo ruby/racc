@@ -211,7 +211,7 @@ module Racc
           sym != @start &&
           (!sym.reachable.include?(@start) || !productive_symbols.include?(sym)) &&
           none? { |rule| rule.explicit_precedence == sym }
-        end
+        end.freeze
       end
     end
 
@@ -225,7 +225,7 @@ module Racc
     def productive_symbols
       raise 'Grammar not yet closed' unless @closed
       @productive_symbols ||= begin
-        Sym.set_closure(@terminals + nullable_symbols.to_a)
+        Sym.set_closure(@terminals + nullable_symbols.to_a).freeze
       end
     end
 
@@ -233,12 +233,13 @@ module Racc
     # (Can it be produced out of "nothing"?)
     def nullable_symbols
       raise 'Grammar not yet closed' unless @closed
-      @nullable_symbols ||=
-        Sym.set_closure(@symbols.select { |nt| nt.heads.any?(&:reduce?) })
+      @nullable_symbols ||= Sym.set_closure(
+        @symbols.select { |nt| nt.heads.any?(&:reduce?) }).freeze
     end
 
     # What is the shortest series of terminals which can reduce to each NT?
     def shortest_productions
+      raise 'Grammar not yet closed' unless @closed
       @shortest_productions ||= begin
         # nullable symbols can expand to... nothing
         # terminals just map to themselves
@@ -259,7 +260,7 @@ module Racc
             end
           end
         end
-        result
+        result.freeze
       end
     end
 
@@ -729,7 +730,7 @@ module Racc
     def reachable
       @reachable ||= Racc.set_closure(@locate.map(&:target)) do |sym|
         sym.locate.map(&:target)
-      end
+      end.freeze
     end
 
     # If an instance of this NT comes next, then what rules could we be
@@ -739,7 +740,7 @@ module Racc
         if (sym = ptr.symbol) && sym.nonterminal?
           sym.heads
         end
-      end
+      end.freeze
     end
 
     # What terminals/NT could appear first in a series of terminals/NTs which
@@ -752,7 +753,7 @@ module Racc
             ptr.symbol.nullable? ? ptr = ptr.next : break
           end
         end
-      end
+      end.freeze
     end
   end
 end
