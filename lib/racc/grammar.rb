@@ -342,7 +342,7 @@ module Racc
 
     def check_rules
       @rules.group_by(&:target).each_value do |same_lhs|
-        same_lhs.group_by(&:symbols).each_value do |same_rhs|
+        same_lhs.group_by { |r| r.symbols.reject(&:hidden?) }.each_value do |same_rhs|
           next unless same_rhs.size > 1
           raise CompileError, "The following rules are duplicates:\n" <<
             Source::SparseLines.render(same_rhs.map(&:source))

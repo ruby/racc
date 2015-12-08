@@ -1,0 +1,3 @@
+[31mError: [0m[1mtest/assets/badrule4.y:[0m The following rules are duplicates:
+[1mbadrule4.y:3: [0m[1;34mA[0m : [1;36m[4ma[0m { puts 'hello' } [1;36m[4mb[0m [1;36m[4mc[0m
+                | [1;36m[4ma[0m [1;36m[4mb[0m { puts 'hello' } [1;36m[4mc[0m
