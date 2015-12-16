@@ -17,7 +17,7 @@ module Racc
     def initialize(states)
       @states = states
       @state  = states.first
-      @sstack = []
+      @sstack = [] # state stack
       @error  = false
     end
 

@@ -150,7 +150,7 @@ module Racc
 
     def test_expect_y
       err = assert_compile 'expect.y'
-      # expect has 1 S/R conflict, but it is expected
+      # expect.y has 1 S/R conflict, but it is expected
       assert_no_warnings err
     end
 
