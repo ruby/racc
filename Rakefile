@@ -21,7 +21,6 @@ HOE = Hoe.spec 'racc' do
   license "MIT"
 
   self.extra_rdoc_files  = Dir['*.rdoc']
-  self.history_file      = 'ChangeLog'
   self.readme_file       = 'README.rdoc'
 
   dependency 'rake',          '~> 10.4',  :developer
