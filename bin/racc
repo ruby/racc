@@ -59,6 +59,7 @@ def main
     puts parser.help
     exit 1
   }
+  parser.separator ''
   parser.separator 'Console output:'
   parser.on('-v', '--verbose', 'Display extra diagnostic information') {
     verbose = true
@@ -66,6 +67,7 @@ def main
   parser.on('--[no-]color', 'Force colored output on or off') { |fl|
     Racc::Color.enabled = fl
   }
+  parser.separator ''
   parser.separator 'Ruby parser code output:'
   parser.on('-t', '--debug', 'Output debugging parser') {
     debug_parser = true
