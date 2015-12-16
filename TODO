@@ -1,5 +1,42 @@
-* check 'error' token handling.
-* interactive transition table monitor.
-* support backtracking.
-* output Ruby extention library?
-* LL(k)? (But it should not be called Racc)
+DIAGNOSTICS:
+
+- On conflict, try to find a series of tokens which can be parsed BOTH by
+  an automaton which resolves the conflict in one way, and by an automaton
+  which resolves the conflict in the other way.
+
+  This problem is not solvable in the general case. Just do a recursive search,
+  limiting the search space enough to terminate quickly.
+
+  First though, we need to abstract the classes which represent LR states and
+  automatons a bit more, making them amenable to use for general-purpose
+  analysis and manipulation, not just solely doing what Racc needs to generate
+  a parser.
+
+- If we can do that, show alternative derivation trees for the same tokens.
+
+- Any other compiler checks or warnings which we should add?
+
+PARSER CORE:
+
+- Generate LR(1) rather than LALR(1) parsers.
+
+- Add a directive to manually resolve one specific conflict.
+  This will also be used internally for the next point:
+
+- Add *, ?, +, as well as parentheses for grouping, to the understood grammar
+  file format.
+
+RUNTIME:
+
+- Generate more efficient parsers!
+
+OTHER:
+
+- Documentation
+
+- Full code review and cleanup
+
+- Make the code RuboCop-compliant
+- Then add RC to the build process
+
+- Any further tests which can be added to verify correctness?
