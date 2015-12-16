@@ -1,3 +1,7 @@
+TO CHECK:
+
+- Try grammars which contain non-ASCII chars.
+
 DIAGNOSTICS:
 
 - On conflict, try to find a series of tokens which can be parsed BOTH by
