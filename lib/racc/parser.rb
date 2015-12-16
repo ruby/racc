@@ -1,3 +1,4 @@
+# frozen_string_literal: false
 #--
 # Copyright (c) 1999-2006 Minero Aoki
 #
