@@ -101,7 +101,7 @@ module Racc
       # reachable from this state?
       core = @state.core.group_by { |ptr| [ptr.target, ptr.index] }
 
-      core.map do |(target, offset), ptrs|
+      core.map do |_, ptrs|
         ptr = ptrs.min_by do |p|
           # how many terminals will it take to reach reduce, if we try to
           # follow this rule?
