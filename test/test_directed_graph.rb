@@ -11,6 +11,7 @@ module Racc
       @graph.add_child(@c, @d)
     end
 
+    # rubocop:disable Metrics/AbcSize
     def test_reachable
       assert_equal 4, @graph.reachable.size
       @graph.remove_child(@c, @d)
@@ -21,6 +22,7 @@ module Racc
       @graph.remove_node(@b)
       assert_equal 2, @graph.reachable.size
     end
+    # rubocop:enable Metrics/AbcSize
 
     def test_shortest_path
       assert_equal [@a, @c, @d], @graph.shortest_path(@a, @d)
@@ -52,7 +54,7 @@ module Racc
 
     def init
       @graph = Racc::Graph::Generic.new
-      @a, @b, @c, @d = 4.times.map { Racc::Graph::Node.new }
+      @a, @b, @c, @d = Array.new(4) { Racc::Graph::Node.new }
     end
   end
 
