@@ -24,21 +24,5 @@ module Racc
       assert_equal 0, grammar.useless_symbols.size
       assert_nil grammar.n_expected_srconflicts
     end
-
-    def test_compile_line_convert
-      generator = Racc::ParserFileGenerator.new(@states, @result.params.dup)
-
-      # it generates valid ruby
-      assert Module.new {
-        class_eval(generator.generate_parser)
-      }
-
-      grammar = @states.grammar
-
-      assert_equal 0, @states.sr_conflicts.size
-      assert_equal 0, @states.rr_conflicts.size
-      assert_equal 0, grammar.useless_symbols.size
-      assert_nil grammar.n_expected_srconflicts
-    end
   end
 end
