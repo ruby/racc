@@ -1,22 +1,11 @@
 require File.expand_path(File.join(File.dirname(__FILE__), 'helper'))
 
 module Racc
+  # rubocop:disable Metrics/ClassLength
   class TestRaccCommand < TestCase
     def test_syntax_y
       err = assert_compile 'syntax.y', '-v'
       assert_no_warnings err
-    end
-
-    def test_percent_y
-      err = assert_compile 'percent.y'
-      assert_no_warnings err
-      assert_exec 'percent.y'
-    end
-
-    def test_scan_y
-      err = assert_compile 'scan.y'
-      assert_no_warnings err
-      assert_exec 'scan.y'
     end
 
     def test_newsyn_y
@@ -45,17 +34,6 @@ module Racc
       assert_exec 'echk.y'
     end
 
-    def test_err_y
-      err = assert_compile 'err.y'
-      assert_no_warnings err
-      assert_exec 'err.y'
-    end
-
-    def test_mailp_y
-      err = assert_compile 'mailp.y'
-      assert_no_warnings err
-    end
-
     def test_conf_y
       err = assert_compile 'conf.y', '-v'
       assert_warnings err, sr_conflicts: 4, useless_nts: 1
@@ -76,39 +54,15 @@ module Racc
       assert_output_unchanged 'duplicate.out', err
     end
 
-    def test_badprec1_y
-      err = assert_error 'badprec1.y', '--color'
-      assert_output_unchanged 'badprec1.out', '--color', err
-    end
-
-    def test_badprec2_y
-      err = assert_error 'badprec2.y', '--color'
-      assert_output_unchanged 'badprec2.out', '--color', err
-    end
-
-    def test_badsyntax_y
-      err = assert_error 'badsyntax.y', '--color'
-      assert_output_unchanged 'badsyntax.out', '--color', err
-    end
-
-    def test_badrule1_y
-      err = assert_error 'badrule1.y', '--color'
-      assert_output_unchanged 'badrule1.out', '--color', err
-    end
-
-    def test_badrule2_y
-      err = assert_error 'badrule2.y', '--color'
-      assert_output_unchanged 'badrule2.out', '--color', err
-    end
-
-    def test_badrule3_y
-      err = assert_error 'badrule3.y', '--color'
-      assert_output_unchanged 'badrule3.out', '--color', err
-    end
-
-    def test_badrule4_y
-      err = assert_error 'badrule4.y', '--color'
-      assert_output_unchanged 'badrule4.out', '--color', err
+    %w(
+      badprec1 badprec2
+      badsyntax
+      badrule1 badrule2 badrule3 badrule4
+    ).each do |file|
+      define_method "test_#{file}_y" do
+        err = assert_error "#{file}.y", '--color'
+        assert_output_unchanged "#{file}.out", '--color', err
+      end
     end
 
     def test_not_lalr
@@ -119,33 +73,18 @@ module Racc
       assert_output_unchanged 'lr_not_lalr2.out', '--color -v', err
     end
 
-    def test_opt_y
-      err = assert_compile 'opt.y'
-      assert_no_warnings err
-      assert_exec 'opt.y'
-    end
-
-    def test_yyerr_y
-      err = assert_compile 'yyerr.y'
-      assert_no_warnings err
-      assert_exec 'yyerr.y'
+    %w(percent scan err opt yyerr ichk intp nonass digraph).each do |file|
+      define_method "test_#{file}_y" do
+        err = assert_compile "#{file}.y"
+        assert_no_warnings err
+        assert_exec "#{file}.y"
+      end
     end
 
     def test_recv_y
       err = assert_compile 'recv.y'
-      assert_warnings err, sr_conflicts: 5, useless_rules: 3, rr_conflicts: 10, useless_nts: 1
-    end
-
-    def test_ichk_y
-      err = assert_compile 'ichk.y'
-      assert_no_warnings err
-      assert_exec 'ichk.y'
-    end
-
-    def test_intp_y
-      err = assert_compile 'intp.y'
-      assert_no_warnings err
-      assert_exec 'intp.y'
+      assert_warnings err, sr_conflicts: 5, useless_rules: 3,
+                           rr_conflicts: 10, useless_nts: 1
     end
 
     def test_expect_y
@@ -154,36 +93,11 @@ module Racc
       assert_no_warnings err
     end
 
-    def test_nullbug1_y
-      err = assert_compile 'nullbug1.y'
-      assert_no_warnings err
-    end
-
-    def test_nullbug2_y
-      err = assert_compile 'nullbug2.y'
-      assert_no_warnings err
-    end
-
-    def test_firstline_y
-      err = assert_compile 'firstline.y'
-      assert_no_warnings err
-    end
-
-    def test_nonass_y
-      err = assert_compile 'nonass.y'
-      assert_no_warnings err
-      assert_exec 'nonass.y'
-    end
-
-    def test_digraph_y
-      err = assert_compile 'digraph.y'
-      assert_no_warnings err
-      assert_exec 'digraph.y'
-    end
-
-    def test_noend_y
-      err = assert_compile 'noend.y'
-      assert_no_warnings err
+    %w(mailp nullbug1 nullbug2 firstline noend).each do |file|
+      define_method "test_#{file}_y" do
+        err = assert_compile "#{file}.y"
+        assert_no_warnings err
+      end
     end
 
     def test_norule_y
@@ -385,7 +299,8 @@ module Racc
 
     def test_mof
       err = assert_compile 'mof.y', '-v --color'
-      assert_warnings err, useless_terms: 4, useless_rules: 1, sr_conflicts: 7, rr_conflicts: 4
+      assert_warnings err, useless_terms: 4, useless_rules: 1,
+                           sr_conflicts: 7, rr_conflicts: 4
       assert_parser_unchanged 'mof.y'
       assert_output_unchanged 'mof.out', '-v --color', err
     end
@@ -406,4 +321,5 @@ module Racc
       assert_parser_unchanged 'eye-of-newt.y'
     end
   end
+  # rubocop:enable Metrics/ClassLength
 end
