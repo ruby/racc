@@ -187,15 +187,15 @@ module Racc
     end
 
     def test_norule_y
-      assert_raises(MiniTest::Assertion) {
+      assert_raises(MiniTest::Assertion) do
         assert_compile 'norule.y'
-      }
+      end
     end
 
     def test_unterm_y
-      assert_raises(MiniTest::Assertion) {
+      assert_raises(MiniTest::Assertion) do
         assert_compile 'unterm.y'
-      }
+      end
     end
 
     # Regression test for a problem where error recovery at EOF would cause

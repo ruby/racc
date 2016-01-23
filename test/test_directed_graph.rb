@@ -61,7 +61,10 @@ module Racc
 
     def init
       @graph = Racc::Graph::Finite.new(4)
-      @a, @b, @c, @d = 0, 1, 2, 3
+      @a = 0
+      @b = 1
+      @c = 2
+      @d = 3
     end
   end
 
@@ -70,7 +73,10 @@ module Racc
 
     def init
       @graph = Racc::Graph::Reversible.new(4)
-      @a, @b, @c, @d = 0, 1, 2, 3
+      @a = 0
+      @b = 1
+      @c = 2
+      @d = 3
     end
   end
 end

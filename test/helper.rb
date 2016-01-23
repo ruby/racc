@@ -22,7 +22,7 @@ module Racc
 
     INC = [
       File.join(PROJECT_DIR, 'lib'),
-      File.join(PROJECT_DIR, 'ext'),
+      File.join(PROJECT_DIR, 'ext')
     ].join(':')
 
     def setup
@@ -38,9 +38,9 @@ module Racc
       args = [
         args,
         "#{ASSET_DIR}/#{file}.y",
-        "-o#{TAB_DIR}/#{file}",
+        "-o#{TAB_DIR}/#{file}"
       ]
-      racc "#{args.join(' ')}", expect_success
+      racc args.join(' '), expect_success
     end
 
     def assert_error(asset, args = '')
@@ -81,7 +81,10 @@ module Racc
     end
 
     def assert_output_unchanged(file, args, actual = nil)
-      actual, args = args, nil if actual == nil
+      unless actual
+        actual = args
+        args = nil
+      end
       result = Dir.chdir(PROJECT_DIR) do
         File.read("#{REGRESS_DIR}/#{file}") == actual
       end

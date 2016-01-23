@@ -1,3 +1,4 @@
+# frozen_string_literal: false
 # Copyright (c) 1999-2006 Minero Aoki
 #
 # This program is free software.
@@ -64,12 +65,12 @@ module Racc
     end
 
     def to_s
-      "<Racc::Grammar>"
+      '<Racc::Grammar>'
     end
 
     def intern(val, generated = false)
       if @closed
-        @cache[val] || (raise "No such symbol: #{val}")
+        @cache[val] || (fail "No such symbol: #{val}")
       else
         @cache[val] ||= Sym.new(val, self, generated).tap { |sym| @symbols.push(sym) }
       end
@@ -81,7 +82,7 @@ module Racc
     end
 
     def states
-      raise 'Grammar not yet closed' unless @closed
+      fail 'Grammar not yet closed' unless @closed
       @states ||= States.new(self)
     end
 
@@ -98,12 +99,12 @@ module Racc
     end
 
     def locations
-      raise 'Grammar not yet closed' unless @closed
+      fail 'Grammar not yet closed' unless @closed
       @locations ||= @rules.flat_map(&:ptrs)
     end
 
     def n_expected_srconflicts=(value)
-      raise CompileError, "'expect' seen twice" if @n_expected_srconflicts
+      fail CompileError, "'expect' seen twice" if @n_expected_srconflicts
       @n_expected_srconflicts = value
     end
 
@@ -148,21 +149,21 @@ module Racc
     # Grammar Definition Interface
 
     def add(rule)
-      raise ArgumentError, "rule added after Grammar closed" if @closed
+      fail ArgumentError, 'rule added after Grammar closed' if @closed
       @rules.push rule
     end
 
     def added?(sym)
-      @rules.detect {|r| r.target == sym }
+      @rules.detect { |r| r.target == sym }
     end
 
     def start_symbol=(s)
-      raise CompileError, "start symbol set twice" if @start
+      fail CompileError, 'start symbol set twice' if @start
       @start = s
     end
 
     def declare_precedence(assoc, syms)
-      raise CompileError, "precedence table defined twice" if @prec_table_closed
+      fail CompileError, 'precedence table defined twice' if @prec_table_closed
       @prec_table.push [assoc, syms]
     end
 
@@ -204,13 +205,13 @@ module Racc
     # A useless symbol can never be a part of any valid parse tree, and is not
     # used for a =<sym> precedence declaration either
     def useless_symbols
-      raise 'Grammar not yet closed' unless @closed
+      fail 'Grammar not yet closed' unless @closed
       @useless_symbols ||= begin
         @symbols.select do |sym|
           !sym.generated? &&
-          sym != @start &&
-          (!sym.reachable.include?(@start) || !productive_symbols.include?(sym)) &&
-          none? { |rule| rule.explicit_precedence == sym }
+            sym != @start &&
+            (!sym.reachable.include?(@start) || !productive_symbols.include?(sym)) &&
+            none? { |rule| rule.explicit_precedence == sym }
         end.freeze
       end
     end
@@ -223,7 +224,7 @@ module Racc
     # (Even if it can be converted to an empty sequence of tokens; in other
     # words, if it is nullable, then it is considered 'productive')
     def productive_symbols
-      raise 'Grammar not yet closed' unless @closed
+      fail 'Grammar not yet closed' unless @closed
       @productive_symbols ||= begin
         Sym.set_closure(@terminals + nullable_symbols.to_a).freeze
       end
@@ -232,28 +233,28 @@ module Racc
     # Can an empty sequence of tokens reduce to this nonterminal?
     # (Can it be produced out of "nothing"?)
     def nullable_symbols
-      raise 'Grammar not yet closed' unless @closed
+      fail 'Grammar not yet closed' unless @closed
       @nullable_symbols ||= Sym.set_closure(
         @symbols.select { |nt| nt.heads.any?(&:reduce?) }).freeze
     end
 
     # What is the shortest series of terminals which can reduce to each NT?
     def shortest_productions
-      raise 'Grammar not yet closed' unless @closed
+      fail 'Grammar not yet closed' unless @closed
       @shortest_productions ||= begin
         # nullable symbols can expand to... nothing
         # terminals just map to themselves
         result = Hash[nullable_symbols.map { |sym| [sym, []] } +
-                      terminals.map { |t| [t, [t]] }]
+                 terminals.map { |t| [t, [t]] }]
 
         worklist = result.keys
         while sym = worklist.shift
           sym.locate.each do |ptr|
             target = ptr.target
             rules  = target.heads.map(&:rule)
-            rules.reject! { |r| r.symbols.any? { |rs| !result.key?(rs) }}
+            rules.reject! { |r| r.symbols.any? { |rs| !result.key?(rs) } }
             next if rules.empty?
-            best   = rules.map { |r| r.symbols.flat_map { |rs| result[rs] }}.min_by(&:size)
+            best = rules.map { |r| r.symbols.flat_map { |rs| result[rs] } }.min_by(&:size)
             if !result.key?(target) || best.size < result[target].size
               result[target] = best
               worklist.push(target)
@@ -296,16 +297,16 @@ module Racc
         undeclared -= [@anchor, @error]
         unless undeclared.empty?
           locations = undeclared.flat_map(&:locate).map(&:rule).uniq
-          raise CompileError, "terminal#{'s' unless undeclared.one?} " \
+          fail CompileError, "terminal#{'s' unless undeclared.one?} " \
             "#{Racc.to_sentence(undeclared)} #{undeclared.one? ? 'was' : 'were'} " \
             "not declared in a 'token' block:\n" <<
-            Source::SparseLines.render(locations.map(&:source))
+          Source::SparseLines.render(locations.map(&:source))
         end
 
         wrongly_declared = nonterminals.select(&:declared_as_terminal?)
         unless wrongly_declared.empty?
           bad_rules = wrongly_declared.flat_map(&:heads).map(&:rule)
-          raise CompileError, "token#{'s' unless wrongly_declared.one?} " \
+          fail CompileError, "token#{'s' unless wrongly_declared.one?} " \
             "#{Racc.to_sentence(wrongly_declared)} were declared in a 'token'" \
             " block, but #{wrongly_declared.one? ? 'it also has' : 'they also have'}" \
             " derivation rules:\n" << Source::SparseLines.render(bad_rules.map(&:source))
@@ -315,28 +316,28 @@ module Racc
       bad_strings = @symbols.select { |s| s.string_symbol? && s.nonterminal? }
       unless bad_strings.empty?
         bad_rules = bad_strings.flat_map(&:heads).map(&:rule)
-        raise CompileError, 'you may not create derivation rules for a ' \
+        fail CompileError, 'you may not create derivation rules for a ' \
           "string literal:\n" << Source::SparseLines.render(bad_rules.map(&:source))
       end
 
       bad_prec = @symbols.select { |s| s.assoc && s.nonterminal? }
       unless bad_prec.empty?
         bad_rules = bad_prec.flat_map(&:heads).map(&:rule)
-        raise CompileError, "token#{'s' unless bad_prec.one?} " \
+        fail CompileError, "token#{'s' unless bad_prec.one?} " \
           "#{Racc.to_sentence(bad_prec)} appeared in a prechigh/preclow " \
           "block, but #{bad_prec.one? ? 'it is not a' : 'they are not'} " \
           "terminal#{'s' unless bad_prec.one?}:\n" <<
-          Source::SparseLines.render(bad_rules.map(&:source))
+        Source::SparseLines.render(bad_rules.map(&:source))
       end
 
       bad_prec = @rules.select do |rule|
         rule.explicit_precedence && rule.explicit_precedence.nonterminal?
       end
       unless bad_prec.empty?
-        raise CompileError, "The following rule#{'s' unless bad_prec.one?} " \
+        fail CompileError, "The following rule#{'s' unless bad_prec.one?} " \
           "use#{'s' if bad_prec.one?} nonterminals for explicit precedence, " \
           "which is not allowed:\n" <<
-          Source::SparseLines.render(bad_prec.map(&:source))
+        Source::SparseLines.render(bad_prec.map(&:source))
       end
     end
 
@@ -344,14 +345,14 @@ module Racc
       @rules.group_by(&:target).each_value do |same_lhs|
         same_lhs.group_by { |r| r.symbols.reject(&:hidden?) }.each_value do |same_rhs|
           next unless same_rhs.size > 1
-          raise CompileError, "The following rules are duplicates:\n" <<
-            Source::SparseLines.render(same_rhs.map(&:source))
+          fail CompileError, "The following rules are duplicates:\n" <<
+          Source::SparseLines.render(same_rhs.map(&:source))
         end
       end
 
       unless @error.heads.empty?
-        raise CompileError, "You cannot create rules for the error symbol:\n" <<
-          Source::SparseLines.render(@error.heads.map { |ptr| ptr.rule.source} )
+        fail CompileError, "You cannot create rules for the error symbol:\n" <<
+        Source::SparseLines.render(@error.heads.map { |ptr| ptr.rule.source })
       end
     end
   end
@@ -386,7 +387,7 @@ module Racc
     attr_reader :ptrs
 
     def target=(target)
-      raise 'target already set' if @target
+      fail 'target already set' if @target
       @target = target
       @target.heads << @ptrs[0]
     end
@@ -406,7 +407,7 @@ module Racc
     end
 
     def precedence
-      @precedence || @symbols.select(&:terminal?).last
+      @precedence || @symbols.reverse.find(&:terminal?)
     end
 
     def explicit_precedence
@@ -424,7 +425,7 @@ module Racc
     # higher-priority rules which prevent this one from reducing
     # (keys are lookahead tokens at point where this rule is overridden)
     def overridden_by
-      @overridden_by ||= Hash.new { |h,k| h[k] = Set.new }
+      @overridden_by ||= Hash.new { |h, k| h[k] = Set.new }
     end
 
     def inspect
@@ -468,7 +469,7 @@ module Racc
     # it may be given a "placeholder" target first, which is later replaced
     # with the real one
     def replace(placeholder, actual)
-      raise 'wrong placeholder' if placeholder != @target
+      fail 'wrong placeholder' if placeholder != @target
       @target.heads.delete(ptrs[0]) if @target
       @target = actual
       @target.heads << @ptrs[0]
@@ -477,18 +478,16 @@ module Racc
   end
 
   class UserAction
-    def UserAction.source_text(src, lineno)
+    def self.source_text(src, lineno)
       new(src, nil).tap { |act| act.lineno = lineno }
     end
 
-    def UserAction.proc(pr = nil, &block)
-      if pr and block
-        raise ArgumentError, "both of argument and block given"
-      end
+    def self.proc(pr = nil, &block)
+      fail ArgumentError, 'both of argument and block given' if pr && block
       new(nil, pr || block)
     end
 
-    def UserAction.empty
+    def self.empty
       new(nil, nil)
     end
 
@@ -504,11 +503,11 @@ module Racc
     attr_accessor :lineno
 
     def source?
-      not @proc
+      !@proc
     end
 
     def empty?
-      not @proc and not @source
+      !@proc && !@source
     end
 
     def to_s
@@ -569,10 +568,10 @@ module Racc
 
     def to_s
       result = "#{@rule.target} : "
-      if @index > 0
-        result << "#{preceding.reject(&:hidden?).map(&:to_s).join(' ')} ."
-      else
-        result << '.'
+      result << if @index > 0
+                  "#{preceding.reject(&:hidden?).map(&:to_s).join(' ')} ."
+                else
+                  '.'
       end
       unless reduce?
         result << " #{following.reject(&:hidden?).map(&:to_s).join(' ')}"
@@ -590,7 +589,7 @@ module Racc
     end
 
     def next
-      @rule.ptrs[@index + 1] or ptr_bug!
+      @rule.ptrs[@index + 1] || ptr_bug!
     end
 
     def reduce?
@@ -600,7 +599,7 @@ module Racc
     private
 
     def ptr_bug!
-      raise "racc: fatal: pointer doesn't exist: self: #{to_s}"
+      fail "racc: fatal: pointer doesn't exist: self: #{self}"
     end
   end
 
@@ -628,7 +627,7 @@ module Racc
         @serialized = 'false'
         @string = false
       else
-        raise ArgumentError, "illegal symbol value: #{value.class}"
+        fail ArgumentError, "illegal symbol value: #{value.class}"
       end
 
       @heads   = [] # RHS of rules which can reduce to this Sym
@@ -657,7 +656,7 @@ module Racc
     def self.set_closure(seed)
       Racc.set_closure(seed) do |sym, set|
         rules = sym.locate.map(&:rule)
-        rules.select { |r| r.symbols.all? { |s| set.include?(s) }}.map(&:target)
+        rules.select { |r| r.symbols.all? { |s| set.include?(s) } }.map(&:target)
       end
     end
 
@@ -709,7 +708,7 @@ module Racc
     end
 
     def |(x)
-      rule() | x.rule
+      rule | x.rule
     end
 
     def rule
@@ -748,7 +747,7 @@ module Racc
     def first_set
       @first_set ||= Racc.set_closure([self]) do |sym|
         sym.heads.each_with_object([]) do |ptr, next_syms|
-          while !ptr.reduce?
+          until ptr.reduce?
             next_syms << ptr.symbol
             ptr.symbol.nullable? ? ptr = ptr.next : break
           end

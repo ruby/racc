@@ -34,55 +34,55 @@ def main
   Racc::Color.enabled = $stderr.tty?
 
   parser = OptionParser.new
-  parser.banner = "Usage: #{File.basename($0)} [options] <input>"
+  parser.banner = "Usage: #{File.basename($PROGRAM_NAME)} [options] <input>"
   parser.separator 'General:'
   parser.on('-o', '--output-file=PATH',
-            'Output file name [<input>.rb / <input>.html]') { |name|
+            'Output file name [<input>.rb / <input>.html]') do |name|
     output_file = name
-  }
-  parser.on('-C', '--check-only', 'Check syntax and quit immediately') {
+  end
+  parser.on('-C', '--check-only', 'Check syntax and quit immediately') do
     check_only = true
-  }
-  parser.on('-S', '--states', 'Output summary of parser states as HTML') {
+  end
+  parser.on('-S', '--states', 'Output summary of parser states as HTML') do
     output_format = :html
-  }
-  parser.on('--version', 'Print version and quit') {
+  end
+  parser.on('--version', 'Print version and quit') do
     core = Racc::Parser.racc_runtime_type == 'ruby' ? '(ruby core)' : '(c core)'
     puts "racc #{Racc::VERSION}, codename: #{Racc::CODENAME} #{core}"
     exit 0
-  }
-  parser.on('--copyright', 'Print copyright and quit') {
+  end
+  parser.on('--copyright', 'Print copyright and quit') do
     puts Racc::COPYRIGHT
     exit 0
-  }
-  parser.on('--help', 'Print this message and quit') {
+  end
+  parser.on('--help', 'Print this message and quit') do
     puts parser.help
     exit 1
-  }
+  end
   parser.separator ''
   parser.separator 'Console output:'
-  parser.on('-v', '--verbose', 'Display extra diagnostic information') {
+  parser.on('-v', '--verbose', 'Display extra diagnostic information') do
     verbose = true
-  }
-  parser.on('--[no-]color', 'Force colored output on or off') { |fl|
+  end
+  parser.on('--[no-]color', 'Force colored output on or off') do |fl|
     Racc::Color.enabled = fl
-  }
+  end
   parser.separator ''
   parser.separator 'Ruby parser code output:'
-  parser.on('-t', '--debug', 'Output debugging parser') {
+  parser.on('-t', '--debug', 'Output debugging parser') do
     debug_parser = true
-  }
-  parser.on('-e', '--executable [RUBYPATH]', 'Output executable parser') { |path|
+  end
+  parser.on('-e', '--executable [RUBYPATH]', 'Output executable parser') do |path|
     executable = true
     rubypath = (path == 'ruby' ? nil : path)
-  }
-  parser.on('-E', '--embedded', "Embed Racc runtime in output") {
+  end
+  parser.on('-E', '--embedded', 'Embed Racc runtime in output') do
     embed_runtime = true
-  }
+  end
   parser.on('--superclass=CLASSNAME',
-            'Use CLASSNAME as superclass instead of Racc::Parser') { |name|
+            'Use CLASSNAME as superclass instead of Racc::Parser') do |name|
     superclass = name
-  }
+  end
 
   fail = proc do |err|
     $stderr.puts "#{red('Error: ')}#{err}"
@@ -110,7 +110,7 @@ def main
       if File.exist?(output_file)
         $stderr.puts "#{red('Error: ')}'#{output_file}' already exists. " \
           "Please use '-o #{output_file}' if you are sure that you want to " \
-          "overwrite this file."
+          'overwrite this file.'
         exit 1
       end
     end
@@ -158,7 +158,7 @@ def main
       $stderr.puts
       $stderr.puts warning_summary(warnings)
       if !verbose && warnings.any?(&:verbose_details?)
-        $stderr.puts "Run with --verbose for more details."
+        $stderr.puts 'Run with --verbose for more details.'
       end
     end
 
@@ -190,7 +190,7 @@ def warning_summary(warnings)
   order = [:useless_terminal, :useless_nonterminal, :useless_prec,
            :useless_rule, :sr_conflict, :rr_conflict]
 
-  freq.sort_by { |k, v| order.index(k) }.map { |k, v| pluralize(v, types[k]) }.join(', ')
+  freq.sort_by { |k, _v| order.index(k) }.map { |k, v| pluralize(v, types[k]) }.join(', ')
 end
 
 def pluralize(count, noun)
@@ -222,26 +222,26 @@ class RaccProfiler
   def report
     return unless @really
     f = $stderr
-    total = cumulative_time()
+    total = cumulative_time
     f.puts '--task-----------+--sec------+---%-'
     @log.each do |name, time|
-      f.printf "%-19s %s %3d%%\n", name, pjust(time,4,4), (time/total*100).to_i
+      f.printf "%-19s %s %3d%%\n", name, pjust(time, 4, 4), (time / total * 100).to_i
     end
     f.puts '-----------------+-----------+-----'
-    f.printf "%-20s%s\n", 'total', pjust(total,4,4)
+    f.printf "%-20s%s\n", 'total', pjust(total, 4, 4)
   end
 
   private
 
   def cumulative_time
-    t = @log.inject(0) {|sum, (name, time)| sum + time }
+    t = @log.inject(0) { |sum, (_name, time)| sum + time }
     t == 0 ? 0.01 : t
   end
 
   def pjust(num, i, j)
     m = /(\d+)(\.\d+)?/.match(num.to_s)
     str = m[1].rjust(i)
-    str.concat m[2].ljust(j+1)[0,j+1] if m[2]
+    str.concat m[2].ljust(j + 1)[0, j + 1] if m[2]
     str
   end
 end

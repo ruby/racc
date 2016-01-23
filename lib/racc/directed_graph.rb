@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'racc/util'
 require 'racc/color'
 require 'tempfile'
@@ -14,7 +15,7 @@ module Racc
 
         visited  = Set[start]
         worklist = [start]
-        paths    = {start => [start]}
+        paths    = { start => [start] }
 
         until visited.include?(dest)
           return nil if worklist.empty?
@@ -40,7 +41,7 @@ module Racc
       # all paths include both start and end points
       def shortest_paths
         # again, Dijkstra's algorithm
-        paths = {@start => [0, @start]} # cache total path cost
+        paths = { @start => [0, @start] } # cache total path cost
 
         Racc.set_closure([@start]) do |node|
           node_path = paths[node]
@@ -53,14 +54,14 @@ module Racc
           end
         end
 
-        paths.each_value { |p| p.shift } # drop cached total costs
+        paths.each_value(&:shift) # drop cached total costs
         paths
       end
 
       # only paths with no loops will be found
       # start and end points are included
       # this can be very slow on graphs with a lot of transitions!
-      def all_paths(src, dest, current=src, traversed=[src], result=[])
+      def all_paths(src, dest, current = src, traversed = [src], result = [])
         children(current) do |child|
           if child == dest
             result << (traversed.dup << child)
@@ -73,27 +74,27 @@ module Racc
         result
       end
 
-      def to_gif(options={})
-        filename = options[:filename] || "graph.gif"
-        filename <<= ".gif" unless filename.end_with?(".gif")
-        Tempfile.open("graph") do |f|
-          f.write(self.to_dot(options))
+      def to_gif(options = {})
+        filename = options[:filename] || 'graph.gif'
+        filename <<= '.gif' unless filename.end_with?('.gif')
+        Tempfile.open('graph') do |f|
+          f.write(to_dot(options))
           f.flush
           `dot -Tgif #{f.path} -o "#{filename}"`
         end
       end
 
-      def to_dot(options={})
+      def to_dot(options = {})
         s = "digraph {\n"
         s <<= "graph [label=\"#{options[:title]}\"]\n" if options[:title]
         (options[:highlight] || []).each do |node|
           s <<= "\"#{node.hash}\" [style=filled fillcolor=gold]\n"
         end
         s <<= nodes.map do |node|
-          %{"#{node.hash}" [label="#{node_caption(node)}"]} <<
-          children(node).map { |child| %{"#{node.hash}" -> "#{child.hash}"} }.join("\n")
+          %("#{node.hash}" [label="#{node_caption(node)}"]) <<
+            children(node).map { |child| %("#{node.hash}" -> "#{child.hash}") }.join("\n")
         end.join("\n")
-        s << "}"
+        s << '}'
       end
     end
 
@@ -107,9 +108,7 @@ module Racc
         @start = nil
       end
 
-      def start=(idx)
-        @start = idx
-      end
+      attr_writer :start
 
       def add_child(from, to)
         self[from] << to
@@ -205,13 +204,11 @@ module Racc
 
       attr_reader :start
 
-      def start=(idx)
-        @start = idx
-      end
+      attr_writer :start
 
       def add_vector(from, to, label)
         if self[from].key?(label)
-          raise "Vector #{label.inspect} from node #{from} already exists"
+          fail "Vector #{label.inspect} from node #{from} already exists"
         end
         self[from][label] = to
         self[to + @offset] << from
@@ -261,7 +258,7 @@ module Racc
 
       # like #all_paths, but return sequences of vector labels, not sequences
       # of nodes
-      def all_vector_paths(src, dest, current=src, kill=0, path=[], result=[])
+      def all_vector_paths(src, dest, current = src, kill = 0, path = [], result = [])
         vectors(current) do |label, child|
           if child == dest
             result << (path.dup << label)
@@ -276,7 +273,7 @@ module Racc
 
       # like #shortest_paths, but return sequences of vector labels
       def shortest_vector_paths
-        paths = {@start => [0]} # cache total path cost
+        paths = { @start => [0] } # cache total path cost
 
         Racc.set_closure([@start]) do |node|
           node_path = paths[node]
@@ -290,7 +287,7 @@ module Racc
           children(node)
         end
 
-        paths.each_value { |p| p.shift } # drop cached total costs
+        paths.each_value(&:shift) # drop cached total costs
         paths
       end
 
@@ -351,11 +348,11 @@ module Racc
       end
 
       def reachable_from(nodes)
-        Racc.set_closure(nodes) { |node| node.out }
+        Racc.set_closure(nodes) { |node, _| node.out }
       end
 
       def can_reach(dests)
-        Racc.set_closure(dests) { |node| node.in }
+        Racc.set_closure(dests) { |node, _| node.in }
       end
 
       def leaves
@@ -374,7 +371,8 @@ module Racc
 
     class Node
       def initialize
-        @out, @in = Set.new, Set.new
+        @out = Set.new
+        @in = Set.new
       end
 
       attr_reader :out, :in

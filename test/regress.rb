@@ -15,10 +15,10 @@ def trysystem(command)
   croak("Command failed: #{command}") unless system(command)
 end
 
-croak("No such file: #{filename}") if !File.exist?(filename)
+croak("No such file: #{filename}") unless File.exist?(filename)
 
 if commit1.nil? || commit1.empty? || commit2.nil? || commit2.empty?
-  croak("Usage: regress.rb <filename> <commit 1> <commit 2>")
+  croak('Usage: regress.rb <filename> <commit 1> <commit 2>')
 end
 
 racc = File.join(File.dirname(__FILE__), '..', 'bin', 'racc')

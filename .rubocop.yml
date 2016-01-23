@@ -1,6 +1,10 @@
 AllCops:
   Exclude:
     - Gemfile
+    - lib/**/*.rl
+    - lib/racc/grammar_file_scanner.rb
+    - tmp/**/*
+    - test/regress/**/*
 
 Lint/AssignmentInCondition:
   Enabled: false

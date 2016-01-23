@@ -1,3 +1,4 @@
+# frozen_string_literal: false
 require 'racc/color'
 require 'racc/simulated_automaton'
 
@@ -11,9 +12,9 @@ module Racc
     include Enumerable
 
     def initialize
-      @rules   = Hash.new { |h,k| h[k] = [] }
-      @states  = Hash.new { |h,k| h[k] = [] }
-      @symbols = Hash.new { |h,k| h[k] = [] }
+      @rules   = Hash.new { |h, k| h[k] = [] }
+      @states  = Hash.new { |h, k| h[k] = [] }
+      @symbols = Hash.new { |h, k| h[k] = [] }
     end
 
     def add_for_rule(rule, warning)
@@ -84,7 +85,7 @@ module Racc
 
       def title
         "Useless nonterminal #{@sym} does not appear on the right side of " \
-          "any rule, neither is it the start symbol"
+          'any rule, neither is it the start symbol'
       end
 
       def type
@@ -105,7 +106,7 @@ module Racc
         "Its derivation rule#{'s all' unless @sym.heads.one?} contain" \
         "#{'s' if @sym.heads.one?} #{'an ' if @sym.heads.one?}infinite loop" \
         "#{'s' unless @sym.heads.one?}:\n" <<
-        @sym.heads.map { |ptr| ptr.rule.to_s }.join("\n")
+          @sym.heads.map { |ptr| ptr.rule.to_s }.join("\n")
       end
 
       def type
@@ -161,16 +162,16 @@ module Racc
       end
 
       def details
-        @rule.to_s << "\n\n" << @rule.overridden_by.group_by do |token, rules|
+        @rule.to_s << "\n\n" << @rule.overridden_by.group_by do |_token, rules|
           rules
         end.map do |rules, tokens|
           tokens = tokens.map(&:first)
           connective = if tokens.one?
-            ''
-          elsif tokens.size == 2
-            'either '
-          else
-            'any of '
+                         ''
+                       elsif tokens.size == 2
+                         'either '
+                       else
+                         'any of '
           end
 
           "When the next token is #{connective}#{Racc.to_sentence(tokens, 'or')}" \
@@ -203,10 +204,10 @@ module Racc
       end
 
       def details
-        if @path.reject(&:hidden?).empty?
-          result = ''
-        else
-          result = @path.reject(&:hidden?).map(&:to_s).join(' ') << "\n"
+        result = if @path.reject(&:hidden?).empty?
+                   ''
+                 else
+                   @path.reject(&:hidden?).map(&:to_s).join(' ') << "\n"
         end
 
         result << "\nThe following rule#{'s' unless @srules.one?} " \
@@ -260,15 +261,15 @@ module Racc
       end
 
       def details
-        if @path.reject(&:hidden?).empty?
-          result = ''
-        else
-          result = @path.reject(&:hidden?).map(&:to_s).join(' ') << "\n"
+        result = if @path.reject(&:hidden?).empty?
+                   ''
+                 else
+                   @path.reject(&:hidden?).map(&:to_s).join(' ') << "\n"
         end
 
         result << "\nIt is possible to reduce by " \
                "#{@rules.size == 2 ? 'either' : 'any'} of these rules:\n" <<
-               @rules.map(&:to_s).join("\n")
+          @rules.map(&:to_s).join("\n")
 
         if @verbose
           targets = @rules.group_by(&:target)

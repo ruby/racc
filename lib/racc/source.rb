@@ -16,7 +16,7 @@ module Racc
     module Text
       def drop_leading_blank_lines
         if text =~ /\A(?:[ \t\f\v]*(?:#{NL}))+/
-          slice($~.end(0), text.size)
+          slice($LAST_MATCH_INFO.end(0), text.size)
         else
           self
         end
@@ -46,7 +46,7 @@ module Racc
       def spiffier
         cooked = spiffy
         # convert leading tabs to spaces so we get indentation right
-        cooked.gsub!(/^ *(\t+)/) { TAB_TO_SPACE * $1.size }
+        cooked.gsub!(/^ *(\t+)/) { TAB_TO_SPACE * Regexp.last_match(1).size }
         cooked = (' ' * column) << cooked if column > 0
         cooked.gsub!(/^ {#{min_indent}}/, '')
         cooked
@@ -97,27 +97,29 @@ module Racc
         Range.new(self, from, to).tap do |range|
           range.highlights =
             @highlights
-              .select { |h| h.from >= from && t.to <= to }
-              .map { |h| Highlight.new(h.object, h.from - from, h.to - from ) }
+            .select { |h| h.from >= from && t.to <= to }
+            .map { |h| Highlight.new(h.object, h.from - from, h.to - from) }
         end
       end
 
       if Array.method_defined?(:bsearch)
         def line_for(offset)
-          line, _ = line_offsets.bsearch { |lineno, start| start <= offset }
+          line, = line_offsets.bsearch { |_lineno, start| start <= offset }
           line
         end
+
         def column_for(offset)
-          _, column = line_offsets.bsearch { |lineno, start| start <= offset }
+          _, column = line_offsets.bsearch { |_lineno, start| start <= offset }
           offset - column
         end
       else
         def line_for(offset)
-          line, _ = line_offsets.find { |lineno, start| start <= offset }
+          line, = line_offsets.find { |_lineno, start| start <= offset }
           line
         end
+
         def column_for(offset)
-          _, column = line_offsets.find { |lineno, start| start <= offset }
+          _, column = line_offsets.find { |_lineno, start| start <= offset }
           offset - column
         end
       end
@@ -128,7 +130,7 @@ module Racc
         @line_offsets ||= begin
           offsets = [[1, 0]]
           index   = 1
-          text.scan(NL) { offsets.unshift([index += 1, $~.end(0)]) }
+          text.scan(NL) { offsets.unshift([index += 1, $LAST_MATCH_INFO.end(0)]) }
           offsets
         end
       end
@@ -175,15 +177,15 @@ module Racc
       end
 
       def slice(from, to)
-        raise 'slice end must be >= start' if from > to
+        fail 'slice end must be >= start' if from > to
         max  = @to - @from
         to   = max if to > max
         from = max if from > max
         Range.new(@buffer, @from + from, @from + to).tap do |range|
           range.highlights =
             @highlights
-              .select { |h| h.from >= from && h.to <= to }
-              .map { |h| Highlight.new(h.object, h.from - from, h.to - from) }
+            .select { |h| h.from >= from && h.to <= to }
+            .map { |h| Highlight.new(h.object, h.from - from, h.to - from) }
         end
       end
 

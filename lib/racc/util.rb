@@ -12,10 +12,9 @@ module Racc
     result   = Set.new(seed)
 
     until worklist.empty?
-      if found = yield(worklist.shift, result)
-        found.each do |member|
-          worklist.push(member) if result.add?(member)
-        end
+      next unless found = yield(worklist.shift, result)
+      found.each do |member|
+        worklist.push(member) if result.add?(member)
       end
     end
 
@@ -23,7 +22,7 @@ module Racc
   end
 
   def self.to_sentence(words, conjunction = 'and')
-    raise "Can't make a sentence out of zero words" if words.none?
+    fail "Can't make a sentence out of zero words" if words.none?
     if words.one?
       words[0]
     elsif words.size == 2

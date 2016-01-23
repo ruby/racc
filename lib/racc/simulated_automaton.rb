@@ -5,7 +5,7 @@ require 'set'
 module Racc
   class SimulatedAutomaton
     def self.from_path(grammar, path)
-      path.each_with_object(self.new(grammar.states)) do |sym, automaton|
+      path.each_with_object(new(grammar.states)) do |sym, automaton|
         if sym.terminal?
           automaton.consume!(sym)
         else
@@ -51,7 +51,7 @@ module Racc
         @error = true
         error
       else
-        raise "Illegal action type: #{action.class}"
+        fail "Illegal action type: #{action.class}"
       end
 
       self
@@ -108,7 +108,7 @@ module Racc
           p.following.flat_map(&:shortest_production).size
         end
 
-        automaton = self.dup
+        automaton = dup
         path1 = automaton.follow_rule(ptr)
         next if automaton.error?
 

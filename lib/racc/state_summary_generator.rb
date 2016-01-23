@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'racc/state'
 require 'racc/directed_graph'
 require 'racc/util'
@@ -87,22 +88,22 @@ module Racc
       if sym.string_symbol?
         @output << "<span style='color: #A4A017; font-weight: bold'>" \
           "#{sym.display_name}" \
-          "</span>"
+          '</span>'
       elsif sym.terminal?
         @output << "<span style='color: #239449; text-decoration: underline'>" \
           "#{sym.display_name}" \
-          "</span>"
+          '</span>'
       else
         @output << "<span style='color: #36318D'>" \
           "#{sym.display_name}" \
-          "</span>"
+          '</span>'
       end
     end
 
     def print_explicit_prec(sym)
       @output << "<span style='color: red; font-weight: bold'>" \
         "=#{sym.display_name}" \
-        "</span>"
+        '</span>'
     end
 
     def print_shortest_path(state)
@@ -137,7 +138,7 @@ module Racc
     def print_action_table(state)
       @output << '<thead><tr><th><b>Lookahead token</b></th><th><b>Action</b></th></tr></thead>'
       @output << '<tbody>'
-      state.action.sort_by { |k,v| k.ident }.each do |tok, act|
+      state.action.sort_by { |k, _v| k.ident }.each do |tok, act|
         @output << '<tr><td>'
         print_symbol(tok)
         @output << '</td><td>'
@@ -199,7 +200,7 @@ module Racc
       @output << ')'
     end
 
-    TEMPLATE = <<-END
+    TEMPLATE = <<-END.freeze
 <!DOCTYPE html>
 <html>
   <head>

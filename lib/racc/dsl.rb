@@ -33,12 +33,12 @@ module Racc
       # Intercept calls to `self.non_terminal = ...`, and use them to register
       # a new rule
       def method_missing(mid, *args, &block)
-        unless mid.to_s[-1,1] == '='
-          super   # raises NoMethodError
+        unless mid.to_s[-1, 1] == '='
+          super # raises NoMethodError
         end
         target = @grammar.intern(mid.to_s.chop.intern)
         unless args.size == 1
-          raise ArgumentError, "too many arguments for #{mid} (#{args.size} for 1)"
+          fail ArgumentError, "too many arguments for #{mid} (#{args.size} for 1)"
         end
         _add(target, args.first)
       end
@@ -73,7 +73,7 @@ module Racc
       end
 
       def _added?(sym)
-        @grammar.added?(sym) or @delayed.detect {|r| r.target == sym }
+        @grammar.added?(sym) || @delayed.detect { |r| r.target == sym }
       end
 
       def flush_delayed
@@ -86,7 +86,7 @@ module Racc
 
       # Basic method for creating a new `Rule`.
       def seq(*list, &block)
-        Rule.new(nil, list.map {|x| _intern(x) }, UserAction.proc(block))
+        Rule.new(nil, list.map { |x| _intern(x) }, UserAction.proc(block))
       end
 
       # Create a null `Rule` (one with an empty RHS)
@@ -98,25 +98,25 @@ module Racc
       # in which case the action will return `default`, or which can match a single
       # `sym`.
       def option(sym, default = nil, &block)
-        _defmetasyntax("option", _intern(sym), block) {|target|
-          seq() { default } | seq(sym)
-        }
+        _defmetasyntax('option', _intern(sym), block) do |_target|
+          seq { default } | seq(sym)
+        end
       end
 
       # Create a `Rule` which matches 0 or more instance of `sym` in a row.
       def many(sym, &block)
-        _defmetasyntax("many", _intern(sym), block) {|target|
-            seq() { [] }\
-          | seq(target, sym) {|list, x| list.push x; list }
-        }
+        _defmetasyntax('many', _intern(sym), block) do |target|
+          seq { [] }\
+        | seq(target, sym) { |list, x| list.push x; list }
+        end
       end
 
       # Create a `Rule` which matches 1 or more instances of `sym` in a row.
       def many1(sym, &block)
-        _defmetasyntax("many1", _intern(sym), block) {|target|
-            seq(sym) {|x| [x] }\
-          | seq(target, sym) {|list, x| list.push x; list }
-        }
+        _defmetasyntax('many1', _intern(sym), block) do |target|
+          seq(sym) { |x| [x] }\
+        | seq(target, sym) { |list, x| list.push x; list }
+        end
       end
 
       # Create a `Rule` which matches 0 or more instances of `sym`, separated
@@ -128,10 +128,10 @@ module Racc
       # Create a `Rule` which matches 1 or more instances of `sym`, separated
       # by `sep`.
       def separated_by1(sep, sym, &block)
-        _defmetasyntax("separated_by1", _intern(sym), block) {|target|
-            seq(sym) {|x| [x] }\
-          | seq(target, sep, sym) {|list, _, x| list.push x; list }
-        }
+        _defmetasyntax('separated_by1', _intern(sym), block) do |target|
+          seq(sym) { |x| [x] }\
+        | seq(target, sep, sym) { |list, _, x| list.push x; list }
+        end
       end
 
       def _intern(x)
@@ -141,7 +141,7 @@ module Racc
         when Racc::Sym
           x
         else
-          raise TypeError, "wrong type #{x.class} (expected Symbol/String/Racc::Sym)"
+          fail TypeError, "wrong type #{x.class} (expected Symbol/String/Racc::Sym)"
         end
       end
 

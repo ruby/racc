@@ -8,16 +8,15 @@
 require 'racc/parser'
 
 module Racc
-
   TRANSITION_TABLE_ATTRS =
     [:action_table,   :action_check,    :action_default, :action_pointer,
      :goto_table,     :goto_check,      :goto_default,   :goto_pointer,
      :token_table,    :reduce_table,    :reduce_n,       :shift_n,
      :nt_base,        :token_to_s_table,
-     :use_result_var, :debug_parser]
+     :use_result_var, :debug_parser].freeze
 
   class StateTransitionTable < Struct.new(*TRANSITION_TABLE_ATTRS)
-    def StateTransitionTable.generate(states)
+    def self.generate(states)
       StateTransitionTableGenerator.new(states).generate
     end
 
@@ -37,7 +36,7 @@ module Racc
     end
 
     def token_value_table
-      Hash[token_table.map { |sym, i| [sym.value, i]}]
+      Hash[token_table.map { |sym, i| [sym.value, i] }]
     end
   end
 
@@ -56,7 +55,7 @@ module Racc
       t.reduce_n = @grammar.size
       t.shift_n = @states.size
       t.nt_base = @grammar.nonterminal_base
-      t.token_to_s_table = @grammar.symbols.map {|sym| sym.to_s }
+      t.token_to_s_table = @grammar.symbols.map(&:to_s)
       t
     end
 
@@ -76,7 +75,7 @@ module Racc
     end
 
     def token_table(grammar)
-      Hash[grammar.terminals.map { |t| [t, t.ident]}]
+      Hash[grammar.terminals.map { |t| [t, t.ident] }]
     end
 
     # The action and goto tables use a clever trick for compression
@@ -149,11 +148,7 @@ module Racc
         end
 
         most_common = freq.keys.max_by { |k| freq[k] }
-        if most_common && freq[most_common] > 1
-          t.goto_default << most_common
-        else
-          t.goto_default << nil
-        end
+        t.goto_default << (most_common if most_common && freq[most_common] > 1)
       end
 
       # now build goto table for each nonterminal, and record data which will
@@ -192,7 +187,7 @@ module Racc
       all << [array, chkval, mkmapexp(array), min, ptr_array.size - 1]
     end
 
-    n = 2 ** 16
+    n = 2**16
     begin
       Regexp.compile("a{#{n}}")
       RE_DUP_MAX = n
@@ -223,7 +218,7 @@ module Racc
 
     def set_table(entries, tbl, chk, ptr)
       upper = 0
-      map = '-' * 10240
+      map = '-' * 10_240
 
       # sort long to short
       # we want a stable sort, so that the output will not be dependent on
@@ -238,18 +233,15 @@ module Racc
       end
 
       entries.each do |_, arr, chkval, expr, min, ptri|
-        if upper + arr.size > map.size
-          map << '-' * (arr.size + 1024)
-        end
+        map << '-' * (arr.size + 1024) if upper + arr.size > map.size
         idx = map.index(expr)
         ptr[ptri] = idx - min
         arr.each_with_index do |item, i|
-          if item
-            i += idx
-            tbl[i] = item
-            chk[i] = chkval
-            map[i] = 'o'
-          end
+          next unless item
+          i += idx
+          tbl[i] = item
+          chk[i] = chkval
+          map[i] = 'o'
         end
         upper = idx + arr.size
       end
@@ -262,7 +254,7 @@ module Racc
       when Accept then @states.size
       when Error  then @grammar.size * -1
       else
-        raise "racc: fatal: wrong act type #{act.class} in action table"
+        fail "racc: fatal: wrong act type #{act.class} in action table"
       end
     end
   end
@@ -299,7 +291,7 @@ module Racc
     private
 
     def define_actions(c)
-      c.module_eval "def _reduce_none(vals, vstack) vals[0] end"
+      c.module_eval 'def _reduce_none(vals, vstack) vals[0] end'
       @grammar.each do |rule|
         if rule.action.empty?
           c.__send__(:alias_method, "_reduce_#{rule.ident}", :_reduce_none)

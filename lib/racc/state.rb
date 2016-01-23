@@ -19,9 +19,10 @@ module Racc
     def initialize(grammar)
       @grammar = grammar
       @states  = []
-      @gotos   = [] # all state transitions performed when reducing
-                    # Goto is also used for state transitions when shifting,
-                    # but those objects don't go in this array
+      # all state transitions performed when reducing
+      # Goto is also used for state transitions when shifting,
+      # but those objects don't go in this array
+      @gotos   = []
 
       generate_states
       compute_lookahead
@@ -75,7 +76,7 @@ module Racc
       start = State.new(0, Set[@grammar[0].ptrs[0]], self)
 
       @states << start
-      states   = {start.core => start}
+      states   = { start.core => start }
       worklist = [start]
 
       until worklist.empty?
@@ -88,7 +89,7 @@ module Racc
         # positions within the RHS of a rule where we could be right now
         # convert core to a State object; if state does not exist, create it
 
-        table = Hash.new { |h,k| h[k] = Set.new }
+        table = Hash.new { |h, k| h[k] = Set.new }
         state.closure.each do |ptr|
           table[ptr.symbol].add(ptr.next) unless ptr.reduce?
         end
@@ -98,7 +99,7 @@ module Racc
 
           unless dest = states[core]
             # not registered yet
-            dest  = State.new(@states.size, core, self)
+            dest = State.new(@states.size, core, self)
             @states  << dest
             worklist << dest
             states[core] = dest
@@ -108,9 +109,9 @@ module Racc
           @gotos << goto if sym.nonterminal?
           state.gotos[sym] = goto
 
-          if state.ident == dest.ident and state.closure.size == 1
+          if state.ident == dest.ident && state.closure.size == 1
             rule = state.ptrs[0].rule
-            raise CompileError, "Infinite recursion in rule: #{rule}"
+            fail CompileError, "Infinite recursion in rule: #{rule}"
           end
         end
       end
@@ -169,7 +170,7 @@ module Racc
           # what sequence of state transitions would we have made to reach
           # this reduction, if this is the rule that was used?
           path(goto.from_state, ptr.rule).reverse_each do |preceding_goto|
-            break if     preceding_goto.symbol.terminal?
+            break if preceding_goto.symbol.terminal?
             includes.add_child(preceding_goto.ident, goto.ident)
             break unless preceding_goto.symbol.nullable?
           end
@@ -219,7 +220,7 @@ module Racc
     # original value, and ALL the values for all the nodes which are reachable
     # from it
     def walk_graph(bitmap, graph)
-      index    = Array.new(graph.size, nil)
+      index = Array.new(graph.size, nil)
       traversed = Set.new
 
       graph.nodes do |node|
@@ -248,7 +249,7 @@ module Racc
       end
 
       if index[node] == stack_depth
-        while true
+        loop do
           next_node = stack.pop
           index[next_node] = graph.size + 2
           break if node == next_node
@@ -275,7 +276,7 @@ module Racc
     end
 
     def resolve_rr(state, ritems)
-      rrules = Hash.new { |h,k| h[k] = [] }
+      rrules = Hash.new { |h, k| h[k] = [] }
 
       ritems.each do |item|
         item.each_lookahead_token(@grammar.symbols) do |sym|
@@ -287,11 +288,10 @@ module Racc
         # If there is a conflict, reduce with the rule which appeared
         # first in the source
         state.action[sym] = Reduce.new(rules[0])
-        if rules.size > 1
-          state.rr_conflict!(sym, rules)
-          rules.drop(1).each do |rule|
-            rule.overridden_by[sym] << rules[0]
-          end
+        next unless rules.size > 1
+        state.rr_conflict!(sym, rules)
+        rules.drop(1).each do |rule|
+          rule.overridden_by[sym] << rules[0]
         end
       end
     end
@@ -331,10 +331,10 @@ module Racc
     end
 
     ASSOC = {
-      :Left     => :Reduce,
-      :Right    => :Shift,
-      :Nonassoc => :Error
-    }
+      Left: :Reduce,
+      Right: :Shift,
+      Nonassoc: :Error
+    }.freeze
 
     def do_resolve_sr(stok, rtok, rrule)
       return :CantResolve unless rtok && (rprec = rtok.precedence)
@@ -344,7 +344,7 @@ module Racc
 
       if rprec == sprec
         ASSOC[rtok.assoc] ||
-        (raise "racc: fatal: #{rtok}.assoc is not Left/Right/Nonassoc")
+          (fail "racc: fatal: #{rtok}.assoc is not Left/Right/Nonassoc")
       else
         (rprec > sprec) ? :Reduce : :Shift
       end
@@ -364,7 +364,7 @@ module Racc
       # find most frequently used reduce rule, and make it the default action
       state.defact ||= begin
         freq = Hash.new(0)
-        state.action.each do |tok, act|
+        state.action.each do |_tok, act|
           freq[act.rule] += 1 if act.is_a?(Reduce)
         end
 
@@ -373,7 +373,7 @@ module Racc
         else
           most_common = freq.keys.max_by { |rule| freq[rule] }
           reduce = Reduce.new(most_common)
-          state.action.delete_if { |tok, act| act == reduce }
+          state.action.delete_if { |_tok, act| act == reduce }
           reduce
         end
       end
@@ -384,7 +384,7 @@ module Racc
     def useless_rules
       used_rules = Set.new
       @states.each do |state|
-        state.action.each do |tok, act|
+        state.action.each do |_tok, act|
           used_rules << act.rule if act.is_a?(Reduce)
         end
         used_rules << state.defact.rule if state.defact.is_a?(Reduce)
@@ -402,13 +402,13 @@ module Racc
       if should_report_srconflict?
         sr_conflicts.each do |sr|
           warnings.add_for_state(sr.state,
-            Warning::SRConflict.new(sr, @grammar, verbose))
+                                 Warning::SRConflict.new(sr, @grammar, verbose))
         end
       end
 
       rr_conflicts.each do |rr|
         warnings.add_for_state(rr.state,
-          Warning::RRConflict.new(rr, @grammar, verbose))
+                               Warning::RRConflict.new(rr, @grammar, verbose))
       end
 
       warnings
@@ -431,10 +431,10 @@ module Racc
       @dtgraph ||= each_with_object(Graph::Labeled.new(size)) do |s, graph|
         s.gotos.each do |tok, goto|
           path = if tok.terminal?
-            [tok]
-          else
-            actions_to_reach_reduce(s.ident, tok)
-          end
+                   [tok]
+                 else
+                   actions_to_reach_reduce(s.ident, tok)
+                 end
           graph.add_vector(s.ident, goto.to_state.ident, path)
         end
       end.tap { |graph| graph.start = 0 }.freeze
@@ -447,7 +447,8 @@ module Racc
         r.symbols.flat_map(&:shortest_production).size
       end
 
-      actions, cur_state = [], state_idx
+      actions = []
+      cur_state = state_idx
       rule.symbols.each do |sym|
         if sym.terminal?
           actions << sym
@@ -486,18 +487,25 @@ module Racc
 
   class State
     def initialize(ident, core, states)
-      @ident = ident # ID number used to provide a canonical ordering
-      @core  = core  # LocationPointers to all the possible positions within the
-                     # RHS of a rule where we could be when in this state
+      # ID number used to provide a canonical ordering
+      @ident = ident
 
-      @gotos  = {}   # Sym -> Goto describing state transition if we encounter
-                     # that Sym next
-      @action = {}   # Sym -> Shift/Reduce/Accept/Error describing what we will
-                     # do if we encounter that Sym next
-      @defact = nil  # if action table has no entry for a certain lookahead
-                     # token, perform this action instead
-                     # (if action table is empty, just perform this action
-                     # without even checking the lookahead token)
+      # LocationPointers to all the possible positions within the
+      # RHS of a rule where we could be when in this state
+      @core  = core
+
+      # Sym -> Goto describing state transition if we encounter that Sym next
+      @gotos  = {}
+
+      # Sym -> Shift/Reduce/Accept/Error describing what we will
+      # do if we encounter that Sym next
+      @action = {}
+
+      # if action table has no entry for a certain lookahead
+      # token, perform this action instead
+      # (if action table is empty, just perform this action
+      # without even checking the lookahead token)
+      @defact = nil
       @rr_conflicts = {}
       @sr_conflicts = {}
       @states = states
@@ -532,7 +540,7 @@ module Racc
       # This recursion has already been done and the result cached in Sym#expand
       @closure ||= @core.each_with_object(Set.new) do |ptr, set|
         set.add(ptr)
-        if sym = ptr.symbol and sym.nonterminal?
+        if (sym = ptr.symbol) && sym.nonterminal?
           set.merge(sym.expand)
         end
       end.sort_by(&:ident)
@@ -540,13 +548,13 @@ module Racc
 
     def stokens
       @stokens ||= closure.reject(&:reduce?).map(&:symbol).select(&:terminal?)
-                     .uniq.sort_by(&:ident)
+                          .uniq.sort_by(&:ident)
     end
 
     # {Sym -> LocationPointers within rules which direct us to shift that Sym}
     def srules
       @srules ||= begin
-        closure.each_with_object(Hash.new { |h,k| h[k] = [] }) do |ptr, table|
+        closure.each_with_object(Hash.new { |h, k| h[k] = [] }) do |ptr, table|
           next if ptr.reduce? || ptr.symbol.nonterminal?
           table[ptr.symbol] << ptr
         end
@@ -639,13 +647,13 @@ module Racc
 
   class Accept
     def inspect
-      "<accept>"
+      '<accept>'
     end
   end
 
   class Error
     def inspect
-      "<error>"
+      '<error>'
     end
   end
 
