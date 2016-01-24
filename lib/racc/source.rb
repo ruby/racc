@@ -63,6 +63,7 @@ module Racc
       end
     end
 
+    # buffer of text
     class Buffer
       include Text
 
@@ -130,19 +131,24 @@ module Racc
         @line_offsets ||= begin
           offsets = [[1, 0]]
           index   = 1
-          text.scan(NL) { offsets.unshift([index += 1, $LAST_MATCH_INFO.end(0)]) }
+          text.scan(NL) do
+            offsets.unshift([index += 1, $LAST_MATCH_INFO.end(0)])
+          end
           offsets
         end
       end
 
       def min_indent
-        @min_indent ||= begin
-          lines = text.lines.reject { |line| line =~ /\A\s*\Z/ }
-          lines.map { |line| line[/\A\s*/].gsub("\t", TAB_TO_SPACE).size }.min || 0
+        @min_indent if @min_indent
+        lines = text.lines.reject { |line| line =~ /\A\s*\Z/ }
+        lines = lines.map do |line|
+          line[/\A\s*/].gsub("\t", TAB_TO_SPACE).size
         end
+        @min_indent = lines.min || 0
       end
     end
 
+    # range of text.
     class Range
       include Text
 
@@ -176,6 +182,7 @@ module Racc
         @buffer.column_for(@from)
       end
 
+      # rubocop:disable Metrics/AbcSize
       def slice(from, to)
         fail 'slice end must be >= start' if from > to
         max  = @to - @from
@@ -188,17 +195,21 @@ module Racc
             .map { |h| Highlight.new(h.object, h.from - from, h.to - from) }
         end
       end
+      # rubocop:enable Metrics/AbcSize
 
       def min_indent
         @min_indent ||= begin
           lines  = text.lines.reject { |line| line =~ /\A\s*\Z/ }
-          widths = lines.map { |line| line[/\A\s*/].gsub("\t", TAB_TO_SPACE).size }
+          widths = lines.map do |line|
+            line[/\A\s*/].gsub("\t", TAB_TO_SPACE).size
+          end
           widths[0] += @buffer.column_for(@from)
           widths.min || 0
         end
       end
     end
 
+    # highlighted text
     class Highlight
       def initialize(object, from, to)
         @object = object # model object which this text represents
@@ -234,11 +245,14 @@ module Racc
         merge(sparse).map(&:spifferific).join("\n\n")
       end
 
+      # rubocop:disable Metrics/AbcSize
       def spifferific
         cooked    = @textobj.spiffier.lines.map(&:chomp)
         base_line = @textobj.lineno
         ranges    = canonicalize_ranges(@lines)
-        groups    = ranges.map { |r| cooked[(r.begin - base_line)..(r.end - base_line)] }
+        groups    = ranges.map do |r|
+          cooked[(r.begin - base_line)..(r.end - base_line)]
+        end
         groups    = groups.map! { |g| g.join("\n") }
 
         loc_width = "#{@textobj.name}:#{ranges.last.begin}: ".length
@@ -249,7 +263,10 @@ module Racc
           "#{Color.bright(loc)}#{g}"
         end.join("\n...\n")
       end
+      # rubocop:enable Metrics/AbcSize
 
+      # rubocop:disable Metrics/CyclomaticComplexity
+      # rubocop:disable Metrics/PerceivedComplexity
       def canonicalize_ranges(ranges)
         last = nil
         ranges.each_with_object([]) do |range, result|
@@ -263,6 +280,8 @@ module Racc
           end
         end
       end
+      # rubocop:enable Metrics/CyclomaticComplexity
+      # rubocop:enable Metrics/PerceivedComplexity
     end
   end
 end
