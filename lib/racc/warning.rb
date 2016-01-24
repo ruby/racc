@@ -181,7 +181,6 @@ module Racc
         end.join("\n\n")
       end
 
-      # rubocop:disable Metrics/MethodLength
       def build_warning_for_rules(rules, tokens)
         tokens = tokens.map(&:first)
         connective = if tokens.one?
@@ -198,7 +197,6 @@ module Racc
         "higher-precedence rule#{'s' unless rules.one?}:\n" <<
           Source::SparseLines.render(rules.map(&:source))
       end
-      # rubocop:enable Metrics/MethodLength
 
       def type
         :useless_rule
@@ -257,7 +255,6 @@ module Racc
         "parse would be:\n" << sauto.path_to_success.map(&:to_s).join(' ')
       end
 
-      # rubocop:disable Metrics/MethodLength
       def build_warning_for_after_reducing
         rauto = SimulatedAutomaton.from_path(@grammar, @path)
                                   .reduce_by!(@rrule).consume!(@sym)
@@ -274,7 +271,6 @@ module Racc
           'just a LALR parser generator and I can be pretty daft sometimes.'
         end
       end
-      # rubocop:enable Metrics/MethodLength
 
       def type
         :sr_conflict
@@ -325,7 +321,6 @@ module Racc
         end
       end
 
-      # rubocop:disable Metrics/MethodLength
       def build_warning_for_target(target, rules)
         rauto = SimulatedAutomaton.from_path(@grammar, @path)
                                   .reduce_by!(rules.first).consume!(@sym)
@@ -343,7 +338,6 @@ module Racc
             'and I can be pretty daft sometimes.'
         end
       end
-      # rubocop:enable Metrics/MethodLength
 
       def type
         :rr_conflict

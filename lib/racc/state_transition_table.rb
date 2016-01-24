@@ -139,7 +139,6 @@ module Racc
       end
     end
 
-    # rubocop:disable Metrics/MethodLength
     def gen_goto_tables(t, grammar)
       t.goto_table   = []
       t.goto_check   = []
@@ -162,7 +161,6 @@ module Racc
 
       set_table(entries, t.goto_table, t.goto_check, t.goto_pointer)
     end
-    # rubocop:enable Metrics/MethodLength
 
     def gen_goto_default(t, tok)
       freq = Hash.new(0)
@@ -177,7 +175,6 @@ module Racc
     end
 
     # rubocop:disable Metrics/AbcSize
-    # rubocop:disable Metrics/MethodLength
     def gen_goto_record(t, grammar, tok, default, entries)
       to_states = @states.map do |state|
         if goto = state.gotos[tok]
@@ -197,7 +194,6 @@ module Racc
       end
     end
     # rubocop:enable Metrics/AbcSize
-    # rubocop:enable Metrics/MethodLength
 
     def add_entry(all, array, chkval, ptr_array)
       # array is an action/goto array for one state
@@ -219,7 +215,6 @@ module Racc
       retry
     end
 
-    # rubocop:disable Metrics/MethodLength
     def mkmapexp(arr)
       map = ''
       maxdup = RE_DUP_MAX
@@ -239,7 +234,6 @@ module Racc
 
       Regexp.compile(map, 'n')
     end
-    # rubocop:enable Metrics/MethodLength
 
     # rubocop:disable Metrics/AbcSize
     # rubocop:disable Metrics/MethodLength
@@ -299,7 +293,6 @@ module Racc
     end
 
     # rubocop:disable Metrics/AbcSize
-    # rubocop:disable Metrics/MethodLength
     def generate
       table = @states.state_transition_table
       c = Class.new(::Racc::Parser)
@@ -323,7 +316,6 @@ module Racc
       c
     end
     # rubocop:enable Metrics/AbcSize
-    # rubocop:enable Metrics/MethodLength
 
     private
 
