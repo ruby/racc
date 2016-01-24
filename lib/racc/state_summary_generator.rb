@@ -5,7 +5,11 @@ require 'racc/util'
 
 require 'erb'
 
+# :nodoc:
 module Racc
+  # generate state summary
+  #
+  # rubocop:disable Metrics/ClassLength
   class StateSummaryGenerator
     def initialize(states, filename)
       @states   = states
@@ -34,6 +38,7 @@ module Racc
       @output << ' (start state)' if state.ident == 0
     end
 
+    # rubocop:disable Metrics/AbcSize
     def print_loc_ptr_as_tr(ptr)
       rule = ptr.rule
 
@@ -54,6 +59,7 @@ module Racc
       end
       @output << '</td></tr>'
     end
+    # rubocop:enable Metrics/AbcSize
 
     def print_rule(rule)
       print_symbol(rule.target)
@@ -108,35 +114,49 @@ module Racc
 
     def print_shortest_path(state)
       stack = []
-      @output << '<thead><tr><th><b>Action:</b></th><th><b>Stack:</b></th></tr></thead>'
+      @output << '<thead><tr>' \
+        '<th><b>Action:</b></th>' \
+        '<th><b>Stack:</b></th>' \
+        '</tr></thead>'
+
       @output << '<tbody>'
       state.shortest_detailed_path.each do |step|
-        if step.is_a?(Sym)
-          stack << step
-          @output << '<tr><td>Shift '
-          print_symbol(step)
-          @output << '</td><td>'
-          print_symbols(stack)
-          @output << '</td></tr>'
-        else
-          rhs     = step.rule.symbols.reject(&:hidden?)
-          reduced = rhs.size.times.map { stack.pop }.reverse
-          stack << step.symbol
-
-          @output << '<tr><td>Reduce to '
-          print_symbol(step.symbol)
-          @output << ' by:<br/>'
-          print_rule(step.rule)
-          @output << '</td><td>'
-          print_symbols(stack)
-          @output << '</td></tr>'
-        end
+        print_shortest_path_each_step(stack, step)
       end
       @output << '</tbody>'
     end
 
+    def print_shortest_path_each_step(stack, step)
+      @output << '<tr><td>'
+      if step.is_a?(Sym)
+        stack << step
+        @output << 'Shift '
+        print_symbol(step)
+      else
+        print_shortest_path_reduced(stack, step)
+      end
+      @output << '</td><td>'
+      print_symbols(stack)
+      @output << '</td></tr>'
+    end
+
+    def print_shortest_path_reduced(stack, step)
+      rhs = step.rule.symbols.reject(&:hidden?)
+      Array.new(rhs.size) { stack.pop }
+      stack << step.symbol
+
+      @output << 'Reduce to '
+      print_symbol(step.symbol)
+      @output << ' by:<br/>'
+      print_rule(step.rule)
+    end
+
+    # rubocop:disable Metrics/AbcSize
     def print_action_table(state)
-      @output << '<thead><tr><th><b>Lookahead token</b></th><th><b>Action</b></th></tr></thead>'
+      @output << '<thead><tr>' \
+        '<th><b>Lookahead token</b></th>' \
+        '<th><b>Action</b></th></tr>' \
+        '</thead>'
       @output << '<tbody>'
       state.action.sort_by { |k, _v| k.ident }.each do |tok, act|
         @output << '<tr><td>'
@@ -152,31 +172,43 @@ module Racc
       end
       @output << '</tbody>'
     end
+    # rubocop:enable Metrics/AbcSize
 
     def print_action(state, token, action)
       if action.is_a?(Reduce)
-        @output << 'Reduce by '
-        print_rule(action.rule)
-        @output << '<br/>'
-        print_state_links(@states.possible_reduce_destinations(state, action.rule))
-        if sr = state.sr_conflicts[token]
-          print_overridden_rules(sr.srules, 'shift')
-        end
-        if rr = state.rr_conflicts[token]
-          print_overridden_rules(rr.rules.drop(1), 'reduce')
-        end
+        print_action_reduce(state, token, action)
       elsif action.is_a?(Shift)
-        n = action.goto_state.ident
-        @output << "Shift and go to state <a href='\#state#{n}'>#{n}</a>"
-        if rr = state.rr_conflicts[token]
-          print_overridden_rules(rr.rules, 'reduce')
-        elsif sr = state.sr_conflicts[token]
-          print_overridden_rule(sr.rrule, 'reduce')
-        end
+        print_action_shift(state, token, action)
       elsif action.is_a?(Accept)
         @output << 'Accept (success!)'
       elsif action.is_a?(Error)
         @output << 'Error'
+      end
+    end
+
+    # rubocop:disable Metrics/AbcSize
+    def print_action_reduce(state, token, action)
+      @output << 'Reduce by '
+      print_rule(action.rule)
+      @output << '<br/>'
+      possible_states = @states.possible_reduce_destinations(state, action.rule)
+      print_state_links(possible_states)
+      if sr = state.sr_conflicts[token]
+        print_overridden_rules(sr.srules, 'shift')
+      end
+      if rr = state.rr_conflicts[token]
+        print_overridden_rules(rr.rules.drop(1), 'reduce')
+      end
+    end
+    # rubocop:enable Metrics/AbcSize
+
+    def print_action_shift(state, token, action)
+      n = action.goto_state.ident
+      @output << "Shift and go to state <a href='\#state#{n}'>#{n}</a>"
+      if rr = state.rr_conflicts[token]
+        print_overridden_rules(rr.rules, 'reduce')
+      elsif sr = state.sr_conflicts[token]
+        print_overridden_rule(sr.rrule, 'reduce')
       end
     end
 
@@ -252,4 +284,5 @@ module Racc
 </html>
     END
   end
+  # rubocop:enable Metrics/ClassLength
 end
