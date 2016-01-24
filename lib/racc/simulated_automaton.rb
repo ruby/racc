@@ -3,6 +3,9 @@ require 'racc/directed_graph'
 require 'set'
 
 module Racc
+  # SimulatedAutomaton is a class that used by +Racc::Warning+
+  #
+  # rubocop:disable Metrics/ClassLength
   class SimulatedAutomaton
     def self.from_path(grammar, path)
       path.each_with_object(new(grammar.states)) do |sym, automaton|
@@ -33,6 +36,8 @@ module Racc
 
     # consuming a terminal may set off a series of reduces before the terminal
     # is shifted
+    #
+    # rubocop:disable Metrics/CyclomaticComplexity
     def consume!(token)
       return self if @error
 
@@ -56,6 +61,7 @@ module Racc
 
       self
     end
+    # rubocop:enable Metrics/CyclomaticComplexity
 
     def goto!(nt)
       @sstack.push(@state)
@@ -87,6 +93,7 @@ module Racc
     def error
     end
 
+    # rubocop:disable AbcSize
     def path_to_success(traversed = Set.new)
       # Find the shortest series of terminals/reduce operations which will take
       # us to the accept state
@@ -117,6 +124,7 @@ module Racc
         path2 && path1.concat(path2)
       end.compact.min_by(&:size)
     end
+    # rubocop:enable AbcSize
 
     def follow_shortest_rule_for(sym)
       rule = sym.heads.map(&:rule).min_by do |r|
