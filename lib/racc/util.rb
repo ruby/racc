@@ -1,5 +1,6 @@
 require 'set'
 
+# :nodoc:
 module Racc
   # Helper to implement set-building algorithms, whereby each member which is
   # added to a set may result in still others being added, until the entire

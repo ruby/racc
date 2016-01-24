@@ -12,6 +12,7 @@ require 'tempfile'
 require 'timeout'
 
 module Racc
+  # rubocop:disable Metrics/ClassLength
   class TestCase < Minitest::Test
     PROJECT_DIR = File.expand_path(File.join(File.dirname(__FILE__), '..'))
     RACC        = File.join(PROJECT_DIR, 'bin', 'racc')
@@ -47,7 +48,6 @@ module Racc
       assert_compile asset, args, false
     end
 
-    # rubocop:disable Metric/AbcSize
     # rubocop:disable Metrics/CyclomaticComplexity
     def assert_warnings(dbg_output, expected)
       assert_equal expected[:useless_nts]   || 0, useless_nts(dbg_output)
@@ -57,7 +57,6 @@ module Racc
       assert_equal expected[:useless_prec]  || 0, useless_prec(dbg_output)
       assert_equal expected[:useless_rules] || 0, useless_rules(dbg_output)
     end
-    # rubocop:enable Metric/AbcSize
     # rubocop:enable Metrics/CyclomaticComplexity
 
     def assert_no_warnings(dbg_output)
@@ -184,4 +183,5 @@ module Racc
       dbg_output.scan(/This rule will never be used due to low precedence/).size
     end
   end
+  # rubocop:enable Metrics/ClassLength
 end

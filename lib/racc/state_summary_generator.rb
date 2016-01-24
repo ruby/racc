@@ -38,7 +38,6 @@ module Racc
       @output << ' (start state)' if state.ident == 0
     end
 
-    # rubocop:disable Metrics/AbcSize
     def print_loc_ptr_as_tr(ptr)
       rule = ptr.rule
 
@@ -59,7 +58,6 @@ module Racc
       end
       @output << '</td></tr>'
     end
-    # rubocop:enable Metrics/AbcSize
 
     def print_rule(rule)
       print_symbol(rule.target)
@@ -151,7 +149,6 @@ module Racc
       print_rule(step.rule)
     end
 
-    # rubocop:disable Metrics/AbcSize
     def print_action_table(state)
       @output << '<thead><tr>' \
         '<th><b>Lookahead token</b></th>' \
@@ -172,7 +169,6 @@ module Racc
       end
       @output << '</tbody>'
     end
-    # rubocop:enable Metrics/AbcSize
 
     def print_action(state, token, action)
       if action.is_a?(Reduce)
@@ -186,7 +182,6 @@ module Racc
       end
     end
 
-    # rubocop:disable Metrics/AbcSize
     def print_action_reduce(state, token, action)
       @output << 'Reduce by '
       print_rule(action.rule)
@@ -200,7 +195,6 @@ module Racc
         print_overridden_rules(rr.rules.drop(1), 'reduce')
       end
     end
-    # rubocop:enable Metrics/AbcSize
 
     def print_action_shift(state, token, action)
       n = action.goto_state.ident

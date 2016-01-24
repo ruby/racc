@@ -174,7 +174,6 @@ module Racc
       t.goto_default << (most_common if most_common && freq[most_common] > 1)
     end
 
-    # rubocop:disable Metrics/AbcSize
     def gen_goto_record(t, grammar, tok, default, entries)
       to_states = @states.map do |state|
         if goto = state.gotos[tok]
@@ -193,7 +192,6 @@ module Racc
                   t.goto_pointer)
       end
     end
-    # rubocop:enable Metrics/AbcSize
 
     def add_entry(all, array, chkval, ptr_array)
       # array is an action/goto array for one state
