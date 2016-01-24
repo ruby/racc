@@ -12,7 +12,11 @@ require 'racc/directed_graph'
 
 require 'set'
 
+# :nodoc:
 module Racc
+  # handle states of grammer
+  #
+  # rubocop:disable ClassLength
   class States
     include Enumerable
 
@@ -53,8 +57,9 @@ module Racc
 
     alias to_s inspect
 
-    def should_report_srconflict?
-      sr_conflicts.any? && (sr_conflicts.size != @grammar.n_expected_srconflicts)
+    def should_report_sr_conflict?
+      sr_conflicts.any? &&
+        (sr_conflicts.size != @grammar.n_expected_srconflicts)
     end
 
     def sr_conflicts
@@ -71,6 +76,10 @@ module Racc
 
     private
 
+    # rubocop:disable Metrics/AbcSize
+    # rubocop:disable Metrics/CyclomaticComplexity
+    # rubocop:disable Metrics/MethodLength
+    # rubocop:disable Metrics/PerceivedComplexity
     def generate_states
       # create start state
       start = State.new(0, Set[@grammar[0].ptrs[0]], self)
@@ -116,7 +125,15 @@ module Racc
         end
       end
     end
+    # rubocop:enable Metrics/AbcSize
+    # rubocop:enable Metrics/CyclomaticComplexity
+    # rubocop:enable Metrics/MethodLength
+    # rubocop:enable Metrics/PerceivedComplexity
 
+    # rubocop:disable Metrics/AbcSize
+    # rubocop:disable Metrics/CyclomaticComplexity
+    # rubocop:disable Metrics/MethodLength
+    # rubocop:disable Metrics/PerceivedComplexity
     def compute_lookahead
       # lookahead algorithm ver.3 -- from bison 1.26
 
@@ -199,6 +216,10 @@ module Racc
         end
       end
     end
+    # rubocop:enable Metrics/AbcSize
+    # rubocop:enable Metrics/CyclomaticComplexity
+    # rubocop:enable Metrics/MethodLength
+    # rubocop:enable Metrics/PerceivedComplexity
 
     def create_bitmap(size)
       Array.new(size, 0) # use Integer as bitmap
@@ -229,6 +250,8 @@ module Racc
       end
     end
 
+    # rubocop:disable Metrics/ParameterLists
+    # rubocop:disable Metrics/AbcSize
     def traverse(node, traversed, index, stack, bitmap, graph)
       traversed.add(node)
       stack.push(node)
@@ -258,6 +281,8 @@ module Racc
         end
       end
     end
+    # rubocop:enable Metrics/ParameterLists
+    # rubocop:enable Metrics/AbcSize
 
     def resolve(state)
       if state.conflict?
@@ -275,6 +300,7 @@ module Racc
       end
     end
 
+    # rubocop:disable Metrics/AbcSize
     def resolve_rr(state, ritems)
       rrules = Hash.new { |h, k| h[k] = [] }
 
@@ -295,39 +321,48 @@ module Racc
         end
       end
     end
+    # rubocop:enable Metrics/AbcSize
 
     def resolve_sr(state, stokens)
       stokens.each do |stok|
         goto = state.gotos[stok]
         act = state.action[stok]
 
-        unless act
+        if act
+          resolve_sr_handle_conflict(state, stok, goto, act)
+        else
           # no conflict
           state.action[stok] = Shift.new(goto.to_state)
-        else
-          # conflict
-          rtok = act.rule.precedence
-          case do_resolve_sr(stok, rtok, act.rule)
-          when :Reduce
-            # action is already set
-
-          when :Shift
-            # overwrite
-            act.rule.overridden_by[stok].merge(state.srules[stok].map(&:rule))
-            state.action[stok] = Shift.new(goto.to_state)
-
-          when :Error
-            state.action[stok] = Error.new
-
-          when :CantResolve
-            # shift as default
-            srules = state.srules[stok]
-            act.rule.overridden_by[stok].merge(srules.map(&:rule))
-            state.action[stok] = Shift.new(goto.to_state)
-            state.sr_conflict!(stok, srules, act.rule)
-          end
         end
       end
+    end
+
+    def resolve_sr_handle_conflict(state, stok, goto, act)
+      # conflict
+      rtok = act.rule.precedence
+      case do_resolve_sr(stok, rtok, act.rule)
+      when :Reduce
+        # action is already set
+
+      when :Shift
+        # overwrite
+        act.rule.overridden_by[stok].merge(state.srules[stok].map(&:rule))
+        state.action[stok] = Shift.new(goto.to_state)
+
+      when :Error
+        state.action[stok] = Error.new
+
+      when :CantResolve
+        resolve_sr_handle_unresolvable_conflict(state, stok, goto, act)
+      end
+    end
+
+    def resolve_sr_handle_unresolvable_conflict(state, stok, goto, act)
+      # shift as default
+      srules = state.srules[stok]
+      act.rule.overridden_by[stok].merge(srules.map(&:rule))
+      state.action[stok] = Shift.new(goto.to_state)
+      state.sr_conflict!(stok, srules, act.rule)
     end
 
     ASSOC = {
@@ -336,6 +371,8 @@ module Racc
       Nonassoc: :Error
     }.freeze
 
+    # rubocop:disable Metrics/CyclomaticComplexity
+    # rubocop:disable Metrics/PerceivedComplexity
     def do_resolve_sr(stok, rtok, rrule)
       return :CantResolve unless rtok && (rprec = rtok.precedence)
       return :CantResolve unless stok && (sprec = stok.precedence)
@@ -349,6 +386,8 @@ module Racc
         (rprec > sprec) ? :Reduce : :Shift
       end
     end
+    # rubocop:enable Metrics/CyclomaticComplexity
+    # rubocop:enable Metrics/PerceivedComplexity
 
     def set_accept
       anch = @grammar.anchor
@@ -399,12 +438,7 @@ module Racc
         warnings.add_for_rule(rule, Warning::RuleAlwaysOverridden.new(rule))
       end
 
-      if should_report_srconflict?
-        sr_conflicts.each do |sr|
-          warnings.add_for_state(sr.state,
-                                 Warning::SRConflict.new(sr, @grammar, verbose))
-        end
-      end
+      report_sr_conflicts(warnings, verbose) if should_report_sr_conflict?
 
       rr_conflicts.each do |rr|
         warnings.add_for_state(rr.state,
@@ -414,21 +448,31 @@ module Racc
       warnings
     end
 
+    def report_sr_conflicts(warnings, verbose)
+      sr_conflicts.each do |sr|
+        warnings.add_for_state(sr.state,
+                               Warning::SRConflict.new(sr, @grammar, verbose))
+      end
+    end
+
     def transition_graph
       # this graph does not have vectors for reduce operations -- rather,
       # the nodes where the reduces go to have vectors for the reduced NTs
-      @tgraph ||= each_with_object(Graph::Labeled.new(size)) do |s, graph|
+      return @tgraph if @tgraph
+      @tgraph = each_with_object(Graph::Labeled.new(size)) do |s, graph|
         s.gotos.each do |tok, goto|
           graph.add_vector(s.ident, goto.to_state.ident, tok)
         end
-      end.tap { |graph| graph.start = 0 }.freeze
+      end
+      @tgraph.tap { |graph| graph.start = 0 }.freeze
     end
 
     # Like `transition_graph`, but rather than vectors labeled with NTs, we
     # have vectors labeled with the shortest series of terminals and reduce
     # operations which could take us through the same transition
     def detailed_transition_graph
-      @dtgraph ||= each_with_object(Graph::Labeled.new(size)) do |s, graph|
+      return @dtgraph if @dtgraph
+      @dtgraph = each_with_object(Graph::Labeled.new(size)) do |s, graph|
         s.gotos.each do |tok, goto|
           path = if tok.terminal?
                    [tok]
@@ -437,11 +481,14 @@ module Racc
                  end
           graph.add_vector(s.ident, goto.to_state.ident, path)
         end
-      end.tap { |graph| graph.start = 0 }.freeze
+      end
+      @dtgraph.tap { |graph| graph.start = 0 }.freeze
     end
 
     # What series of shifts/reduces can produce `target`, starting from state
     # `state_idx`?
+    #
+    # rubocop:disable Metrics/AbcSize
     def actions_to_reach_reduce(state_idx, target)
       rule = target.heads.map(&:rule).min_by do |r|
         r.symbols.flat_map(&:shortest_production).size
@@ -461,6 +508,7 @@ module Racc
 
       actions << ReduceStep.new(state_idx, cur_state, rule, target)
     end
+    # rubocop:enable Metrics/AbcSize
 
     def shortest_summarized_paths
       @shortest_spaths ||= transition_graph.shortest_vector_paths
@@ -484,7 +532,9 @@ module Racc
       dest_indices.map { |idx| self[idx].gotos[rule.target].to_state }.uniq
     end
   end
+  # rubocop:enable ClassLength
 
+  # represent state
   class State
     def initialize(ident, core, states)
       # ID number used to provide a canonical ordering
@@ -610,11 +660,13 @@ module Racc
   # If 'symbol' is a terminal, then ident will be nil (there is no global
   # ordering of such Gotos).
   #
+  # rubocop:disable Style/StructInheritance
   class Goto < Struct.new(:ident, :symbol, :from_state, :to_state)
     def inspect
       "(#{from_state.ident}-#{symbol}->#{to_state.ident})"
     end
   end
+  # rubocop:enable Style/StructInheritance
 
   # LALR item: a rule and its lookahead tokens
   class Item
@@ -633,43 +685,53 @@ module Racc
     end
   end
 
+  # rubocop:disable Style/StructInheritance
   class Shift < Struct.new(:goto_state)
     def inspect
       "<shift #{goto_state.ident}>"
     end
   end
+  # rubocop:enable Style/StructInheritance
 
+  # rubocop:disable Style/StructInheritance
   class Reduce < Struct.new(:rule)
     def inspect
       "<reduce #{rule.ident}>"
     end
   end
+  # rubocop:enable Style/StructInheritance
 
+  # :nodoc:
   class Accept
     def inspect
       '<accept>'
     end
   end
 
+  # :nodoc:
   class Error
     def inspect
       '<error>'
     end
   end
 
+  # rubocop:disable Style/StructInheritance
   class SRConflict < Struct.new(:state, :symbol, :srules, :rrule)
     def to_s
       "state #{state.ident}: S/R conflict on #{symbol} between shift rules " \
       "#{srules} and reduce rule #{rrule}"
     end
   end
+  # rubocop:enable Style/StructInheritance
 
+  # rubocop:disable Style/StructInheritance
   class RRConflict < Struct.new(:state, :symbol, :rules)
     def to_s
       "state #{state.ident}: R/R conflict on #{symbol} between reduce rules " \
       "#{rrules}"
     end
   end
+  # rubocop:enable Style/StructInheritance
 
   # Specifically for detailed_transition_graph
   class ReduceStep
