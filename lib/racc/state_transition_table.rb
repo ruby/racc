@@ -15,6 +15,7 @@ module Racc
      :nt_base,        :token_to_s_table,
      :use_result_var, :debug_parser].freeze
 
+  # rubocop:disable Style/StructInheritance
   class StateTransitionTable < Struct.new(*TRANSITION_TABLE_ATTRS)
     def self.generate(states)
       StateTransitionTableGenerator.new(states).generate
@@ -39,7 +40,11 @@ module Racc
       Hash[token_table.map { |sym, i| [sym.value, i] }]
     end
   end
+  # rubocop:enable Style/StructInheritance
 
+  # generate State transition table
+  #
+  # rubocop:disable Metrics/ClassLength
   class StateTransitionTableGenerator
     def initialize(states)
       @states = states
@@ -110,26 +115,31 @@ module Racc
 
       entries = []
       states.each do |state|
-        if state.action.empty?
-          # there is ONLY one default action in this state
-          # when the parser sees that the 'action pointer' (or offset) for this
-          # state is nil, it will just execute the default action
-          t.action_pointer << nil
-        else
-          # build the action table for this state
-          actions = []
-          state.action.each do |tok, act|
-            actions[tok.ident] = act2actid(act)
-          end
-          # then store data which will be used when we overlay all the per-state
-          # action tables into one big action table
-          add_entry(entries, actions, state.ident, t.action_pointer)
-        end
+        gen_action_state(t, state, entries)
       end
 
       set_table(entries, t.action_table, t.action_check, t.action_pointer)
     end
 
+    def gen_action_state(t, state, entries)
+      if state.action.empty?
+        # there is ONLY one default action in this state
+        # when the parser sees that the 'action pointer' (or offset) for this
+        # state is nil, it will just execute the default action
+        t.action_pointer << nil
+      else
+        # build the action table for this state
+        actions = []
+        state.action.each do |tok, act|
+          actions[tok.ident] = act2actid(act)
+        end
+        # then store data which will be used when we overlay all the per-state
+        # action tables into one big action table
+        add_entry(entries, actions, state.ident, t.action_pointer)
+      end
+    end
+
+    # rubocop:disable Metrics/MethodLength
     def gen_goto_tables(t, grammar)
       t.goto_table   = []
       t.goto_check   = []
@@ -140,41 +150,54 @@ module Racc
       # for each nonterminal, choose most common destination state after
       # reduce as the default destination state
       grammar.nonterminals.each do |tok|
-        freq = Hash.new(0)
-        @states.each do |state|
-          if goto = state.gotos[tok]
-            freq[goto.to_state.ident] += 1
-          end
-        end
-
-        most_common = freq.keys.max_by { |k| freq[k] }
-        t.goto_default << (most_common if most_common && freq[most_common] > 1)
+        gen_goto_default(t, tok)
       end
 
       # now build goto table for each nonterminal, and record data which will
       # be used when overlaying all the individual goto tables into the main
       # goto table
       grammar.nonterminals.zip(t.goto_default).each do |tok, default|
-        array = @states.map do |state|
-          if goto = state.gotos[tok]
-            to_state = goto.to_state.ident
-            to_state unless to_state == default
-          end
-        end
-
-        if array.compact.empty?
-          # there is ONLY one destination state which we can transition to after
-          # reducing down to this nonterminal
-          t.goto_pointer << nil
-        else
-          array.pop until array.last || array.empty?
-          add_entry(entries, array, (tok.ident - grammar.nonterminal_base),
-                    t.goto_pointer)
-        end
+        gen_goto_record(t, grammar, tok, default, entries)
       end
 
       set_table(entries, t.goto_table, t.goto_check, t.goto_pointer)
     end
+    # rubocop:enable Metrics/MethodLength
+
+    def gen_goto_default(t, tok)
+      freq = Hash.new(0)
+      @states.each do |state|
+        if goto = state.gotos[tok]
+          freq[goto.to_state.ident] += 1
+        end
+      end
+
+      most_common = freq.keys.max_by { |k| freq[k] }
+      t.goto_default << (most_common if most_common && freq[most_common] > 1)
+    end
+
+    # rubocop:disable Metrics/AbcSize
+    # rubocop:disable Metrics/MethodLength
+    def gen_goto_record(t, grammar, tok, default, entries)
+      to_states = @states.map do |state|
+        if goto = state.gotos[tok]
+          to_state = goto.to_state.ident
+          to_state unless to_state == default
+        end
+      end
+
+      if to_states.compact.empty?
+        # there is ONLY one destination state which we can transition to after
+        # reducing down to this nonterminal
+        t.goto_pointer << nil
+      else
+        to_states.pop until to_states.last || to_states.empty?
+        add_entry(entries, to_states, (tok.ident - grammar.nonterminal_base),
+                  t.goto_pointer)
+      end
+    end
+    # rubocop:enable Metrics/AbcSize
+    # rubocop:enable Metrics/MethodLength
 
     def add_entry(all, array, chkval, ptr_array)
       # array is an action/goto array for one state
@@ -196,6 +219,7 @@ module Racc
       retry
     end
 
+    # rubocop:disable Metrics/MethodLength
     def mkmapexp(arr)
       map = ''
       maxdup = RE_DUP_MAX
@@ -215,7 +239,10 @@ module Racc
 
       Regexp.compile(map, 'n')
     end
+    # rubocop:enable Metrics/MethodLength
 
+    # rubocop:disable Metrics/AbcSize
+    # rubocop:disable Metrics/MethodLength
     def set_table(entries, tbl, chk, ptr)
       upper = 0
       map = '-' * 10_240
@@ -232,6 +259,7 @@ module Racc
         comp
       end
 
+      # rubocop:disable Metrics/ParameterLists
       entries.each do |_, arr, chkval, expr, min, ptri|
         map << '-' * (arr.size + 1024) if upper + arr.size > map.size
         idx = map.index(expr)
@@ -245,7 +273,10 @@ module Racc
         end
         upper = idx + arr.size
       end
+      # rubocop:enable Metrics/ParameterLists
     end
+    # rubocop:enable Metrics/AbcSize
+    # rubocop:enable Metrics/MethodLength
 
     def act2actid(act)
       case act
@@ -258,13 +289,17 @@ module Racc
       end
     end
   end
+  # rubocop:enable Metrics/ClassLength
 
+  # generate Parser class definition
   class ParserClassGenerator
     def initialize(states)
       @states = states
       @grammar = states.grammar
     end
 
+    # rubocop:disable Metrics/AbcSize
+    # rubocop:disable Metrics/MethodLength
     def generate
       table = @states.state_transition_table
       c = Class.new(::Racc::Parser)
@@ -287,23 +322,30 @@ module Racc
       define_actions c
       c
     end
+    # rubocop:enable Metrics/AbcSize
+    # rubocop:enable Metrics/MethodLength
 
     private
 
     def define_actions(c)
       c.module_eval 'def _reduce_none(vals, vstack) vals[0] end'
       @grammar.each do |rule|
-        if rule.action.empty?
-          c.__send__(:alias_method, "_reduce_#{rule.ident}", :_reduce_none)
-        else
-          c.__send__(:define_method, "_racc_action_#{rule.ident}", &rule.action.proc)
-          c.module_eval(<<-End, __FILE__, __LINE__ + 1)
-            def _reduce_#{rule.ident}(vals, vstack)
-              _racc_action_#{rule.ident}(*vals)
-            end
-          End
-        end
+        define_action(c, rule)
       end
+    end
+
+    def define_action(c, rule)
+      if rule.action.empty?
+        return c.__send__(:alias_method, "_reduce_#{rule.ident}", :_reduce_none)
+      end
+
+      c.__send__(:define_method,
+                 "_racc_action_#{rule.ident}", &rule.action.proc)
+      c.module_eval(<<-End, __FILE__, __LINE__ + 1)
+        def _reduce_#{rule.ident}(vals, vstack)
+          _racc_action_#{rule.ident}(*vals)
+        end
+      End
     end
   end
 end
