@@ -14,3 +14,7 @@ Style/Semicolon:
 
 Style/TrivialAccessors:
   AllowPredicates: true
+
+Metrics/MethodLength:
+  CountComments: false
+  Max: 20
