@@ -12,6 +12,7 @@ require 'racc/parser_file_generator'
 require 'racc/source'
 require 'racc/dsl'
 
+# :nodoc:
 module Racc
   grammar = DSL.define_grammar do
     g = self
@@ -80,8 +81,14 @@ module Racc
                   | seq(:symbols, :symbol) { |list, (sym)| list << sym } \
                   | seq(:symbols, '|')
 
-    g.symbol      = seq(:SYMBOL) { |(sym, range)| [@grammar.intern(sym, false), range] } \
-                  | seq(:STRING) { |(str, range)| [@grammar.intern(str, false), range] }
+    # rubocop:disable Lint/BlockAlignment
+    g.symbol      = seq(:SYMBOL) do |(sym, range)|
+                      [@grammar.intern(sym, false), range]
+                    end \
+                  | seq(:STRING) do |(str, range)|
+                      [@grammar.intern(str, false), range]
+                    end
+    # rubocop:enable Lint/BlockAlignment
 
     g.options     = many(:SYMBOL) { |syms| syms.map(&:first).map(&:to_s) }
 
@@ -128,7 +135,11 @@ module Racc
     fail 'Racc boot script fatal: R/R conflict in build'
   end
 
+  # :nodoc:
+  #
+  # rubocop:disable Metrics/ClassLength
   class GrammarFileParser # reopen
+    # GrammarFileParser parse result.
     class Result
       def initialize(grammar, file)
         @grammar = grammar
@@ -161,14 +172,20 @@ module Racc
     private
 
     def on_error(_tok, val, _values)
-      fail(CompileError, "#{@scanner.lineno}: unexpected token #{val[0].inspect}")
+      fail(CompileError,
+           "#{@scanner.lineno}: unexpected token #{val[0].inspect}")
     end
 
+    # rubocop:disable Metrics/AbcSize
+    # rubocop:disable Metrics/CyclomaticComplexity
+    # rubocop:disable Metrics/MethodLength
+    # rubocop:disable Metrics/PerceivedComplexity
     def add_rule_block(list)
       return if list.empty?
       target, target_range = *list.shift
-      target_range.highlights << Source::Highlight.new(target, 0,
-                                                       target_range.to - target_range.from)
+      target_range.highlights <<
+        Source::Highlight.new(target, 0,
+                              target_range.to - target_range.from)
 
       if target.is_a?(OrMark) || target.is_a?(UserAction) || target.is_a?(Prec)
         fail(CompileError, "#{target.lineno}: unexpected symbol #{target.name}")
@@ -205,9 +222,11 @@ module Racc
         if ranges
           range = block_range.slice(ranges.map(&:from).min - block_range.from,
                                     ranges.map(&:to).max   - block_range.from)
-          range = Source::SparseLines.new(block_range, [target_range.lines, range.lines])
+          range = Source::SparseLines.new(block_range,
+                                          [target_range.lines, range.lines])
         end
 
+        # rubocop:disable Style/GuardClause
         if sprec.empty?
           add_rule(target, items || [], range)
         elsif sprec.one?
@@ -215,8 +234,13 @@ module Racc
         else
           fail(CompileError, "'=<prec>' used twice in one rule")
         end
+        # rubocop:enable Style/GuardClause
       end
     end
+    # rubocop:enable Metrics/AbcSize
+    # rubocop:enable Metrics/CyclomaticComplexity
+    # rubocop:enable Metrics/MethodLength
+    # rubocop:enable Metrics/PerceivedComplexity
 
     def split_array(array)
       chunk = []
@@ -257,7 +281,10 @@ module Racc
       epilogue = @scanner.epilogue
       epilogue.text.scan(/^----([^\n\r]*)(?:\n|\r\n|\r)(.*?)(?=^----|\Z)/m) do
         label = canonical_label($LAST_MATCH_INFO[1])
-        range = epilogue.slice($LAST_MATCH_INFO.begin(2), $LAST_MATCH_INFO.end(2))
+        range = epilogue.slice(
+          $LAST_MATCH_INFO.begin(2),
+          $LAST_MATCH_INFO.end(2)
+        )
         add_user_code(label, range)
       end
     end
@@ -276,4 +303,5 @@ module Racc
       @result.params.send(label.to_sym).push(src)
     end
   end
+  # rubocop:enable Metrics/ClassLength
 end
