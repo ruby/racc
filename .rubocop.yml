@@ -3,6 +3,7 @@ AllCops:
     - Gemfile
     - lib/**/*.rl
     - lib/racc/grammar_file_scanner.rb
+    - lib/racc/parser-text.rb
     - tmp/**/*
     - test/regress/**/*
 
