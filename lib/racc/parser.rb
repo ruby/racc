@@ -58,7 +58,8 @@ ParseError = Racc::ParseError unless defined?(::ParseError)
 #
 #   $ racc parse.y
 #
-# This creates Ruby script file "parse.tab.y". The -o option can change the output filename.
+# This creates Ruby script file "parse.tab.y".
+# The -o option can change the output filename.
 #
 # == Writing A Racc Grammar File
 #
@@ -102,10 +103,12 @@ ParseError = Racc::ParseError unless defined?(::ParseError)
 # If you want to change this, see the grammar reference.)
 #
 # Racc::Parser#yyparse is a little complicated, but useful.
-# It does not use Racc::Parser#next_token, instead it gets tokens from any iterator.
+# It does not use Racc::Parser#next_token,
+# instead it gets tokens from any iterator.
 #
 # For example, <code>yyparse(obj, :scan)</code> causes
-# calling +obj#scan+, and you can return tokens by yielding them from +obj#scan+.
+# calling +obj#scan+, and you can return tokens by yielding them
+# from +obj#scan+.
 #
 # == Debugging
 #
@@ -151,6 +154,9 @@ ParseError = Racc::ParseError unless defined?(::ParseError)
 module Racc
   Racc_No_Extensions = ENV['PURERUBY'] # :nodoc:
 
+  # runtime engine for generated parser.
+  #
+  # rubocop:disable Metrics/ClassLength
   class Parser
     begin
       if Object.const_defined?(:RUBY_ENGINE) && RUBY_ENGINE == 'jruby'
@@ -167,6 +173,7 @@ module Racc
         fail LoadError, 'selecting ruby version of racc runtime core'
       end
 
+      # rubocop:disable Style/ConstantName
       Racc_Main_Parsing_Routine    = :_racc_do_parse_c # :nodoc:
       Racc_YY_Parse_Method         = :_racc_yyparse_c # :nodoc:
       Racc_Runtime_Type            = 'c'.freeze # :nodoc:
@@ -174,6 +181,7 @@ module Racc
       Racc_Main_Parsing_Routine    = :_racc_do_parse_rb
       Racc_YY_Parse_Method         = :_racc_yyparse_rb
       Racc_Runtime_Type            = 'ruby'.freeze
+      # rubocop:enable Style/ConstantName
     end
 
     def self.racc_runtime_type # :nodoc:
@@ -237,6 +245,10 @@ module Racc
       fail NotImplementedError, "#{self.class}\#next_token is not defined"
     end
 
+    # rubocop:disable Metrics/AbcSize
+    # rubocop:disable Metrics/CyclomaticComplexity
+    # rubocop:disable Metrics/MethodLength
+    # rubocop:disable Metrics/PerceivedComplexity
     def _racc_do_parse_rb(arg, _in_debug)
       action_table, action_check, action_default, action_pointer,
       _,            _,            _,              _,
@@ -248,17 +260,15 @@ module Racc
       catch(:racc_end_parse) do
         loop do
           if i = action_pointer[@racc_state[-1]]
-            if @racc_read_next
-              if @racc_t != 0 # not EOF
-                tok, @racc_val = next_token
-                @racc_t = unless tok # EOF
-                            0
-                          else
-                            (token_table[tok] || 1) # error token
-                          end
-                racc_read_token(@racc_t, tok, @racc_val) if @yydebug
-                @racc_read_next = false
-              end
+            if @racc_read_next && @racc_t != 0 # not EOF
+              tok, @racc_val = next_token
+              @racc_t = if tok # EOF
+                          (token_table[tok] || 1) # error token
+                        else
+                          0
+                        end
+              racc_read_token(@racc_t, tok, @racc_val) if @yydebug
+              @racc_read_next = false
             end
             i += @racc_t
             unless i >= 0 &&
@@ -274,6 +284,10 @@ module Racc
         end
       end
     end
+    # rubocop:enable Metrics/AbcSize
+    # rubocop:enable Metrics/CyclomaticComplexity
+    # rubocop:enable Metrics/MethodLength
+    # rubocop:enable Metrics/PerceivedComplexity
 
     # Another entry point for the parser.
     # If you use this method, you must implement RECEIVER#METHOD_ID method.
@@ -284,6 +298,10 @@ module Racc
       __send__(Racc_YY_Parse_Method, recv, mid, _racc_setup, false)
     end
 
+    # rubocop:disable Metrics/AbcSize
+    # rubocop:disable Metrics/CyclomaticComplexity
+    # rubocop:disable Metrics/MethodLength
+    # rubocop:disable Metrics/PerceivedComplexity
     def _racc_yyparse_rb(recv, mid, arg, _c_debug)
       action_table, action_check, action_default, action_pointer,
       _,            _,            _,              _,
@@ -297,10 +315,10 @@ module Racc
           end
         end
         recv.__send__(mid) do |tok, val|
-          @racc_t = unless tok
-                      0
-                    else
+          @racc_t = if tok
                       (token_table[tok] || 1) # error token
+                    else
+                      0
                     end
           @racc_val = val
           @racc_read_next = false
@@ -329,17 +347,24 @@ module Racc
         end
       end
     end
+    # rubocop:enable Metrics/AbcSize
+    # rubocop:enable Metrics/CyclomaticComplexity
+    # rubocop:enable Metrics/MethodLength
+    # rubocop:enable Metrics/PerceivedComplexity
 
     ###
     ### common
     ###
 
+    # rubocop:disable Metrics/AbcSize
+    # rubocop:disable Metrics/CyclomaticComplexity
+    # rubocop:disable Metrics/MethodLength
+    # rubocop:disable Metrics/PerceivedComplexity
     def _racc_evalact(act, arg)
       action_table, action_check, _, action_pointer,
       _,            _,            _, _,
       _,            _,            _, shift_n,
       reduce_n,     * = arg
-      nerr = 0 # tmp
 
       if act > 0 && act < shift_n
         #
@@ -383,6 +408,7 @@ module Racc
         racc_accept if @yydebug
         throw :racc_end_parse, @racc_vstack[0]
 
+      # rubocop:disable Style/GuardClause
       elsif act == -reduce_n
         #
         # error
@@ -404,10 +430,8 @@ module Racc
 
         case @racc_error_status
         when 0
-          unless arg[21] # user_yyerror
-            nerr += 1
-            on_error(@racc_t, @racc_val, @racc_vstack)
-          end
+          # user_yyerror
+          on_error(@racc_t, @racc_val, @racc_vstack) unless arg[21]
         when 3
           if @racc_t == 0 # is $
             # We're at EOF, and another error occurred immediately after
@@ -440,12 +464,21 @@ module Racc
       else
         fail "[Racc Bug] unknown action #{act.inspect}"
       end
+      # rubocop:enable Style/GuardClause
 
       racc_next_state(@racc_state[-1], @racc_state) if @yydebug
 
       nil
     end
+    # rubocop:enable Metrics/AbcSize
+    # rubocop:enable Metrics/CyclomaticComplexity
+    # rubocop:enable Metrics/MethodLength
+    # rubocop:enable Metrics/PerceivedComplexity
 
+    # rubocop:disable Metrics/PerceivedComplexity
+    # rubocop:disable Metrics/MethodLength
+    # rubocop:disable Metrics/CyclomaticComplexity
+    # rubocop:disable Metrics/AbcSize
     def _racc_do_reduce(arg, act)
       _,          _,            _,            _,
       goto_table, goto_check,   goto_default, goto_pointer,
@@ -487,6 +520,10 @@ module Racc
       end
       goto_default[k1]
     end
+    # rubocop:enable Metrics/PerceivedComplexity
+    # rubocop:enable Metrics/MethodLength
+    # rubocop:enable Metrics/CyclomaticComplexity
+    # rubocop:enable Metrics/AbcSize
 
     # This method is called when a parse error is found.
     #
@@ -503,8 +540,8 @@ module Racc
     #
     # If this method returns, parsers enter "error recovering mode".
     def on_error(t, val, _vstack)
-      fail ParseError, sprintf("\nparse error on value %s (%s)",
-                               val.inspect, token_to_str(t) || '?')
+      fail ParseError, format("\nparse error on value %s (%s)",
+                              val.inspect, token_to_str(t) || '?')
     end
 
     # Enter error recovering mode.
@@ -604,4 +641,5 @@ module Racc
       self.class::Racc_token_to_s_table[t]
     end
   end
+  # rubocop:enable Metrics/ClassLength
 end
