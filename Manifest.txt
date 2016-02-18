@@ -12,6 +12,7 @@ ext/racc/depend
 ext/racc/extconf.rb
 ext/racc/com/headius/racc/Cparse.java
 lib/racc.rb
+lib/racc/color.rb
 lib/racc/directed_graph.rb
 lib/racc/dsl.rb
 lib/racc/exception.rb
@@ -119,6 +120,8 @@ test/assets/unterm.y
 test/assets/useless.y
 test/assets/yyerr.y
 test/helper.rb
+test/regress.rb
+test/regress/README.txt
 test/regress/badprec1.out
 test/regress/badprec2.out
 test/regress/badrule1.out
