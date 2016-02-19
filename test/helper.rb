@@ -11,6 +11,8 @@ require 'fileutils'
 require 'tempfile'
 require 'timeout'
 
+require 'ripper'
+
 module Racc
   class TestCase < Minitest::Test
     PROJECT_DIR = File.expand_path(File.join(File.dirname(__FILE__), '..'))
@@ -71,13 +73,17 @@ module Racc
       file = File.basename(asset, '.y')
 
       result = Dir.chdir(PROJECT_DIR) do
-        File.read("#{REGRESS_DIR}/#{file}.rb") == File.read("#{TAB_DIR}/#{file}")
+        d1 = File.read("#{REGRESS_DIR}/#{file}.rb")
+        d2 = File.read("#{TAB_DIR}/#{file}")
+        l1 = Ripper.lex(d1).map {|e| e[1,2] unless [:on_comment,:on_nl,:on_ignored_nl,:on_sp].include?(e[1]) }.compact
+        l2 = Ripper.lex(d2).map {|e| e[1,2] unless [:on_comment,:on_nl,:on_ignored_nl,:on_sp].include?(e[1]) }.compact
+        l1 == l2
       end
 
       assert(result, "Output of test/assets/#{asset} differed from " \
         "expectation. Try compiling it and diff with test/regress/#{file}.rb:" \
         "\nruby -I./lib ./bin/racc -o tmp/#{file} test/assets/#{asset}; " \
-        "colordiff tmp/#{file} test/regress/#{file}.rb")
+        "lex_diff tmp/#{file} test/regress/#{file}.rb")
     end
 
     def assert_output_unchanged(file, args, actual = nil)
