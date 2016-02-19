@@ -313,8 +313,9 @@ module Racc
     end
 
     def integer_list(name, table)
-      lines = table.inspect.split(/((?:\w+, ){15})/).reject { |s| s.empty? }
-      line "#{name} = #{lines.join("\n")}"
+      s = table.map { |e| "%6s" % e.inspect }.each_slice(10).to_a
+      lines = s[0..-2].map { |e| e.join(',')+',' } << s[-1].join(',')
+      line "#{name} = [\n#{lines.join("\n")} ]"
     end
 
     def i_i_sym_list(name, table)
