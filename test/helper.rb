@@ -83,7 +83,7 @@ module Racc
       assert(result, "Output of test/assets/#{asset} differed from " \
         "expectation. Try compiling it and diff with test/regress/#{file}.rb:" \
         "\nruby -I./lib ./bin/racc -o tmp/#{file} test/assets/#{asset}; " \
-        "lex_diff tmp/#{file} test/regress/#{file}.rb")
+        "colordiff tmp/#{file} test/regress/#{file}.rb")
     end
 
     def assert_output_unchanged(file, args, actual = nil)
