@@ -253,6 +253,7 @@ module Racc
 
     def parse_user_code
       epilogue = @scanner.epilogue
+      return unless epilogue.text
       epilogue.text.scan(/^----([^\n\r]*)(?:\n|\r\n|\r)(.*?)(?=^----|\Z)/m) do
         label = canonical_label($~[1])
         range = epilogue.slice($~.begin(2), $~.end(2))
