@@ -2,6 +2,11 @@ require File.expand_path(File.join(File.dirname(__FILE__), 'helper'))
 
 module Racc
   class TestRaccCommand < TestCase
+    def test_empty_user_code_y
+      err = assert_compile 'empty_user_code.y'
+      assert_no_warnings err
+    end
+
     def test_syntax_y
       err = assert_compile 'syntax.y', '-v'
       assert_no_warnings err
