@@ -45,7 +45,7 @@ end
 # [-E, --embedded]
 #   Output parser which doesn't need runtime files (racc/parser.rb).
 # [-C, --check-only]
-#   Check syntax of racc grammer file and quit.
+#   Check syntax of racc grammar file and quit.
 # [--version]
 #   print Racc version and quit.
 # [--copyright]
