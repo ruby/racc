@@ -49,8 +49,8 @@ end
 
 ---- footer
 
-puts 'Ä¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 2 ï¿½æµ¡'
-puts 'Q ï¿½Ç½ï¿½Î»ï¿½ï¿½ï¿½Ş¤ï¿½'
+puts 'Ä¶¹ë²ÚÅÅÂî 2 ¹æµ¡'
+puts 'Q ¤Ç½ªÎ»¤·¤Ş¤¹'
 calc = Calculator2.new
 while true
   print '>>> '; $stdout.flush
