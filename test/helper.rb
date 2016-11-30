@@ -76,7 +76,7 @@ module Racc
 
       assert(result, "Output of test/assets/#{asset} differed from " \
         "expectation. Try compiling it and diff with test/regress/#{file}.rb:" \
-        "\nruby -I./lib ./bin/racc -o tmp/#{file} test/assets/#{asset}; " \
+        "\nruby -Ilib bin/racc -o tmp/#{file} test/assets/#{asset}; " \
         "colordiff tmp/#{file} test/regress/#{file}.rb")
     end
 
@@ -89,7 +89,7 @@ module Racc
       asset = File.basename(file, '.out') + '.y'
       assert(result, "Console output of test/assets/#{asset} differed from " \
         'expectation. Try compiling it and diff stderr with ' \
-        "test/regress/#{file}:\nruby -I./lib ./bin/racc #{args} -o /dev/null " \
+        "test/regress/#{file}:\nruby -Ilib bin/racc #{args} -o /dev/null " \
         "test/assets/#{asset} 2>tmp/#{file}; colordiff tmp/#{file} " \
         "test/regress/#{file}")
     end
@@ -104,7 +104,7 @@ module Racc
 
       assert(result, "HTML state summary for test/assets/#{asset} differed from " \
         "expectation. Try compiling it and diff with test/regress/#{file}.html:" \
-        "\nruby -I./lib ./bin/racc -S -o tmp/#{file} test/assets/#{asset}; " \
+        "\nruby -Ilib bin/racc -S -o tmp/#{file} test/assets/#{asset}; " \
         "colordiff tmp/#{file} test/regress/#{file}.html")
     end
 
