@@ -50,6 +50,14 @@ module Racc
       assert_exec 'echk.y', true # embedded runtime
     end
 
+    def test_executable_parser
+      err = assert_compile 'echk.y', "-E -e \"#{ruby_executable}\""
+      assert_no_warnings err
+      Dir.chdir(PROJECT_DIR) do
+        assert(system("#{TAB_DIR}/echk"))
+      end
+    end
+
     def test_err_y
       err = assert_compile 'err.y'
       assert_no_warnings err

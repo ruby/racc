@@ -73,8 +73,8 @@ def main
     debug_parser = true
   }
   parser.on('-e', '--executable [RUBYPATH]', 'Output executable parser') { |path|
-    executable = true
-    rubypath = (path == 'ruby' ? nil : path)
+    make_executable = true
+    rubypath = path || 'ruby'
   }
   parser.on('-E', '--embedded', "Embed Racc runtime in output") {
     embed_runtime = true

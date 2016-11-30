@@ -115,19 +115,22 @@ module Racc
     def ruby(arg, expect_success = true, load_racc = true)
       Dir.chdir(PROJECT_DIR) do
         Tempfile.open('test') do |io|
-          executable = ENV['_'] || Gem.ruby
-          if File.basename(executable) == 'bundle'
-            executable = executable.dup << ' exec ruby'
-          end
-
           arg = "-I #{INC} #{arg}" if load_racc
-          result = system("#{executable} #{arg} 2>#{io.path}")
+          result = system("#{ruby_executable} #{arg} 2>#{io.path}")
           io.flush
           err = io.read
           assert(result, err) if expect_success
           return err
         end
       end
+    end
+
+    def ruby_executable
+      executable = ENV['_'] || Gem.ruby
+      if File.basename(executable) == 'bundle'
+        executable += ' exec ruby'
+      end
+      executable
     end
 
     def useless_nts(dbg_output)
