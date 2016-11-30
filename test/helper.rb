@@ -60,10 +60,10 @@ module Racc
       assert_warnings(dbg_output, {})
     end
 
-    def assert_exec(asset)
+    def assert_exec(asset, embedded_runtime = false)
       file = File.basename(asset, '.y')
       Dir.chdir(PROJECT_DIR) do
-        ruby("#{TAB_DIR}/#{file}")
+        ruby("#{TAB_DIR}/#{file}", true, !embedded_runtime)
       end
     end
 
@@ -112,7 +112,7 @@ module Racc
       ruby "#{RACC} #{arg}", expect_success
     end
 
-    def ruby(arg, expect_success = true)
+    def ruby(arg, expect_success = true, load_racc = true)
       Dir.chdir(PROJECT_DIR) do
         Tempfile.open('test') do |io|
           executable = ENV['_'] || Gem.ruby
@@ -120,7 +120,8 @@ module Racc
             executable = executable.dup << ' exec ruby'
           end
 
-          result = system("#{executable} -I #{INC} #{arg} 2>#{io.path}")
+          arg = "-I #{INC} #{arg}" if load_racc
+          result = system("#{executable} #{arg} 2>#{io.path}")
           io.flush
           err = io.read
           assert(result, err) if expect_success

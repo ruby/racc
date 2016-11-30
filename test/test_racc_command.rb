@@ -47,7 +47,7 @@ module Racc
     def test_echk_y
       err = assert_compile 'echk.y', '-E'
       assert_no_warnings err
-      assert_exec 'echk.y'
+      assert_exec 'echk.y', true # embedded runtime
     end
 
     def test_err_y

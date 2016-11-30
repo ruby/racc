@@ -93,7 +93,9 @@ module Racc
         notice
         line
         if @params.embed_runtime?
-          embed_library(runtime_source)
+          embed_library(read_source('info.rb'))
+          embed_library(read_source('exception.rb'))
+          embed_library(read_source('parser.rb'))
         else
           require 'racc/parser.rb'
         end
@@ -121,9 +123,9 @@ module Racc
       line %q[#]
     end
 
-    def runtime_source
-      path = File.join(File.dirname(__FILE__), 'parser.rb')
-      Source::Buffer.new('racc/parser.rb', File.read(path))
+    def read_source(filename)
+      path = File.join(File.dirname(__FILE__), filename)
+      Source::Buffer.new("racc/#{filename}", File.read(path))
     end
 
     def embed_library(src)
