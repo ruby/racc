@@ -6,7 +6,6 @@
 # For details of the GNU LGPL, see the file "COPYING".
 
 require 'racc/source'
-require 'racc/parser-text'
 require 'rbconfig'
 
 module Racc
@@ -123,7 +122,8 @@ module Racc
     end
 
     def runtime_source
-      Source::Buffer.new('racc/parser.rb', ::Racc::PARSER_TEXT)
+      path = File.join(File.dirname(__FILE__), 'parser.rb')
+      Source::Buffer.new('racc/parser.rb', File.read(path))
     end
 
     def embed_library(src)

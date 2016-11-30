@@ -21,7 +21,6 @@ lib/racc/grammar_file_parser.rb
 lib/racc/grammar_file_scanner.rb
 lib/racc/grammar_file_scanner.rl
 lib/racc/info.rb
-lib/racc/parser-text.rb
 lib/racc/parser.rb
 lib/racc/parser_file_generator.rb
 lib/racc/simulated_automaton.rb

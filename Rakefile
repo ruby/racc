@@ -59,22 +59,6 @@ def gem_build_path
   File.join 'pkg', HOE.spec.full_name
 end
 
-file 'lib/racc/parser-text.rb' => ['lib/racc/parser.rb'] do |t|
-  source = 'lib/racc/parser.rb'
-
-  open(t.name, 'wb') { |io|
-    io.write(<<-eorb)
-# Generated from parser.rb; do not edit
-# This file is used for embedding the Racc runtime into a generated parser
-module Racc
-  PARSER_TEXT = <<'__end_of_file__'
-#{File.read(source)}
-__end_of_file__
-end
-    eorb
-  }
-end
-
 unless jruby?
   # MRI
   require "rake/extensiontask"
@@ -82,8 +66,6 @@ unless jruby?
     ext.lib_dir = File.join 'lib', 'racc'
     ext.ext_dir = File.join 'ext', 'racc'
   end
-
-  task :compile => 'lib/racc/parser-text.rb'
 else
   # JRUBY
   require "rake/javaextensiontask"
@@ -98,8 +80,6 @@ else
     ext.classpath = jars.map { |x| File.expand_path x }.join( ':' )
     ext.name = 'cparse-jruby'
   end
-
-  task :compile => ['lib/racc/parser-text.rb']
 
   task gem_build_path => [:compile] do
     add_file_to_gem 'lib/racc/cparse-jruby.jar'
