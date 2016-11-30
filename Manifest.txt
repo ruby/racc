@@ -68,6 +68,7 @@ test/assets/digraph.y
 test/assets/duplicate.y
 test/assets/echk.y
 test/assets/edtf.y
+test/assets/empty.y
 test/assets/err.y
 test/assets/error_recovery.y
 test/assets/expect.y
@@ -138,6 +139,7 @@ test/regress/csspool.rb
 test/regress/duplicate.out
 test/regress/edtf.out
 test/regress/edtf.rb
+test/regress/empty.out
 test/regress/eye-of-newt.rb
 test/regress/journey.rb
 test/regress/huia.rb

@@ -17,7 +17,7 @@ module Racc
   grammar = DSL.define_grammar do
     g = self
 
-    g.class = seq(:CLASS, :cname, many(:param), :RULE, :rules, option(:END))
+    g.class = seq(:CLASS, :cname, many(:param), option(:rules), option(:END))
 
     g.cname       = seq(:rubyconst) { |name|
                       @result.params.classname = name
@@ -86,7 +86,7 @@ module Racc
 
     g.options     = many(:SYMBOL) { |syms| syms.map(&:first).map(&:to_s) }
 
-    g.rules       = option(:rules_core) { |list| add_rule_block(list) }
+    g.rules       = seq(:RULE, option(:rules_core) { |list| add_rule_block(list) })
 
     # a set of grammar rules with the same LHS, like:
     # nonterminal: token1 token2 | token3 token4;
