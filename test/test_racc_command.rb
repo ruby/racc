@@ -58,6 +58,18 @@ module Racc
       end
     end
 
+    def test_encoding_comment
+      err = assert_compile 'calc-ja.y'
+      assert_warnings err, useless_prec: 1
+      Dir.chdir(PROJECT_DIR) do
+        lines = File.readlines("#{TAB_DIR}/calc-ja")
+
+        assert(lines.first == "# encoding: EUC-JP\n",
+          'Encoding comment was not passed through from test/assets/calc-ja.y' \
+          ' to resulting parser file.')
+      end
+    end
+
     def test_err_y
       err = assert_compile 'err.y'
       assert_no_warnings err

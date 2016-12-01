@@ -23,13 +23,9 @@ module Racc
         End
       end
 
-      attr_accessor :file
-      attr_accessor :classname
-      attr_accessor :superclass
+      attr_accessor :file, :encoding, :classname, :superclass
       bool_attr :result_var
-      attr_accessor :header
-      attr_accessor :inner
-      attr_accessor :footer
+      attr_accessor :header, :inner, :footer
 
       bool_attr :debug_parser
       bool_attr :embed_runtime
@@ -90,6 +86,7 @@ module Racc
     def parser_file
       Color.without_color do
         shebang(@params.interpreter) if @params.make_executable?
+        encoding_comment(@params.encoding) if @params.encoding
         notice
         line
         if @params.embed_runtime?
@@ -113,6 +110,10 @@ module Racc
 
     def shebang(path)
       line '#!' + (path == 'ruby' ? RUBY_PATH : path)
+    end
+
+    def encoding_comment(encoding)
+      line "# encoding: #{encoding}"
     end
 
     def notice

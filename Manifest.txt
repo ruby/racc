@@ -59,6 +59,7 @@ test/assets/badsyntax.y
 test/assets/bench.y
 test/assets/bibtex.y
 test/assets/cadenza.y
+test/assets/calc-ja.y
 test/assets/cast.y
 test/assets/chk.y
 test/assets/conf.y

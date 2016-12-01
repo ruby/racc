@@ -131,14 +131,14 @@ module Racc
 
   class GrammarFileParser # reopen
     class Result
-      def initialize(grammar, file)
+      def initialize(grammar, file, encoding = nil)
         @grammar = grammar
         @params = ParserFileGenerator::Params.new
         @params.file = file
+        @params.encoding = encoding
       end
 
-      attr_reader :grammar
-      attr_reader :params
+      attr_reader :grammar, :params
     end
 
     def GrammarFileParser.parse_file(filename)
@@ -149,7 +149,8 @@ module Racc
       @file    = Source::Buffer.new(filename, src)
       @scanner = GrammarFileScanner.new(@file)
       @grammar = Grammar.new
-      @result  = Result.new(@grammar, @file)
+      encoding = src[/\A\s*#\s*encoding:\s*(\S+)/, 1]
+      @result  = Result.new(@grammar, @file, encoding)
       @embedded_action_seq = 0
 
       yyparse @scanner, :yylex
