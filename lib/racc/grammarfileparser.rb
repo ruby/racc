@@ -427,7 +427,7 @@ module Racc
     $raccs_print_type = false
 
     def scan_action
-      buf = ''
+      buf = String.new
       nest = 1
       pre = nil
       @in_block = 'action'
