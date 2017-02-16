@@ -298,7 +298,7 @@ module Racc
           locations = undeclared.flat_map(&:locate).map(&:rule).uniq
           raise CompileError, "terminal#{'s' unless undeclared.one?} " \
             "#{Racc.to_sentence(undeclared)} #{undeclared.one? ? 'was' : 'were'} " \
-            "not declared in a 'token' block:\n" <<
+            "not declared in a 'token' block:\n" +
             Source::SparseLines.render(locations.map(&:source))
         end
 
@@ -308,7 +308,7 @@ module Racc
           raise CompileError, "token#{'s' unless wrongly_declared.one?} " \
             "#{Racc.to_sentence(wrongly_declared)} were declared in a 'token'" \
             " block, but #{wrongly_declared.one? ? 'it also has' : 'they also have'}" \
-            " derivation rules:\n" << Source::SparseLines.render(bad_rules.map(&:source))
+            " derivation rules:\n" + Source::SparseLines.render(bad_rules.map(&:source))
         end
       end
 
@@ -316,7 +316,7 @@ module Racc
       unless bad_strings.empty?
         bad_rules = bad_strings.flat_map(&:heads).map(&:rule)
         raise CompileError, 'you may not create derivation rules for a ' \
-          "string literal:\n" << Source::SparseLines.render(bad_rules.map(&:source))
+          "string literal:\n" + Source::SparseLines.render(bad_rules.map(&:source))
       end
 
       bad_prec = @symbols.select { |s| s.assoc && s.nonterminal? }
@@ -325,7 +325,7 @@ module Racc
         raise CompileError, "token#{'s' unless bad_prec.one?} " \
           "#{Racc.to_sentence(bad_prec)} appeared in a prechigh/preclow " \
           "block, but #{bad_prec.one? ? 'it is not a' : 'they are not'} " \
-          "terminal#{'s' unless bad_prec.one?}:\n" <<
+          "terminal#{'s' unless bad_prec.one?}:\n" +
           Source::SparseLines.render(bad_rules.map(&:source))
       end
 
@@ -335,7 +335,7 @@ module Racc
       unless bad_prec.empty?
         raise CompileError, "The following rule#{'s' unless bad_prec.one?} " \
           "use#{'s' if bad_prec.one?} nonterminals for explicit precedence, " \
-          "which is not allowed:\n" <<
+          "which is not allowed:\n" +
           Source::SparseLines.render(bad_prec.map(&:source))
       end
     end
@@ -344,13 +344,13 @@ module Racc
       @rules.group_by(&:target).each_value do |same_lhs|
         same_lhs.group_by { |r| r.symbols.reject(&:hidden?) }.each_value do |same_rhs|
           next unless same_rhs.size > 1
-          raise CompileError, "The following rules are duplicates:\n" <<
+          raise CompileError, "The following rules are duplicates:\n" +
             Source::SparseLines.render(same_rhs.map(&:source))
         end
       end
 
       unless @error.heads.empty?
-        raise CompileError, "You cannot create rules for the error symbol:\n" <<
+        raise CompileError, "You cannot create rules for the error symbol:\n" +
           Source::SparseLines.render(@error.heads.map { |ptr| ptr.rule.source} )
       end
     end
@@ -568,7 +568,7 @@ module Racc
     end
 
     def to_s
-      result = "#{@rule.target} : "
+      result = String.new "#{@rule.target} : "
       if @index > 0
         result << "#{preceding.reject(&:hidden?).map(&:to_s).join(' ')} ."
       else

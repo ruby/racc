@@ -9,11 +9,11 @@ module Racc
       define_method("test_scan_#{File.basename(testfile)}".to_sym) do
         original = File.read(testfile)
         # wrap the Ruby source code in an action block
-        wrapped  = "class Test\nrule\na : '*' {" << original << "\n}"
+        wrapped  = "class Test\nrule\na : '*' {" + original + "\n}"
         file     = Source::Buffer.new(testfile, wrapped)
         scanner  = Racc::GrammarFileScanner.new(file)
 
-        rebuilt = ''
+        rebuilt = String.new
         scanner.yylex do |token|
           break if token.nil?
           rebuilt << token[1][0].text if token[0] == :ACTION

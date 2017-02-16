@@ -31,7 +31,7 @@ module Racc
         highlights.sort_by!(&:from)
 
         raw    = text
-        cooked = ''
+        cooked = String.new
         offset = 0
 
         highlights.each do |hilite|
