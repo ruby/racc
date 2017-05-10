@@ -1,3 +1,17 @@
+/*
+    Cparse.java -- Racc Runtime Core for JRuby
+    
+    Copyright (c) 2016 Charles Oliver Nutter <headius@headius.com>
+    
+    Ported from and distributed under the same licence as cparse.c
+    
+    cparse.c -- Racc Runtime Core
+  
+    Copyright (c) 1999-2006 Minero Aoki
+  
+    This library is free software.
+    You can distribute/modify this program under the same terms of ruby.
+*/
 package com.headius.racc;
 
 import org.jruby.Ruby;
