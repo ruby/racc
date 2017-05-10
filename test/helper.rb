@@ -70,42 +70,25 @@ module Racc
     def assert_parser_unchanged(asset)
       file = File.basename(asset, '.y')
 
-      result = Dir.chdir(PROJECT_DIR) do
-        File.read("#{REGRESS_DIR}/#{file}.rb") == File.read("#{TAB_DIR}/#{file}")
+      Dir.chdir(PROJECT_DIR) do
+        assert_equal File.read("#{REGRESS_DIR}/#{file}.rb"), File.read("#{TAB_DIR}/#{file}")
       end
-
-      assert(result, "Output of test/assets/#{asset} differed from " \
-        "expectation. Try compiling it and diff with test/regress/#{file}.rb:" \
-        "\nruby -Ilib bin/racc -o tmp/#{file} test/assets/#{asset}; " \
-        "colordiff tmp/#{file} test/regress/#{file}.rb")
     end
 
     def assert_output_unchanged(file, args, actual = nil)
       actual, args = args, nil if actual == nil
-      result = Dir.chdir(PROJECT_DIR) do
-        File.read("#{REGRESS_DIR}/#{file}") == actual
+      Dir.chdir(PROJECT_DIR) do
+        assert_equal File.read("#{REGRESS_DIR}/#{file}"), actual
       end
-
-      asset = File.basename(file, '.out') + '.y'
-      assert(result, "Console output of test/assets/#{asset} differed from " \
-        'expectation. Try compiling it and diff stderr with ' \
-        "test/regress/#{file}:\nruby -Ilib bin/racc #{args} -o /dev/null " \
-        "test/assets/#{asset} 2>tmp/#{file}; colordiff tmp/#{file} " \
-        "test/regress/#{file}")
     end
 
     def assert_html_unchanged(asset)
       assert_compile asset, '-S'
 
       file = File.basename(asset, '.y')
-      result = Dir.chdir(PROJECT_DIR) do
-        File.read("#{REGRESS_DIR}/#{file}.html") == File.read("#{TAB_DIR}/#{file}")
+      Dir.chdir(PROJECT_DIR) do
+        assert_equal File.read("#{REGRESS_DIR}/#{file}.html"), File.read("#{TAB_DIR}/#{file}")
       end
-
-      assert(result, "HTML state summary for test/assets/#{asset} differed from " \
-        "expectation. Try compiling it and diff with test/regress/#{file}.html:" \
-        "\nruby -Ilib bin/racc -S -o tmp/#{file} test/assets/#{asset}; " \
-        "colordiff tmp/#{file} test/regress/#{file}.html")
     end
 
     def racc(arg, expect_success = true)
