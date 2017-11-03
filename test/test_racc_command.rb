@@ -51,7 +51,7 @@ module Racc
     end
 
     def test_executable_parser
-      err = assert_compile 'echk.y', "-E -e \"#{ruby_executable}\""
+      err = assert_compile 'echk.y', "-E -e ruby"
       assert_no_warnings err
       Dir.chdir(PROJECT_DIR) do
         assert(system("#{TAB_DIR}/echk"))
