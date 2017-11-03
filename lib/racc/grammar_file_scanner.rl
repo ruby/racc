@@ -191,8 +191,7 @@ class Racc::GrammarFileScanner
       end
 
       if @source[@position] != '}'
-        # TODO: more detailed diagnostics
-        raise Racc::ScanError, "scan error in action block"
+        raise Racc::ScanError, "scan error in action block (expected closing brace, found #{@source[@position].inspect})"
       end
     end
 
