@@ -44,6 +44,8 @@ HOE = Hoe.spec 'racc' do
   end
 
   self.clean_globs << "lib/#{self.name}/*.{so,bundle,dll,jar}" # from hoe/compiler
+
+  require_ruby_version '2.2.8'
 end
 
 def add_file_to_gem relative_path
