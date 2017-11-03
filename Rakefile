@@ -3,7 +3,7 @@
 require 'rubygems'
 require 'hoe'
 
-gem 'rake-compiler', '>= 0.4.1'
+gem 'rake-compiler'
 
 Hoe.plugin :debugging, :doofus, :git, :gemspec, :bundler
 
@@ -23,19 +23,19 @@ HOE = Hoe.spec 'racc' do
   self.extra_rdoc_files  = Dir['*.rdoc']
   self.readme_file       = 'README.rdoc'
 
-  dependency 'rake',          '~> 10.4',  :developer
-  dependency 'rake-compiler', '>= 0.4.1', :developer
-  dependency 'minitest',      '~> 5.8',   :developer
+  dependency 'rake',          '~> 12.2',  :developer
+  dependency 'rake-compiler', '~> 1.0', :developer
+  dependency 'minitest',      '~> 5.10',   :developer
 
-  dependency 'hoe',           '~> 3.14',  :developer
-  dependency 'hoe-debugging', '~> 1.2',   :developer
+  dependency 'hoe',           '~> 3.16',  :developer
+  dependency 'hoe-debugging', '~> 1.4',   :developer
   dependency 'hoe-doofus',    '~> 1.0',   :developer
   dependency 'hoe-git',       '~> 1.6',   :developer
   dependency 'hoe-gemspec',   '~> 1.0',   :developer
-  dependency 'hoe-bundler',   '~> 1.2',   :developer
+  dependency 'hoe-bundler',   '~> 1.3',   :developer
 
-  dependency 'rubocop',       '~> 0.34',  :developer
-  dependency 'pry',           '~> 0.10',  :developer
+  dependency 'rubocop',       '~> 0.51',  :developer
+  dependency 'pry',           '~> 0.11',  :developer
 
   if java?
     self.spec_extras[:platform]   = 'java'
