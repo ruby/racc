@@ -13,6 +13,4 @@ matrix:
 before_install: gem update --remote bundler
 install:
   - bundle install --retry 3
-script:
-  - bundle exec rake test
-  - bundle exec rake test_pure
+script: ./test/run_tests.sh
