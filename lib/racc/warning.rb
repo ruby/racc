@@ -53,7 +53,7 @@ module Racc
     end
 
     def to_s
-      msg = violet('Warning: ') << bright(title)
+      msg = violet('Warning: ') + bright(title)
       msg << "\n" << details if details
       msg
     end
@@ -104,7 +104,7 @@ module Racc
       def details
         "Its derivation rule#{'s all' unless @sym.heads.one?} contain" \
         "#{'s' if @sym.heads.one?} #{'an ' if @sym.heads.one?}infinite loop" \
-        "#{'s' unless @sym.heads.one?}:\n" <<
+        "#{'s' unless @sym.heads.one?}:\n" +
         @sym.heads.map { |ptr| ptr.rule.to_s }.join("\n")
       end
 
@@ -175,7 +175,7 @@ module Racc
 
           "When the next token is #{connective}#{Racc.to_sentence(tokens, 'or')}" \
           ", it is overridden by #{rules.one? ? 'this' : 'these'} " \
-          "higher-precedence rule#{'s' unless rules.one?}:\n" <<
+          "higher-precedence rule#{'s' unless rules.one?}:\n" +
           Source::SparseLines.render(rules.map(&:source))
         end.join("\n\n")
       end
@@ -196,7 +196,7 @@ module Racc
       end
 
       def title
-        "Shift/reduce conflict on #{@sym}," <<
+        "Shift/reduce conflict on #{@sym}," +
           (@path.reject(&:hidden?).empty? ?
             ' at the beginning of the parse.' :
             ' after the following input:')
@@ -204,7 +204,7 @@ module Racc
 
       def details
         if @path.reject(&:hidden?).empty?
-          result = ''
+          result = String.new
         else
           result = @path.reject(&:hidden?).map(&:to_s).join(' ') << "\n"
         end
@@ -253,7 +253,7 @@ module Racc
       end
 
       def title
-        "Reduce/reduce conflict on #{@sym}," <<
+        "Reduce/reduce conflict on #{@sym}," +
           (@path.reject(&:hidden?).empty? ?
             ' at the beginning of the parse.' :
             ' after the following input:')
@@ -261,7 +261,7 @@ module Racc
 
       def details
         if @path.reject(&:hidden?).empty?
-          result = ''
+          result = String.new
         else
           result = @path.reject(&:hidden?).map(&:to_s).join(' ') << "\n"
         end

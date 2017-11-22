@@ -165,9 +165,10 @@ def main
     profiler.report
   rescue Racc::CompileError, Errno::ENOENT, Errno::EPERM => err
     raise if $DEBUG
-    lineno   = err.message.slice!(/\A\d+:/).to_s
+    message  = err.message.dup # string may be frozen literal
+    lineno   = message.slice!(/\A\d+:/).to_s
     location = lineno.empty? ? bright("#{input}:") : bright("#{input}:#{lineno}")
-    $stderr.puts "#{red('Error: ')}#{location} #{err.message.strip}"
+    $stderr.puts "#{red('Error: ')}#{location} #{message.strip}"
     exit 1
   end
 end

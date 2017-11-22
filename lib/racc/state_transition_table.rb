@@ -202,7 +202,7 @@ module Racc
     end
 
     def mkmapexp(arr)
-      map = ''
+      map = String.new
       maxdup = RE_DUP_MAX
 
       arr.chunk(&:nil?).each do |is_nil, items|
