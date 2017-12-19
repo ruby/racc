@@ -18,7 +18,7 @@ end
 
 HOE = Hoe.spec 'racc' do
   developer 'Aaron Patterson', 'aaron@tenderlovemaking.com'
-  license "MIT"
+  license "LGPL-2.1"
 
   self.extra_rdoc_files  = Dir['*.rdoc']
   self.readme_file       = 'README.rdoc'
