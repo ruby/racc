@@ -195,7 +195,7 @@ module Racc
         require 'racc/cparse-jruby.jar'
         com.headius.racc.Cparse.new.load(JRuby.runtime, false)
       else
-        require 'racc/cparse'
+        require_relative 'cparse'
       end
     # Racc_Runtime_Core_Version_C  = (defined in extention)
       Racc_Runtime_Core_Revision_C = Racc_Runtime_Core_Id_C.split[2]
