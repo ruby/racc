@@ -161,7 +161,7 @@ module Racc
         require 'racc/cparse-jruby.jar'
         com.headius.racc.Cparse.new.load(JRuby.runtime, false)
       else
-        require_relative 'cparse'
+        require 'racc/cparse'
       end
 
       unless new.respond_to?(:_racc_do_parse_c, true)
