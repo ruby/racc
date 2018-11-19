@@ -249,10 +249,6 @@ public class Cparse implements Library {
             shift(context, act, tok, val);
         }
 
-        private int REDUCE(ThreadContext context, int act) {
-            return reduce(context, act);
-        }
-
         public void parse_main(ThreadContext context, IRubyObject tok, IRubyObject val, boolean resume) {
             Ruby runtime = context.runtime;
 
@@ -370,7 +366,21 @@ public class Cparse implements Library {
                         }
                         else if (act < 0 && act > -(this.reduce_n)) {
                             D_puts("reduce");
-                            REDUCE(context, act);
+                            { // macro REDUCE
+                                switch (reduce(context, act)) {
+                                    case 0: /* normal */
+                                        break;
+                                    case 1: /* yyerror */
+                                        branch = USER_YYERROR;
+                                        continue BRANCH;
+                                    case 2: /* yyaccept */
+                                        D_puts("u accept");
+                                        branch = ACCEPT;
+                                        continue BRANCH;
+                                    default:
+                                        break;
+                                }
+                            }
                         }
                         else if (act == -(this.reduce_n)) {
                             branch = ERROR; continue BRANCH;
@@ -383,6 +393,7 @@ public class Cparse implements Library {
                             throw runtime.newRaiseException(RaccBug, "[Cparse Bug] unknown act value " + act);
                         }
 
+                        // fall through
                     case ERROR_RECOVERED:
 
                         if (this.debug) {
@@ -405,6 +416,7 @@ public class Cparse implements Library {
                             call_onerror.call(context, this.parser, this.parser, this.t, val, this.vstack);
                         }
 
+                        // fall through
                     case USER_YYERROR:
                         if (this.errstatus == 3) {
                             if (this.t == vFINAL_TOKEN) {
@@ -480,7 +492,21 @@ public class Cparse implements Library {
                         }
                         else if (act < 0 && act > -(this.reduce_n)) {
                             D_puts("e reduce");
-                            REDUCE(context, act);
+                            { // macro REDUCE
+                                switch (reduce(context, act)) {
+                                    case 0: /* normal */
+                                        break;
+                                    case 1: /* yyerror */
+                                        branch = USER_YYERROR;
+                                        continue BRANCH;
+                                    case 2: /* yyaccept */
+                                        D_puts("u accept");
+                                        branch = ACCEPT;
+                                        continue BRANCH;
+                                    default:
+                                        break;
+                                }
+                            }
                         }
                         else if (act == this.shift_n) {
                             D_puts("e accept");
