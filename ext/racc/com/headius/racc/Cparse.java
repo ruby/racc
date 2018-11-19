@@ -21,6 +21,7 @@ import org.jruby.RubyClass;
 import org.jruby.RubyContinuation;
 import org.jruby.RubyFixnum;
 import org.jruby.RubyHash;
+import org.jruby.RubyKernel;
 import org.jruby.RubyModule;
 import org.jruby.RubyNumeric;
 import org.jruby.RubyObject;
@@ -38,6 +39,7 @@ import org.jruby.runtime.CallSite;
 import org.jruby.runtime.Helpers;
 import org.jruby.runtime.MethodIndex;
 import org.jruby.runtime.ObjectAllocator;
+import org.jruby.runtime.Signature;
 import org.jruby.runtime.ThreadContext;
 import org.jruby.runtime.Visibility;
 import org.jruby.runtime.builtin.IRubyObject;
@@ -503,17 +505,18 @@ public class Cparse implements Library {
         }
 
         private int reduce(ThreadContext context, int act) {
-            IRubyObject code;
             ruleno = -act * 3;
             IRubyObject tag = context.runtime.newSymbol("racc_jump");
-            RubyContinuation rbContinuation = new RubyContinuation(context.runtime, context.runtime.newSymbol("racc_jump"));
-            try {
-                context.pushCatch(rbContinuation.getContinuation());
-                code = reduce0(context);
-                errstatus = assert_integer(parser.getInstanceVariable(ID_ERRSTATUS));
-            } finally {
-                context.popCatch();
-            }
+            IRubyObject code = RubyKernel.rbCatch19(context, this,
+                    tag,
+                    CallBlock19.newCallClosure(this, getMetaClass(), Signature.NO_ARGUMENTS,
+                            new BlockCallback() {
+                                @Override
+                                public IRubyObject call(ThreadContext context, IRubyObject[] args, Block block) {
+                                    return reduce0(context);
+                                }
+                            }, context));
+            errstatus = assert_integer(parser.getInstanceVariable(ID_ERRSTATUS));
             return assert_integer(code);
         }
 
