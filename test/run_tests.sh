@@ -10,5 +10,8 @@ if [[ $test_frozen_strings == "true" ]] ; then
   export RUBYOPT="--enable-frozen-string-literal --debug=frozen-string-literal"
 fi
 
+# Workaround for JRuby builds seeming to not generate this ragel machine
+bundle exec rake lib/racc/grammar_file_scanner.rb
+
 bundle exec rake test
 bundle exec rake test_pure
