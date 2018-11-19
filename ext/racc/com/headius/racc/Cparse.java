@@ -267,7 +267,7 @@ public class Cparse implements Library {
                         i = assert_integer(tmp);
 
                         D_printf("read_next=%d\n", read_next);
-                        if (read_next && (this.t != vFINAL_TOKEN)) {
+                        if (read_next && (!this.t.equals(vFINAL_TOKEN))) {
                             if (this.lex_is_iterator) {
                                 D_puts("resuming...");
                                 if (this.fin != 0) throw runtime.newArgumentError("token given after EOF");
@@ -391,7 +391,7 @@ public class Cparse implements Library {
 
                     case USER_YYERROR:
                         if (this.errstatus == 3) {
-                            if (this.t == vFINAL_TOKEN) {
+                            if (this.t.equals(vFINAL_TOKEN)) {
                                 this.retval = runtime.getFalse();
                                 this.fin = CP_FIN_EOT;
                                 return;
@@ -527,13 +527,13 @@ public class Cparse implements Library {
                         /* call action */
                         if (len == 0) {
                             tmp = context.nil;
-                            if (mid != sym_noreduce)
+                            if (!mid.equals(sym_noreduce))
                                 tmp_v = runtime.newArray();
                             if (this.debug)
                                 tmp_t = runtime.newArray();
                         }
                         else {
-                            if (mid != sym_noreduce) {
+                            if (!mid.equals(sym_noreduce)) {
                                 tmp_v = GET_TAIL(context, this.vstack, len);
                                 tmp = ((RubyArray)tmp_v).entry(0);
                             }
@@ -547,7 +547,7 @@ public class Cparse implements Library {
                             }
                             CUT_TAIL(context, this.state, len);
                         }
-                        if (mid != sym_noreduce) {
+                        if (!mid.equals(sym_noreduce)) {
                             if (this.use_result_var) {
                                 tmp = Helpers.invoke(context, this.parser, mid.toString(), tmp_v, this.vstack, tmp);
                             }
@@ -590,7 +590,7 @@ public class Cparse implements Library {
                             D_puts("(goto) check[i] == nil");
                             branch = NOTFOUND; continue BRANCH;
                         }
-                        if (tmp != runtime.newFixnum(k1)) {
+                        if (!tmp.equals(runtime.newFixnum(k1))) {
                             D_puts("(goto) check[i] != table[i]");
                             branch = NOTFOUND; continue BRANCH;
                         }
@@ -759,7 +759,7 @@ public class Cparse implements Library {
                     }
                 }, context));
             } catch (LexerUnroll maybeOurs) {
-                if (maybeOurs == lexerUnroll) {
+                if (maybeOurs.equals(lexerUnroll)) {
                     return;
                 }
             }
