@@ -16,5 +16,8 @@ bundle exec rake lib/racc/grammar_file_scanner.rb
 # Unset this variable because it adds a warning to JVM startup
 unset _JAVA_OPTIONS
 
+# Speed up JRuby startup for subprocess tests
+export JRUBY_OPTS=--dev
+
 bundle exec rake test
 bundle exec rake test_pure
