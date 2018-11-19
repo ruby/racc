@@ -2,7 +2,7 @@
 
 set -eux
 
-test_frozen_strings=$(ruby -e 'puts (RUBY_ENGINE == "ruby" && RUBY_VERSION > "2.4")')
+test_frozen_strings=$(ruby -e 'puts ((RUBY_ENGINE == "ruby" || RUBY_ENGINE == "jruby") && RUBY_VERSION > "2.4")')
 
 if [[ $test_frozen_strings == "true" ]] ; then
   echo "NOTE: enabling frozen string literals"
