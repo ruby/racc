@@ -11,8 +11,10 @@ rvm:
 - 1.8.7
 - 1.9.3
 - 2.0.0
+- jruby
 - ruby-head
 script: rake travis
 matrix:
   allow_failures:
     - rvm: ruby-head
+    - rvm: jruby
