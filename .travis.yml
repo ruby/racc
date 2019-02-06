@@ -1,18 +1,23 @@
 ---
-after_script:
-- rake travis:after -t
-before_script:
-- gem install hoe-travis --no-rdoc --no-ri
-- rake travis:before -t
+sudo: false
+cache:
+  - bundler
+  - directories:
+    - /home/travis/.rvm/
 language: ruby
 notifications:
   email:
 rvm:
-- 1.8.7
-- 1.9.3
-- 2.0.0
-- ruby-head
-script: rake travis
+  - 2.2.8
+  - 2.3.5
+  - 2.4.2
+  - jruby-9.2.5.0
+  - ruby-head
 matrix:
   allow_failures:
     - rvm: ruby-head
+    - rvm: jruby-9.2.5.0
+before_install: gem update --remote bundler
+install:
+  - bundle install --retry 3
+script: ./test/run_tests.sh
