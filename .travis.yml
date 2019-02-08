@@ -1,5 +1,4 @@
 ---
-<<<<<<< HEAD
 after_script:
 - rake travis:after -t
 before_script:
