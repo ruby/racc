@@ -19,17 +19,17 @@ There are two possible comment styles,
 == Class Block
 
 The class block is formed like this:
---
-class CLASS_NAME
-  [precedence table]
-  [token declarations]
-  [expected number of S/R conflict]
-  [options]
-  [semantic value conversion]
-  [start rule]
-rule
-  GRAMMARS
---
+
+  class CLASS_NAME
+    [precedence table]
+    [token declarations]
+    [expected number of S/R conflict]
+    [options]
+    [semantic value conversion]
+    [start rule]
+  rule
+    GRAMMARS
+
 CLASS_NAME is the name of the parser class to be defined.
 This is used as the name of the parser class in the generated file
 which is written in Ruby.
@@ -37,14 +37,13 @@ which is written in Ruby.
 If CLASS_NAME includes '::', Racc outputs a module clause.
 For example, when CLASS_NAME is "M::C",
 the parser class is defined as follows in the generated file:
---
-module M
-  class C
-    :
-    :
+
+  module M
+    class C
+      :
+      :
+    end
   end
-end
---
 
 == Grammar Block
 
@@ -52,20 +51,18 @@ The grammar block is where you write the grammar rules understood by the
 generated parser.
 It is written between the reserved words 'rule' and 'end' and its syntax is
 as follows:
---
-(token): (token) (token) (token).... (action)
 
-(token): (token) (token) (token).... (action)
-       | (token) (token) (token).... (action)
-       | (token) (token) (token).... (action)
---
+  (token): (token) (token) (token).... (action)
+
+  (token): (token) (token) (token).... (action)
+         | (token) (token) (token).... (action)
+         | (token) (token) (token).... (action)
 
 (action) is executed when its (token)s are found.
 (action) is basically a Ruby code block which is surrounded by braces:
---
-{ print val[0]
-  puts val[1] }
---
+
+  { print val[0]
+    puts val[1] }
 
 The return value of an action is the left-hand side (lhs) value of the rule.
 This is $$ in yacc.
@@ -85,20 +82,19 @@ In any case, you can omit actions.
 When an action is omitted, the left-hand side value is always val[0].
 
 Here is an example of whole grammar block.
---
-rule
-  goal: definition ruls source { result = val }
 
-  definition: /* none */   { result = [] }
-    | definition startdesig  { result[0] = val[1] }
-    | definition
-             precrule   # this line continue from upper line
-      {
-        result[1] = val[1]
-      }
+  rule
+    goal: definition ruls source { result = val }
 
-  startdesig: START TOKEN
---
+    definition: /* none */   { result = [] }
+      | definition startdesig  { result[0] = val[1] }
+      | definition
+               precrule   # this line continue from upper line
+        {
+          result[1] = val[1]
+        }
+
+    startdesig: START TOKEN
 
 You can use the following special local variables inside actions.
 The symbols shown in parentheses are how they are represented when using
@@ -122,28 +118,25 @@ There is also a special form of action which is called an embedded action.
 An embedded action can be written wherever you like in the middle of the
 token sequence.
 Here is an example of the embedded action:
----
-target: A B { puts 'test test' } C D { normal action }
----
+
+  target: A B { puts 'test test' } C D { normal action }
 
 When a rule is written like this,
 the action written between B and C is executed immediately after both A and B
 are found.
 An embedded action itself has a value, as you can see in the following example:
---
-target: A { result = 1 } B { p val[1] }
---
+
+  target: A { result = 1 } B { p val[1] }
+
 When the last action block { p val[1] } is executed,
 it shows 1 that is the value of the embedded action and not the value of B.
 
 In effect, writing an embedded action is the same as adding a nonterminal
 symbol whose rule is empty. The above example and the following code are
 equivalent.
---
-target  : A nonterm B { p val[1] }
-nonterm : /* empty rule */ { result = 1 }
---
 
+  target  : A nonterm B { p val[1] }
+  nonterm : /* empty rule */ { result = 1 }
 
 == Operator Precedence
 
@@ -161,23 +154,22 @@ When shift/reduce conflicts occur, Racc first investigates whether or not the
 precedence is set on the rule. The precedence of a rule is equal to the
 precedence of the last terminal symbol of the rule.
 For instance,
---
-target: TERM_A nonterm_a TERM_B nonterm_b
---
+
+  target: TERM_A nonterm_a TERM_B nonterm_b
+
 the precedence of this rule is the precedence of TERM_B.
 If no precedence is set on TERM_B,
 Racc would be unable to solve the conflict by precedence and report
 "Shift/Reduce conflict".
 
 Here we can see how to designate operator precedence:
---
-prechigh
-  nonassoc '++'
-  left     '*' '/'
-  left     '+' '-'
-  right    '='
-preclow
---
+
+  prechigh
+    nonassoc '++'
+    left     '*' '/'
+    left     '+' '-'
+    right    '='
+  preclow
 
 The token written in the line closer to prechigh has the higher precedence.
 You can also write this in reverse order, such as defining preclow before
@@ -188,21 +180,19 @@ When a conflict occurs between operators whose precedence is equal, their
 associativity is used to decide whether to shift or reduce.
 
 For instance, think of the following case:
---
-a - b - c
---
+
+  a - b - c
 
 When the "-" operator is left-associative this is interpreted as follows:
---
-(a - b) - c
---
+
+  (a - b) - c
+
 For instance, arithmetic operators are usually left-associative.
 
 On the other hand,
 if the "-" operator is right-associative it is interpreted as follows:
---
-a - (b - c)
---
+
+  a - (b - c)
 
 When an operator is not allowed to be written in succession like this in the
 first place, it is nonassoc. For instance, the "++" operator in the C language
@@ -218,24 +208,22 @@ be higher than the precedence of minus for subtraction.
 
 In such case, you can use %prec in yacc and you can do the same thing by using
 '=' + (symbol) with racc.
---
-prechigh
-  nonassoc UMINUS
-  left '*' '/'
-  left '+' '-'
-preclow
 
-rule
-  exp: exp '*' exp
-     | exp '-' exp
-     | '-' exp       =UMINUS   # changing the precedence of - only here
-         :
-         :
---
+  prechigh
+    nonassoc UMINUS
+    left '*' '/'
+    left '+' '-'
+  preclow
+
+  rule
+    exp: exp '*' exp
+       | exp '-' exp
+       | '-' exp       =UMINUS   # changing the precedence of - only here
+           :
+           :
 
 In the above example, the precedence of the '-' exp rule is equal to the
 precedence of UMINUS and higher than the precedence of '*', as we intended.
-
 
 == Declaring Tokens
 
@@ -243,10 +231,9 @@ By explicitly declaring tokens,
 you can avoid many meaningless bugs, especially typos.
 If a declared token does not exist or an existing token is not declared,
 Racc outputs warnings. Such as:
---
-token TOKEN_NAME AND_IS_THIS
-      ALSO_THIS_IS AGAIN_AND_AGAIN THIS_IS_LAST
---
+
+  token TOKEN_NAME AND_IS_THIS
+        ALSO_THIS_IS AGAIN_AND_AGAIN THIS_IS_LAST
 
 This feature is similar to %token in yacc but slightly different.
 With racc, this is not required and even if the tokens are declared, it does not
@@ -259,14 +246,12 @@ words when they are written at the beginning of the line. Therefore, for
 instance, prechigh can also be used as a symbol. However, for an abyssal
 reason, no matter what we do, we cannot use 'end' as a symbol.
 
-
 == Options
 
 There are some options you can write in your racc grammar file.
 The syntax is:
---
-options OPTION OPTION ...
---
+
+  options OPTION OPTION ...
 
 The currently available options are:
 
@@ -277,7 +262,6 @@ available in each action block. As also described in the Grammar Block section,
 when this is `no_result_var`, the value of the last statement in each action
 block is used as the lhs value.
 
-
 == expect
 
 Racc has bison's "expect" directive.
@@ -286,18 +270,17 @@ A practical parser usually contains non-harmful shift/reduce conflicts.
 It's acceptable for the author of the grammar because they already know about
 it. However, if Racc reports "conflicts" after a user processed the grammar
 file, they might be anxious.
+
 In that case, you can declare the expected number of the conflicts to suppress
 the warning message.
 
---
-# Example
+  # Example
 
-class MyParser
-rule
-  expect 3
-    :
-    :
---
+  class MyParser
+  rule
+    expect 3
+      :
+      :
 
 When you declared the expected number of shift/reduce conflicts as 3 like the
 above code, the number of conflicts should exactly be 3.
@@ -305,26 +288,24 @@ If it was not 3 (even it was zero), racc would print the warning message.
 
 Besides, you cannot suppress warning messages for reduce/reduce conflicts.
 
-
 == Converting Token Symbols
 
 Token symbols abide by the following rules:
 
   * naked token string in racc file (TOK, XFILE, this_is_token, ...)
-    --&gt; symbol (:TOK, :XFILE, :this_is_token, ...)
+    --> symbol (:TOK, :XFILE, :this_is_token, ...)
   * quoted string (':', '.', '(', ...)
-    --&gt; same string (':', '.', '(', ...)
+    --> same string (':', '.', '(', ...)
 
 This can be inconvenient when you already have a scanner returning values in a
 different form. In that case, you can change this using a "convert" block.
 
 Here is an example:
---
-convert
-  PLUS 'PlusClass'      # We use PlusClass for symbol of `PLUS'
-  MIN  'MinusClass'     # We use MinusClass for symbol of `MIN'
-end
---
+
+  convert
+    PLUS 'PlusClass'      # We use PlusClass for symbol of `PLUS'
+    MIN  'MinusClass'     # We use MinusClass for symbol of `MIN'
+  end
 
 By default, the value of the token symbol PLUS is :PLUS.
 However, when interpreting the above definition it becomes PlusClass.
@@ -334,22 +315,20 @@ except 'false' and 'nil'.
 
 If you want to use a String as a token symbol, special care is required.
 For example:
---
-convert
-  class '"cls"'            # in code, "cls"
-  PLUS '"plus\n"'          # in code, "plus\n"
-  MIN  "\"minus#{val}\""   # in code, \"minus#{val}\"
-end
---
+
+  convert
+    class '"cls"'            # in code, "cls"
+    PLUS '"plus\n"'          # in code, "plus\n"
+    MIN  "\"minus#{val}\""   # in code, \"minus#{val}\"
+  end
 
 == Start Rule
 
 In order to create a parser, you need to tell Racc the first rule to start.
 The start rule is a way to write it explicitly.
 
---
-start real_target
---
+  start real_target
+
 This is usually omitted and in that case, the start rule is the first rule in
 the file.
 
@@ -359,6 +338,7 @@ In yacc, this is '%start'.
 
 A "User Code Block" is a block of Ruby source code which is copied to the
 output file.
+
 There can be up to three user code blocks: "header", "inner" and "footer".
 
 The code written in the "header" block is copied to just before the parser class
@@ -366,17 +346,18 @@ definition. "inner" is for inside (and the beginning of) the class definition,
 and "footer" is after the definition.
 
 Format of user code is like this:
---
----- header
-  ruby statement
-  ruby statement
-  ruby statement
 
----- inner
-  ruby statement
-     :
-     :
---
+  ---- header
+    ruby statement
+    ruby statement
+    ruby statement
+
+  ---- inner
+    ruby statement
+       :
+       :
+
 If there are four '-' at line head, Racc treats this case as the beginning of a
 user code block.
+
 The name of a user code block must be one word.
