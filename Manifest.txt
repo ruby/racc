@@ -57,7 +57,6 @@ test/assets/badrule3.y
 test/assets/badrule4.y
 test/assets/badsyntax.y
 test/assets/bench.y
-test/assets/bibtex.y
 test/assets/cadenza.y
 test/assets/calc-ja.y
 test/assets/cast.y
@@ -101,8 +100,6 @@ test/assets/opal.y
 test/assets/opt.y
 test/assets/percent.y
 test/assets/php_serialization.y
-test/assets/rdblockparser.y
-test/assets/rdinlineparser.y
 test/assets/recv.y
 test/assets/riml.y
 test/assets/rrconf.y
@@ -130,7 +127,6 @@ test/regress/badrule2.out
 test/regress/badrule3.out
 test/regress/badrule4.out
 test/regress/badsyntax.out
-test/regress/bibtex.rb
 test/regress/cadenza.rb
 test/regress/cast.rb
 test/regress/csspool.html
@@ -157,8 +153,6 @@ test/regress/normal.out
 test/regress/opal.out
 test/regress/opal.rb
 test/regress/php_serialization.rb
-test/regress/rdblockparser.rb
-test/regress/rdinlineparser.rb
 test/regress/riml.rb
 test/regress/ruby18.rb
 test/regress/ruby22.rb
