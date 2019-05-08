@@ -56,7 +56,6 @@ sample/yyerr.y
 setup.rb
 tasks/doc.rb
 tasks/email.rb
-test/assets/bibtex.y
 test/assets/cadenza.y
 test/assets/cast.y
 test/assets/chk.y
@@ -93,8 +92,6 @@ test/assets/opal.y
 test/assets/opt.y
 test/assets/percent.y
 test/assets/php_serialization.y
-test/assets/rdblockparser.y
-test/assets/rdinlineparser.y
 test/assets/recv.y
 test/assets/riml.y
 test/assets/rrconf.y
@@ -113,7 +110,6 @@ test/assets/yyerr.y
 test/bench.y
 test/helper.rb
 test/infini.y
-test/regress/bibtex
 test/regress/cadenza
 test/regress/cast
 test/regress/csspool
@@ -129,8 +125,6 @@ test/regress/nasl
 test/regress/nokogiri-css
 test/regress/opal
 test/regress/php_serialization
-test/regress/rdblockparser
-test/regress/rdinlineparser
 test/regress/riml
 test/regress/ruby18
 test/regress/ruby22
