@@ -147,7 +147,7 @@ end
 # This command creates a parser with the Racc runtime embedded right in the
 # parser source file, so it can run even if racc/parser.rb is not present.
 #
-# Note: parser.rb is LGPL, but your parser is not.
+# Note: parser.rb is ruby license, but your parser is not.
 # Your own parser is completely yours.
 module Racc
   Racc_No_Extensions = ENV['PURERUBY'] # :nodoc:
