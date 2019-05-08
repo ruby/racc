@@ -176,7 +176,7 @@ end
 # This command creates myparser.rb which `includes' Racc runtime.
 # Only you must do is to distribute your parser file (myparser.rb).
 #
-# Note: parser.rb is LGPL, but your parser is not.
+# Note: parser.rb is ruby license, but your parser is not.
 # Your own parser is completely yours.
 module Racc
 
