@@ -290,14 +290,6 @@ module Racc
       assert_parser_unchanged 'nokogiri-css.y'
     end
 
-    # .y file from bibtex-ruby gem
-
-    def test_bibtex
-      err = assert_compile 'bibtex.y'
-      assert_no_warnings err
-      assert_parser_unchanged 'bibtex.y'
-    end
-
     # .y file from edtf-ruby gem
 
     def test_edtf
@@ -355,17 +347,6 @@ module Racc
       err = assert_compile 'huia.y'
       assert_warnings err, sr_conflicts: 285
       assert_parser_unchanged 'huia.y'
-    end
-
-    # .y files from rdtool gem
-
-    def test_rdtool
-      err1 = assert_compile 'rdblockparser.y'
-      err2 = assert_compile 'rdinlineparser.y'
-      assert_no_warnings err1
-      assert_no_warnings err2
-      assert_parser_unchanged 'rdblockparser.y'
-      assert_parser_unchanged 'rdinlineparser.y'
     end
 
     # .y file from cast gem
