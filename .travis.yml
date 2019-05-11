@@ -6,10 +6,10 @@ cache:
     - /home/travis/.rvm/
 language: ruby
 rvm:
-  - 2.2.8
-  - 2.3.5
   - 2.4.2
-  - jruby-9.2.4.0
+  - 2.5.5
+  - 2.6.3
+  - jruby-9.2.7.0
   - ruby-head
 matrix:
   allow_failures:
