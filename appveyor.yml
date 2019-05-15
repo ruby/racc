@@ -2,7 +2,7 @@
 clone_depth: 10
 install:
   - SET PATH=C:\Ruby%ruby_version%\bin;%PATH%
-  - gem install minitest hoe
+  - gem install minitest hoe rake-compiler
 build: off
 test_script:
   - rake test
