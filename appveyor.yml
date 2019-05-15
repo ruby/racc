@@ -8,9 +8,13 @@ deploy: off
 
 install:
   - SET PATH=C:\Ruby%ruby_version%\bin;%PATH%
-  - gem install minitest hoe rake-compiler rubocop --no-document --conservative
   - ps: |
       $rv = $env:ruby_version 
+      if ( $rv -lt '24' ) {
+        gem install minitest hoe rake-compiler rubocop:0.68.1 --no-document --conservative
+      } else {
+        gem install minitest hoe rake-compiler rubocop        --no-document --conservative
+      }
       if ( $rv.EndsWith('-x64') ) {
         C:/msys64/usr/bin/pacman -S --noconfirm --needed --noprogressbar mingw-w64-x86_64-ragel
         $env:PATH = "C:/Ruby$rv/bin;$env:PATH;C:/msys64/mingw64/bin"
@@ -28,10 +32,10 @@ environment:
 #    - ruby_version: "200-x64"
 #    - ruby_version: "21"
 #    - ruby_version: "21-x64"
-#    - ruby_version: "22"
-#    - ruby_version: "22-x64"
-#    - ruby_version: "23"
-#    - ruby_version: "23-x64"
+    - ruby_version: "22"
+    - ruby_version: "22-x64"
+    - ruby_version: "23"
+    - ruby_version: "23-x64"
     - ruby_version: "24"
     - ruby_version: "24-x64"
     - ruby_version: "25"
