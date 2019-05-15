@@ -1,0 +1,42 @@
+---
+image: Visual Studio 2017
+
+clone_depth: 10
+
+build: off
+deploy: off
+
+install:
+  # path C:/msys64/mingw**/bin needed for ragel
+  - ps: |
+      $rv = $env:ruby_version
+      if ( $rv.EndsWith('-x64') -or ($rv -eq '_trunk') ) {
+        C:/msys64/usr/bin/pacman -S --noconfirm --needed --noprogressbar mingw-w64-x86_64-ragel
+        $env:PATH = "C:/Ruby$rv/bin;$env:PATH;C:/msys64/mingw64/bin"
+      } else {
+        C:/msys64/usr/bin/pacman -S --noconfirm --needed --noprogressbar mingw-w64-i686-ragel
+        $env:PATH = "C:/Ruby$rv/bin;$env:PATH;C:/msys64/mingw32/bin"
+      }
+      if ($rv -eq '_trunk') {
+        $trunk_uri = 'https://ci.appveyor.com/api/projects/MSP-Greg/ruby-loco/artifacts/ruby_trunk.7z'
+        (New-Object Net.WebClient).DownloadFile($trunk_uri, 'C:\ruby_trunk.7z')
+        7z.exe x C:\ruby_trunk.7z -oC:\Ruby_trunk
+      }
+      gem install minitest hoe rake-compiler rubocop --no-document --conservative
+
+test_script:
+  - rake -rdevkit test
+
+environment:
+  matrix:
+#    - ruby_version: "22"
+#    - ruby_version: "22-x64"
+#    - ruby_version: "23"
+#    - ruby_version: "23-x64"
+    - ruby_version: 24
+    - ruby_version: 24-x64
+    - ruby_version: 25
+    - ruby_version: 25-x64
+    - ruby_version: 26
+    - ruby_version: 26-x64
+    - ruby_version: _trunk
