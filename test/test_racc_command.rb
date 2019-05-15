@@ -207,14 +207,6 @@ module Racc
       assert_output_unchanged 'nokogiri-css.y'
     end
 
-    # .y file from bibtex-ruby gem
-
-    def test_bibtex
-      assert_compile 'bibtex.y'
-      assert_debugfile 'bibtex.y', [0, 0, 0, 0, 0]
-      assert_output_unchanged 'bibtex.y'
-    end
-
     # .y file from edtf-ruby gem
 
     def test_edtf
@@ -269,17 +261,6 @@ module Racc
       assert_compile 'huia.y'
       assert_debugfile 'huia.y', [285, 0, 0, 0]
       assert_output_unchanged 'huia.y'
-    end
-
-    # .y files from rdtool gem
-
-    def test_rdtool
-      assert_compile 'rdblockparser.y'
-      assert_compile 'rdinlineparser.y'
-      assert_debugfile 'rdblockparser.y', [0, 0, 0, 0]
-      assert_debugfile 'rdinlineparser.y', [0, 0, 0, 0]
-      assert_output_unchanged 'rdblockparser.y'
-      assert_output_unchanged 'rdinlineparser.y'
     end
 
     # .y file from cast gem
