@@ -6,15 +6,15 @@ cache:
     - /home/travis/.rvm/
 language: ruby
 rvm:
-  - 2.2.8
-  - 2.3.5
   - 2.4.2
-  - jruby-9.2.4.0
+  - 2.5.5
+  - 2.6.3
+  - jruby-9.2.7.0
   - ruby-head
 matrix:
   allow_failures:
     - rvm: ruby-head
-    - rvm: jruby-9.2.4.0
+    - rvm: jruby-9.2.7.0
 before_install: gem update --remote bundler
 install:
   - bundle install --retry 3
