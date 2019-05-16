@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 
+# as of 2019-05, Travis Rubies 2.4 and later have RubyGems 3.0.3 or later installed
+
 set -eux
 
 test_frozen_strings=$(ruby -e 'puts ((RUBY_ENGINE == "ruby" || RUBY_ENGINE == "jruby") && RUBY_VERSION > "2.4")')
 
 if [[ $test_frozen_strings == "true" ]] ; then
   echo "NOTE: enabling frozen string literals"
-  rvm install rubygems 2.6.12 --force # because of an issue in rubygems 2.7 with ruby 2.5 and frozen string literals
   export RUBYOPT="--enable-frozen-string-literal --debug=frozen-string-literal"
 fi
 
