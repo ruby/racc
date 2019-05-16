@@ -1,0 +1,36 @@
+---
+image: Visual Studio 2017
+
+clone_depth: 10
+
+build: off
+deploy: off
+
+install:
+  - SET PATH=C:\Ruby%ruby_version%\bin;%PATH%
+  - ps: |
+      $rv = $env:ruby_version 
+      if ( $rv -lt '24' ) {
+        gem install minitest hoe rake-compiler rubocop:0.68.1 --no-document --conservative
+      } else {
+        gem install minitest hoe rake-compiler rubocop        --no-document --conservative
+      }
+      if ( $rv.EndsWith('-x64') ) {
+        C:/msys64/usr/bin/pacman -S --noconfirm --needed --noprogressbar mingw-w64-x86_64-ragel
+        $env:PATH = "C:/Ruby$rv/bin;$env:PATH;C:/msys64/mingw64/bin"
+      } else {
+        C:/msys64/usr/bin/pacman -S --noconfirm --needed --noprogressbar mingw-w64-i686-ragel
+        $env:PATH = "C:/Ruby$rv/bin;$env:PATH;C:/msys64/mingw32/bin"
+      }
+
+test_script:
+  - rake -rdevkit test
+
+environment:
+  matrix:
+    - ruby_version: "24"
+    - ruby_version: "24-x64"
+    - ruby_version: "25"
+    - ruby_version: "25-x64"
+    - ruby_version: "26"
+    - ruby_version: "26-x64"
