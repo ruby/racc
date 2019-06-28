@@ -23,7 +23,7 @@ HOE = Hoe.spec 'racc' do
   self.readme_file       = 'README.rdoc'
 
   dependency 'rake-compiler', '>= 0.4.1', :developer
-  dependency 'minitest',      '~> 4.7',   :developer # stick to stdlib's version
+  dependency 'test-unit',     '>= 3.0.0', :developer
 
   if java?
     self.spec_extras[:platform]   = 'java'

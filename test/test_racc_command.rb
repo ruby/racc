@@ -141,13 +141,13 @@ module Racc
     end
 
     def test_norule_y
-      assert_raise(MiniTest::Assertion) {
+      assert_raise(Test::Unit::AssertionFailedError) {
         assert_compile 'norule.y'
       }
     end
 
     def test_unterm_y
-      assert_raise(MiniTest::Assertion) {
+      assert_raise(Test::Unit::AssertionFailedError) {
         assert_compile 'unterm.y'
       }
     end
