@@ -10,9 +10,9 @@ bin/racc
 bin/racc2y
 bin/y2racc
 ext/racc/MANIFEST
-ext/racc/cparse.c
-ext/racc/depend
-ext/racc/extconf.rb
+ext/racc/cparse/cparse.c
+ext/racc/cparse/depend
+ext/racc/cparse/extconf.rb
 ext/racc/com/headius/racc/Cparse.java
 fastcache/extconf.rb
 fastcache/fastcache.c

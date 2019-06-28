@@ -28,7 +28,7 @@ HOE = Hoe.spec 'racc' do
   if java?
     self.spec_extras[:platform]   = 'java'
   else
-    self.spec_extras[:extensions] = %w[ext/racc/extconf.rb]
+    self.spec_extras[:extensions] = %w[ext/racc/cparse/extconf.rb]
   end
 
   self.clean_globs << "lib/#{self.name}/*.{so,bundle,dll,jar}" # from hoe/compiler
@@ -67,7 +67,7 @@ unless jruby?
   require "rake/extensiontask"
   Rake::ExtensionTask.new "cparse", HOE.spec do |ext|
     ext.lib_dir = File.join 'lib', 'racc'
-    ext.ext_dir = File.join 'ext', 'racc'
+    ext.ext_dir = File.join 'ext', 'racc', 'cparse'
   end
 
   task :compile => 'lib/racc/parser-text.rb'
