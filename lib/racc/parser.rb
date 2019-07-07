@@ -159,7 +159,11 @@ module Racc
     begin
       if Object.const_defined?(:RUBY_ENGINE) and RUBY_ENGINE == 'jruby'
         require 'racc/cparse-jruby.jar'
-        com.headius.racc.Cparse.new.load(JRuby.runtime, false)
+        if JRuby::Util.respond_to?(:load_ext) # JRuby 9.2
+          JRuby::Util.load_ext('com.headius.racc.Cparse')
+        else; require 'jruby'
+          com.headius.racc.Cparse.new.load(JRuby.runtime, false)
+        end
       else
         require 'racc/cparse'
       end
