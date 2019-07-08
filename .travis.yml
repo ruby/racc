@@ -2,7 +2,7 @@
 after_script:
 - rake travis:after -t
 before_script:
-- gem install hoe-travis --no-document
+- gem install hoe-travis rake-compiler --no-document
 - rake travis:before -t
 sudo: false
 cache:
