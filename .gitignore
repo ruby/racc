@@ -9,4 +9,3 @@ tags
 tmp
 target
 lib/racc/cparse-jruby.jar
-racc.gemspec
