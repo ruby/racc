@@ -15,6 +15,7 @@
 == Requirements
 
   *  Ruby 1.8+
+  *  Ragel
  (*) make and C compiler.
 
 
