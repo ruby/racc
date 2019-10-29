@@ -19,9 +19,4 @@ Gem::Specification.new do |s|
   s.rdoc_options = ["--main", "README.rdoc"]
   s.rubygems_version = "3.1.0.pre1"
   s.summary = "Racc is a LALR(1) parser generator"
-
-  s.add_development_dependency("rake-compiler", [">= 0.4.1"])
-  s.add_development_dependency("minitest", ["~> 4.7"])
-  s.add_development_dependency("rdoc", [">= 4.0", "< 7"])
-  s.add_development_dependency("hoe", ["~> 3.18"])
 end
