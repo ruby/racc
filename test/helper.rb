@@ -76,8 +76,9 @@ module Racc
     end
 
     def assert_exec(asset)
+      lib_path = File.expand_path("../../lib", __FILE__)
       file = File.basename(asset, '.y')
-      ruby("#{@TAB_DIR}/#{file}")
+      ruby "-I#{lib_path}", "#{@TAB_DIR}/#{file}"
     end
 
     def strip_version(source)
