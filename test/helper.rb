@@ -96,7 +96,8 @@ module Racc
     end
 
     def racc(*arg, **opt)
-      ruby "-Ilib", "-S", RACC, *arg, **opt
+      lib_path = File.expand_path("../../lib", __FILE__)
+      ruby "-I#{lib_path}", "-S", RACC, *arg, **opt
     end
 
     def ruby(*arg, **opt)
