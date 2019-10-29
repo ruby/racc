@@ -5,9 +5,9 @@ begin
 require 'test/unit'
 begin
   require_relative './lib/core_assertions'
+  Test::Unit::TestCase.include Test::Unit::CoreAssertions
 rescue LoadError
 end
-Test::Unit::TestCase.include Test::Unit::CoreAssertions
 require 'racc/static'
 require 'fileutils'
 require 'tempfile'
