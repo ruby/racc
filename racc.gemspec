@@ -19,4 +19,8 @@ Gem::Specification.new do |s|
   s.rdoc_options = ["--main", "README.rdoc"]
   s.rubygems_version = "3.1.0.pre1"
   s.summary = "Racc is a LALR(1) parser generator"
+
+  if PLATFORM =~ /java/
+    s.files << 'lib/racc/cparse-jruby.jar'
+  end
 end

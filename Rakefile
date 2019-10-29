@@ -44,10 +44,6 @@ if jruby?
   end
 
   task :compile => ['lib/racc/parser-text.rb']
-
-  task gem_build_path => [:compile] do
-    add_file_to_gem 'lib/racc/cparse-jruby.jar'
-  end
 else
   # MRI
   require "rake/extensiontask"
