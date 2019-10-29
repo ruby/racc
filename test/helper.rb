@@ -96,7 +96,7 @@ module Racc
     end
 
     def racc(*arg, **opt)
-      ruby "-S", RACC, *arg, **opt
+      ruby "-Ilib", "-S", RACC, *arg, **opt
     end
 
     def ruby(*arg, **opt)
