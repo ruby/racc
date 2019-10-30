@@ -1,21 +1,28 @@
+verbose = $VERBOSE
 $VERBOSE = true
-require 'minitest/autorun'
+begin
+
+require 'test/unit'
+begin
+  require_relative './lib/core_assertions'
+  Test::Unit::TestCase.include Test::Unit::CoreAssertions
+rescue LoadError
+end
 require 'racc/static'
 require 'fileutils'
 require 'tempfile'
 require 'timeout'
 
 module Racc
-  class TestCase < MiniTest::Unit::TestCase
+  class TestCase < Test::Unit::TestCase
     PROJECT_DIR = File.expand_path(File.join(File.dirname(__FILE__), '..'))
 
-    TEST_DIR = File.join(PROJECT_DIR, 'test')
-
-    RACC      = File.join(PROJECT_DIR, 'bin', 'racc')
-    OUT_DIR   = File.join(TEST_DIR, 'out')
-    TAB_DIR   = File.join(TEST_DIR, 'tab') # generated parsers go here
-    LOG_DIR   = File.join(TEST_DIR, 'log')
-    ERR_DIR   = File.join(TEST_DIR, 'err')
+    test_dir = File.join(PROJECT_DIR, 'test')
+    test_dir = File.join(PROJECT_DIR, 'racc') unless File.exist?(test_dir)
+    TEST_DIR = test_dir
+    racc = File.join(PROJECT_DIR, 'bin', 'racc')
+    racc = File.join(PROJECT_DIR, '..', 'libexec', 'racc') unless File.exist?(racc)
+    RACC = racc
     ASSET_DIR = File.join(TEST_DIR, 'assets') # test grammars
     REGRESS_DIR  = File.join(TEST_DIR, 'regress') # known-good generated outputs
 
@@ -25,32 +32,35 @@ module Racc
     ].join(':')
 
     def setup
-      [OUT_DIR, TAB_DIR, LOG_DIR, ERR_DIR].each do |dir|
-        FileUtils.mkdir_p(dir)
-      end
+      @TEMP_DIR = Dir.mktmpdir("racc")
+      @OUT_DIR  = File.join(@TEMP_DIR, 'out')
+      @TAB_DIR  = File.join(@TEMP_DIR, 'tab') # generated parsers go here
+      @LOG_DIR  = File.join(@TEMP_DIR, 'log')
+      @ERR_DIR  = File.join(@TEMP_DIR, 'err')
+      FileUtils.mkdir_p([@OUT_DIR, @TAB_DIR, @LOG_DIR, @ERR_DIR])
+      FileUtils.cp File.join(TEST_DIR, "src.intp"), @TEMP_DIR
     end
 
     def teardown
-      [OUT_DIR, TAB_DIR, LOG_DIR, ERR_DIR].each do |dir|
-        FileUtils.rm_rf(dir)
-      end
+      FileUtils.rm_f(File.join(@TEMP_DIR, "src.intp"))
+      FileUtils.rm_rf([@OUT_DIR, @TAB_DIR, @LOG_DIR, @ERR_DIR, @TEMP_DIR])
     end
 
-    def assert_compile(asset, args = [])
+    def assert_compile(asset, args = [], **opt)
       file = File.basename(asset, '.y')
       args = ([args].flatten) + [
         "#{ASSET_DIR}/#{file}.y",
         '-Do',
-        "-O#{OUT_DIR}/#{file}",
-        "-o#{TAB_DIR}/#{file}",
+        "-O#{@OUT_DIR}/#{file}",
+        "-o#{@TAB_DIR}/#{file}",
       ]
-      racc "#{args.join(' ')}"
+      racc(*args, **opt)
     end
 
     def assert_debugfile(asset, ok)
       file = File.basename(asset, '.y')
-      Dir.chdir(TEST_DIR) do
-        File.foreach("log/#{file}.y") do |line|
+      Dir.chdir(@LOG_DIR) do
+        File.foreach("#{file}.y") do |line|
           line.strip!
           case line
           when /sr/ then assert_equal "sr#{ok[0]}", line
@@ -66,10 +76,9 @@ module Racc
     end
 
     def assert_exec(asset)
+      lib_path = File.expand_path("../../lib", __FILE__)
       file = File.basename(asset, '.y')
-      Dir.chdir(TEST_DIR) do
-        ruby("#{TAB_DIR}/#{file}")
-      end
+      ruby "-I#{lib_path}", "#{@TAB_DIR}/#{file}"
     end
 
     def strip_version(source)
@@ -77,28 +86,30 @@ module Racc
     end
 
     def assert_output_unchanged(asset)
+      # racc generates the difference results in GitHub Actions
+      omit if ENV['GITHUB_ACTION']
+
       file = File.basename(asset, '.y')
 
       expected = File.read("#{REGRESS_DIR}/#{file}")
-      actual   = File.read("#{TAB_DIR}/#{file}")
+      actual   = File.read("#{@TAB_DIR}/#{file}")
       result   = (strip_version(expected) == strip_version(actual))
 
       assert(result, "Output of test/assets/#{file}.y differed from " \
         "expectation. Try compiling it and diff with test/regress/#{file}.")
     end
 
-    def racc(arg)
-      ruby "-S #{RACC} #{arg}"
+    def racc(*arg, **opt)
+      lib_path = File.expand_path("../../lib", __FILE__)
+      ruby "-I#{lib_path}", "-S", RACC, *arg, **opt
     end
 
-    def ruby(arg)
-      Dir.chdir(TEST_DIR) do
-        Tempfile.open 'test' do |io|
-          cmd = "#{ENV['_'] || Gem.ruby} -I #{INC} #{arg} 2>#{io.path}"
-          result = system(cmd)
-          assert(result, io.read)
-        end
-      end
+    def ruby(*arg, **opt)
+      assert_ruby_status(["-C", @TEMP_DIR, *arg], **opt)
     end
   end
+end
+
+ensure
+$VERBOSE = verbose
 end
