@@ -26,7 +26,7 @@ end
 ---- header
 # $Id$
 ---- inner
-  
+
   def evaluate(str)
     @tokens = []
     until str.empty?

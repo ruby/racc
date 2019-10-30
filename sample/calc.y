@@ -24,7 +24,7 @@ end
 ---- header
 # $Id$
 ---- inner
-  
+
   def parse(str)
     @q = []
     until str.empty?
