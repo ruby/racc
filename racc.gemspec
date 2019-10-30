@@ -20,7 +20,7 @@ Gem::Specification.new do |s|
   s.rubygems_version = "3.1.0.pre1"
   s.summary = "Racc is a LALR(1) parser generator"
 
-  if PLATFORM =~ /java/
+  if RUBY_PLATFORM =~ /java/
     s.files << 'lib/racc/cparse-jruby.jar'
   end
 end
