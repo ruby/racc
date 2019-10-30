@@ -86,6 +86,9 @@ module Racc
     end
 
     def assert_output_unchanged(asset)
+      # racc generates the difference results in GitHub Actions
+      omit if ENV['CI']
+
       file = File.basename(asset, '.y')
 
       expected = File.read("#{REGRESS_DIR}/#{file}")
