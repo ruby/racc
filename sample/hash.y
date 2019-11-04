@@ -7,7 +7,7 @@ class HashParser
 rule
   hash    : '{' contents '}'   { val[1] }
           | '{' '}'            { Hash.new }
-           
+
                   # Racc can handle string over 2 bytes.
   contents: IDENT '=>' IDENT              { {val[0] => val[2]} }
           | contents ',' IDENT '=>' IDENT { val[0][val[2]] = val[4]; val[0] }
