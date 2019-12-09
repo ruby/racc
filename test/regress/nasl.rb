@@ -2198,7 +2198,7 @@ def _reduce_none(val, _values)
 end
 
   end   # class Grammar
-  end   # module Nasl
+end   # module Nasl
 
 Object.module_eval(<<'...end nasl.y/module_eval...3', 'nasl.y', 627)
 

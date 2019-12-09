@@ -1291,7 +1291,7 @@ def _reduce_none(val, _values, result)
 end
 
   end   # class Parser
-  end   # module MOF
+end   # module MOF
 
 Object.module_eval(<<'...end mof.y/module_eval...3', 'mof.y', 650)
 

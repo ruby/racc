@@ -797,5 +797,5 @@ def _reduce_none(val, _values, result)
 end
 
     end   # class Parser
-    end   # module CSS
-  end   # module Nokogiri
+  end   # module CSS
+end   # module Nokogiri

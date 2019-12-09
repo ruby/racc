@@ -317,4 +317,4 @@ def _reduce_none(val, _values, result)
 end
 
   end   # class Unserializer
-  end   # module PhpSerialization
+end   # module PhpSerialization

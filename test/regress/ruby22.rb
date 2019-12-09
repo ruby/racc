@@ -9032,4 +9032,4 @@ def _reduce_none(val, _values, result)
 end
 
   end   # class Ruby22
-  end   # module Parser
+end   # module Parser
