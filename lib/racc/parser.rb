@@ -29,7 +29,7 @@ end
 # == Command-line Reference
 #
 #     racc [-o<var>filename</var>] [--output-file=<var>filename</var>]
-#          [-e<var>rubypath</var>] [--embedded=<var>rubypath</var>]
+#          [-e<var>rubypath</var>] [--executable=<var>rubypath</var>]
 #          [-v] [--verbose]
 #          [-O<var>filename</var>] [--log-file=<var>filename</var>]
 #          [-g] [--debug]
@@ -41,7 +41,7 @@ end
 #          [-S] [--output-status]
 #          [--version] [--copyright] [--help] <var>grammarfile</var>
 #
-# [+filename+]
+# [+grammarfile+]
 #   Racc grammar file. Any extension is permitted.
 # [-o+outfile+, --output-file=+outfile+]
 #   A filename for output. default is <+filename+>.tab.rb
