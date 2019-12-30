@@ -29,7 +29,7 @@ end
 # == Command-line Reference
 #
 #     racc [-o<var>filename</var>] [--output-file=<var>filename</var>]
-#          [-e<var>rubypath</var>] [--embedded=<var>rubypath</var>]
+#          [-e<var>rubypath</var>] [--executable=<var>rubypath</var>]
 #          [-v] [--verbose]
 #          [-O<var>filename</var>] [--log-file=<var>filename</var>]
 #          [-g] [--debug]
