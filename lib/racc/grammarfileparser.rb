@@ -1,3 +1,4 @@
+#--
 #
 # $Id$
 #
@@ -8,6 +9,7 @@
 # the GNU LGPL, Lesser General Public License version 2.1.
 # For details of the GNU LGPL, see the file "COPYING".
 #
+#++
 
 require 'racc'
 require 'racc/compat'

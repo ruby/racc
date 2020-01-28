@@ -1,3 +1,4 @@
+#--
 #
 # $Id$
 #
@@ -6,6 +7,8 @@
 # This program is free software.
 # You can distribute/modify this program under the same terms of ruby.
 # see the file "COPYING".
+#
+#++
 
 require 'racc/iset'
 require 'racc/statetransitiontable'
