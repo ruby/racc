@@ -84,7 +84,6 @@ DESC
   s.require_paths = ["lib"]
   s.rubygems_version = "3.1.0.pre1"
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
-  s.extensions = ["ext/racc/extconf.rb"]
   s.rdoc_options = ["--main", "README.rdoc"]
   s.extra_rdoc_files = [
     "Manifest.txt", "README.ja.rdoc", "README.rdoc",
@@ -96,6 +95,9 @@ DESC
 
   if RUBY_PLATFORM =~ /java/
     s.files << 'lib/racc/cparse-jruby.jar'
+    s.platform = 'java'
+  else
+    s.extensions = ["ext/racc/extconf.rb"]
   end
 
   s.add_development_dependency("rake-compiler", [">= 0.4.1"])
