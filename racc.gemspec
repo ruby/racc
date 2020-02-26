@@ -31,7 +31,7 @@ DESC
     "lib/racc/parser.rb", "lib/racc/parserfilegenerator.rb",
     "lib/racc/pre-setup", "lib/racc/sourcetext.rb",
     "lib/racc/state.rb", "lib/racc/statetransitiontable.rb",
-    "lib/racc/static.rb", "misc/dist.sh", "rdoc/en/NEWS.en.rdoc",
+    "lib/racc/static.rb", "rdoc/en/NEWS.en.rdoc",
     "rdoc/en/grammar.en.rdoc", "rdoc/ja/NEWS.ja.rdoc",
     "rdoc/ja/command.ja.html", "rdoc/ja/debug.ja.rdoc",
     "rdoc/ja/grammar.ja.rdoc", "rdoc/ja/index.ja.html",
