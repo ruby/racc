@@ -21,8 +21,8 @@ DESC
     "COPYING", "ChangeLog", "DEPENDS",
     "README.ja.rdoc", "README.rdoc", "Rakefile", "TODO", "bin/racc",
     "ext/racc/MANIFEST",
-    "ext/racc/com/headius/racc/Cparse.java", "ext/racc/cparse.c",
-    "ext/racc/depend", "ext/racc/extconf.rb",
+    "ext/racc/com/headius/racc/Cparse.java", "ext/racc/cparse/cparse.c",
+    "ext/racc/cparse/extconf.rb",
     "lib/racc.rb", "lib/racc/compat.rb",
     "lib/racc/debugflags.rb", "lib/racc/exception.rb",
     "lib/racc/grammar.rb", "lib/racc/grammarfileparser.rb",
@@ -86,7 +86,7 @@ DESC
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.rdoc_options = ["--main", "README.rdoc"]
   s.extra_rdoc_files = [
-    "Manifest.txt", "README.ja.rdoc", "README.rdoc",
+    "README.ja.rdoc", "README.rdoc",
     "rdoc/en/NEWS.en.rdoc", "rdoc/en/grammar.en.rdoc",
     "rdoc/ja/NEWS.ja.rdoc", "rdoc/ja/debug.ja.rdoc",
     "rdoc/ja/grammar.ja.rdoc", "rdoc/ja/parser.ja.rdoc",
@@ -97,7 +97,7 @@ DESC
     s.files << 'lib/racc/cparse-jruby.jar'
     s.platform = 'java'
   else
-    s.extensions = ["ext/racc/extconf.rb"]
+    s.extensions = ["ext/racc/cparse/extconf.rb"]
   end
 
   s.add_development_dependency("rake-compiler", [">= 0.4.1"])

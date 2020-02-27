@@ -10,3 +10,4 @@ tmp
 target
 lib/racc/cparse-jruby.jar
 Gemfile.lock
+html
