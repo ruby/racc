@@ -3,12 +3,13 @@
 require 'rdoc/task'
 
 RDoc::Task.new(:docs) do |rd|
+  spec = Gem::Specification.load("racc.gemspec")
   rd.main = "README.en.rdoc"
-  rd.rdoc_files.include(SPEC.files.find_all { |file_name|
+  rd.rdoc_files.include(spec.files.find_all { |file_name|
     file_name =~ /^(bin|lib|ext)/ || file_name !~ /\//
   })
 
-  title = "#{SPEC.name}-#{SPEC.version} Documentation"
+  title = "#{spec.name}-#{spec.version} Documentation"
 
   rd.options << "-t #{title}"
 end
