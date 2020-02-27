@@ -39,7 +39,7 @@ DESC
     "sample/array.y", "sample/array2.y", "sample/calc-ja.y",
     "sample/calc.y", "sample/conflict.y", "sample/hash.y",
     "sample/lalr.y", "sample/lists.y", "sample/syntax.y",
-    "sample/yyerr.y", "setup.rb",
+    "sample/yyerr.y",
     "test/assets/cadenza.y", "test/assets/cast.y",
     "test/assets/chk.y", "test/assets/conf.y",
     "test/assets/csspool.y", "test/assets/digraph.y",
