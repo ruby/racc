@@ -20,6 +20,7 @@ require 'rake/testtask'
 
 Rake::TestTask.new(:test) do |t|
   t.test_files = FileList["test/**/test_*.rb"]
+  t.ruby_opts = %w[--enable-frozen-string-literal --debug=frozen-string-literal]
 end
 gem 'rake-compiler', '>= 0.4.1'
 
