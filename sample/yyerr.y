@@ -1,4 +1,4 @@
-# $Id$
+#
 #
 # Test grammer file for error handling.
 

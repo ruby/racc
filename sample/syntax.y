@@ -1,4 +1,4 @@
-# $Id$
+#
 #
 # Racc syntax checker.  This grammer file generates
 # invalid ruby program, you cannot run this parser.

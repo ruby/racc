@@ -1,4 +1,4 @@
-# $Id$
+#
 #
 # Very simple calculater.
 
@@ -22,7 +22,7 @@ rule
 end
 
 ---- header
-# $Id$
+#
 ---- inner
   
   def parse(str)
