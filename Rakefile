@@ -1,8 +1,8 @@
 # -*- ruby -*-
 
-require 'rake/rdoctask'
+require 'rdoc/task'
 
-Rake::RDocTask.new(:docs) do |rd|
+RDoc::Task.new(:docs) do |rd|
   rd.main = "README.en.rdoc"
   rd.rdoc_files.include(SPEC.files.find_all { |file_name|
     file_name =~ /^(bin|lib|ext)/ || file_name !~ /\//
