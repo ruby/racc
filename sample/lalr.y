@@ -1,4 +1,4 @@
-# $Id$
+#
 #
 # This is LALR grammer, and not LL/SLR.
 

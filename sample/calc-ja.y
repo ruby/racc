@@ -1,4 +1,4 @@
-# $Id$
+#
 #
 # A simple calculator, version 2.
 # This file contains Japanese characters (encoding=EUC-JP).
@@ -24,7 +24,7 @@ rule
 end
 
 ---- header
-# $Id$
+#
 ---- inner
   
   def evaluate(str)

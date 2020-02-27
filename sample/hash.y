@@ -1,4 +1,4 @@
-# $Id$
+#
 #
 # Converting Hash-like string into Ruby's Hash.
 

@@ -1,4 +1,4 @@
-# $Id$
+#
 #
 # convert Array-like string into Ruby's Array.
 
