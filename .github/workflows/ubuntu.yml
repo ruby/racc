@@ -20,5 +20,3 @@ jobs:
         bundle install
     - name: Run test
       run: rake compile test
-      env:
-        RUBYOPT: "--enable-frozen-string-literal --debug=frozen-string-literal"
