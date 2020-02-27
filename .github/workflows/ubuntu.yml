@@ -7,11 +7,11 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        ruby: [ '2.6.x', '2.5.x', '2.4.x' ]
+        ruby: [ '2.7', '2.6', '2.5', '2.4', 'head', 'jruby-9.2.10.0']
     steps:
     - uses: actions/checkout@master
     - name: Set up Ruby
-      uses: actions/setup-ruby@v1
+      uses: ruby/setup-ruby@v1
       with:
         ruby-version: ${{ matrix.ruby }}
     - name: Install dependencies
