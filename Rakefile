@@ -1,5 +1,7 @@
 # -*- ruby -*-
 
+require "bundler/gem_tasks"
+
 require 'rdoc/task'
 
 RDoc::Task.new(:docs) do |rd|
