@@ -20,3 +20,4 @@ jobs:
         bundle install
     - name: Run test
       run: rake compile test
+      continue-on-error: ${{ matrix.ruby == 'jruby-head' }}
