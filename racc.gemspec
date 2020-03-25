@@ -18,7 +18,7 @@ DESC
   s.licenses = ["MIT"]
   s.executables = ["racc"]
   s.files = [
-    "COPYING", "ChangeLog", "DEPENDS",
+    "COPYING", "ChangeLog",
     "README.ja.rdoc", "README.rdoc", "Rakefile", "TODO", "bin/racc",
     "ext/racc/MANIFEST",
     "ext/racc/com/headius/racc/Cparse.java", "ext/racc/cparse/cparse.c",
