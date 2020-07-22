@@ -384,7 +384,7 @@ initialize_params(VALUE vparams, VALUE parser, VALUE arg, VALUE lexer, VALUE lex
     v->errstatus = 0;
     rb_ivar_set(parser, id_errstatus, LONG2NUM(v->errstatus));
 
-    v->retval = Qnil;
+    v->retval = Qtrue;
     v->fin = 0;
 
     v->lex_is_iterator = FALSE;
@@ -605,7 +605,7 @@ parse_main(struct cparse_params *v, VALUE tok, VALUE val, int resume)
   user_yyerror:
     if (v->errstatus == 3) {
         if (v->t == vFINAL_TOKEN) {
-            v->retval = Qfalse;
+            v->retval = Qtrue;
             v->fin = CP_FIN_EOT;
             return;
         }
@@ -651,7 +651,7 @@ parse_main(struct cparse_params *v, VALUE tok, VALUE val, int resume)
         D_puts("(err) act not found: can't handle error token; pop");
 
         if (RARRAY_LEN(v->state) <= 1) {
-            v->retval = Qnil;
+            v->retval = Qtrue;
             v->fin = CP_FIN_CANTPOP;
             return;
         }
