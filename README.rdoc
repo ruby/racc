@@ -16,8 +16,6 @@
 == Requirement
 
   *  Ruby 1.8.x or later.
- (*) make and C compiler.
-
 
 == Installation
 
@@ -36,9 +34,9 @@
 
   You can install Racc into your favorite directory by giving
   options to setup.rb. e.g.
-  
+
     $ ruby setup.rb config --prefix=/usr
-  
+
   For details, try "ruby setup.rb --help".
 
 
