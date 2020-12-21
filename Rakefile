@@ -74,4 +74,6 @@ else
   task :compile => 'lib/racc/parser-text.rb'
 end
 
+task :build => "lib/racc/parser-text.rb"
+
 task :test => :compile
