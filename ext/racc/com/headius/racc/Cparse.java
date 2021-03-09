@@ -18,7 +18,6 @@ import org.jruby.Ruby;
 import org.jruby.RubyArray;
 import org.jruby.RubyBasicObject;
 import org.jruby.RubyClass;
-import org.jruby.RubyContinuation;
 import org.jruby.RubyFixnum;
 import org.jruby.RubyHash;
 import org.jruby.RubyKernel;
@@ -533,7 +532,7 @@ public class Cparse implements Library {
         private int reduce(ThreadContext context, int act) {
             ruleno = -act * 3;
             IRubyObject tag = context.runtime.newSymbol("racc_jump");
-            IRubyObject code = RubyKernel.rbCatch19(context, this,
+            IRubyObject code = RubyKernel.rbCatch(context, this,
                     tag,
                     CallBlock19.newCallClosure(this, getMetaClass(), Signature.NO_ARGUMENTS,
                             new BlockCallback() {
@@ -784,7 +783,7 @@ public class Cparse implements Library {
         private void call_lexer(ThreadContext context, final CparseParams v) {
             final LexerUnroll lexerUnroll = new LexerUnroll();
             try {
-                v.call_lexmid.call(context, v.lexer, v.lexer, CallBlock19.newCallClosure(v, v.getMetaClass(), Arity.ONE_ARGUMENT, new BlockCallback() {
+                v.call_lexmid.call(context, v.lexer, v.lexer, CallBlock19.newCallClosure(v, v.getMetaClass(), Signature.ONE_ARGUMENT, new BlockCallback() {
                     @Override
                     public IRubyObject call(ThreadContext context, IRubyObject[] args, Block block) {
                         Ruby runtime = context.getRuntime();
