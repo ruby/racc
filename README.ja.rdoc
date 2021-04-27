@@ -1,7 +1,6 @@
 = Racc
 
 * http://i.loveruby.net/en/projects/racc/
-* http://racc.rubyforge.org/
 
 == DESCRIPTION:
 
