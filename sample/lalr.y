@@ -1,6 +1,6 @@
 #
 #
-# This is LALR grammer, and not LL/SLR.
+# This is LALR grammar, and not LL/SLR.
 
 class A
 rule

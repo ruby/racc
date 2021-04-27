@@ -59,9 +59,9 @@
 
       $ ruby calc
 
-  ... Does it works?
-  For details of Racc, see HTML documents placed under 'doc.en/'
-  and sample grammer files under 'sample/'.
+  ... Does it work?
+  For details of Racc, see HTML documents placed under 'rdoc/en/'
+  and sample grammar files under 'sample/'.
 
 
 == License
@@ -74,8 +74,8 @@
 
 == Bug Reports
 
-  Any kind of bug reports are welcome.
-  If you find a bug of Racc, please email me. Your grammer file,
+  Any kind of bug report is welcome.
+  If you find a bug of Racc, please email me. Your grammar file,
   debug output genereted by "racc -g", are helpful.
 
 
