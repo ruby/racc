@@ -4,25 +4,24 @@
 
 == Class Block and User Code Block
 
-There's two block on toplevel.
-one is 'class' block, another is 'user code' block. 'user code' block MUST
-places after 'class' block.
+There are two top-level blocks: the 'class' block, and the 'user code'
+block. The 'user code' block MUST be after the 'class' block.
 
 == Comment
 
-You can insert comment about all places. Two style comment can be used,
-Ruby style (#.....) and C style (/*......*/) .
+Comments can be added about everywhere.  Two comment styles are
+supported: Ruby style (`# ...`) and C style (`/* ... */`).
 
 == Class Block
 
 The class block is formed like this:
 --
 class CLASS_NAME
-  [precedance table]
-  [token declearations]
+  [precedence table]
+  [token declarations]
   [expected number of S/R conflict]
   [options]
-  [semantic value convertion]
+  [semantic value conversion]
   [start rule]
 rule
   GRAMMARS
@@ -43,7 +42,7 @@ end
 
 == Grammar Block
 
-The grammar block discripts grammar which is able
+The grammar block describes the grammar
 to be understood by parser.  Syntax is:
 --
 (token): (token) (token) (token).... (action)
@@ -69,7 +68,7 @@ It is value of result, or returned value by "return" statement.
 Here is an example of whole grammar block.
 --
 rule
-  goal: definition ruls source { result = val }
+  goal: definition rules source { result = val }
 
   definition: /* none */   { result = [] }
     | definition startdesig  { result[0] = val[1] }
@@ -96,7 +95,7 @@ An array of value of right-hand side (rhs).
 A stack of values.
 DO NOT MODIFY this stack unless you know what you are doing.
 
-== Operator Precedance
+== Operator Precedence
 
 This function is equal to '%prec' in yacc.
 To designate this block:
@@ -128,25 +127,24 @@ rule
 
 == expect
 
-Racc has bison's "expect" directive.
+Racc supports Bison's "expect" directive to declare the expected
+number of shift/reduce conflicts.
 --
-# Example
-
 class MyParser
 rule
   expect 3
     :
     :
 --
-This directive declears "expected" number of shift/reduce conflict.
-If "expected" number is equal to real number of conflicts,
-racc does not print confliction warning message.
+Then warnings are issued only when the effective number of conflicts differs.
+
 
 == Declaring Tokens
 
-By declaring tokens, you can avoid many meanless bugs.
-If decleared token does not exist/existing token does not decleared,
-Racc output warnings.  Declearation syntax is:
+Declaring tokens avoids many bugs.
+
+Racc outputs warnings for declared tokens that do not exist, or existing tokens not declared.
+The syntax is:
 --
 token TOKEN_NAME AND_IS_THIS
       ALSO_THIS_IS AGAIN_AND_AGAIN THIS_IS_LAST
@@ -174,12 +172,12 @@ You can use 'no_' prefix to invert its meanings.
 
 Token symbols are, as default,
 
-  * naked token string in racc file (TOK, XFILE, this_is_token, ...)
+  * naked token strings in racc file (TOK, XFILE, this_is_token, ...)
     --&gt; symbol (:TOK, :XFILE, :this_is_token, ...)
-  * quoted string (':', '.', '(', ...)
+  * quoted strings (':', '.', '(', ...)
     --&gt; same string (':', '.', '(', ...)
 
-You can change this default by "convert" block.
+You can change this default using a "convert" block.
 Here is an example:
 --
 convert
@@ -202,18 +200,19 @@ end
 
 == Start Rule
 
-'%start' in yacc. This changes start rule.
+'%start' in yacc. This changes the start symbol.
 --
 start real_target
 --
-This statement will not be used forever, I think.
+
 
 == User Code Block
 
-"User Code Block" is a Ruby source code which is copied to output.
-There are three user code block, "header" "inner" and "footer".
+A "User Code Block" is a piece of Ruby source code copied in the output.
+There are three user code blocks, "header" "inner" and "footer".
 
-Format of user code is like this:
+User code blocks are introduced by four '-' at the beginning of a line,
+followed by a single-word name:
 --
 ---- header
   ruby statement
@@ -225,6 +224,3 @@ Format of user code is like this:
      :
      :
 --
-If four '-' exist on line head,
-racc treat it as beginning of user code block.
-A name of user code must be one word.
