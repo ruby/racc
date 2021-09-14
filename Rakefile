@@ -19,9 +19,11 @@ end
 require 'rake/testtask'
 
 Rake::TestTask.new(:test) do |t|
+  t.libs << "test/lib"
+  t.ruby_opts << "-rhelper"
   t.test_files = FileList["test/**/test_*.rb"]
   if RUBY_VERSION >= "2.6"
-    t.ruby_opts = %w[--enable-frozen-string-literal --debug=frozen-string-literal]
+    t.ruby_opts << %w[--enable-frozen-string-literal --debug=frozen-string-literal]
   end
 end
 gem 'rake-compiler', '>= 0.4.1'
