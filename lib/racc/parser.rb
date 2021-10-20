@@ -185,8 +185,8 @@ module Racc
 
   class Parser
 
-    Racc_Runtime_Version = ::Racc::VERSION
-    Racc_Runtime_Core_Version_R = ::Racc::VERSION
+    Racc_Runtime_Version = ::Racc::VERSION unless defined?(Racc_Runtime_Version)
+    Racc_Runtime_Core_Version_R = ::Racc::VERSION unless defined?(Racc_Runtime_Core_Version_R)
 
     begin
       if Object.const_defined?(:RUBY_ENGINE) and RUBY_ENGINE == 'jruby'
@@ -204,10 +204,10 @@ module Racc
         raise LoadError, 'selecting ruby version of racc runtime core'
       end
 
-      Racc_Main_Parsing_Routine    = :_racc_do_parse_c # :nodoc:
-      Racc_YY_Parse_Method         = :_racc_yyparse_c # :nodoc:
-      Racc_Runtime_Core_Version    = Racc_Runtime_Core_Version_C # :nodoc:
-      Racc_Runtime_Type            = 'c' # :nodoc:
+      Racc_Main_Parsing_Routine    = :_racc_do_parse_c unless defined?(Racc_Main_Parsing_Routine) # :nodoc:
+      Racc_YY_Parse_Method         = :_racc_yyparse_c unless defined?(Racc_YY_Parse_Method) # :nodoc:
+      Racc_Runtime_Core_Version    = Racc_Runtime_Core_Version_C unless defined?(Racc_Runtime_Core_Version) # :nodoc:
+      Racc_Runtime_Type            = 'c' unless defined?(Racc_Runtime_Type) # :nodoc:
     rescue LoadError
       Racc_Main_Parsing_Routine    = :_racc_do_parse_rb
       Racc_YY_Parse_Method         = :_racc_yyparse_rb
