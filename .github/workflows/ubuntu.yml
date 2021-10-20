@@ -7,15 +7,14 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        ruby: [ '3.0', 2.7, 2.6, 2.5, head, jruby-9.2.19.0, jruby-head ]
+        ruby: [ '3.0', 2.7, 2.6, 2.5, head, jruby-9.2.19.0, jruby-9.3.1.0, jruby-head ]
     steps:
     - uses: actions/checkout@v2
     - name: Set up Ruby
       uses: ruby/setup-ruby@v1
       with:
         ruby-version: ${{ matrix.ruby }}
-    - name: Install dependencies
-      run: bundle install
+        bundler-cache: true # 'bundle install' and cache        
     - name: Run test
-      run: rake compile test
+      run: bundle exec rake compile test
       continue-on-error: ${{ matrix.ruby == 'jruby-head' }}
