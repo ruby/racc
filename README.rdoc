@@ -14,7 +14,7 @@
 
 == Requirement
 
-  *  Ruby 1.8.x or later.
+  *  Ruby 2.5 or later.
 
 == Installation
 
