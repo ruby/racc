@@ -1,20 +1,40 @@
 name: ubuntu
-
-on: [push, pull_request]
+concurrency:
+  group: "${{github.workflow}}-${{github.ref}}"
+  cancel-in-progress: true
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [opened, synchronize]
+    branches:
+      - '*'
+  push:
+    branches:
+      - main
+    tags:
+      - v*.*.*
+  schedule:
+    - cron: "0 8 * * 3" # At 08:00 on Wednesday # https://crontab.guru/#0_8_*_*_3
 
 jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        ruby: [ '3.0', 2.7, 2.6, 2.5, head, jruby-9.2.19.0, jruby-9.3.1.0, jruby-head ]
+        ruby:
+          - "2.5"
+          - "2.6"
+          - "2.7"
+          - "3.0"
+          - "3.1"
+          - "head"
+          - "jruby-9.2.20.1"
+          - "jruby-9.3.2.0"
+          - "jruby-head"
     steps:
     - uses: actions/checkout@v2
-    - name: Set up Ruby
-      uses: ruby/setup-ruby@v1
+    - uses: ruby/setup-ruby@v1
       with:
-        ruby-version: ${{ matrix.ruby }}
-        bundler-cache: true # 'bundle install' and cache        
-    - name: Run test
-      run: bundle exec rake compile test
-      continue-on-error: ${{ matrix.ruby == 'jruby-head' }}
+        ruby-version: ${{matrix.ruby}}
+        bundler-cache: true
+    - run: bundle exec rake compile test
