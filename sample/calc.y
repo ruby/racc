@@ -1,6 +1,6 @@
 #
 #
-# Very simple calculater.
+# Very simple calculator.
 
 class Calcp
   prechigh
