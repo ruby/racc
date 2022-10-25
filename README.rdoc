@@ -59,7 +59,7 @@
       $ ruby calc
 
   ... Does it work?
-  For details of Racc, see HTML documents placed under 'rdoc/en/'
+  For details of Racc, see HTML documents placed under 'doc/en/'
   and sample grammar files under 'sample/'.
 
 
