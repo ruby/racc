@@ -20,6 +20,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         ruby:
           - "2.5"
@@ -28,9 +29,11 @@ jobs:
           - "3.0"
           - "3.1"
           - "head"
-          - "jruby-9.2.20.1"
-          - "jruby-9.3.2.0"
+          - "jruby-9.2.21.0"
+          - "jruby-9.3.9.0"
           - "jruby-head"
+          - "truffleruby-22.3.0"
+          - "truffleruby-head"
     steps:
     - uses: actions/checkout@v3
     - uses: ruby/setup-ruby@v1
