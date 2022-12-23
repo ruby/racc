@@ -738,7 +738,6 @@ public class Cparse implements Library {
         }
 
         public static final String Racc_Runtime_Core_Version_C = RACC_VERSION;
-        public static final String Racc_Runtime_Core_Id_C = "$originalId: cparse.c,v 1.8 2006/07/06 11:39:46 aamine Exp $";
 
         @JRubyMethod(name = "_racc_do_parse_c", frame = true)
         public IRubyObject racc_cparse(ThreadContext context, IRubyObject arg, IRubyObject sysdebug) {
@@ -821,7 +820,6 @@ public class Cparse implements Library {
         parser.defineAnnotatedMethods(Parser.class);
 
         parser.defineConstant("Racc_Runtime_Core_Version_C", runtime.newString(Parser.Racc_Runtime_Core_Version_C));
-        parser.defineConstant("Racc_Runtime_Core_Id_C", runtime.newString(Parser.Racc_Runtime_Core_Id_C));
 
         CparseParams = racc.defineClassUnder("CparseParams", runtime.getObject(), new ObjectAllocator() {
             @Override
