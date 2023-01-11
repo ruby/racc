@@ -1,51 +1,37 @@
 % require 'makefile'
 % version = Makefile.get_parameter('Makefile', 'version')
 <h1>Racc</h1>
-<p>
-$Id$
-</p>
 <table summary="package descriptor">
-<tr><th>�ǿ���</th><td><%= version %></td></tr>
-<tr><th>����</th><td>parser generator</td></tr>
-<tr><th>����</th><td>ruby script, ruby extention</td></tr>
-<tr><th>ɬ�״Ķ�</th><td>ruby (&gt;=1.6)</td></tr>
-<tr><th>���۾��</th><td>LGPL</td></tr>
+<tr><th>最新版</th><td><%= version %></td></tr>
+<tr><th>種別</th><td>parser generator</td></tr>
+<tr><th>形式</th><td>ruby script, ruby extension</td></tr>
+<tr><th>必要環境</th><td>ruby (&gt;=1.6)</td></tr>
+<tr><th>配布条件</th><td>LGPL</td></tr>
 </table>
 <ul>
-<li><a href="/archive/racc/racc-<%= version %>-all.tar.gz">�����������</a></li>
-<li><a href="/archive/racc/">��С������ꥹ��</a></li>
-<li><a href="doc/">����饤��ޥ˥奢��</a></li>
+<li><a href="/archive/racc/racc-<%= version %>-all.tar.gz">ダウンロード</a></li>
+<li><a href="/archive/racc/">旧バージョンリスト</a></li>
+<li><a href="doc/">オンラインマニュアル</a></li>
 </ul>
 </p>
 <p>
-Ruby �Ѥ� LALR(1) �ѡ��������ͥ졼���Ǥ���
-���������ѡ����Ϥ���ʤ�˹�®��ư��ޤ���
+Ruby 用の LALR(1) パーザジェネレータです。
+生成したパーサはそれなりに高速に動作します。
 </p>
 <p>
-Racc �����������ѡ�����ư����˥�󥿥���⥸�塼�뤬ɬ�פǤ���
-Ruby 1.8 �ˤϤ��Υ�󥿥��ब�ǽ餫��ź�դ���Ƥ���Τ�
-����ͤ��ʤ�������פǤ�����Ruby 1.6 �������оݤˤ���Ȥ���
-racc -E �ǥѡ�������������ɬ�פ�����ޤ���
+Racc で生成したパーサは動作時にランタイムモジュールが必要です。
+Ruby 1.8 にはこのランタイムが最初から添付されているので
+何も考えなくて大丈夫ですが、Ruby 1.6 以前を対象にするときは
+racc -E でパーサを生成する必要があります。
 </p>
 <p>
-�ʤ���Racc 1.4.x �Υ�󥿥���� Ruby 1.8 ź�դ� Racc ��󥿥���ϡ�
-�����������ɾ�Ǥ���̯�˰㤤������ޤ����������˸ߴ���������ޤ���
+なお、Racc 1.4.x のランタイムと Ruby 1.8 添付の Racc ランタイムは、
+ソースコード上では微妙に違いがありますが、完全に互換性があります。
 </p>
 
-<h2>����</h2>
+<h2>状況</h2>
 <p>
-�⤦����Ū����ʬ�ϸϤ�Ƥ���Ϥ��Ǥ���
-TODO �Ϥޤ������Ĥ�����ޤ�������������¾�ˤ��äƤ�Τ�
-��ʬ���礭���ѹ�����Ĥ��Ϥ���ޤ���
+もう基本的な部分は枯れているはずです。
+TODO はまだいくつかありますが、気持ちが他にいってるので
+当分は大きく変更するつもりはありません。
 </p>
-
-<h2>CVS ��ݥ��ȥ�</h2>
-<p>
-CVS ��Ȥ��� Racc �ο��κǿ��Ǥ�����Ǥ��ޤ���
-���ޥ�ɥ饤��Ǽ��Τ褦���ǤäƤ���������
-</p>
-<pre>
-$ cvs -d :pserver:anonymous@cvs.loveruby.net:/src login
-Password: (������Enter���Ǥ�)
-$ cvs -d :pserver:anonymous@cvs.loveruby.net:/src co racc
-</pre>
