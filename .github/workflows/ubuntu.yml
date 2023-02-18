@@ -34,6 +34,9 @@ jobs:
           - {os: windows-latest, ruby: truffleruby}
           - {os: windows-latest, ruby: jruby-head}
           - {os: windows-latest, ruby: jruby }
+          - {os: macos-latest, ruby: truffleruby }
+          - {os: macos-latest, ruby: truffleruby-head }
+          - {os: macos-latest, ruby: jruby }
     steps:
     - uses: actions/checkout@v3
     - uses: ruby/setup-ruby@v1
