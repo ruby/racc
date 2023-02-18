@@ -23,11 +23,15 @@ jobs:
       min_version: 2.5
   test:
     needs: ruby-versions
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         ruby: ${{fromJson(needs.ruby-versions.outputs.versions)}}
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        exclude:
+          - {os: windows-latest, ruby: truffleruby-head}
+          - {os: windows-latest, ruby: truffleruby}
     steps:
     - uses: actions/checkout@v3
     - uses: ruby/setup-ruby@v1
