@@ -9,7 +9,7 @@ You already know that you define a lexer specification with a rex file. This gen
 You have to create a grammar file. The first part of this file, as with the Rex specification file, is a class block. In your project directory, create a file called `test_language.y`. This will be our grammar file. As with the start of our Rex file, we’ll use our class:
 ``` ruby
 class TestLanguage
- 
+
 end
 ```
 Then you will have a grammar block. In Rex, the grammar block is a way to specify the patterns for specific symbols. In Racc, the grammar block describes grammar that can be understood by the parser. As with Rex specification files, we’ll eventually add a rule clause to signify our grammar block. In fact, this clause will mark the start of what are called the “production rules.” To fill in these rules, you have to understand the Racc grammar. So let’s just look at the basics before we try to fill in our nascent grammar file.
@@ -92,13 +92,13 @@ task :generate => [:lexer, :parser]
 So how do we test this? Let’s create a file in our spec directory called `language_parser_spec.rb` and add the following to it:
 ``` ruby
 require './parser.rb'
- 
+
 class TestLanguageParser
   describe 'Testing the Parser' do
     before do
       @evaluator = TestLanguage.new
     end
-    
+
     it 'tests for a digit' do
       @result = @evaluator.parse("2")
       @result.should == 2
@@ -114,7 +114,7 @@ rule
   expression : DIGIT
   | DIGIT ADD DIGIT   { return val[0] + val[2] }
 end
- 
+
 ---- inner
   def parse(input)
     scan_str(input)
@@ -128,10 +128,10 @@ rule
   expression : DIGIT
   | DIGIT ADD DIGIT   { return val[0] + val[2] }
 end
- 
+
 ---- header
   require_relative 'lexer'
- 
+
 ---- inner
   def parse(input)
     scan_str(input)
@@ -159,10 +159,10 @@ rule
   | DIGIT MULTIPLY DIGIT  { return val[0] * val[2] }
   | DIGIT DIVIDE DIGIT    { return val[0] / val[2] }
 end
- 
+
 ---- header
   require_relative 'lexer'
- 
+
 ---- inner
   def parse(input)
     scan_str(input)
@@ -183,7 +183,7 @@ macro
   SUBTRACT  \-
   MULTIPLY  \*
   DIVIDE    \/
- 
+
 rule
   {BLANK}      # no action
   {DIGIT}      { [:DIGIT, text.to_i] }
@@ -191,7 +191,7 @@ rule
   {SUBTRACT}   { [:SUBTRACT, text] }
   {MULTIPLY}   { [:MULTIPLY, text] }
   {DIVIDE}     { [:DIVIDE, text] }
- 
+
 inner
   def tokenize(code)
     scan_setup(code)
