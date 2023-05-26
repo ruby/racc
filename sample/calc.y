@@ -48,18 +48,20 @@ end
 
 ---- footer
 
-parser = Calcp.new
-puts
-puts 'type "Q" to quit.'
-puts
-while true
+if $0 == __FILE__
+  parser = Calcp.new
   puts
-  print '? '
-  str = gets.chop!
-  break if /q/i =~ str
-  begin
-    puts "= #{parser.parse(str)}"
-  rescue ParseError
-    puts $!
+  puts 'type "Q" to quit.'
+  puts
+  while true
+    puts
+    print '? '
+    str = gets.chop!
+    break if /q/i =~ str
+    begin
+      puts "= #{parser.parse(str)}"
+    rescue ParseError
+      puts $!
+    end
   end
 end

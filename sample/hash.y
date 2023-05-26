@@ -29,18 +29,18 @@ end
       when /\A\s+/
         str = $'
       when /\A\w+/
-        yield :IDENT, $&
+        yield [:IDENT, $&]
         str = $'
       when /\A=>/
-        yield '=>', '=>'
+        yield ['=>', '=>']
         str = $'
       else
         c = str[0,1]
-        yield c, c
+        yield [c, c]
         str = str[1..-1]
       end
     end
-    yield false, '$'   # is optional from Racc 1.3.7
+    yield [false, '$']   # is optional from Racc 1.3.7
   end
 
 ---- footer
