@@ -69,7 +69,7 @@ module Racc
     def compile_sample(yfile)
       file = File.basename(yfile, '.y')
       out = File.join(@OUT_DIR, file)
-      ruby RACC, File.join(SAMPLE_DIR, yfile), "-o#{out}"
+      ruby "-I#{LIB_DIR}", RACC, File.join(SAMPLE_DIR, yfile), "-o#{out}"
       out
     end
 

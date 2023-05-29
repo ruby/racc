@@ -24,6 +24,8 @@ module Racc
     ASSET_DIR = File.join(TEST_DIR, 'assets') # test grammars
     REGRESS_DIR  = File.join(TEST_DIR, 'regress') # known-good generated outputs
 
+    LIB_DIR = File.expand_path("../../lib", __FILE__)
+
     INC = [
       File.join(PROJECT_DIR, 'lib'),
       File.join(PROJECT_DIR, 'ext'),
@@ -74,9 +76,8 @@ module Racc
     end
 
     def assert_exec(asset)
-      lib_path = File.expand_path("../../lib", __FILE__)
       file = File.basename(asset, '.y')
-      ruby "-I#{lib_path}", "#{@TAB_DIR}/#{file}"
+      ruby "-I#{LIB_DIR}", "#{@TAB_DIR}/#{file}"
     end
 
     def strip_version(source)
@@ -97,8 +98,7 @@ module Racc
     end
 
     def racc(*arg, **opt)
-      lib_path = File.expand_path("../../lib", __FILE__)
-      ruby "-I#{lib_path}", "-S", RACC, *arg, **opt
+      ruby "-I#{LIB_DIR}", "-S", RACC, *arg, **opt
     end
 
     def ruby(*arg, **opt)
