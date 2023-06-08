@@ -39,11 +39,17 @@ end
 file 'lib/racc/parser-text.rb' => ['lib/racc/parser.rb'] do |t|
   source = 'lib/racc/parser.rb'
 
+  text = File.read(source)
+  text.gsub!(/^require '(.*)'$/) do
+    %[unless $".find {|p| p.end_with?('/#$1.rb')}\n$".push '#$1.rb'\n#{File.read("lib/#{$1}.rb")}\nend\n]
+  rescue
+    $&
+  end
   open(t.name, 'wb') { |io|
     io.write(<<-eorb)
 module Racc
   PARSER_TEXT = <<'__end_of_file__'
-#{File.read(source)}
+#{text}
 __end_of_file__
 end
     eorb
