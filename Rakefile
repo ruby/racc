@@ -64,8 +64,8 @@ if jruby?
     ext.lib_dir = File.join 'lib', 'racc'
     ext.ext_dir = File.join 'ext', 'racc'
     # source/target jvm
-    ext.source_version = '1.6'
-    ext.target_version = '1.6'
+    ext.source_version = '1.7'
+    ext.target_version = '1.7'
     jars = ["#{jruby_home}/lib/jruby.jar"] + FileList['lib/*.jar']
     ext.classpath = jars.map { |x| File.expand_path x }.join( ':' )
     ext.name = 'cparse-jruby'
