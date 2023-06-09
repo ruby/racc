@@ -41,7 +41,7 @@ file 'lib/racc/parser-text.rb' => ['lib/racc/parser.rb', __FILE__] do |t|
 
   text = File.read(source)
   text.gsub!(/^require '(.*)'$/) do
-    %[unless $".find {|p| p.end_with?('/#$1.rb')}\n$".push '#$1.rb'\n#{File.read("lib/#{$1}.rb")}\nend\n]
+    %[unless $".find {|p| p.end_with?('/#$1.rb')}\n$".push "\#{__dir__}/#$1.rb"\n#{File.read("lib/#{$1}.rb")}\nend\n]
   rescue
     $&
   end
