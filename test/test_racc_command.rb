@@ -45,7 +45,7 @@ module Racc
     def test_echk_y
       assert_compile 'echk.y', '-E'
       assert_debugfile 'echk.y', []
-      assert_exec 'echk.y'
+      assert_exec 'echk.y', quiet: true
     end
 
     def test_err_y

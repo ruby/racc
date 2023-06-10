@@ -75,9 +75,9 @@ module Racc
       end
     end
 
-    def assert_exec(asset)
+    def assert_exec(asset, **opts)
       file = File.basename(asset, '.y')
-      ruby "-I#{LIB_DIR}", "#{@TAB_DIR}/#{file}"
+      ruby "-I#{LIB_DIR}", "-rracc/parser", "#{@TAB_DIR}/#{file}", **opts
     end
 
     def strip_version(source)
@@ -101,8 +101,12 @@ module Racc
       ruby "-I#{LIB_DIR}", "-S", RACC, *arg, **opt
     end
 
-    def ruby(*arg, **opt)
-      assert_ruby_status(["-C", @TEMP_DIR, *arg], **opt)
+    def ruby(*arg, quiet: false, **opt)
+      if quiet
+        assert_in_out_err(["-C", @TEMP_DIR, *arg], **opt)
+      else
+        assert_ruby_status(["-C", @TEMP_DIR, *arg], **opt)
+      end
     end
   end
 end
