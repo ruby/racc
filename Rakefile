@@ -36,7 +36,7 @@ def jruby?
   Object.const_defined?(:RUBY_ENGINE) and 'jruby' == RUBY_ENGINE
 end
 
-file 'lib/racc/parser-text.rb' => ['lib/racc/parser.rb'] do |t|
+file 'lib/racc/parser-text.rb' => ['lib/racc/parser.rb', __FILE__] do |t|
   source = 'lib/racc/parser.rb'
 
   text = File.read(source)
