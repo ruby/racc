@@ -787,6 +787,81 @@ module Racc
   end
 
 
+  class OptionMark
+    def initialize(lineno)
+      @lineno = lineno
+    end
+
+    def name
+      '?'
+    end
+
+    alias inspect name
+
+    attr_reader :lineno
+  end
+
+
+  class ManyMark
+    def initialize(lineno)
+      @lineno = lineno
+    end
+
+    def name
+      '*'
+    end
+
+    alias inspect name
+
+    attr_reader :lineno
+  end
+
+
+  class Many1Mark
+    def initialize(lineno)
+      @lineno = lineno
+    end
+
+    def name
+      '+'
+    end
+
+    alias inspect name
+
+    attr_reader :lineno
+  end
+
+
+  class GroupStartMark
+    def initialize(lineno)
+      @lineno = lineno
+    end
+
+    def name
+      '('
+    end
+
+    alias inspect name
+
+    attr_reader :lineno
+  end
+
+
+  class GroupEndMark
+    def initialize(lineno)
+      @lineno = lineno
+    end
+
+    def name
+      ')'
+    end
+
+    alias inspect name
+
+    attr_reader :lineno
+  end
+
+
   class Prec
     def initialize(symbol, lineno)
       @symbol = symbol
