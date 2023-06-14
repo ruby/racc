@@ -4,7 +4,6 @@
 *.swp
 /pkg
 Makefile
-lib/racc/parser-text.rb
 tags
 tmp
 target
