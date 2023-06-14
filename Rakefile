@@ -35,12 +35,12 @@ def jruby?
   Object.const_defined?(:RUBY_ENGINE) and 'jruby' == RUBY_ENGINE
 end
 
-file 'lib/racc/parser-text.rb' => ['lib/racc/parser.rb'] do |t|
+file 'lib/racc/parser-text.rb' => ['lib/racc/parser.rb', __FILE__] do |t|
   source = 'lib/racc/parser.rb'
 
   text = File.read(source)
   text.gsub!(/^require '(.*)'$/) do
-    %[unless $".find {|p| p.end_with?('/#$1.rb')}\n$".push '#$1.rb'\n#{File.read("lib/#{$1}.rb")}\nend\n]
+    %[unless $".find {|p| p.end_with?('/#$1.rb')}\n$".push "\#{__dir__}/#$1.rb"\n#{File.read("lib/#{$1}.rb")}\nend\n]
   rescue
     $&
   end
