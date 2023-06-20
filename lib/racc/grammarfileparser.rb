@@ -292,7 +292,7 @@ module Racc
       return target if target
       target = _gen_target_name("many", prev)
       @many_rule_registry[prev.to_s] = target
-      src = SourceText.new("result = val", __FILE__, __LINE__)
+      src = SourceText.new("result = val[1] ? val[1].unshift(val[0]) : val", __FILE__, __LINE__)
       act = UserAction.source_text(src)
       @grammar.add Rule.new(target, [], act)
       @grammar.add Rule.new(target, [prev, target], act)
@@ -305,7 +305,7 @@ module Racc
       return target if target
       target = _gen_target_name("many1", prev)
       @many1_rule_registry[prev.to_s] = target
-      src = SourceText.new("result = val", __FILE__, __LINE__)
+      src = SourceText.new("result = val[1] ? val[1].unshift(val[0]) : val", __FILE__, __LINE__)
       act = UserAction.source_text(src)
       @grammar.add Rule.new(target, [prev], act)
       @grammar.add Rule.new(target, [prev, target], act)
