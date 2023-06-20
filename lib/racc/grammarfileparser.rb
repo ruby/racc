@@ -313,12 +313,12 @@ module Racc
     end
 
     def _add_group_rule(enum)
-      target = @grammar.intern("-temp-group")
+      target = @grammar.intern("-temp-group", true)
       rules, _ = _add_rule_block(target, enum)
       target_name = rules.map{|syms, sprec| syms.join("-")}.join("|")
       @group_rule_registry ||= {}
       unless target = @group_rule_registry[target_name]
-        target = @grammar.intern("-group@#{target_name}")
+        target = @grammar.intern("-group@#{target_name}", true)
         @group_rule_registry[target_name] = target
         src = SourceText.new("result = val", __FILE__, __LINE__)
         act = UserAction.source_text(src)
@@ -332,7 +332,7 @@ module Racc
     end
 
     def _gen_target_name(type, sym)
-      @grammar.intern("-#{type}@#{sym.value}")
+      @grammar.intern("-#{type}@#{sym.value}", true)
     end
 
     def add_rule(target, list, sprec)
