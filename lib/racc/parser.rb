@@ -53,7 +53,7 @@ end
 # [-v, --verbose]
 #   verbose mode. create +filename+.output file, like yacc's y.output file.
 # [-g, --debug]
-#   add debug code to parser class. To display debuggin information,
+#   add debug code to parser class. To display debugging information,
 #   use this '-g' option and set @yydebug true in parser class.
 # [-E, --embedded]
 #   Output parser which doesn't need runtime files (racc/parser.rb).
