@@ -199,6 +199,14 @@ module Racc
       assert_output_unchanged 'journey.y'
     end
 
+    # .y file from journey gem, but with --frozen
+
+    def test_frozen
+      assert_compile 'frozen.y', '--frozen'
+      assert_debugfile 'frozen.y', []
+      assert_output_unchanged 'frozen.y'
+    end
+
     # .y file from nokogiri gem
 
     def test_nokogiri_css

@@ -57,6 +57,8 @@ end
 #   use this '-g' option and set @yydebug true in parser class.
 # [-E, --embedded]
 #   Output parser which doesn't need runtime files (racc/parser.rb).
+# [-F, --frozen]
+#   Output parser which declares frozen_string_literals: true
 # [-C, --check-only]
 #   Check syntax of racc grammar file and quit.
 # [-S, --output-status]
