@@ -6,6 +6,7 @@ racc [-o<var>filename</var>] [--output-file=<var>filename</var>]
      [-O<var>filename</var>] [--log-file=<var>filename</var>]
      [-g] [--debug]
      [-E] [--embedded]
+     [-F] [--frozen]
      [-l] [--no-line-convert]
      [-c] [--line-convert-all]
      [-a] [--no-omit-actions]
@@ -49,6 +50,10 @@ Ruby のパスを使用します。
 <dd>
 ランタイムルーチンをすべて含んだコードを生成します。
 つまり、このオプションをつけて生成したコードは Ruby さえあれば動きます。
+</dd>
+<dt>-F, --frozen
+<dd>
+Add frozen_string_literals: true.
 </dd>
 <dt>-C, --check-only
 <dd>

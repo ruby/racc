@@ -19,6 +19,7 @@ def main
   make_executable = false
   rubypath = nil
   embed_runtime = false
+  frozen_strings = false
   debug_flags = Racc::DebugFlags.new
   line_convert = true
   line_convert_all = false
@@ -56,6 +57,9 @@ def main
   }
   parser.on('-E', '--embedded', "Embeds Racc runtime in output.") {
     embed_runtime = true
+  }
+  parser.on('-F', '--frozen', "Add frozen_string_literals: true.") {
+    frozen_strings = true
   }
   parser.on('--line-convert-all', 'Converts line numbers of user codes.') {
     line_convert_all = true
@@ -162,6 +166,7 @@ def main
     params.convert_line = line_convert
     params.convert_line_all = line_convert_all
     params.embed_runtime = embed_runtime
+    params.frozen_strings = frozen_strings
     profiler.section('generation') {
       generator = Racc::ParserFileGenerator.new(states, params)
       generator.generate_parser_file(output || make_filename(input, '.tab.rb'))
