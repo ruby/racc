@@ -55,4 +55,6 @@ DESC
   else
     s.extensions = ["ext/racc/cparse/extconf.rb"]
   end
+
+  s.add_development_dependency("test-unit-ruby-core")
 end
