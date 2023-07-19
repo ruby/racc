@@ -535,7 +535,7 @@ module Racc
     #
     # If this method returns, parsers enter "error recovering mode".
     def on_error(t, val, vstack)
-      raise ParseError, sprintf("\nparse error on value %s (%s)",
+      raise ParseError, sprintf("parse error on value %s (%s)",
                                 val.inspect, token_to_str(t) || '?')
     end
 
