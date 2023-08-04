@@ -56,5 +56,8 @@ DESC
     s.extensions = ["ext/racc/cparse/extconf.rb"]
   end
 
+  s.add_development_dependency("rake")
+  s.add_development_dependency("rake-compiler", ">= 0.4.1")
+  s.add_development_dependency("test-unit")
   s.add_development_dependency("test-unit-ruby-core")
 end
