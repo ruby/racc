@@ -16,18 +16,6 @@ RDoc::Task.new(:docs) do |rd|
   rd.options << "-t #{title}"
 end
 
-require 'rake/testtask'
-
-Rake::TestTask.new(:test) do |t|
-  t.libs << "test/lib"
-  t.ruby_opts << "-rhelper"
-  t.test_files = FileList["test/**/test_*.rb"]
-  if RUBY_VERSION >= "2.6"
-    t.ruby_opts << "--enable-frozen-string-literal"
-    t.ruby_opts << "--debug=frozen-string-literal" if RUBY_ENGINE != "truffleruby"
-  end
-end
-
 def java?
   /java/ === RUBY_PLATFORM
 end
@@ -58,10 +46,10 @@ end
 if jruby?
   # JRUBY
   require "rake/javaextensiontask"
-  Rake::JavaExtensionTask.new("cparse") do |ext|
+  extask = Rake::JavaExtensionTask.new("cparse") do |ext|
     jruby_home = RbConfig::CONFIG['prefix']
-    ext.lib_dir = File.join 'lib', 'racc'
-    ext.ext_dir = File.join 'ext', 'racc'
+    ext.lib_dir = 'lib/java/racc'
+    ext.ext_dir = 'ext/racc'
     # source/target jvm
     ext.source_version = '1.8'
     ext.target_version = '1.8'
@@ -69,19 +57,31 @@ if jruby?
     ext.classpath = jars.map { |x| File.expand_path x }.join( ':' )
     ext.name = 'cparse-jruby'
   end
-
-  task :compile => ['lib/racc/parser-text.rb']
 else
   # MRI
   require "rake/extensiontask"
-  Rake::ExtensionTask.new "cparse" do |ext|
-    ext.lib_dir = File.join 'lib', 'racc'
-    ext.ext_dir = File.join 'ext', 'racc', 'cparse'
+  extask = Rake::ExtensionTask.new "cparse" do |ext|
+    ext.lib_dir << "/#{RUBY_VERSION}/#{ext.platform}/racc"
+    ext.ext_dir = 'ext/racc/cparse'
   end
-
-  task :compile => 'lib/racc/parser-text.rb'
 end
+
+task :compile => ['lib/racc/parser-text.rb']
 
 task :build => "lib/racc/parser-text.rb"
 
 task :test => :compile
+
+require 'rake/testtask'
+
+Rake::TestTask.new(:test) do |t|
+  ENV["RUBYOPT"] = "-I" + [extask.lib_dir, "test/lib"].join(File::PATH_SEPARATOR)
+  t.libs << extask.lib_dir
+  t.libs << "test/lib"
+  t.ruby_opts << "-rhelper"
+  t.test_files = FileList["test/**/test_*.rb"]
+  if RUBY_VERSION >= "2.6"
+    t.ruby_opts << "--enable-frozen-string-literal"
+    t.ruby_opts << "--debug=frozen-string-literal" if RUBY_ENGINE != "truffleruby"
+  end
+end
