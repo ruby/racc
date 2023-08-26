@@ -154,6 +154,7 @@ def main
 
     $stderr.puts 'Creating parser file...' if verbose
     params = result.params.dup
+    params.filename = File.basename(input)
     # Overwrites parameters given by a grammar file with command line options.
     params.superclass = superclass if superclass
     params.omit_action_call = true if omit_action_call
