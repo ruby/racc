@@ -25,34 +25,6 @@
 
     $ gem install racc
 
-  setup.rb インストル：
-
-  パッケージのトップディレクトリで次のように入力してください。
-  ($ は通常ユーザ、# はルートのプロンプトです)
-
-      $ ruby setup.rb config
-      $ ruby setup.rb setup
-     ($ su)
-      # ruby setup.rb install
-
-  これで通常のパスに Racc がインストールされます。自分の好き
-  なディレクトリにインストールしたいときは、setup.rb config に
-  各種オプションをつけて実行してください。オプションのリストは
-
-      $ ruby setup.rb --help
-
-  で見られます。
-
-
-  コンパイラがない場合
-  --------------------
-
-  config を以下のようにすれば、拡張モジュールなしで
-  インストールできます。
-
-      $ ruby setup.rb config --without-ext
-
-
 == テスト
 
   sample/ 以下にいくつか Racc の文法ファイルのサンプルが用意

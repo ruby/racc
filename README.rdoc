@@ -17,32 +17,6 @@
 
     $ gem install racc
 
-  setup.rb install:
-
-  Type this in the top directory of the extracted archive:
-
-    $ ruby setup.rb config
-    $ ruby setup.rb setup
-   ($ su)
-    # ruby setup.rb install
-
-  You can install Racc into your favorite directory by giving
-  options to setup.rb. e.g.
-
-    $ ruby setup.rb config --prefix=/usr
-
-  For details, try "ruby setup.rb --help".
-
-
-  If you don't have C Compiler
-  ----------------------------
-
-  You can install Racc without C compilers. Type following
-  command in config phase.
-
-    $ ruby setup.rb config --without-ext
-
-
 == Testing Racc
 
   Racc comes with simple calculator. To compile this, on shell:
