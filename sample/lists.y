@@ -1,6 +1,6 @@
 #
 #
-# Rules for verious lists.
+# Rules for various lists.
 # This file is just an example, you cannot compile this file.
 
 class ExampleOnly
