@@ -70,10 +70,6 @@ static ID id_d_e_pop;
 #  define LONG2NUM(i) INT2NUM(i)
 #endif
 
-#ifndef HAVE_RB_ARY_SUBSEQ
-#  define rb_ary_subseq(ary, beg, len) rb_ary_new4(len, RARRAY_PTR(ary) + beg)
-#endif
-
 static ID value_to_id _((VALUE v));
 static inline long num_to_long _((VALUE n));
 
@@ -278,28 +274,11 @@ racc_yyparse(VALUE parser, VALUE lexer, VALUE lexmid, VALUE arg, VALUE sysdebug)
     return v->retval;
 }
 
-#ifdef HAVE_RB_BLOCK_CALL
 static void
 call_lexer(struct cparse_params *v)
 {
     rb_block_call(v->lexer, v->lexmid, 0, NULL, lexer_i, v->value_v);
 }
-#else
-static VALUE
-lexer_iter(VALUE data)
-{
-    struct cparse_params *v = rb_check_typeddata(data, &cparse_params_type);
-
-    rb_funcall(v->lexer, v->lexmid, 0);
-    return Qnil;
-}
-
-static void
-call_lexer(struct cparse_params *v)
-{
-    rb_iterate(lexer_iter, v->value_v, lexer_i, v->value_v);
-}
-#endif
 
 static VALUE
 lexer_i(RB_BLOCK_CALL_FUNC_ARGLIST(block_args, data))
