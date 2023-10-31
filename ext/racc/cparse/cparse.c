@@ -22,7 +22,7 @@
                         Important Constants
 ----------------------------------------------------------------------- */
 
-#define RACC_VERSION "1.7.1"
+#define RACC_VERSION STRINGIZE(RACC_INFO_VERSION)
 
 #define DEFAULT_TOKEN -1
 #define ERROR_TOKEN    1
