@@ -26,7 +26,6 @@ DESC
   s.files = [
     "COPYING", "ChangeLog", "TODO",
     "README.ja.rdoc", "README.rdoc", "bin/racc",
-    "ext/racc/MANIFEST",
     "ext/racc/cparse/cparse.c",
     "ext/racc/cparse/extconf.rb",
     "lib/racc.rb", "lib/racc/compat.rb",
