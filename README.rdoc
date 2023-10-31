@@ -35,7 +35,6 @@
 
 * Update VERSION number of these files
   * <code>RACC_VERSION</code> in "ext/racc/com/headius/racc/Cparse.java"
-  * <code>RACC_VERSION</code> in "ext/racc/cparse/cparse.c"
   * <code>VERSION</code> in "lib/racc/info.rb"
 * Release as a gem by <code>rake release</code> with CRuby and JRuby because Racc gem provides 2 packages
 * Create new release on {GitHub}[https://github.com/ruby/racc/releases]
