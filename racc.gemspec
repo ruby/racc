@@ -46,7 +46,7 @@ DESC
   s.extra_rdoc_files = ["README.ja.rdoc", "README.rdoc"]
 
   if RUBY_PLATFORM =~ /java/
-    s.files << 'lib/racc/cparse-jruby.jar'
+    s.files << 'lib/java/racc/cparse-jruby.jar'
     s.platform = 'java'
   else
     s.extensions = ["ext/racc/cparse/extconf.rb"]
