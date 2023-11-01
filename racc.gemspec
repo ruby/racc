@@ -26,8 +26,6 @@ DESC
   s.files = [
     "COPYING", "ChangeLog", "TODO",
     "README.ja.rdoc", "README.rdoc", "bin/racc",
-    "ext/racc/cparse/cparse.c",
-    "ext/racc/cparse/extconf.rb",
     "lib/racc.rb", "lib/racc/compat.rb",
     "lib/racc/debugflags.rb", "lib/racc/exception.rb",
     "lib/racc/grammar.rb", "lib/racc/grammarfileparser.rb",
@@ -52,5 +50,9 @@ DESC
     s.platform = 'java'
   else
     s.extensions = ["ext/racc/cparse/extconf.rb"]
+    s.files.concat(%w[
+      ext/racc/cparse/cparse.c
+      ext/racc/cparse/extconf.rb
+    ])
   end
 end
