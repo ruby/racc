@@ -9,10 +9,6 @@ on:
     branches:
       - '*'
   push:
-    branches:
-      - master
-    tags:
-      - v*.*.*
   schedule:
     - cron: "0 8 * * 3" # At 08:00 on Wednesday # https://crontab.guru/#0_8_*_*_3
 
