@@ -47,12 +47,13 @@ end
   }
 end
 
+lib_dir = nil # for dummy rake/extensiontask.rb at ruby test-bundled-gems
 if jruby?
   # JRUBY
   require "rake/javaextensiontask"
   extask = Rake::JavaExtensionTask.new("cparse") do |ext|
     jruby_home = RbConfig::CONFIG['prefix']
-    ext.lib_dir = 'lib/java/racc'
+    lib_dir = (ext.lib_dir << '/#{ext.platform}/racc')
     ext.ext_dir = 'ext/racc'
     # source/target jvm
     ext.source_version = '1.8'
@@ -65,7 +66,7 @@ else
   # MRI
   require "rake/extensiontask"
   extask = Rake::ExtensionTask.new "cparse" do |ext|
-    ext.lib_dir << "/#{RUBY_VERSION}/#{ext.platform}/racc"
+    lib_dir = (ext.lib_dir << "/#{RUBY_VERSION}/#{ext.platform}/racc")
     ext.ext_dir = 'ext/racc/cparse'
   end
 end
@@ -79,9 +80,9 @@ task :test => :compile
 require 'rake/testtask'
 
 Rake::TestTask.new(:test) do |t|
-  ENV["RUBYOPT"] = "-I" + [extask.lib_dir, "test/lib"].join(File::PATH_SEPARATOR)
-  t.libs << extask.lib_dir
+  t.libs << lib_dir if lib_dir
   t.libs << "test/lib"
+  ENV["RUBYOPT"] = "-I" + t.libs.join(File::PATH_SEPARATOR)
   t.ruby_opts << "-rhelper"
   t.test_files = FileList["test/**/test_*.rb"]
   if RUBY_VERSION >= "2.6"
