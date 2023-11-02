@@ -4,8 +4,9 @@ require "bundler/gem_tasks"
 
 require 'rdoc/task'
 
+spec = Gem::Specification.load("racc.gemspec")
+
 RDoc::Task.new(:docs) do |rd|
-  spec = Gem::Specification.load("racc.gemspec")
   rd.main = "README.en.rdoc"
   rd.rdoc_files.include(spec.files.find_all { |file_name|
     file_name =~ /^(bin|lib|ext)/ || file_name !~ /\//
@@ -45,6 +46,14 @@ __end_of_file__
 end
     eorb
   }
+end
+
+javasrc, = Dir.glob('ext/racc/**/Cparse.java')
+task :compile => javasrc do
+  code = File.binread(javasrc)
+  if code.sub!(/RACC_VERSION\s*=\s*"\K([^"]*)(?=")/) {|v| break if v == spec.version; spec.version}
+    File.binwrite(javasrc, code)
+  end
 end
 
 lib_dir = nil # for dummy rake/extensiontask.rb at ruby test-bundled-gems
