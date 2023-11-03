@@ -131,8 +131,8 @@ Racc supports Bison's "expect" directive to declare the expected
 number of shift/reduce conflicts.
 --
 class MyParser
-rule
   expect 3
+rule
     :
     :
 --

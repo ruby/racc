@@ -127,8 +127,8 @@ Racc has bison's "expect" directive.
   # Example
 
   class MyParser
-  rule
     expect 3
+  rule
       :
       :
 
