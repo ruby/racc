@@ -71,6 +71,8 @@ if jruby?
     ext.classpath = jars.map { |x| File.expand_path x }.join( ':' )
     ext.name = 'cparse-jruby'
   end
+
+  task :build => "#{extask.lib_dir}/#{extask.name}.jar"
 else
   # MRI
   require "rake/extensiontask"
