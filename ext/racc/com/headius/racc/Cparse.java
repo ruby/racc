@@ -45,7 +45,7 @@ import org.jruby.runtime.builtin.IRubyObject;
 import org.jruby.runtime.load.Library;
 
 public class Cparse implements Library {
-    public static final String RACC_VERSION = "1.7.3.pre.1"; // TODO: parse from Cparse.c
+    public static final String RACC_VERSION = "1.7.3"; // TODO: parse from Cparse.c
 
     public enum TokenType {
         DEFAULT(-1),
