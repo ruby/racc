@@ -253,7 +253,7 @@ Mon Jul  3 04:34:32 2006  Minero Aoki  <aamine@loveruby.net>
 
 	* lib/racc/grammar.rb: class RuleTable -> Grammar.
 
-	* lib/racc/grammar.rb: Grammar.new does not acccept a Compiler.
+	* lib/racc/grammar.rb: Grammar.new does not accept a Compiler.
 
 	* lib/racc/grammar.rb: refactoring.
 
@@ -285,7 +285,7 @@ Mon Jul  3 04:34:32 2006  Minero Aoki  <aamine@loveruby.net>
 
 	* lib/racc/state.rb: class StateTable -> States.
 
-	* lib/racc/state.rb: States.new does not acccept a Compiler.
+	* lib/racc/state.rb: States.new does not accept a Compiler.
 
 	* lib/racc/state.rb: refactoring.
 
@@ -418,7 +418,7 @@ Tue Jul 26 23:37:46 2005  Minero Aoki  <aamine@loveruby.net>
 
 Sun Jan  2 11:48:19 2005  Minero Aoki  <aamine@loveruby.net>
 
-	* lib/racc/grammer.rb (once_writer): bug! needs argument.
+	* lib/racc/grammar.rb (once_writer): bug! needs argument.
 
 Mon Feb 16 16:14:16 2004  Minero Aoki  <aamine@loveruby.net>
 
