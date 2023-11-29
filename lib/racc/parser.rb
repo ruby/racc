@@ -12,10 +12,6 @@
 
 require 'racc/info'
 
-unless defined?(NotImplementedError)
-  NotImplementedError = NotImplementError # :nodoc:
-end
-
 module Racc
   class ParseError < StandardError; end
 end
