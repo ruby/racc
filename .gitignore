@@ -9,5 +9,6 @@ tags
 tmp
 target
 lib/java/racc/cparse-jruby.jar
+lib/racc/cparse-jruby.jar
 Gemfile.lock
 html
