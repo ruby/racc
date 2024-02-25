@@ -30,7 +30,7 @@ def main
   profiler = RaccProfiler.new(false)
 
   parser = OptionParser.new
-  parser.banner = "Usage: #{File.basename($0)} [options] <input>"
+  parser.banner = "Usage: #{File.basename($0)} [options] [input]"
   parser.on('-o', '--output-file=PATH',
             'output file name [<input>.tab.rb]') {|name|
     output = name
@@ -121,21 +121,24 @@ def main
     $stderr.puts parser.help
     exit 1
   end
-  if ARGV.empty?
-    $stderr.puts 'no input'
-    exit 1
-  end
   if ARGV.size > 1
     $stderr.puts 'too many input'
     exit 1
   end
-  input = ARGV[0]
+
+  input = ARGV[0] || "stdin"
+
+  if input == "stdin" && !output then
+    $stderr.puts 'You must specify a path to read or use -o <path> for output.'
+    exit 1
+  end
 
   begin
     $stderr.puts 'Parsing grammar file...' if verbose
     result = profiler.section('parse') {
       parser = Racc::GrammarFileParser.new(debug_flags)
-      parser.parse(File.read(input), File.basename(input))
+      content = input == "stdin" ? ARGF.read : File.read(input)
+      parser.parse(content, File.basename(input))
     }
     if check_only
       $stderr.puts 'syntax ok'
