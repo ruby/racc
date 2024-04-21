@@ -133,6 +133,21 @@ module Racc
                   | seq("|") {|*|
                       OrMark.new(@scanner.lineno)
                     }\
+                  | seq("?") {|*|
+                      OptionMark.new(@scanner.lineno)
+                    }\
+                  | seq("*") {|*|
+                      ManyMark.new(@scanner.lineno)
+                    }\
+                  | seq("+") {|*|
+                      Many1Mark.new(@scanner.lineno)
+                    }\
+                  | seq("(") {|*|
+                      GroupStartMark.new(@scanner.lineno)
+                    }\
+                  | seq(")") {|*|
+                      GroupEndMark.new(@scanner.lineno)
+                    }\
                   | seq("=", :symbol) {|_, sym|
                       Prec.new(sym, @scanner.lineno)
                     }\
@@ -210,27 +225,114 @@ module Racc
     end
 
     def add_rule_block(list)
-      sprec = nil
       target = list.shift
       case target
-      when OrMark, UserAction, Prec
+      when OrMark, OptionMark, ManyMark, Many1Mark, GroupStartMark, GroupEndMark, UserAction, Prec
         raise CompileError, "#{target.lineno}: unexpected symbol #{target.name}"
       end
+      enum = list.each.with_index
+      _, sym, idx = _add_rule_block(target, enum)
+      if idx
+        # sym is Racc::GroupEndMark
+        raise "#{sym.lineno}: unexpected symbol ')' at pos=#{idx}"
+      end
+    end
+
+    def _add_rule_block(target, enum)
+      rules = [] # [ [seqs, sprec], .. ]
       curr = []
-      list.each do |i|
-        case i
+      sprec = nil
+      while (sym, idx = enum.next rescue nil)
+        case sym
         when OrMark
-          add_rule target, curr, sprec
+          rules << [curr, sprec]
           curr = []
           sprec = nil
+        when OptionMark
+          curr << _add_option_rule(curr.pop)
+        when ManyMark
+          curr << _add_many_rule(curr.pop)
+        when Many1Mark
+          curr << _add_many1_rule(curr.pop)
+        when GroupStartMark
+          curr << _add_group_rule(enum)
+        when GroupEndMark
+          rules << [curr, sprec]
+          return rules, sym, idx
         when Prec
           raise CompileError, "'=<prec>' used twice in one rule" if sprec
-          sprec = i.symbol
+          sprec = sym.symbol
         else
-          curr.push i
+          curr.push sym
         end
       end
-      add_rule target, curr, sprec
+      rules << [curr, sprec]
+      rules.each do |syms, sprec|
+        add_rule target, syms, sprec
+      end
+      nil
+    end
+
+
+    def _add_option_rule(prev)
+      @option_rule_registry ||= {}
+      target = @option_rule_registry[prev.to_s]
+      return target if target
+      target = _gen_target_name("option", prev)
+      @option_rule_registry[prev.to_s] = target
+      act = UserAction.empty
+      @grammar.add Rule.new(target, [], act)
+      @grammar.add Rule.new(target, [prev], act)
+      target
+    end
+
+    def _add_many_rule(prev)
+      @many_rule_registry ||= {}
+      target = @many_rule_registry[prev.to_s]
+      return target if target
+      target = _gen_target_name("many", prev)
+      @many_rule_registry[prev.to_s] = target
+      src = SourceText.new("result = val[1] ? val[1].unshift(val[0]) : val", __FILE__, __LINE__)
+      act = UserAction.source_text(src)
+      @grammar.add Rule.new(target, [], act)
+      @grammar.add Rule.new(target, [prev, target], act)
+      target
+    end
+
+    def _add_many1_rule(prev)
+      @many1_rule_registry ||= {}
+      target = @many1_rule_registry[prev.to_s]
+      return target if target
+      target = _gen_target_name("many1", prev)
+      @many1_rule_registry[prev.to_s] = target
+      src = SourceText.new("result = val[1] ? val[1].unshift(val[0]) : val", __FILE__, __LINE__)
+      act = UserAction.source_text(src)
+      @grammar.add Rule.new(target, [prev], act)
+      @grammar.add Rule.new(target, [prev, target], act)
+      target
+    end
+
+    def _add_group_rule(enum)
+      target = @grammar.intern("-temp-group", true)
+      rules, _ = _add_rule_block(target, enum)
+      target_name = rules.map{|syms, sprec| syms.join("-")}.join("|")
+      @group_rule_registry ||= {}
+      unless target = @group_rule_registry[target_name]
+        target = @grammar.intern("-group@#{target_name}", true)
+        @group_rule_registry[target_name] = target
+        src = SourceText.new("result = val", __FILE__, __LINE__)
+        act = UserAction.source_text(src)
+        rules.each do |syms, sprec|
+          rule = Rule.new(target, syms, act)
+          rule.specified_prec = sprec
+          @grammar.add rule
+        end
+      end
+      target
+    end
+
+    def _gen_target_name(type, sym)
+      @grammar.intern("-#{type}@#{sym.value}", true)
     end
 
     def add_rule(target, list, sprec)
