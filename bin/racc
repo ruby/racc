@@ -193,6 +193,9 @@ def main
     end
 
     profiler.report
+    if states.should_error_on_expect_mismatch?
+      raise Racc::CompileError, "#{states.grammar.n_expected_srconflicts} shift/reduce conflicts are expected but #{states.n_srconflicts} shift/reduce conflicts exist"
+    end
   rescue Racc::Error, Errno::ENOENT, Errno::EPERM => err
     raise if $DEBUG or debug_flags.any?
     lineno = err.message.slice(/\A\d+:/).to_s
