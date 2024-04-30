@@ -1,7 +1,7 @@
 #
 #
 # A simple calculator, version 2.
-# This file contains Japanese characters (encoding=EUC-JP).
+# This file contains Japanese characters.
 
 class Calculator2
   prechigh
@@ -51,8 +51,8 @@ end
 
 ---- footer
 
-puts 'Ä¶¹ë²ÚÅÅÂî 2 ¹æµ¡'
-puts 'Q ¤Ç½ªÎ»¤·¤Ş¤¹'
+puts 'è¶…è±ªè¯é›»å“ 2 å·æ©Ÿ'
+puts 'Q ã§çµ‚äº†ã—ã¾ã™'
 calc = Calculator2.new
 while true
   print '>>> '; $stdout.flush
