@@ -117,20 +117,16 @@ def main
   begin
     parser.parse!
   rescue OptionParser::ParseError => err
-    $stderr.puts err.message
-    $stderr.puts parser.help
-    exit 1
+    abort [err.message, parser.help].join("\n")
   end
   if ARGV.size > 1
-    $stderr.puts 'too many input'
-    exit 1
+    abort 'too many input'
   end
 
   input = ARGV[0] || "stdin"
 
   if input == "stdin" && !output then
-    $stderr.puts 'You must specify a path to read or use -o <path> for output.'
-    exit 1
+    abort 'You must specify a path to read or use -o <path> for output.'
   end
 
   begin
@@ -201,8 +197,7 @@ def main
   rescue Racc::Error, Errno::ENOENT, Errno::EPERM => err
     raise if $DEBUG or debug_flags.any?
     lineno = err.message.slice(/\A\d+:/).to_s
-    $stderr.puts "#{File.basename $0}: #{input}:#{lineno} #{err.message.strip}"
-    exit 1
+    abort "#{File.basename $0}: #{input}:#{lineno} #{err.message.strip}"
   end
 end
 
