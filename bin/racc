@@ -112,7 +112,7 @@ def main
   }
   parser.on('--help', 'Prints this message and quit.') {
     puts parser.help
-    exit 1
+    exit
   }
   begin
     parser.parse!
