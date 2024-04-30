@@ -92,7 +92,7 @@ def main
   #}
   parser.on('--version', 'Prints version and quit.') {
     puts "racc version #{Racc::Version}"
-    exit 0
+    exit
   }
   parser.on('--runtime-version', 'Prints runtime version and quit.') {
     printf "racc runtime version %s; %s\n",
@@ -104,11 +104,11 @@ def main
              sprintf('c core version %s',
                      Racc::Parser::Racc_Runtime_Core_Version_C)
            end
-    exit 0
+    exit
   }
   parser.on('--copyright', 'Prints copyright and quit.') {
     puts Racc::Copyright
-    exit 0
+    exit
   }
   parser.on('--help', 'Prints this message and quit.') {
     puts parser.help
@@ -138,7 +138,7 @@ def main
     }
     if check_only
       $stderr.puts 'syntax ok'
-      exit 0
+      exit
     end
 
     $stderr.puts 'Generating LALR states...' if verbose
