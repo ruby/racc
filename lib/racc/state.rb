@@ -73,6 +73,10 @@ module Racc
           (n_srconflicts() != @grammar.n_expected_srconflicts)
     end
 
+    def should_error_on_expect_mismatch?
+      should_report_srconflict? && @grammar.error_on_expect_mismatch
+    end
+
     def srconflict_exist?
       n_srconflicts() != 0
     end

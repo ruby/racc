@@ -27,6 +27,7 @@ module Racc
       @rules   = []  # :: [Rule]
       @start   = nil
       @n_expected_srconflicts = nil
+      @error_on_expect_mismatch = nil
       @prec_table = []
       @prec_table_closed = false
       @closed = false
@@ -36,6 +37,7 @@ module Racc
     attr_reader :start
     attr_reader :symboltable
     attr_accessor :n_expected_srconflicts
+    attr_accessor :error_on_expect_mismatch
 
     def [](x)
       @rules[x]

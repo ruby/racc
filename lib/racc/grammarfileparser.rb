@@ -76,6 +76,9 @@ module Racc
                         raise CompileError, "`expect' seen twice"
                       end
                       @grammar.n_expected_srconflicts = num
+                    }\
+                  | seq(:ERROR_ON_EXPECT_MISMATCH) {|*|
+                      @grammar.error_on_expect_mismatch = true
                     }
 
     g.convdef     = seq(:symbol, :STRING) {|sym, code|
@@ -493,6 +496,7 @@ module Racc
       'options'  => :OPTION,
       'start'    => :START,
       'expect'   => :EXPECT,
+      'error_on_expect_mismatch' => :ERROR_ON_EXPECT_MISMATCH,
       'class'    => :CLASS,
       'rule'     => :RULE,
       'end'      => :END
