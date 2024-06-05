@@ -10,9 +10,9 @@
 #
 #++
 
-require 'racc/compat'
-require 'racc/sourcetext'
-require 'racc/parser-text'
+require_relative 'compat'
+require_relative 'sourcetext'
+require_relative 'parser-text'
 require 'rbconfig'
 
 module Racc

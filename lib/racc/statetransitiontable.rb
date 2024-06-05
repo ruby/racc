@@ -10,7 +10,7 @@
 #
 #++
 
-require 'racc/parser'
+require_relative 'parser'
 
 module Racc
 

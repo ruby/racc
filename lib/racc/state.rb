@@ -10,9 +10,9 @@
 #
 #++
 
-require 'racc/iset'
-require 'racc/statetransitiontable'
-require 'racc/exception'
+require_relative 'iset'
+require_relative 'statetransitiontable'
+require_relative 'exception'
 require 'forwardable'
 
 module Racc

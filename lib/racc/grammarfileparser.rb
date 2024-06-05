@@ -10,11 +10,11 @@
 #
 #++
 
-require 'racc'
-require 'racc/compat'
-require 'racc/grammar'
-require 'racc/parserfilegenerator'
-require 'racc/sourcetext'
+require_relative '../racc'
+require_relative 'compat'
+require_relative 'grammar'
+require_relative 'parserfilegenerator'
+require_relative 'sourcetext'
 require 'stringio'
 
 module Racc

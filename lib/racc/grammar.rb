@@ -10,11 +10,11 @@
 #
 #++
 
-require 'racc/compat'
-require 'racc/iset'
-require 'racc/sourcetext'
-require 'racc/logfilegenerator'
-require 'racc/exception'
+require_relative 'compat'
+require_relative 'iset'
+require_relative 'sourcetext'
+require_relative 'logfilegenerator'
+require_relative 'exception'
 require 'forwardable'
 
 module Racc
