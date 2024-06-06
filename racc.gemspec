@@ -24,7 +24,7 @@ DESC
   s.licenses = ["Ruby", "BSD-2-Clause"]
   s.executables = ["racc"]
   s.files = [
-    "COPYING", "ChangeLog", "TODO",
+    "COPYING", "BSDL", "ChangeLog", "TODO",
     "README.ja.rdoc", "README.rdoc", "bin/racc",
     "lib/racc.rb", "lib/racc/compat.rb",
     "lib/racc/debugflags.rb", "lib/racc/exception.rb",
