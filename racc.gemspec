@@ -9,9 +9,9 @@ end
 Gem::Specification.new do |s|
   s.name = "racc"
   s.version = Racc::VERSION
-  s.summary = "Racc is a LALR(1) parser generator"
+  s.summary = "Racc is an LALR(1) parser generator"
   s.description = <<DESC
-Racc is a LALR(1) parser generator.
+Racc is an LALR(1) parser generator.
   It is written in Ruby itself, and generates Ruby program.
 
   NOTE: Ruby 1.8.x comes with Racc runtime module.  You
