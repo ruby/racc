@@ -19,7 +19,7 @@ unless defined?(::ParseError)
   ParseError = Racc::ParseError # :nodoc:
 end
 
-# Racc is a LALR(1) parser generator.
+# Racc is an LALR(1) parser generator.
 # It is written in Ruby itself, and generates Ruby programs.
 #
 # == Command-line Reference
