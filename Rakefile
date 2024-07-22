@@ -7,7 +7,7 @@ require 'rdoc/task'
 spec = Gem::Specification.load("racc.gemspec")
 
 RDoc::Task.new(:docs) do |rd|
-  rd.main = "README.en.rdoc"
+  rd.main = "README.rdoc"
   rd.rdoc_files.include(spec.files.find_all { |file_name|
     file_name =~ /^(bin|lib|ext)/ || file_name !~ /\//
   })
