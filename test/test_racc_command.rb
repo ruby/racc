@@ -350,5 +350,29 @@ module Racc
         Turn on logging with "-v" and check ".output" file for details
       STDERR
     end
+
+    def test_optional
+      assert_compile 'optional.y'
+      assert_debugfile 'optional.y', [0, 0, 0, 0]
+      assert_output_unchanged 'optional.y'
+    end
+
+    def test_many
+      assert_compile 'many.y'
+      assert_debugfile 'many.y', [0, 0, 0, 0]
+      assert_output_unchanged 'many.y'
+    end
+
+    def test_many1
+      assert_compile 'many1.y'
+      assert_debugfile 'many1.y', [0, 0, 0, 0]
+      assert_output_unchanged 'many1.y'
+    end
+
+    def test_group
+      assert_compile 'group.y'
+      assert_debugfile 'group.y', [0, 0, 0, 0]
+      assert_output_unchanged 'group.y'
+    end
   end
 end
