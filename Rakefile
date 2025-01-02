@@ -62,7 +62,7 @@ if jruby?
   require "rake/javaextensiontask"
   extask = Rake::JavaExtensionTask.new("cparse") do |ext|
     jruby_home = RbConfig::CONFIG['prefix']
-    lib_dir = (ext.lib_dir << "/#{ext.platform}/racc")
+    lib_dir = ext.lib_dir += "/#{ext.platform}/racc"
     ext.ext_dir = 'ext/racc'
     # source/target jvm
     ext.source_version = '1.8'
@@ -77,7 +77,7 @@ else
   # MRI
   require "rake/extensiontask"
   extask = Rake::ExtensionTask.new "cparse" do |ext|
-    lib_dir = (ext.lib_dir << "/#{RUBY_VERSION}/#{ext.platform}/racc")
+    lib_dir = ext.lib_dir += "/#{RUBY_VERSION}/#{ext.platform}/racc"
     ext.ext_dir = 'ext/racc/cparse'
   end
 end
