@@ -139,7 +139,7 @@ conflict warning message.
 == Declaring Tokens
 
 By declaring tokens, you can avoid many meaningless bugs. If declared token
-does not exist or existing token does not decleared, Racc output warnings.
+does not exist or existing token is not declared, Racc output warnings.
 Declaration syntax is:
 
   token TOKEN_NAME AND_IS_THIS
