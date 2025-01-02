@@ -1,6 +1,7 @@
 source "https://rubygems.org"
 
 group :development do
+  gem "racc"
   gem "rake", "13.0.6"
   gem "rake-compiler", "1.2.3"
   gem "test-unit", "3.6.1"
