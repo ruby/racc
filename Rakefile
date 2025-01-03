@@ -29,7 +29,8 @@ file 'lib/racc/parser-text.rb' => ['lib/racc/parser.rb', 'lib/racc/info.rb', __F
 
   text = File.read(source)
   text.sub!(/\A# *frozen[-_]string[-_]literal:.*\n/, '')
-  text.gsub!(/^require '(.*)'$/) do
+  text.gsub!(/(^#.*\n)+(?=module )/, "#--\n")
+    text.gsub!(/^require '(.*)'$/) do
     lib = $1
     code = File.read("lib/#{lib}.rb")
     code.sub!(/\A(?:#.*\n)+/, '')
@@ -37,8 +38,10 @@ file 'lib/racc/parser-text.rb' => ['lib/racc/parser.rb', 'lib/racc/info.rb', __F
   rescue
     $&
   end
+  text << "#++\n"
   File.open(t.name, 'wb') { |io|
     io.write(<<-eorb)
+# :stopdoc:
 module Racc
   PARSER_TEXT = <<'__end_of_file__'
 #{text}
