@@ -13,8 +13,8 @@ RDoc::Task.new(:docs) do |rd|
   })
 
   title = "#{spec.name}-#{spec.version} Documentation"
-
   rd.options << "-t #{title}"
+  rd.rdoc_dir = "_site"
 end
 
 def java?
