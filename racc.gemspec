@@ -46,6 +46,7 @@ DESC
   s.extra_rdoc_files = ["README.ja.rdoc", "README.rdoc"]
   s.metadata["homepage_uri"] = s.homepage
   s.metadata["source_code_uri"] = s.homepage
+  s.metadata["documentation_uri"] = "https://ruby.github.io/racc/"
   s.metadata["changelog_uri"] = "#{s.homepage}/releases"
 
   if RUBY_PLATFORM =~ /java/
