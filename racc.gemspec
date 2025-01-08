@@ -44,7 +44,10 @@ DESC
   s.required_ruby_version = ">= 2.5"
   s.rdoc_options = ["--main", "README.rdoc"]
   s.extra_rdoc_files = ["README.ja.rdoc", "README.rdoc"]
-  s.metadata["changelog_uri"] = "https://github.com/ruby/racc/releases"
+  s.metadata["homepage_uri"] = s.homepage
+  s.metadata["source_code_uri"] = s.homepage
+  s.metadata["documentation_uri"] = "https://ruby.github.io/racc/"
+  s.metadata["changelog_uri"] = "#{s.homepage}/releases"
 
   if RUBY_PLATFORM =~ /java/
     s.files << 'lib/java/racc/cparse-jruby.jar'
