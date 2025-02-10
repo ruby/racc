@@ -144,14 +144,14 @@ end
 #
 # == Debugging
 #
-# When debugging, "-v" or/and the "-g" option is helpful.
+# When debugging, "-v" or/and the "-t" option is helpful.
 #
 # "-v" creates verbose log file (.output).
-# "-g" creates a "Verbose Parser".
+# "-t" creates a "Verbose Parser".
 # Verbose Parser prints the internal status when parsing.
 # But it's _not_ automatic.
-# You must use -g option and set +@yydebug+ to +true+ in order to get output.
-# -g option only creates the verbose parser.
+# You must use -t option and set +@yydebug+ to +true+ in order to get output.
+# -t option only creates the verbose parser.
 #
 # === Racc reported syntax error.
 #
@@ -167,7 +167,7 @@ end
 #
 # === Generated parsers does not work correctly
 #
-# Try "racc -g xxxx.y".
+# Try "racc -t xxxx.y".
 # This command let racc generate "debugging parser".
 # Then set @yydebug=true in your parser.
 # It produces a working log of your parser.
