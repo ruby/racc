@@ -25,48 +25,63 @@ end
 # == Command-line Reference
 #
 #     racc [-o<var>filename</var>] [--output-file=<var>filename</var>]
-#          [-e<var>rubypath</var>] [--executable=<var>rubypath</var>]
+#          [-t] [--debug]
+#          [-g]
 #          [-v] [--verbose]
 #          [-O<var>filename</var>] [--log-file=<var>filename</var>]
-#          [-g] [--debug]
+#          [-e<var>rubypath</var>] [--executable=<var>rubypath</var>]
 #          [-E] [--embedded]
+#          [-F] [--frozen]
+#          [--line-convert-all]
 #          [-l] [--no-line-convert]
-#          [-c] [--line-convert-all]
 #          [-a] [--no-omit-actions]
+#          [--superclass=<var>classname</var>]
 #          [-C] [--check-only]
 #          [-S] [--output-status]
-#          [--version] [--copyright] [--help] <var>grammarfile</var>
+#          [-P]
+#          [-D<var>flags</var>]
+#          [--version] [--runtime-version] [--copyright] [--help] <var>grammarfile</var>
 #
 # [+grammarfile+]
 #   Racc grammar file. Any extension is permitted.
 # [-o+outfile+, --output-file=+outfile+]
 #   A filename for output. default is <+filename+>.tab.rb
+# [-t, --debug]
+#   Add debug code to parser class. To display debugging information,
+#   use this '-t' option and set @yydebug true in parser class.
+# [-g]
+#   This option is obsolete. Use '-t' instead.
+# [-v, --verbose]
+#   Verbose mode. create +filename+.output file, like yacc's y.output file.
 # [-O+filename+, --log-file=+filename+]
 #   Place logging output in file +filename+.
 #   Default log file name is <+filename+>.output.
 # [-e+rubypath+, --executable=+rubypath+]
-#   output executable file(mode 755). where +path+ is the Ruby interpreter.
-# [-v, --verbose]
-#   verbose mode. create +filename+.output file, like yacc's y.output file.
-# [-g, --debug]
-#   add debug code to parser class. To display debugging information,
-#   use this '-g' option and set @yydebug true in parser class.
+#   Output executable file(mode 755). where +path+ is the Ruby interpreter.
 # [-E, --embedded]
 #   Output parser which doesn't need runtime files (racc/parser.rb).
 # [-F, --frozen]
 #   Output parser which declares frozen_string_literals: true
+# [--line-convert-all]
+#   Convert line number of actions, inner, header and footer.
+# [-l, --no-line-convert]
+#   Turns off line number converting.
+# [-a, --no-omit-actions]
+#   Call all actions, even if an action is empty.
+# [--superclass=+classname+]
+#   Uses +classname+ instead of Racc::Parser as the superclass of the generated parser.
 # [-C, --check-only]
 #   Check syntax of racc grammar file and quit.
 # [-S, --output-status]
 #   Print messages time to time while compiling.
-# [-l, --no-line-convert]
-#   turns off line number converting.
-# [-c, --line-convert-all]
-#   Convert line number of actions, inner, header and footer.
-# [-a, --no-omit-actions]
-#   Call all actions, even if an action is empty.
+# [-P]
+#   Enables generator profile mode.
+# [-D +flags+]
+#   Do not use this option. Flags for Racc debugging.
 # [--version]
-#   print Racc version and quit.
+#   Print Racc version and quit.
+# [--runtime-version]
+#   Print Racc runtime version and quit.
 # [--copyright]
 #   Print copyright and quit.
 # [--help]
@@ -129,14 +144,14 @@ end
 #
 # == Debugging
 #
-# When debugging, "-v" or/and the "-g" option is helpful.
+# When debugging, "-v" or/and the "-t" option is helpful.
 #
 # "-v" creates verbose log file (.output).
-# "-g" creates a "Verbose Parser".
+# "-t" creates a "Verbose Parser".
 # Verbose Parser prints the internal status when parsing.
 # But it's _not_ automatic.
-# You must use -g option and set +@yydebug+ to +true+ in order to get output.
-# -g option only creates the verbose parser.
+# You must use -t option and set +@yydebug+ to +true+ in order to get output.
+# -t option only creates the verbose parser.
 #
 # === Racc reported syntax error.
 #
@@ -152,7 +167,7 @@ end
 #
 # === Generated parsers does not work correctly
 #
-# Try "racc -g xxxx.y".
+# Try "racc -t xxxx.y".
 # This command let racc generate "debugging parser".
 # Then set @yydebug=true in your parser.
 # It produces a working log of your parser.
