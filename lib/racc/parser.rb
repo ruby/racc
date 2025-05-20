@@ -120,7 +120,7 @@ end
 # yacc's $$ is the 'result', $0, $1... is
 # an array called 'val', and $-1, $-2... is an array called '_values'.
 #
-# See the {Grammar File Reference}[rdoc-ref:lib/racc/rdoc/grammar.en.rdoc] for
+# See the {Grammar File Reference}[rdoc-ref:doc/en/grammar.en.rdoc] for
 # more information on grammar files.
 #
 # == Parser
