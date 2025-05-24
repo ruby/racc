@@ -68,8 +68,15 @@ if jruby?
     lib_dir = ext.lib_dir += "/#{ext.platform}/racc"
     ext.ext_dir = 'ext/racc'
     # source/target jvm
-    ext.source_version = '1.8'
-    ext.target_version = '1.8'
+    if defined?(JRUBY_VERSION) && Gem::Version.new(JRUBY_VERSION) >= Gem::Version.new('10.0.0.0')
+      # Use Java 21 for JRuby 10.0.0.0 or higher
+      ext.source_version = '21'
+      ext.target_version = '21'
+    else
+      # Use Java 8 if its lower than JRuby 10.0.0.0
+      ext.source_version = '1.8'
+      ext.target_version = '1.8'
+    end
     jars = ["#{jruby_home}/lib/jruby.jar"] + FileList['lib/*.jar']
     ext.classpath = jars.map { |x| File.expand_path x }.join( ':' )
     ext.name = 'cparse-jruby'
