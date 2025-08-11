@@ -20,7 +20,7 @@ jobs:
     if: ${{ github.repository == 'ruby/racc' && !startsWith(github.event_name, 'pull') }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Setup Ruby
         uses: ruby/setup-ruby@f26937343756480a8cb3ae1f623b9c8d89ed6984 # v1.196.0
         with:
