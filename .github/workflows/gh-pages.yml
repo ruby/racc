@@ -32,7 +32,7 @@ jobs:
       - name: Build with Racc
         run: bundle exec rake docs
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v4
 
   deploy:
     environment:
