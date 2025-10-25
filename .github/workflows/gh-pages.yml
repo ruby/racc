@@ -24,7 +24,7 @@ jobs:
       - name: Setup Ruby
         uses: ruby/setup-ruby@f26937343756480a8cb3ae1f623b9c8d89ed6984 # v1.196.0
         with:
-          ruby-version: "3.4"
+          ruby-version: "3.3" # TODO: Temporarily avoids the error if 3.4 is specified. (https://github.com/ruby/racc/actions/runs/18798977070/job/53643662504)
           bundler-cache: true
       - name: Setup Pages
         id: pages
