@@ -40,8 +40,6 @@ DESC
   ]
   s.require_paths = ["lib"]
   s.required_ruby_version = ">= 2.5"
-  s.rdoc_options = ["--main", "README.rdoc"]
-  s.extra_rdoc_files = ["README.ja.rdoc", "README.rdoc"]
   s.metadata["homepage_uri"] = s.homepage
   s.metadata["source_code_uri"] = s.homepage
   s.metadata["documentation_uri"] = "https://ruby.github.io/racc/"
