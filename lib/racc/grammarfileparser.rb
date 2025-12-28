@@ -200,6 +200,7 @@ module Racc
       @grammar = Grammar.new
       @result = Result.new(@grammar)
       @embedded_action_seq = 0
+      @current_rule_target = nil
       yyparse @scanner, :yylex
       parse_user_code
       @result.grammar.init
@@ -228,11 +229,21 @@ module Racc
     end
 
     def add_rule_block(list)
-      target = list.shift
-      case target
-      when OrMark, OptionMark, ManyMark, Many1Mark, GroupStartMark, GroupEndMark, UserAction, Prec
-        raise CompileError, "#{target.lineno}: unexpected symbol #{target.name}"
+      if !list.empty? && list[0].is_a?(OrMark)
+        list.shift
+        target = @current_rule_target
+        if target.nil?
+          raise CompileError, "#{location()}: no target for rule continuation"
+        end
+      else
+        target = list.shift
+        case target
+        when OrMark, OptionMark, ManyMark, Many1Mark, GroupStartMark, GroupEndMark, UserAction, Prec
+          raise CompileError, "#{target.lineno}: unexpected symbol #{target.name}"
+        end
+        @current_rule_target = target
       end
+
       enum = list.each.with_index
       _, sym, idx = _add_rule_block(target, enum)
       if idx
