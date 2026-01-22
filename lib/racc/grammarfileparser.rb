@@ -295,7 +295,7 @@ module Racc
       return target if target
       target = _gen_target_name("many", prev)
       @many_rule_registry[prev.to_s] = target
-      src = SourceText.new("result = val[1] ? val[1].unshift(val[0]) : val", @filename, @scanner.lineno + 1)
+      src = SourceText.new(_many_action_code, @filename, @scanner.lineno + 1)
       act = UserAction.source_text(src)
       @grammar.add Rule.new(target, [], act)
       @grammar.add Rule.new(target, [prev, target], act)
@@ -308,11 +308,27 @@ module Racc
       return target if target
       target = _gen_target_name("many1", prev)
       @many1_rule_registry[prev.to_s] = target
-      src = SourceText.new("result = val[1] ? val[1].unshift(val[0]) : val", @filename, @scanner.lineno + 1)
+      src = SourceText.new(_many_action_code, @filename, @scanner.lineno + 1)
       act = UserAction.source_text(src)
       @grammar.add Rule.new(target, [prev], act)
       @grammar.add Rule.new(target, [prev, target], act)
       target
+    end
+
+    def _many_action_code
+      if @result.params.result_var?
+        "result = val[1] ? val[1].unshift(val[0]) : val"
+      else
+        "val[1] ? val[1].unshift(val[0]) : val"
+      end
+    end
+
+    def _group_action_code
+      if @result.params.result_var?
+        "result = val"
+      else
+        "val"
+      end
     end
 
     def _add_group_rule(enum)
@@ -323,7 +339,7 @@ module Racc
       unless target = @group_rule_registry[target_name]
         target = @grammar.intern("-group@#{target_name}", true)
         @group_rule_registry[target_name] = target
-        src = SourceText.new("result = val", @filename, @scanner.lineno + 1)
+        src = SourceText.new(_group_action_code, @filename, @scanner.lineno + 1)
         act = UserAction.source_text(src)
         rules.each do |syms, sprec|
           rule = Rule.new(target, syms, act)
