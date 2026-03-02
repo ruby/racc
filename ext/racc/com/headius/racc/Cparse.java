@@ -105,7 +105,7 @@ public class Cparse implements Library {
         if (len < 0) return context.nil;
         int size = stack.size();
         len = Math.min(len, size);
-        return stack.subseq(size - len, len);
+        return stack.subseq(context.runtime.getArray(), (long)(size - len), (long)len, false);
     }
 
     private static void cut_stack_tail(ThreadContext context, RubyArray stack, int len) {
