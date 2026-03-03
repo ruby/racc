@@ -374,5 +374,11 @@ module Racc
       assert_debugfile 'group.y', [0, 0, 0, 0]
       assert_output_unchanged 'group.y'
     end
+
+    def test_term
+      assert_compile 'term.y'
+      assert_debugfile 'term.y', [0, 0, 0, 0]
+      assert_output_unchanged 'term.y'
+    end
   end
 end
