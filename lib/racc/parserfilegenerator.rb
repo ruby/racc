@@ -138,7 +138,7 @@ module Racc
 
     def embed_library(src)
       line %[###### #{src.filename} begin]
-      line %[unless $".find {|p| p.end_with?('/#{src.filename}')}]
+      line %[unless $".find {|p| p.tr('\\\\', '/').end_with?('/#{src.filename}')}]
       line %[$".push "\#{__dir__}/#{src.filename}"]
       put src, @params.convert_line?
       line %[end]
