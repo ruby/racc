@@ -405,6 +405,7 @@ module Racc
       @filename = filename
       @lineno = -1
       @line_head   = true
+      @allow_colon2 = false
       @in_rule_blk = false
       @in_conv_blk = false
       @in_block = nil
@@ -437,11 +438,17 @@ module Racc
     def yylex0
       begin
         until @line.empty?
-          @line.sub!(/\A\s+/, '')
+          @allow_colon2 = false if @line.sub!(/\A\s+/, '')
           if /\A\#/ =~ @line
             break
           elsif /\A\/\*/ =~ @line
             skip_comment
+          elsif @allow_colon2 && @line.start_with?(':')
+            @allow_colon2 = false
+            read(1)
+            yield [':', ':']
+          elsif @line.start_with?(':') && (s = reads(/\A:(?!:)[a-zA-Z_]\w*/))
+            scan_error! "terminal and nonterminal symbols cannot start with ':', but got #{s}"
           elsif s = reads(/\A[a-zA-Z_]\w*/)
             yield [atom_symbol(s), s.intern]
           elsif s = reads(/\A\d+/)
@@ -457,6 +464,7 @@ module Racc
               if ch == '|'
                 @line_head = false
               end
+              @allow_colon2 = ch == ':' && @line.start_with?(':')
               yield [ch, ch]
             end
           else
