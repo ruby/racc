@@ -48,6 +48,17 @@ module Racc
       assert_exec 'echk.y', quiet: true
     end
 
+    def test_echk_y_with_backslash_loaded_feature
+      assert_compile 'echk.y', '-E'
+      assert_debugfile 'echk.y', []
+      ruby "-I#{LIB_DIR}", "-rracc/parser", "-e", <<~'RUBY', "#{@TAB_DIR}/echk", quiet: true
+        $".map! do |feature|
+          feature.end_with?('/racc/parser.rb') ? 'C:\\tmp\\racc\\parser.rb' : feature
+        end
+        load ARGV.shift
+      RUBY
+    end
+
     def test_err_y
       assert_compile 'err.y'
       assert_debugfile 'err.y', []
