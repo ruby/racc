@@ -34,7 +34,7 @@ file 'lib/racc/parser-text.rb' => ['lib/racc/parser.rb', 'lib/racc/info.rb', __F
     lib = $1
     code = File.read("lib/#{lib}.rb")
     code.sub!(/\A(?:#.*\n)+/, '')
-    %[unless $".find {|p| p.end_with?('/#{lib}.rb')}\n$".push "\#{__dir__}/#{lib}.rb"\n#{code}\nend\n]
+    %[unless $".find {|p| p.tr('\\\\', '/').end_with?('/#{lib}.rb')}\n$".push "\#{__dir__}/#{lib}.rb"\n#{code}\nend\n]
   rescue
     $&
   end
