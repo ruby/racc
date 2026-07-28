@@ -456,7 +456,16 @@ module Racc
           elsif ch = reads(/\A./)
             case ch
             when '"', "'"
-              yield [:STRING, eval(scan_quoted(ch))]
+              string_literal = scan_quoted(ch)
+              if ch == "'"
+                # We can't use String#undump for '...'.
+                string = string_literal[1..-2].gsub(/\\\\|\\'/) do |matched|
+                  matched[1]
+                end
+              else
+                string = string_literal.undump
+              end
+              yield [:STRING, string]
             when '{'
               lineno = lineno()
               yield [:ACTION, SourceText.new(scan_action(), @filename, lineno)]
