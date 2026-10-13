@@ -72,11 +72,11 @@ module Racc
     alias inspect to_s
 
     def size
-      @set.nitems
+      @set.count {|item| !item.nil? }
     end
 
     def empty?
-      @set.nitems == 0
+      @set.none? {|item| !item.nil? }
     end
 
     def clear
