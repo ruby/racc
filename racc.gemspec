@@ -34,16 +34,12 @@ DESC
     "lib/racc/parser.rb", "lib/racc/parserfilegenerator.rb",
     "lib/racc/sourcetext.rb",
     "lib/racc/state.rb", "lib/racc/statetransitiontable.rb",
-    "lib/racc/static.rb",
-    "doc/en/grammar.en.rdoc", "doc/en/grammar2.en.rdoc",
-    "doc/ja/command.ja.html", "doc/ja/debug.ja.rdoc",
-    "doc/ja/grammar.ja.rdoc", "doc/ja/index.ja.html",
-    "doc/ja/parser.ja.rdoc", "doc/ja/usage.ja.html",
+    "lib/racc/static.rb", "doc/index.md", "doc/getting-started.md",
+    "doc/command-reference.md", "doc/parser-class-reference.md",
+    "doc/grammar-reference.md", "doc/debugging.md", "doc/advanced-topics.md"
   ]
   s.require_paths = ["lib"]
   s.required_ruby_version = ">= 2.5"
-  s.rdoc_options = ["--main", "README.rdoc"]
-  s.extra_rdoc_files = ["README.ja.rdoc", "README.rdoc"]
   s.metadata["homepage_uri"] = s.homepage
   s.metadata["source_code_uri"] = s.homepage
   s.metadata["documentation_uri"] = "https://ruby.github.io/racc/"
